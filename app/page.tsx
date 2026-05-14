@@ -15,14 +15,14 @@ export default function Home() {
         <div className="absolute inset-0 z-0">
           <div
             className="w-full h-full bg-cover bg-center opacity-100"
-            style={{ backgroundImage: 'url("/images/bubble.png")' }}
+            style={{ backgroundImage: 'url("/images/bubble.webp")' }}
           />
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white/80 to-amber-50 -z-10" />
         </div>
 
         <div className="absolute top-0 right-0 w-1/3 h-1/2 z-0 hidden lg:block">
           <img
-            src="/images/bubble.png"
+            src="/images/bubble.webp"
             alt=""
             className="w-full h-full object-contain object-right-top opacity-100"
           />
@@ -54,7 +54,7 @@ export default function Home() {
           <div className="relative mt-20 md:mt-0">
             <div className="w-80 h-96 bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-white rotate-3">
               <img
-                src="/images/landingImage.jpg"
+                src="/images/landingImage.webp"
                 alt="Event"
                 className="w-full h-full object-cover"
               />

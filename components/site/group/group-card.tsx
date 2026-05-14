@@ -1,7 +1,7 @@
-import React from "react";
+
 import Link from "next/link";
 import { Lock, Globe, MoreHorizontal, Link2 } from "lucide-react";
-import { Group } from "../../data/groups";
+import { Group } from "../../../data/groups";
 
 interface GroupCardProps {
   group: Group;
@@ -17,7 +17,11 @@ export default function GroupCard({ group, role }: GroupCardProps) {
 
       <div className="flex items-center justify-between mb-6">
         <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#F0F2F5] text-xs font-bold text-primary">
-          {isInternal ? <Lock size={14} fill="currentColor" /> : <Globe size={14} />}
+          {isInternal ? (
+            <Lock size={14} fill="currentColor" />
+          ) : (
+            <Globe size={14} />
+          )}
           {group.type}
         </span>
 

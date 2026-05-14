@@ -66,7 +66,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="pointer-events-none">
               <Image
-                src="/images/hrdLogo.png"
+                src="/images/hrdLogo.webp"
                 alt="HRD Event Hub Logo"
                 width={32}
                 height={32}
@@ -74,7 +74,7 @@ export function AppSidebar() {
               />
               <div className="flex flex-col leading-tight">
                 <Image
-                  src="/images/Logo.png"
+                  src="/images/Logo.webp"
                   alt="HRD Event Hub Text Logo"
                   width={100}
                   height={20}

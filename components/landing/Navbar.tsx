@@ -30,7 +30,7 @@ export default function Navbar() {
         >
           <Link href="/" className="flex items-center gap-1.5 no-underline shrink-0 transition-transform duration-300 active:scale-95">
             <Image
-              src="/images/Logo.png"
+              src="/images/Logo.webp"
               alt="HRD Event Hub Logo"
               width={160}
               height={40}

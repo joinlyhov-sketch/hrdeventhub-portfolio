@@ -1,4 +1,4 @@
-import GroupHeader from "../../../components/group/group-header";
+import GroupHeader from "../../../components/site/group/group-header";
 import React from "react";
 
 export default function layout({

@@ -25,7 +25,7 @@ export default function AuthLayout({
       <div className="absolute right-[5%] bottom-[7%] h-16 w-16 bg-[#edf3fb]" />
       <div className="relative z-10 flex min-h-screen flex-col px-8 py-8 lg:px-16">
         <Image
-          src="/images/Logo.png"
+          src="/images/Logo.webp"
           alt="HRD EventHub"
           width={170}
           height={70}

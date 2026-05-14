@@ -7,7 +7,7 @@ export default function Footer() {
           <div className="col-span-2">
             <div className="flex items-center gap-2 mb-6">
                 <Image
-                src="/images/Logo.png"
+                src="/images/Logo.webp"
                 alt="HRD Event Hub Logo"
                 width={150}
                 height={150}

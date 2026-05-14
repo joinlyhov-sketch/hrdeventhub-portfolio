@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* ----- Colors (semantic, not literal) ----- */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -12,9 +13,14 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-action: var(--action);
+  --color-action-foreground: var(--action-foreground);
+  --color-subtle: var(--subtle);
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -24,10 +30,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-primary-hover: var(--primary-hover);
-  --color-action: var(--action-accent);
-  --color-subtle: var(--subtle-accent);
-
+  /* ----- Greyscale (literal scale) ----- */
   --color-grey-50: var(--grey-50);
   --color-grey-100: var(--grey-100);
   --color-grey-200: var(--grey-200);
@@ -36,59 +39,216 @@
   --color-grey-500: var(--grey-500);
   --color-grey-900: var(--grey-900);
 
-  --font-sans: var(--font-sans);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-border: var(--sidebar-border);
+  /* ----- Typography ----- */
+  --font-sans: var(--font-google-sans);
+  --font-display: var(--font-google-sans-flex);
 
+  /* ----- Font sizes (name → size token) ----- */
+  --text-h1: var(--fs-h1);
+  --text-subtitle-24: var(--fs-subtitle-24);
+  --text-title: var(--fs-title);
+  --text-subtitle: var(--fs-subtitle);
+  --text-desc: var(--fs-desc);
+  --text-desc-medium: var(--fs-desc-medium);
+  --text-desc-semibold: var(--fs-desc-semibold);
+  --text-desc-small-semibold: var(--fs-desc-small-semibold);
+  --text-detail: var(--fs-detail);
+  --text-detail-medium: var(--fs-detail-medium);
+  --text-detail-semibold: var(--fs-detail-semibold);
+  --text-detail-small-medium: var(--fs-detail-small-medium);
+
+  /* ----- Radius ----- */
+  --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
 }
 
 :root {
-  --primary: #1C4D8D;
-  --secondary: #0F2854;
-  --primary-hover: #4663AC;
-  --subtle-accent: #3BC1A8;
-  --action-accent: #FFA02E;
+  /* 1. Brand palette — the ONLY place hex is allowed */
+  --primary: #1c4d8d;
+  --primary-hover: #4663ac;
+  --secondary: #0f2854;
+  --action: #ffa02e;
+  --subtle: #3bc1a8;
 
-  --grey-50: #F9FAFB;
-  --grey-100: #F3F4F6;
-  --grey-200: #E5E7EB;
-  --grey-300: #D1D5DB;
-  --grey-400: #9CA3AF;
-  --grey-500: #6B7280;
+  /* 2. Greyscale */
+  --grey-50:  #f9fafb;
+  --grey-100: #f3f4f6;
+  --grey-200: #e5e7eb;
+  --grey-300: #d1d5db;
+  --grey-400: #9ca3af;
+  --grey-500: #6b7280;
   --grey-900: #111827;
 
-  --background: #FFFFFF;
+  /* 3. Semantic mapping (no hex below this line) */
+  --background: #ffffff;
   --foreground: var(--grey-900);
-  --card: #FFFFFF;
+  --card: #ffffff;
   --card-foreground: var(--grey-900);
-  --primary-foreground: #FFFFFF;
-  --secondary-foreground: #FFFFFF;
+  --popover: #ffffff;
+  --popover-foreground: var(--grey-900);
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #ffffff;
+  --action-foreground: var(--grey-900);
+  --subtle-foreground: var(--grey-900);
   --muted: var(--grey-100);
-  --muted-foreground: var(--grey-500);
-  --accent: var(--subtle-accent);
+  --muted-foreground: var(--grey-500); 
+  --accent: var(--subtle);
   --accent-foreground: var(--grey-900);
-  --destructive: #EF4444;
+  --destructive: #ef4444;
   --border: var(--grey-200);
   --input: var(--grey-200);
   --ring: var(--primary);
   --radius: 0.625rem;
 
-  --sidebar: #F9FAFB;
-  --sidebar-foreground: var(--grey-900);
-  --sidebar-primary: var(--primary);
-  --sidebar-border: var(--grey-200);
+  /* 4. Typography scale
+  ----------------------------------------------------------------- */
+
+  /* h1 · 48/58 */
+  --fs-h1: 3rem;           /* 48px */
+  --lh-h1: 3.625rem;       /* 58px */
+  --fw-h1: 700;
+
+  /* subtitle-24 · 24/Auto */
+  --fs-subtitle-24: 1.5rem;   /* 24px */
+  --lh-subtitle-24: normal;
+  --fw-subtitle-24: 600;
+
+  /* title · 28/34 */
+  --fs-title: 1.75rem;     /* 28px */
+  --lh-title: 2.125rem;    /* 34px */
+  --fw-title: 700;
+
+  /* subtitle · 20/30 */
+  --fs-subtitle: 1.25rem;  /* 20px */
+  --lh-subtitle: 1.875rem; /* 30px */
+  --fw-subtitle: 600;
+
+  /* desc · 16/24  (regular weight) */
+  --fs-desc: 1rem;         /* 16px */
+  --lh-desc: 1.5rem;       /* 24px */
+  --fw-desc: 400;
+
+  /* desc-medium · 16/24  (medium weight) */
+  --fs-desc-medium: 1rem;
+  --lh-desc-medium: 1.5rem;
+  --fw-desc-medium: 500;
+
+  /* desc-semibold · 16/Auto */
+  --fs-desc-semibold: 1rem;
+  --lh-desc-semibold: normal;
+  --fw-desc-semibold: 600;
+
+  /* desc-small-semibold · 12/Auto */
+  --fs-desc-small-semibold: 0.75rem; /* 12px */
+  --lh-desc-small-semibold: normal;
+  --fw-desc-small-semibold: 600;
+
+  /* detail · 14/20  (regular weight) */
+  --fs-detail: 0.875rem;   /* 14px */
+  --lh-detail: 1.25rem;    /* 20px */
+  --fw-detail: 400;
+
+  /* detail-medium · 14/20 */
+  --fs-detail-medium: 0.875rem;
+  --lh-detail-medium: 1.25rem;
+  --fw-detail-medium: 500;
+
+  /* detail-semibold · 14/Auto */
+  --fs-detail-semibold: 0.875rem;
+  --lh-detail-semibold: normal;
+  --fw-detail-semibold: 600;
+
+  /* detail-small-medium · 10/Auto */
+  --fs-detail-small-medium: 0.625rem; /* 10px */
+  --lh-detail-small-medium: normal;
+  --fw-detail-small-medium: 500;
 }
 
+/* ---------------------------------------------------------------
+   5. Base resets
+---------------------------------------------------------------- */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}
+
+@layer utilities {
+  .type-h1 {
+    font-size: var(--fs-h1);
+    line-height: var(--lh-h1);
+    font-weight: var(--fw-h1, 700);
+  }
+
+  .type-subtitle-24 {
+    font-size: var(--fs-subtitle-24);
+    line-height: var(--lh-subtitle-24);
+    font-weight: var(--fw-subtitle-24, 600);
+  }
+
+  .type-title {
+    font-size: var(--fs-title);
+    line-height: var(--lh-title);
+    font-weight: var(--fw-title, 700);
+  }
+
+  .type-subtitle {
+    font-size: var(--fs-subtitle);
+    line-height: var(--lh-subtitle);
+    font-weight: var(--fw-subtitle, 600);
+  }
+
+  .type-desc {
+    font-size: var(--fs-desc);
+    line-height: var(--lh-desc);
+    font-weight: var(--fw-desc, 400);
+  }
+
+  .type-desc-medium {
+    font-size: var(--fs-desc-medium);
+    line-height: var(--lh-desc-medium);
+    font-weight: var(--fw-desc-medium, 500);
+  }
+
+  .type-desc-semibold {
+    font-size: var(--fs-desc-semibold);
+    line-height: var(--lh-desc-semibold);
+    font-weight: var(--fw-desc-semibold, 600);
+  }
+
+  .type-desc-small-semibold {
+    font-size: var(--fs-desc-small-semibold);
+    line-height: var(--lh-desc-small-semibold);
+    font-weight: var(--fw-desc-small-semibold, 600);
+  }
+
+  .type-detail {
+    font-size: var(--fs-detail);
+    line-height: var(--lh-detail);
+    font-weight: var(--fw-detail, 400);
+  }
+
+  .type-detail-medium {
+    font-size: var(--fs-detail-medium);
+    line-height: var(--lh-detail-medium);
+    font-weight: var(--fw-detail-medium, 500);
+  }
+
+  .type-detail-semibold {
+    font-size: var(--fs-detail-semibold);
+    line-height: var(--lh-detail-semibold);
+    font-weight: var(--fw-detail-semibold, 600);
+  }
+
+  .type-detail-small-medium {
+    font-size: var(--fs-detail-small-medium);
+    line-height: var(--lh-detail-small-medium);
+    font-weight: var(--fw-detail-small-medium, 500);
   }
 }

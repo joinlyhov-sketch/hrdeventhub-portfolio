@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { signIn } from "next-auth/react";
 import { authService } from "../service/auth.service";
@@ -22,7 +22,6 @@ export async function loginAction(formData: FormData) {
 
   return { ok: true };
 }
-
 export async function registerAction(payload: RegisterRequest) {
   console.log("Register action payload", payload);
   const {

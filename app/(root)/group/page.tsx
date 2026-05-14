@@ -1,6 +1,6 @@
-import GroupHeader from "../../../components/group/group-header";
-import GroupCard from "../../../components/group/group-card";
-import GroupSearch from "../../../components/group/group-search";
+import GroupHeader from "../../../components/site/group/group-header";
+import GroupCard from "../../../components/site/group/group-card";
+import GroupSearch from "../../../components/site/group/group-search";
 import { mockGroups } from "../../../data/groups";
 import { Metadata } from "next";
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function GroupPage() {
-  const groups = mockGroups; 
+  const groups = mockGroups;
   const userRole: "admin" | "alumni" = "alumni";
 
   return (
