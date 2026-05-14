@@ -1,0 +1,185 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { resendOtpAction, verifyOtpAction } from "../../../actions/auth.action";
+import { useRegisterStore } from "../../../store/useRegisterStore";
+
+export default function Step3OTP() {
+  const otpEmail = useRegisterStore((s) => s.otpEmail);
+  const setStep = useRegisterStore((s) => s.setStep);
+
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [secondsLeft, setSecondsLeft] = useState(500);
+
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (secondsLeft <= 0) return;
+    const timer = window.setInterval(() => {
+      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [secondsLeft]);
+
+  const handleChange = (value: string, index: number) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
+    if (value && index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerify = () => {
+    setError(null);
+    setSuccess(null);
+    setResendMessage(null);
+
+    const code = otp.join("");
+
+    if (!otpEmail) {
+      setError("Email is missing. Please register again.");
+      return;
+    }
+    if (code.length !== 6) {
+      setError("Please enter the 6-digit OTP.");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await verifyOtpAction(otpEmail, code);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      if (result?.ok) {
+        setSuccess(result.message ?? "Verification successful.");
+        setTimeout(() => router.push("/login"), 1200);
+      }
+    });
+  };
+
+  const handleResend = () => {
+    if (secondsLeft > 0) return;
+    if (!otpEmail) {
+      setError("Email is missing. Please register again.");
+      return;
+    }
+
+    setError(null);
+    setResendMessage(null);
+
+    startTransition(async () => {
+      const result = await resendOtpAction(otpEmail);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      setResendMessage(
+        result.message ?? "Verification OTP successfully resent.",
+      );
+      setSecondsLeft(300);
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
+    });
+  };
+
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+
+  return (
+    <motion.div
+      className="flex flex-col gap-5"
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div className="mb-5 text-center">
+        <h2 className="text-[48px] font-extrabold tracking-[-2px] text-[#17356f]">
+          Verify Your Email
+        </h2>
+        <p className="mt-2 text-[#6e7580]">We sent a code to your email</p>
+      </div>
+
+      <div className="flex justify-between gap-3 my-2">
+        {otp.map((digit, index) => (
+          <input
+            key={index}
+            ref={(el) => {
+              inputRefs.current[index] = el;
+            }}
+            type="text"
+            inputMode="numeric"
+            maxLength={1}
+            value={digit}
+            onChange={(e) => handleChange(e.target.value, index)}
+            onKeyDown={(e) => handleKeyDown(e, index)}
+            className="h-[58px] w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
+          />
+        ))}
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
+          {success}
+        </div>
+      )}
+      {resendMessage && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+          {resendMessage}
+        </div>
+      )}
+
+      <div className="text-center text-sm text-[#6e7580]">
+        <button
+          onClick={handleResend}
+          disabled={secondsLeft > 0}
+          className="font-semibold text-[#17356f] underline underline-offset-2 disabled:text-[#b7c6dc] disabled:no-underline transition-all"
+        >
+          Resend
+        </button>
+        <span className="ml-2">
+          {minutes}:{seconds.toString().padStart(2, "0")}
+        </span>
+      </div>
+
+      <button
+        onClick={handleVerify}
+        disabled={isPending}
+        className="mt-3 h-[58px] w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+      >
+        {isPending ? "Verifying..." : "Submit"}
+      </button>
+
+      <div className="flex items-center gap-4 mt-2">
+        <div className="h-px flex-1 bg-[#dce6f0]" />
+        <span className="text-sm text-[#6e7580] whitespace-nowrap">
+          Or Back to{" "}
+          <button
+            onClick={() => setStep(2)}
+            className="font-semibold text-[#17356f] underline underline-offset-2 cursor-pointer"
+          >
+            Login
+          </button>
+        </span>
+        <div className="h-px flex-1 bg-[#dce6f0]" />
+      </div>
+    </motion.div>
+  );
+}
