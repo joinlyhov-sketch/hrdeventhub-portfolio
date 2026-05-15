@@ -20,7 +20,7 @@ export default function Loading() {
             Loading...
           </p>
           <p className="type-detail text-muted-foreground">
-            Hang tight, we're getting things ready.
+            Hang tight, we &apos re getting things ready.
           </p>
         </div>
         <div className="w-full max-w-md space-y-3 mt-2">

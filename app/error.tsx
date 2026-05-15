@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 
 interface ErrorProps {
@@ -66,12 +67,9 @@ export default function Error({ error, reset }: ErrorProps) {
           >
             Try Again
           </button>
-          <a
-            href="/"
-            className="flex-1 bg-muted text-foreground type-detail-semibold py-3 rounded-xl text-center hover:bg-grey-200 transition-colors"
-          >
-            Go Home
-          </a>
+          <Link href="/"  className="flex-1 bg-muted text-foreground type-detail-semibold py-3 rounded-xl text-center hover:bg-grey-200 transition-colors">
+          Go Home
+          </Link>
         </div>
 
       </div>
