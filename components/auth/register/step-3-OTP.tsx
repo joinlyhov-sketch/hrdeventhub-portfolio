@@ -66,7 +66,7 @@ export default function Step3OTP() {
       }
       if (result?.ok) {
         setSuccess(result.message ?? "Verification successful.");
-        setTimeout(() => router.push("/login"), 1200);
+        setTimeout(() => router.push("/login"), 1000);
       }
     });
   };

@@ -15,7 +15,11 @@ const step1Schema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   gender: z.string().min(1, "Gender is required"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
+   phoneNumber: z
+    .string()
+    .min(1, "Phone number is required")
+    .regex(/^\d{8,10}$/, "Phone number must be 8–10 digits (e.g. 012345678)"),
+
 });
 
 export default function Step1Personal() {
@@ -115,12 +119,15 @@ export default function Step1Personal() {
 
         <div className="flex items-center gap-3 rounded-2xl border border-[#dce6f0] bg-white px-4 py-3.5 focus-within:border-[#24529a] transition-all">
           <PhoneIcon />
-          <input
-            placeholder="Phone number"
-            value={form.phoneNumber}
-            onChange={(e) => updateField("phoneNumber", e.target.value)}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
-          />
+         <input
+  placeholder="855+ Phone Number"
+  value={form.phoneNumber}
+  onChange={(e) => {
+    const digits = e.target.value.replace(/\D/g, "");
+    updateField("phoneNumber", digits);
+  }}
+  className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
+/>
         </div>
       </div>
 
