@@ -13,8 +13,6 @@ export default function GroupCard({ group, role }: GroupCardProps) {
 
   return (
     <div className="bg-white p-8 rounded-[35px] border border-gray-100 flex flex-col shadow-sm hover:shadow-xl transition-all relative group overflow-hidden">
-      
-      {/* 45-Degree Gradient Overlay */}
       <div 
         className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
           isInternal 
@@ -22,8 +20,6 @@ export default function GroupCard({ group, role }: GroupCardProps) {
             : "bg-[linear-gradient(225deg,#ECF0F6_17%,#FDFDFD_42%)]"
         } opacity-90`} 
       />
-
-      {/* Your existing content starts here - added 'relative z-10' to ensure text stays above the overlay */}
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center justify-between mb-6">
           <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#F0F2F5] text-xs font-bold text-primary">
@@ -36,7 +32,6 @@ export default function GroupCard({ group, role }: GroupCardProps) {
               <MoreHorizontal size={24} />
             </button>
           ) : (
-            /* Match the orange ring design from the image */
             <div className="p-2 rounded-full border border-[#FFD7A1] text-[#EFCF8B] hover:scale-110 transition-transform cursor-pointer">
               <Link2 size={20} />
             </div>
