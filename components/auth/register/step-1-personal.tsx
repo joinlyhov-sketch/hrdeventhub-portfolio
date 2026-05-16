@@ -67,10 +67,10 @@ export default function Step1Personal() {
       variants={itemVars}
     >
       <div className="mb-5 text-center">
-        <h2 className="text-[48px] font-extrabold tracking-[-2px] text-[#17356f]">
+        <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
           Create Your Account
         </h2>
-        <p className="mt-2 text-[#6e7580]">Join HRD EventHub &amp; Get started</p>
+        <p className="mt-2 text-[#6e7580] text-[14px]">Join HRD EventHub &amp; Get started</p>
       </div>
 
       <div className="space-y-1">
