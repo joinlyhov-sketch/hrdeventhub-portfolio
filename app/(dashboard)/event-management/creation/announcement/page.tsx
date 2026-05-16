@@ -1,9 +1,9 @@
-import React from 'react'
+import CreateAnnounmentForm from "../../../../../components/dashboard/creation/CreateAnnounmentForm";
 
-export default function page() {
+export default function AnnounmentCreationPage() {
   return (
-    <div>
-      annoucement creation page
-    </div>
-  )
+    <main className="flex-grow flex flex-col">
+          <CreateAnnounmentForm />
+        </main>
+  );
 }

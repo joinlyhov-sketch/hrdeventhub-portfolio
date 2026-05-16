@@ -1,9 +1,9 @@
-import React from 'react'
+import CreateArticleForm from "../../../../../components/dashboard/creation/CreateArticleForm";
 
-export default function page() {
+export default function ArticleCreationPage() {
   return (
-    <div>
-      article creation page
-    </div>
-  )
+   <main className="flex-grow flex flex-col">
+         <CreateArticleForm />
+       </main>
+  );
 }
