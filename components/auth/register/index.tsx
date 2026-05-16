@@ -6,7 +6,7 @@ import Step1Personal from "./step-1-personal";
 import Step2Account from "./step-2-account";
 import Step3OTP from "./step-3-OTP";
 
-const STEP_LABELS = ["Personal Details", "Account Setup", "Verification"];
+const registerStep = ["Personal Details", "Account Setup", "Verification"];
 
 export default function RegisterWizard() {
   const step = useRegisterStore((s) => s.step);
@@ -42,10 +42,10 @@ export default function RegisterWizard() {
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
     <div className="mb-12 flex items-start justify-center">
-      {STEP_LABELS.map((label, i) => {
+      {registerStep.map((label, i) => {
         const stepNum = i + 1;
         const isActive = currentStep >= stepNum;
-        const isLast = i === STEP_LABELS.length - 1;
+        const isLast = i === registerStep.length - 1;
 
         return (
           <div key={stepNum} className="flex items-start">
