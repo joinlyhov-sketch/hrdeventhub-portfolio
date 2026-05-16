@@ -15,7 +15,8 @@ export default function Step3OTP() {
   const [success, setSuccess] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [secondsLeft, setSecondsLeft] = useState(500);
+  const [secondsLeft, setSecondsLeft] = useState(300);
+  const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
@@ -27,27 +28,17 @@ export default function Step3OTP() {
     }, 1000);
     return () => window.clearInterval(timer);
   }, [secondsLeft]);
-
-  const handleChange = (value: string, index: number) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1);
-    setOtp(newOtp);
-    if (value && index < 5) inputRefs.current[index + 1]?.focus();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+  useEffect(() => {
+    const isFilled = otp.every((d) => d !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) {
+      submitOtp(otp.join(""));
     }
-  };
+  }, [otp]);
 
-  const handleVerify = () => {
+  const submitOtp = (code: string) => {
     setError(null);
     setSuccess(null);
     setResendMessage(null);
-
-    const code = otp.join("");
 
     if (!otpEmail) {
       setError("Email is missing. Please register again.");
@@ -62,13 +53,32 @@ export default function Step3OTP() {
       const result = await verifyOtpAction(otpEmail, code);
       if (result?.error) {
         setError(result.error);
+        setAutoSubmitEnabled(false);
         return;
       }
       if (result?.ok) {
         setSuccess(result.message ?? "Verification successful.");
-        setTimeout(() => router.push("/login"), 1200);
+        setTimeout(() => router.push("/login"), 300);
       }
     });
+  };
+
+  const handleVerify = () => {
+    submitOtp(otp.join(""));
+  };
+
+  const handleChange = (value: string, index: number) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
+    if (value && index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
   };
 
   const handleResend = () => {
@@ -87,11 +97,10 @@ export default function Step3OTP() {
         setError(result.error);
         return;
       }
-      setResendMessage(
-        result.message ?? "Verification OTP successfully resent.",
-      );
+      setResendMessage(result.message ?? "Verification OTP successfully resent.");
       setSecondsLeft(300);
       setOtp(["", "", "", "", "", ""]);
+      setAutoSubmitEnabled(true); 
       inputRefs.current[0]?.focus();
     });
   };
@@ -116,9 +125,7 @@ export default function Step3OTP() {
         {otp.map((digit, index) => (
           <input
             key={index}
-            ref={(el) => {
-              inputRefs.current[index] = el;
-            }}
+            ref={(el) => { inputRefs.current[index] = el; }}
             type="text"
             inputMode="numeric"
             maxLength={1}

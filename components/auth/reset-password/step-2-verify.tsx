@@ -15,9 +15,12 @@ export default function VerifyStep() {
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [secondsLeft, setSecondsLeft] = useState(300);
+  const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true); 
+
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -27,25 +30,18 @@ export default function VerifyStep() {
     return () => window.clearInterval(timer);
   }, [secondsLeft]);
 
-  const handleChange = (value: string, index: number) => {
-    if (!/^[0-9]*$/.test(value)) return;
-    const next = [...otp];
-    next[index] = value.slice(-1);
-    setOtp(next);
-    if (value && index < 5) inputs.current[index + 1]?.focus();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputs.current[index - 1]?.focus();
+  useEffect(() => {
+    const isFilled = otp.every((d) => d !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) {
+      submitOtp(otp.join(""));
     }
-  };
+  }, [otp]);
 
-  const handleVerify = () => {
+  const submitOtp = (code: string) => {
     setError(null);
+    setSuccess(null);
     setResendMessage(null);
 
-    const code = otp.join("");
     if (!email) {
       setError("Email is missing. Please go back.");
       return;
@@ -59,12 +55,29 @@ export default function VerifyStep() {
       const result = await verifyForgotPasswordAction(email, code);
       if (result?.error) {
         setError(result.error);
+        setAutoSubmitEnabled(false); 
         return;
       }
       if (result?.ok && result.token) {
         storeToken(result.token);
       }
     });
+  };
+
+  const handleVerify = () => submitOtp(otp.join(""));
+
+  const handleChange = (value: string, index: number) => {
+    if (!/^[0-9]*$/.test(value)) return;
+    const next = [...otp];
+    next[index] = value.slice(-1);
+    setOtp(next);
+    if (value && index < 5) inputs.current[index + 1]?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputs.current[index - 1]?.focus();
+    }
   };
 
   const handleResend = () => {
@@ -82,11 +95,10 @@ export default function VerifyStep() {
         setError(result.error);
         return;
       }
-      setResendMessage(
-        result.message ?? "Verification OTP successfully resent.",
-      );
+      setResendMessage(result.message ?? "Verification OTP successfully resent.");
       setSecondsLeft(300);
       setOtp(["", "", "", "", "", ""]);
+      setAutoSubmitEnabled(true);
       inputs.current[0]?.focus();
     });
   };
@@ -112,9 +124,7 @@ export default function VerifyStep() {
         {[...Array(6)].map((_, i) => (
           <input
             key={i}
-            ref={(el) => {
-              inputs.current[i] = el;
-            }}
+            ref={(el) => { inputs.current[i] = el; }}
             type="text"
             maxLength={1}
             value={otp[i]}
@@ -128,6 +138,11 @@ export default function VerifyStep() {
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
           {error}
+        </div>
+      )}
+      {success && (
+        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
+          {success}
         </div>
       )}
       {resendMessage && (
