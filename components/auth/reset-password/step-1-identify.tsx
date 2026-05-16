@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useState, useTransition } from "react";
 import { forgotPasswordAction } from "../../../actions/auth.action";
 import { useResetPasswordStore } from "../../../store/useResetPasswordStore";
+import { Mail } from "lucide-react";
 
 export default function IdentifyStep() {
   const storeEmail = useResetPasswordStore((s) => s.storeEmail);
@@ -47,7 +48,7 @@ export default function IdentifyStep() {
       </div>
 
       <div className="flex items-center gap-3 rounded-2xl border border-[#dce6f0] bg-white px-4 py-3.5 focus-within:border-[#24529a] transition-all">
-        <EmailIcon />
+        <Mail size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
         <input
           placeholder="Email"
           type="email"
@@ -71,22 +72,5 @@ export default function IdentifyStep() {
         {isPending ? "Sending..." : "Send Reset Link"}
       </button>
     </motion.div>
-  );
-}
-
-function EmailIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#b0bac9"
-      strokeWidth="2"
-      className="shrink-0"
-    >
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-      <polyline points="22,6 12,13 2,6" />
-    </svg>
   );
 }
