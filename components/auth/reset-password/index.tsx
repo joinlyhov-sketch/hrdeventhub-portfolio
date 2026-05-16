@@ -6,7 +6,7 @@ import IdentifyStep from "./step-1-identify";
 import VerifyStep from "./step-2-verify";
 import NewPasswordStep from "./step-3-new-password";
 
-const STEP_LABELS = ["Identify", "Verify", "New Password"];
+const STEP_LABELS = ["Email Requirement", "Verification", "Done"];
 
 export default function ResetPasswordWizard() {
   const step = useResetPasswordStore((s) => s.step);
@@ -16,58 +16,76 @@ export default function ResetPasswordWizard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9 }}
-      className="mx-auto w-full max-w-[640px] rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-10"
+      className="mx-auto w-[715px] min-h-[600px] flex flex-col rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-10 shadow-sm"
     >
       <StepIndicator currentStep={step} />
 
-      <AnimatePresence mode="wait">
-        {step === 1 && <IdentifyStep key="step1" />}
-        {step === 2 && <VerifyStep key="step2" />}
-        {step === 3 && <NewPasswordStep key="step3" />}
-      </AnimatePresence>
+      <div className="w-full flex flex-col items-stretch">
+        <AnimatePresence mode="wait">
+          {step === 1 && <IdentifyStep key="step1" />}
+          {step === 2 && <VerifyStep key="step2" />}
+          {step === 3 && <NewPasswordStep key="step3" />}
+        </AnimatePresence>
+      </div>  
 
-      <p className="mt-8 text-center text-sm text-[#5f6470]">
-        Remembered your password?{" "}
-        <a
-          href="/login"
-          className="font-semibold text-[#17356f] underline underline-offset-2"
-        >
-          Back to Login
-        </a>
-      </p>
+      <div className="flex items-center justify-center gap-4 mt-8">
+        <div className="h-[1px] w-[160px] bg-[#dce6f0]" />
+        <span className="text-sm text-[#5f6470] whitespace-nowrap">
+          Or Back to{" "}
+          <button
+            onClick={() => window.history.back()}
+            className="font-bold text-[#1f4f98] underline decoration-2 underline-offset-4 hover:text-[#17356f] transition-colors cursor-pointer"
+          >
+            Login
+          </button>
+        </span>
+        <div className="h-[1px] w-[160px] bg-[#dce6f0]" />
+      </div>
     </motion.div>
   );
 }
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
-    <div className="mb-12 flex items-start justify-center">
+    <div className="mb-14 flex items-center justify-center">
       {STEP_LABELS.map((label, i) => {
         const stepNum = i + 1;
         const isActive = currentStep >= stepNum;
+        const isCompleted = currentStep > stepNum;
         const isLast = i === STEP_LABELS.length - 1;
 
         return (
-          <div key={stepNum} className="flex items-start">
-            <div className="flex flex-col items-center">
+          <div key={stepNum} className="flex items-center">
+            {/* Step Circle & Label Container */}
+            <div className="relative flex flex-col items-center w-10">
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all ${
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-500 z-10 ${
                   isActive
-                    ? "bg-[#24529a] text-white"
-                    : "border border-[#cfd7e4] bg-white text-[#4d5663]"
+                    ? "bg-[#24529a] text-white shadow-lg shadow-blue-900/20"
+                    : "bg-[#f0f2f5] text-[#94a3b8]"
                 }`}
               >
                 {stepNum}
               </div>
-              <span className="mt-3 text-sm text-[#4d5663]">{label}</span>
+              
+              {/* Absolute Label - Prevents horizontal spacing issues */}
+              <span className={`absolute top-12 whitespace-nowrap text-[13px] font-medium transition-colors duration-300 ${
+                isActive ? "text-[#17356f]" : "text-[#94a3b8]"
+              }`}>
+                {label}
+              </span>
             </div>
 
+            {/* Connector Line */}
             {!isLast && (
-              <div
-                className={`mt-5 h-[2px] w-24 transition-all ${
-                  currentStep > stepNum ? "bg-[#24529a]" : "bg-[#b7c6dc]"
-                }`}
-              />
+              <div className="relative h-[1.5px] w-16 bg-[#e2e8f0] mx-1">
+                <motion.div
+                  initial={{ width: "0%" }}
+                  animate={{ width: isCompleted ? "100%" : "0%" }}
+                  className="absolute h-full bg-[#24529a]"
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
             )}
           </div>
         );

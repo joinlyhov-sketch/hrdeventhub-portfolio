@@ -1,5 +1,5 @@
-import EditEventForm from "../../../_Component/EditEventForm";
-import { EventManagementNavbar } from "../../../_Component/EventManagementNavbar";
+import EditEventForm from "../../../../../components/dashboard/edition/EditEventForm";
+import { EventManagementNavbar } from "../../../../../components/dashboard/EventManagementNavbar";
 
 export default function EventCreationPage() {
   return (

@@ -18,7 +18,6 @@ export const metadata: Metadata = {
 export default function page() {
   return (
     <main>
-      {/* Page Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="bg-primary p-2 rounded-lg text-white">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,8 +75,6 @@ export default function page() {
                 Admin
               </span>
             </div>
-
-            {/* Post Title & Body */}
             <h2 className="type-title text-primary mb-4">
               AI Evolution in Modern Technology Era
             </h2>
@@ -86,8 +83,6 @@ export default function page() {
               This workshop explores the evolution of AI, modern innovations like machine learning
               and generative AI...
             </p>
-
-            {/* Info Box */}
             <div className="bg-grey-50 rounded-[12px] p-6 space-y-3 mb-6">
               <div className="flex items-start gap-3">
                 <MapPin size={18} className="text-grey-400 mt-1" />
@@ -180,7 +175,6 @@ export default function page() {
             </div>
           </div>
 
-          {/* Group Members */}
           <div className="bg-background rounded-[12px] border border-border p-8 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <div>

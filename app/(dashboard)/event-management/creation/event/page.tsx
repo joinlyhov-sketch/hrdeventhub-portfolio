@@ -1,16 +1,9 @@
-import CreateEventForm from "../../../_Component/CreateEventForm";
-import { EventManagementNavbar } from "../../../_Component/EventManagementNavbar";
+import CreateEventForm from "../../../../../components/dashboard/creation/CreateEventForm";
 
 export default function EventCreationPage() {
   return (
-    <div className="min-h-screen w-full bg-slate-50 font-sans flex flex-col">
-      <div className="h-full w-full sticky top-0 z-10">
-        <EventManagementNavbar />
-      </div>
-
-      <main className="flex-grow w-full flex flex-col px-3 sm:px-6 lg:px-10 py-3 md:py-3 min-w-0">
-        <CreateEventForm />
-      </main>
-    </div>
+    <main className="flex-grow flex flex-col ">
+      <CreateEventForm />
+    </main>
   );
 }

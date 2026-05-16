@@ -110,15 +110,15 @@ export default function Step3OTP() {
 
   return (
     <motion.div
-      className="flex flex-col gap-5"
+      className="flex flex-col gap-5 w-full items-stretch px-15"
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="mb-5 text-center">
-        <h2 className="text-[48px] font-extrabold tracking-[-2px] text-[#17356f]">
-          Verify Your Email
+        <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
+          Enter Verification Code
         </h2>
-        <p className="mt-2 text-[#6e7580]">We sent a code to your email</p>
+        <p className="mt-2 text-[#6e7580] text-[14px]">We sent a code to your email</p>
       </div>
 
       <div className="flex justify-between gap-3 my-2">
@@ -174,7 +174,7 @@ export default function Step3OTP() {
         {isPending ? "Verifying..." : "Submit"}
       </button>
 
-      <div className="flex items-center gap-4 mt-2">
+      {/* <div className="flex items-center gap-4 mt-2">
         <div className="h-px flex-1 bg-[#dce6f0]" />
         <span className="text-sm text-[#6e7580] whitespace-nowrap">
           Or Back to{" "}
@@ -186,7 +186,7 @@ export default function Step3OTP() {
           </button>
         </span>
         <div className="h-px flex-1 bg-[#dce6f0]" />
-      </div>
+      </div> */}
     </motion.div>
   );
 }

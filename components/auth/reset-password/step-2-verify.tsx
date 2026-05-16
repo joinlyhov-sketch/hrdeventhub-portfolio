@@ -111,11 +111,11 @@ export default function VerifyStep() {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="flex flex-col gap-5"
+      className="flex flex-col gap-5 w-full items-stretch px-15"
     >
       <div className="mb-5 text-center">
-        <h2 className="text-[48px] font-extrabold tracking-[-2px] text-[#17356f]">
-          Verify Your Email
+        <h2 className="text-[28px] font-bold text-[#17356f]">
+          Enter Verification Code
         </h2>
         <p className="mt-2 text-[#6e7580]">We sent a code to your email</p>
       </div>

@@ -1,13 +1,19 @@
-import React from "react";
+import { EventManagementNavbar } from "../../../components/dashboard/EventManagementNavbar";
+import { Metadata } from "next";
 
-export default function layout({
+export const metadata: Metadata = {
+  title: { default: "Event Hub", template: "%s | HRD Event Hub" },
+  icons: { icon: "/favicon.ico" },
+  description: "A platform for managing and promoting HRD events.",
+};
+
+export default function EventManagementLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <>
-      <div>{children}</div>
-    </>
+    <div className="flex flex-col flex-1 min-w-0">
+      <EventManagementNavbar />
+      {children}
+    </div>
   );
 }
