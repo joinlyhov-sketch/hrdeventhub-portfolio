@@ -2,7 +2,7 @@ import React from "react";
 import { Search, Plus, User, BarChart3 } from "lucide-react";
 import { surveyFeedbacks } from "../../../../data/surveyFeedback";
 import SurveyFeedbackFeature from "../../../../components/feedback/SurveyFeedbackCart";
-import { PaginationSimple } from ".";
+import { PaginationSimple } from "../../../../components/feedback/Pagination";
 
 export default function Page() {
   return (
