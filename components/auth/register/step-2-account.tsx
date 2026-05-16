@@ -2,9 +2,36 @@
 
 import { motion } from "framer-motion";
 import { useState, useTransition } from "react";
+import { z } from "zod";
 import { registerAction } from "../../../actions/auth.action";
 import type { RegisterRequest } from "../../../types/auth-types";
 import { useRegisterStore } from "../../../store/useRegisterStore";
+import { Mail, Lock, AlertCircle } from "lucide-react";
+
+const step2Schema = z.object({
+  email: z.string().min(1, "Email is required").pipe(z.email({ message: "Email is invalid" })),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
+    .regex(/[0-9]/, "Password must contain at least 1 number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type AccountValidate = Partial<Record<"email" | "password" | "confirmPassword", string>>;
+
+const passwordSchema = z
+  .string()
+  .min(1, "Password is required")
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
+  .regex(/[0-9]/, "Password must contain at least 1 number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol");
 
 export default function Step2Account() {
   const form = useRegisterStore((s) => s.form);
@@ -12,18 +39,67 @@ export default function Step2Account() {
   const setStep = useRegisterStore((s) => s.setStep);
   const goToOTP = useRegisterStore((s) => s.goToOTP);
 
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<AccountValidate>({});
+  const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleRegister = () => {
-    setError(null);
+  const handleChange = (field: keyof AccountValidate, value: string) => {
+    updateField(field, value);
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
 
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
+  const handlePasswordBlur = () => {
+    const result = passwordSchema.safeParse(form.password);
+    if (!result.success) {
+      setErrors((prev) => ({
+        ...prev,
+        password: result.error.issues[0].message,
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, password: undefined }));
+    }
+  };
+
+  const handleConfirmPasswordBlur = () => {
+    if (!form.confirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Please confirm your password",
+      }));
       return;
     }
+    if (form.password !== form.confirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Passwords do not match",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+    }
+  };
+
+  const handleRegister = () => {
+    setServerError(null);
+
+    const result = step2Schema.safeParse({
+      email: form.email.trim(),
+      password: form.password,
+      confirmPassword: form.confirmPassword,
+    });
+
+    if (!result.success) {
+      const fieldErrors: AccountValidate = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof AccountValidate;
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
 
     const payload: RegisterRequest = {
       firstName: form.firstName.trim(),
@@ -35,24 +111,17 @@ export default function Step2Account() {
       phoneNumber: form.phoneNumber.trim(),
     };
 
-    const missingFields = Object.entries(payload)
-      .filter(([, value]) => !value)
-      .map(([key]) => key);
-
-    if (missingFields.length > 0) {
-      setError(`Please fill: ${missingFields.join(", ")}`);
-      return;
-    }
-
     startTransition(async () => {
-      const result = await registerAction(payload);
-      if (result?.error) {
-        setError(result.error);
+      const res = await registerAction(payload);
+      if (res?.error) {
+        if (res.error.toLowerCase().includes("email")) {
+          setErrors({ email: res.error });
+        } else {
+          setServerError(res.error);
+        }
         return;
       }
-      if (result?.ok) {
-        goToOTP(form.email);
-      }
+      if (res?.ok) goToOTP(form.email);
     });
   };
 
@@ -67,63 +136,84 @@ export default function Step2Account() {
         <h2 className="text-[48px] font-extrabold tracking-[-2px] text-[#17356f]">
           Account Info
         </h2>
-        <p className="mt-2 text-[#6e7580]">
-          Join HRD EventHub &amp; Get started
-        </p>
+        <p className="mt-2 text-[#6e7580]">Join HRD EventHub &amp; Get started</p>
       </div>
 
-      <div className="space-y-5">
-        <div className="flex items-center gap-3 rounded-2xl border border-[#dce6f0] bg-white px-4 py-3.5 focus-within:border-[#24529a] transition-all">
-          <EmailIcon />
-          <input
-            placeholder="Email"
-            type="email"
-            value={form.email}
-            onChange={(e) => updateField("email", e.target.value)}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
-          />
+      <div className="space-y-1">
+        <div className="flex flex-col gap-1">
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+              errors.email ? "border-red-400" : "border-[#dce6f0]"
+            }`}
+          >
+            <Mail size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <input
+              placeholder="Email"
+              type="email"
+              value={form.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
+            />
+          </div>
+          {errors.email && <FieldError message={errors.email} />}
         </div>
 
-        <div className="flex items-center gap-3 rounded-2xl border border-[#dce6f0] bg-white px-4 py-3.5 focus-within:border-[#24529a] transition-all">
-          <LockIcon />
-          <input
-            placeholder="Password"
-            type={showPassword ? "text" : "password"}
-            value={form.password}
-            onChange={(e) => updateField("password", e.target.value)}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="text-xs font-semibold text-[#24529a] shrink-0"
+        <div className="flex flex-col gap-1 pt-4">
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+              errors.password ? "border-red-400" : "border-[#dce6f0]"
+            }`}
           >
-            {showPassword ? "Hide" : "Show"}
-          </button>
+            <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <input
+              placeholder="Password"
+              type={showPassword ? "text" : "password"}
+              value={form.password}
+              onChange={(e) => handleChange("password", e.target.value)}
+              onBlur={handlePasswordBlur}
+              className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="text-xs font-semibold text-[#24529a] shrink-0"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+          {errors.password && <FieldError message={errors.password} />}
         </div>
 
-        <div className="flex items-center gap-3 rounded-2xl border border-[#dce6f0] bg-white px-4 py-3.5 focus-within:border-[#24529a] transition-all">
-          <LockIcon />
-          <input
-            placeholder="Confirm Password"
-            type={showConfirmPassword ? "text" : "password"}
-            value={form.confirmPassword}
-            onChange={(e) => updateField("confirmPassword", e.target.value)}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword((prev) => !prev)}
-            className="text-xs font-semibold text-[#24529a] shrink-0"
+        <div className="flex flex-col gap-1 pt-4">
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+              errors.confirmPassword ? "border-red-400" : "border-[#dce6f0]"
+            }`}
           >
-            {showConfirmPassword ? "Hide" : "Show"}
-          </button>
+            <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <input
+              placeholder="Confirm Password"
+              type={showConfirmPassword ? "text" : "password"}
+              value={form.confirmPassword}
+              onChange={(e) => handleChange("confirmPassword", e.target.value)}
+              onBlur={handleConfirmPasswordBlur}
+              className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((p) => !p)}
+              className="text-xs font-semibold text-[#24529a] shrink-0"
+            >
+              {showConfirmPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+          {errors.confirmPassword && <FieldError message={errors.confirmPassword} />}
         </div>
       </div>
 
-      {error && (
+      {serverError && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
-          {error}
+          {serverError}
         </div>
       )}
 
@@ -146,36 +236,11 @@ export default function Step2Account() {
   );
 }
 
-function EmailIcon() {
+function FieldError({ message }: { message: string }) {
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#b0bac9"
-      strokeWidth="2"
-      className="shrink-0"
-    >
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-      <polyline points="22,6 12,13 2,6" />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#b0bac9"
-      strokeWidth="2"
-      className="shrink-0"
-    >
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
+    <p className="flex items-center gap-1.5 text-sm text-red-500 px-1">
+      <AlertCircle size={14} className="shrink-0" />
+      {message}
+    </p>
   );
 }

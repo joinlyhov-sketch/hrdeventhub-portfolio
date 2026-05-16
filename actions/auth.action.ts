@@ -33,7 +33,17 @@ export async function registerAction(payload: RegisterRequest) {
     dateOfBirth,
     phoneNumber,
   } = payload;
+    const rawPhone = phoneNumber.trim();
+  const digitsOnly = rawPhone.replace(/\D/g, "");
+  const normalized = digitsOnly.startsWith("0")
+    ? digitsOnly.slice(1)
+    : digitsOnly;
+  const formattedPhone = `+855${normalized}`;
 
+  const normalizedPayload: RegisterRequest = {
+    ...payload,
+    phoneNumber: formattedPhone,
+  };
   if (
     !firstName ||
     !lastName ||
@@ -47,7 +57,7 @@ export async function registerAction(payload: RegisterRequest) {
   }
 
   try {
-    const response = await authService.register(payload);
+    const response = await authService.register(normalizedPayload);
     if (!response.success) {
       return { error: response.message || "Registration failed." };
     }
