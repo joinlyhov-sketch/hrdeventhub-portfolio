@@ -33,6 +33,20 @@ import {
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
+import {
+  CalendarFold,
+  CalendarPlus,
+  CalendarRange,
+  ChartColumnBig,
+  Clock,
+  LayoutDashboard,
+  MessageSquareText,
+  Settings,
+  UserCog,
+  UserPen,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
 
 type Role = "admin" | "organizer" | "student";
 
@@ -72,7 +86,7 @@ export function AppSidebar() {
                 height={32}
                 className="w-auto h-8 transition-all duration-500 shrink-0"
               />
-              <div className="flex flex-col leading-tight">
+              <div className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden">
                 <Image
                   src="/images/Logo.webp"
                   alt="HRD Event Hub Text Logo"
@@ -95,149 +109,115 @@ export function AppSidebar() {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="Events" className="h-11">
-                <FontAwesomeIcon
-                  icon={faCalendarCheck}
-                  fixedWidth
-                  className="text-xl"
-                />
-                <span className="text-lg">Events</span>
+                <CalendarFold />
+                <Link
+                  href="/event"
+                  className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden"
+                >
+                  Events
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="Group" className="h-11">
-                <FontAwesomeIcon
-                  icon={faUserGroup}
-                  fixedWidth
-                  className="text-lg"
-                />
-                <span className="text-lg">Group</span>
+                <Users />
+                <Link
+                  href="/group"
+                  className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden"
+                >
+                  Group
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="Calendar" className="h-11">
-                <FontAwesomeIcon
-                  icon={faCalendar}
-                  fixedWidth
-                  className="text-lg"
-                />
-                <span className="text-lg">Calendar</span>
+                <CalendarPlus />
+                <Link
+                  href="/calendar"
+                  className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden"
+                >
+                  Calendar
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip="Profile"
-                className="h-11"
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-              >
-                <FontAwesomeIcon icon={faUser} fixedWidth className="text-lg" />
-                <span className="text-lg">Profile</span>
-                <FontAwesomeIcon
-                  icon={faChevronDown}
-                  className={`ml-auto text-xs text-muted-foreground transition-transform duration-200 group-data-[collapsible=icon]:hidden ${
-                    isProfileOpen ? "rotate-180" : ""
-                  }`}
-                />
+              <SidebarMenuButton tooltip="Edit-Profile" className="h-11">
+                <UserPen />
+                <Link
+                  href={"/profile/edit-profile"}
+                  className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden"
+                >
+                  Edit Profile
+                </Link>
               </SidebarMenuButton>
-              {isProfileOpen && (
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton className="h-10">
-                      <FontAwesomeIcon
-                        icon={faUserPen}
-                        fixedWidth
-                        className="text-base"
-                      />
-                      <span className="text-lg">Edit Profile</span>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton className="h-10">
-                      <FontAwesomeIcon
-                        icon={faCalendarDays}
-                        fixedWidth
-                        className="text-base"
-                      />
-                      <span className="text-lg">Setting</span>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              )}
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Setting" className="h-11">
+                <Settings />
+                <span className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden">
+                  Setting
+                </span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
         {canSeeAdministration && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-[12px] font-semibold tracking-widest uppercase">
+            <SidebarGroupLabel className="text-[12px] font-semibold tracking-widest uppercase group-data-[collapsible=icon]:hidden">
               Administration
             </SidebarGroupLabel>
+
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip="Dashboard"
-                  className="h-11"
-                  onClick={() => setIsDashboardOpen(!isDashboardOpen)}
-                >
-                  <FontAwesomeIcon
-                    icon={faChartColumn}
-                    fixedWidth
-                    className="text-lg"
-                  />
-                  <span className="text-lg">Dashboard</span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`ml-auto text-xs text-muted-foreground transition-transform duration-200 group-data-[collapsible=icon]:hidden ${
-                      isDashboardOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                <SidebarMenuButton tooltip="User Management" className="h-11">
+                  <UserCog />
+                  <Link
+                    href={"/user-management"}
+                    className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden"
+                  >
+                    User Management
+                  </Link>
                 </SidebarMenuButton>
+              </SidebarMenuItem>
 
-                {isDashboardOpen && (
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton className="h-10">
-                        <FontAwesomeIcon
-                          icon={faUserPen}
-                          fixedWidth
-                          className="text-base"
-                        />
-                        <span className="text-lg">User Management</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton className="h-10">
-                        <FontAwesomeIcon
-                          icon={faCalendarDays}
-                          fixedWidth
-                          className="text-base"
-                        />
-                        <span className="text-lg">Event Management</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton className="h-10">
-                        <FontAwesomeIcon
-                          icon={faClock}
-                          fixedWidth
-                          className="text-base"
-                        />
-                        <span className="text-lg">Transaction History</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton className="h-10">
-                        <FontAwesomeIcon
-                          icon={faCommentDots}
-                          fixedWidth
-                          className="text-base"
-                        />
-                        <span className="text-lg">Feedback & Polls</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                )}
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Event Management" className="h-11">
+                  <CalendarRange />
+                  <Link
+                    href={"/event-management/attendees-list"}
+                    className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden"
+                  >
+                    Event Management
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Transaction History"
+                  className="h-11"
+                >
+                  <Clock />
+                  <Link
+                    href={"/transaction-history"}
+                    className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden"
+                  >
+                    Transaction History
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Feedback & Polls" className="h-11">
+                  <MessageSquareText />
+                  <Link
+                    href={"/feedback/survey-feedback"}
+                    className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden"
+                  >
+                    Feedback & Polls
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>
@@ -250,7 +230,7 @@ export function AppSidebar() {
               <div className="w-8 h-8 rounded-full shrink-0 bg-linear-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
                 {currentUser?.avatarInitials ?? "?"}
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden">
                 <span className="text-sm font-bold leading-tight">
                   {currentUser?.name ?? "Loading..."}
                 </span>
@@ -263,7 +243,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Logout"
-              className="h-11 text-red-500 hover:text-red-600 hover:bg-red-50"
+              className="h-11 text-red-500 hover:text-red-600 hover:bg-red-50 "
               onClick={() => signOut({ callbackUrl: "/" })}
             >
               <FontAwesomeIcon
@@ -271,7 +251,9 @@ export function AppSidebar() {
                 fixedWidth
                 className="text-lg"
               />
-              <span>Logout</span>
+              <span className="text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden">
+                Logout
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
