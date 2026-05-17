@@ -5,6 +5,11 @@ export interface SurveyFeedback {
   totalResponse: number;
   status: "Active" | "Closed";
 }
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
 export const surveyFeedbacks: SurveyFeedback[] = [
   {
     id: 1,
