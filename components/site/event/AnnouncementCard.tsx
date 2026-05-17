@@ -77,7 +77,7 @@ export function AnnouncementCard({ onViewDetail }: AnnouncementCardProps) {
   const [showComments, setShowComments] = useState(false);
 
   return (
-    <div className="bg-background rounded-[12px] border border-border p-8 shadow-sm">
+    <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
       <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="bg-[#EBF5FB] p-2 rounded-lg text-primary">

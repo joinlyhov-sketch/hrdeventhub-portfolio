@@ -11,18 +11,17 @@ const data = {
   schedule: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
 };
 
-
 export function PinnedCard() {
   return (
     <article className="relative w-full overflow-hidden rounded-xl bg-secondary border border-border text-white shadow-sm group min-h-[240px] flex items-end p-6 md:p-8">
       <div className="absolute inset-0 z-0">
-  <Image
-    src={image}
-    alt="Pinned Event Banner"
-    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-  />   
-  <div className="absolute inset-0 bg-gradient-to-r from-[#172554]/90 to-[#172554]/0" />
-</div>
+        <Image
+          src={image}
+          alt="Pinned Event Banner"
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/90 to-primary/0 " />
+      </div>
 
       <div className="relative z-10 w-full flex flex-col md:flex-row md:items-end md:justify-between gap-6">
         <div className="flex flex-col items-start gap-3">

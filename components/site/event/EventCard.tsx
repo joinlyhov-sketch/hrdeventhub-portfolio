@@ -19,7 +19,7 @@ const data = {
   title: "Songkran Festival Celebration",
   schedule: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
   author: {
-    name: "HR Department",
+    name: "Dita Rector",
     avatar: "https://i.pravatar.cc/150?u=hr",
     role: "Admin",
     date: "Posted 2 hours ago",
@@ -71,7 +71,7 @@ export function EventCard() {
   const [showComments, setShowComments] = useState(false);
 
   return (
-    <div className="bg-background rounded-[12px] border border-border p-8 shadow-sm">
+    <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
@@ -94,7 +94,7 @@ export function EventCard() {
       <h2 className="text-xl font-bold text-primary mb-4">{data.title}</h2>
       <p className="text-sm text-grey-500 leading-relaxed mb-6">{data.description}</p>
       
-      <div className="bg-grey-50 rounded-[12px] p-6 space-y-3 mb-6">
+      <div className="bg-grey-50 rounded-[12px] p-3 space-y-3 mb-6">
         <div className="flex items-start gap-3">
           <MapPin size={18} className="text-grey-400 mt-0.5 shrink-0" />
           <p className="text-sm text-grey-500">
@@ -121,8 +121,8 @@ export function EventCard() {
           alt="Pinned Event Banner"
           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         /> 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 text-white">
-          <span className="bg-action text-grey-900 text-[10px] font-black px-2 py-0.5 rounded mb-2 inline-block uppercase tracking-wider">
+        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0t p-6 text-white">
+          <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide">
             {data.badge}
           </span>
           <h4 className="text-base font-semibold">{data.innerBannerTitle}</h4>

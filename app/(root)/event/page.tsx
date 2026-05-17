@@ -1,4 +1,4 @@
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Folder } from "lucide-react";
 import { Metadata } from "next";
 import { AnnouncementCard } from "../../../components/site/event/AnnouncementCard";
 import { ArticleCard } from "../../../components/site/event/ArticleCard";
@@ -8,6 +8,7 @@ import { SurveyCard } from "../../../components/site/event/SurveyCard";
 import { PinnedCard } from "../../../components/site/event/PinnedCard";
 import GroupMemberCard from "../../../components/site/event/GroupMemberCard";
 import UpComingEventCard from "../../../components/site/event/UpComingEventCard";
+
 export const metadata: Metadata = {
   title: "Event Hub Platform",
 };
@@ -17,19 +18,7 @@ export default function Page() {
     <main className=" min-h-screen">
       <div className="flex items-center gap-3 mb-6">
         <div className="bg-primary p-2 rounded-lg text-white">
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-            />
-          </svg>
+          <Folder className="w-5 h-5" />
         </div>
         <div>
           <span className="type-desc-small-semibold text-primary bg-muted px-2 py-0.5 rounded uppercase">
@@ -39,10 +28,10 @@ export default function Page() {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-[57px]">
-        <section className="col-span-8 space-y-8">
+      <div className="grid grid-cols-11 gap-5">
+        <section className="col-span-8 space-y-4">
           <div className="flex items-center gap-4 mb-8">
-            <div className="relative flex-grow">
+            <div className="relative grow">
               <input
                 type="text"
                 placeholder="Search for events..."
@@ -57,15 +46,15 @@ export default function Page() {
               Filter by category
             </button>
           </div>
+          <p>Pinned</p>
           <PinnedCard />
           <EventCard />
-          <AnnouncementCard/>
+          <AnnouncementCard />
           <PollCard />
           <SurveyCard />
-          <ArticleCard/>
+          <ArticleCard />
         </section>
-
-        <aside className="col-span-4 space-y-8">
+        <aside className="col-span-3 space-y-2">
           <UpComingEventCard />
           <GroupMemberCard />
         </aside>

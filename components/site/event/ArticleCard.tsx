@@ -62,7 +62,7 @@ export function ArticleCard() {
   const [showComments, setShowComments] = useState(false);
 
   return (
-    <div className="bg-background rounded-[12px] border border-border p-8 shadow-sm">
+    <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">

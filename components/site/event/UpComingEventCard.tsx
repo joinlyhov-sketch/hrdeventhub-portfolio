@@ -32,29 +32,31 @@ const events = [
 
 export default function UpComingEventCard() {
   return (
-    <div className="bg-background rounded-[12px] border border-border p-8 shadow-sm">
-      <div className="flex items-center justify-between mb-10">
-        <h3 className="type-subtitle font-extrabold text-primary">Upcoming Events</h3>
-        <Link href="/calendar">
-          <button className="type-detail-small-semibold text-primary hover:underline hover:cursor-pointer">
+    <div className="w-full bg-background rounded-[12px] border border-border p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-4 mb-10">
+        <h3 className="type-subtitle font-extrabold text-primary min-w-0 truncate">
+          Upcoming Events
+        </h3>
+        <Link href="/calendar" className="shrink-0">
+          <button className="type-detail-small-semibold text-primary hover:underline hover:cursor-pointer whitespace-nowrap">
             View Calendar
           </button>
         </Link>
       </div>
 
       {events.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 opacity-40">
-          <div className="p-4 bg-grey-100 rounded-2xl mb-4">
+        <div className="flex flex-col items-center justify-center py-10 opacity-40 w-full">
+          <div className="p-4 bg-grey-100 rounded-2xl mb-4 shrink-0">
             <Calendar size={48} className="text-grey-400" />
           </div>
-          <p className="type-detail font-medium text-muted-foreground">No upcoming events.</p>
+          <p className="type-detail font-medium text-muted-foreground text-center">No upcoming events.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 w-full">
           {events.map((event) => (
-            <div key={event.id} className="flex items-center gap-4">
+            <div key={event.id} className="flex items-center gap-4 min-w-0 w-full">
               <div
-                className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl shrink-0 ${
+                className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl shrink-0 select-none ${
                   event.variant === "blue"
                     ? "bg-[#EFF6FF] text-[#1E40AF]"
                     : "bg-[#ECFDF5] text-[#047857]"
@@ -68,13 +70,13 @@ export default function UpComingEventCard() {
                 </span>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <h4 className="text-base font-bold text-grey-900 leading-snug">
+              <div className="flex flex-col gap-1 min-w-0 flex-1">
+                <h4 className="text-base font-bold text-grey-900 leading-snug truncate">
                   {event.title}
                 </h4>
-                <div className="flex items-center gap-1.5 text-xs font-medium text-grey-400">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-grey-400 min-w-0">
                   <Clock size={14} className="shrink-0" />
-                  <span>{event.time}</span>
+                  <span className="truncate">{event.time}</span>
                 </div>
               </div>
             </div>

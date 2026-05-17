@@ -30,7 +30,7 @@ export function PollCard() {
   };
 
   return (
-    <article className="w-full bg-card rounded-xl p-6 border border-subtle shadow-sm text-foreground">
+    <article className="w-full bg-card rounded-xl p-5 border border-subtle shadow-sm text-foreground">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle">

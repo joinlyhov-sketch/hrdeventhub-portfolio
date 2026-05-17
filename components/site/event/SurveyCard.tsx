@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Star, ChevronLeft, MoreVertical } from "lucide-react";
 
-const TOTAL_STEPS = 5;
+const steps = 5;
 
 interface SurveyData {
   favoriteSession: string;
@@ -26,7 +26,7 @@ export function SurveyCard() {
   ];
 
   const handleNext = () => {
-    if (currentStep < TOTAL_STEPS) {
+    if (currentStep < steps) {
       setCurrentStep((prev) => prev + 1);
     } else {
       alert("Survey completed! Data submitted: " + JSON.stringify(formData, null, 2));
@@ -40,8 +40,7 @@ export function SurveyCard() {
   };
 
   return (
-    <div className="bg-background rounded-[12px] border border-border p-8 shadow-sm text-grey-900">
-      {/* Top Meta Bar */}
+    <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm text-grey-900">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-baseline gap-3">
           <h2 className="text-xl font-bold text-secondary">
@@ -132,8 +131,6 @@ export function SurveyCard() {
               })}
             </div>
           </div>
-
-          {/* Question 3: Long Text Area input field */}
           <div>
             <h3 className="text-sm font-medium text-grey-900 mb-4">
               Any specific suggestions for next year?
@@ -151,7 +148,7 @@ export function SurveyCard() {
         /* Fallback View Mock Content for Step 2 through 5 */
         <div className="py-16 text-center space-y-2">
           <p className="text-sm font-semibold text-primary uppercase tracking-wide">
-            Step {currentStep} of {TOTAL_STEPS}
+            Step {currentStep} of {steps}
           </p>
           <h3 className="text-lg font-bold text-secondary">Additional Survey Sections</h3>
           <p className="text-sm text-grey-400 max-w-sm mx-auto">
@@ -159,11 +156,7 @@ export function SurveyCard() {
           </p>
         </div>
       )}
-
-      {/* Separation Rule Line */}
       <div className="border-t border-grey-100 my-8" />
-
-      {/* Bottom Sticky Action Footer Controls */}
       <div className="flex items-center justify-between">
         <button
           onClick={handleBack}
@@ -175,14 +168,14 @@ export function SurveyCard() {
           }`}
         >
           <ChevronLeft size={18} />
-          <span className="uppercase tracking-wider">Step {currentStep} of {TOTAL_STEPS}</span>
+          <span className="uppercase tracking-wider">Step {currentStep} of {steps}</span>
         </button>
 
         <button
           onClick={handleNext}
           className="bg-secondary hover:bg-secondary-hover text-white px-8 py-3 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer tracking-wider"
         >
-          {currentStep === TOTAL_STEPS ? "Submit" : "Next"}
+          {currentStep === steps ? "Submit" : "Next"}
         </button>
       </div>
     </div>
