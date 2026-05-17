@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { MoreVertical, BarChart3 } from "lucide-react";
 
-const MOCK_POLL_DATA = {
+const data = {
   id: "poll-123",
   title: "Quarterly Polls",
   question: "Should we have a Football Tournament this week?",
   options: [
     { id: "yes", label: "Yes", votes: 94 },
     { id: "no", label: "No", votes: 29 },
-    { id: "considering", label: "Considering", votes: 22 }
+    { id: "considering", label: "Considering", votes: 22 },
+    { id: "idk", label: "Considering", votes: 22 },
+    { id: "why not", label: "Considering", votes: 22 }
   ]
 };
 
@@ -18,7 +20,7 @@ export function PollCard() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
 
-  const totalVotes = MOCK_POLL_DATA.options.reduce((acc, curr) => acc + curr.votes, 0);
+  const totalVotes = data.options.reduce((acc, curr) => acc + curr.votes, 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,19 +30,19 @@ export function PollCard() {
   };
 
   return (
-    <article className="w-full bg-card rounded-xl p-6 border border-subtle/20 shadow-sm text-foreground">
+    <article className="w-full bg-card rounded-xl p-6 border border-subtle shadow-sm text-foreground">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle">
             <BarChart3 size={20} />
           </div>
-          <h2 className="type-subtitle font-bold text-grey-900 tracking-tight">
-            {MOCK_POLL_DATA.title}
+          <h2 className="type-subtitle font-bold text-subtle tracking-tight">
+            {data.title}
           </h2>
         </div>
         <button
           type="button"
-          className="text-grey-400 hover:text-grey-500 p-1 rounded transition-colors"
+          className="text-grey-400 hover:text-grey-500 p-1 rounded transition-colors cursor-pointer"
           aria-label="Poll options"
         >
           <MoreVertical size={20} />
@@ -50,11 +52,11 @@ export function PollCard() {
       <form onSubmit={handleSubmit}>
         <fieldset disabled={hasVoted} className="w-full">
           <legend className="type-desc text-foreground mb-6 block">
-            {MOCK_POLL_DATA.question}
+            {data.question}
           </legend>
 
           <div className="space-y-3 mb-6">
-            {MOCK_POLL_DATA.options.map((option) => {
+            {data.options.map((option) => {
               const isChecked = selectedOption === option.id;
               const currentVotes = hasVoted && isChecked ? option.votes + 1 : option.votes;
               const currentTotal = hasVoted ? totalVotes + 1 : totalVotes;

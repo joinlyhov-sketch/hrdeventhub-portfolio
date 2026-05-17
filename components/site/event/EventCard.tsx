@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
+import Image from "next/image";
+import image from "../../../public/images/PinnedCardTest.jpg";
 import {
   MapPin,
   Calendar,
@@ -8,109 +10,134 @@ import {
   ThumbsUp,
   MessageSquare,
   Share2,
-  Send,
-  MoreVertical,
-  Volume2
+  Send
 } from "lucide-react";
 
-interface Author {
-  name: string;
-  avatar: string;
-  role: "Admin" | "Organizer" | "Student" | string;
-  date: string;
-}
+const data = {
+  id: "evt-9921",
+  badge: "NEW EVENT",
+  title: "Songkran Festival Celebration",
+  schedule: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
+  author: {
+    name: "HR Department",
+    avatar: "https://i.pravatar.cc/150?u=hr",
+    role: "Admin",
+    date: "Posted 2 hours ago",
+  },
+  description: "Join us for our annual Songkran Festival Celebration! Enjoy traditional water festivities, delicious food, and cultural performances with your colleagues.",
+  location: "HRD Center",
+  dateString: "Tomorrow, 1:30 PM - 5:00 PM",
+  purpose: "Cultural Celebration & Team Bonding",
+  innerBannerTitle: "Songkran Festival Celebration",
+  innerBannerMeta: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
+};
 
-interface EventCardProps {
-  author: Author;
-  title: string;
-  description: string;
-  location: string;
-  dateString: string;
-  purpose: string;
-  bannerImage: string;
-  innerBannerTitle: string;
-  innerBannerMeta: string;
-  likes: number;
-  comments: number;
-}
+const mockComments = [
+  {
+    id: "c1",
+    author: {
+      name: "Lyhov",
+      avatar: "https://i.pravatar.cc/150?u=lyhov",
+      initials: "LY"
+    },
+    date: "2h ago",
+    text: "Really excited for this event. Is anyone else joining from 12th gen?",
+    replies: [
+      {
+        id: "r1",
+        author: {
+          name: "Dine",
+          avatar: "https://i.pravatar.cc/150?u=dine"
+        },
+        date: "1h ago",
+        text: "Is there a live stream link? @rectordita",
+        isOwn: true
+      },
+      {
+        id: "r2",
+        author: {
+          name: "Dita Rector",
+          avatar: "https://i.pravatar.cc/150?u=dita"
+        },
+        date: "30min ago",
+        text: "@dinety I think there is",
+        isOwn: true
+      }
+    ]
+  }
+];
 
-export function EventCard({
-  author,
-  title,
-  description,
-  location,
-  dateString,
-  purpose,
-  bannerImage,
-  innerBannerTitle,
-  innerBannerMeta,
-}: EventCardProps) {
+export function EventCard() {
+  const [showComments, setShowComments] = useState(false);
+
   return (
     <div className="bg-background rounded-[12px] border border-border p-8 shadow-sm">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
-            <img src={author.avatar} alt={author.name} className="w-full h-full object-cover" />
+            <img src={data.author.avatar} alt={data.author.name} className="w-full h-full object-cover" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-secondary">{author.name}</h3>
-            <p className="text-xs font-medium text-grey-400">{author.date}</p>
+            <h3 className="text-sm font-semibold text-secondary">{data.author.name}</h3>
+            <p className="text-xs font-medium text-grey-400">{data.author.date}</p>
           </div>
         </div>
         <span className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${
-          author.role.toLowerCase() === "admin" 
+          data.author.role.toLowerCase() === "admin" 
             ? "bg-[#EBF5FB] text-[#3FA6DC]" 
             : "bg-[#FFF7ED] text-[#F97316]"
         }`}>
-          {author.role}
+          {data.author.role}
         </span>
       </div>
 
-      {/* Title & Body */}
-      <h2 className="text-xl font-bold text-primary mb-4">{title}</h2>
-      <p className="text-sm text-grey-500 leading-relaxed mb-6">{description}</p>
-
-      {/* Info Panel */}
+      <h2 className="text-xl font-bold text-primary mb-4">{data.title}</h2>
+      <p className="text-sm text-grey-500 leading-relaxed mb-6">{data.description}</p>
+      
       <div className="bg-grey-50 rounded-[12px] p-6 space-y-3 mb-6">
         <div className="flex items-start gap-3">
           <MapPin size={18} className="text-grey-400 mt-0.5 shrink-0" />
           <p className="text-sm text-grey-500">
-            <span className="font-semibold text-grey-900">LOCATION:</span> {location}
+            <span className="font-semibold text-grey-900">LOCATION:</span> {data.location}
           </p>
         </div>
         <div className="flex items-start gap-3">
           <Calendar size={18} className="text-grey-400 mt-0.5 shrink-0" />
           <p className="text-sm text-grey-500">
-            <span className="font-semibold text-grey-900">DATE:</span> {dateString}
+            <span className="font-semibold text-grey-900">DATE:</span> {data.dateString}
           </p>
         </div>
         <div className="flex items-start gap-3">
           <Target size={18} className="text-grey-400 mt-0.5 shrink-0" />
           <p className="text-sm text-grey-500">
-            <span className="font-semibold text-grey-900">PURPOSE:</span> {purpose}
+            <span className="font-semibold text-grey-900">PURPOSE:</span> {data.purpose}
           </p>
         </div>
       </div>
 
-      {/* Embedded Rich Image Banner */}
       <div className="relative rounded-[12px] overflow-hidden mb-6 h-64">
-        <img src={bannerImage} alt="Event Banner" className="w-full h-full object-cover" />
+        <Image
+          src={image}
+          alt="Pinned Event Banner"
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        /> 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 text-white">
           <span className="bg-action text-grey-900 text-[10px] font-black px-2 py-0.5 rounded mb-2 inline-block uppercase tracking-wider">
-            New Event
+            {data.badge}
           </span>
-          <h4 className="text-base font-semibold">{innerBannerTitle}</h4>
-          <p className="text-xs opacity-80">{innerBannerMeta}</p>
+          <h4 className="text-base font-semibold">{data.innerBannerTitle}</h4>
+          <p className="text-xs opacity-80">{data.innerBannerMeta}</p>
         </div>
       </div>
 
-      {/* Engagement Actions */}
       <div className="flex items-center gap-6 py-4 border-b border-border text-sm font-medium text-grey-500">
         <button className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
           <ThumbsUp size={18} /> 124
         </button>
-        <button className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
+        <button 
+          onClick={() => setShowComments(!showComments)}
+          className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+        >
           <MessageSquare size={18} /> 18
         </button>
         <button className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
@@ -118,8 +145,7 @@ export function EventCard({
         </button>
       </div>
 
-      {/* Bottom Comment Input */}
-      <div className="flex items-center gap-3 mt-6">
+      <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
         <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0">
           <img src="https://i.pravatar.cc/150?u=user" alt="Me" className="w-full h-full object-cover" />
         </div>
@@ -134,6 +160,77 @@ export function EventCard({
           </button>
         </div>
       </div>
+
+      {showComments && (
+        <div className="space-y-6 pt-2">
+          {mockComments.map((comment) => (
+            <div key={comment.id} className="relative flex flex-col">
+              <div className="flex items-start gap-3 relative z-10">
+                <div className="w-10 h-10 rounded-full bg-[#EBF5FB] flex items-center justify-center shrink-0 text-[#3FA6DC] font-semibold text-sm">
+                  {comment.author.initials}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <span className="font-bold text-grey-900">{comment.author.name}</span>
+                    <span className="text-grey-400 text-xs font-normal">· {comment.date}</span>
+                  </div>
+                  <p className="text-sm text-grey-900 leading-normal">{comment.text}</p>
+                  <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
+                    <button className="hover:underline cursor-pointer">Reply</button>
+                    <button className="hover:underline cursor-pointer">Like</button>
+                  </div>
+                </div>
+              </div>
+
+              {comment.replies && comment.replies.length > 0 && (
+                <div className="relative pl-10 mt-4 space-y-5">
+                  <div 
+                    className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]" 
+                    style={{ bottom: "24px" }}
+                  />
+                  
+                  {comment.replies.map((reply, index) => (
+                    <div key={reply.id} className="relative flex items-start gap-3">
+                      {index > 0 && (
+                        <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
+                      )}
+                      <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
+                      
+                      <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
+                        <img src={reply.author.avatar} alt={reply.author.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-1.5 text-sm">
+                          <span className="font-bold text-grey-900">{reply.author.name}</span>
+                          <span className="text-grey-400 text-xs font-normal">· {reply.date}</span>
+                        </div>
+                        <p className="text-sm text-grey-900 leading-normal">
+                          {reply.text.split(" ").map((word, i) => 
+                            word.startsWith("@") ? (
+                              <span key={i} className="text-blue-600 font-medium">{word} </span>
+                            ) : (
+                              word + " "
+                            )
+                          )}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
+                          <button className="hover:underline cursor-pointer">Reply</button>
+                          {reply.isOwn && (
+                            <>
+                              <button className="hover:underline cursor-pointer">Edit</button>
+                              <button className="hover:underline cursor-pointer">Delete</button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
