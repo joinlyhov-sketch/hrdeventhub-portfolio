@@ -46,14 +46,14 @@ export default function EventDetailPage() {
         </section>
 
         <section className="flex gap-x-1 items-center">
-          <Link href="/event" className="text-desc text-primary">
+          <Link href="/group/1" className="text-desc text-primary">
             Events
           </Link>
           <span>
             <ChevronRight size={16} className="text-primary text-sm" />
           </span>
           <Link
-            href="/id"
+            href="/group/1/event/1"
             className="text-desc-semibold font-medium text-action"
           >
             {event.id}

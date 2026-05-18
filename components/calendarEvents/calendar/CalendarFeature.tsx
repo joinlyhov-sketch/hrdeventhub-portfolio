@@ -11,9 +11,8 @@ export default function CalendarFeature() {
   const [view, setView] = useState<CalendarView>("month");
 
   return (
-    <section className="mt-8">
+    <section className="mt-8 sticky">
       <CalendarToolbar view={view} onViewChange={setView} />
-
       {view === "month" && <MonthCalendarView />}
       {view === "week" && <WeekCalendarView />}
       {view === "day" && <DayCalendarView />}

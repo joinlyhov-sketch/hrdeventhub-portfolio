@@ -12,7 +12,7 @@ export default function EventManagementLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="flex flex-col flex-1 min-w-0">
-      <div className="w-full bg-white sticky top-0 z-10">
+      <div className="w-full bg-white sticky top-0 z-20">
         <EventManagementNavbar />
       </div>
       {children}

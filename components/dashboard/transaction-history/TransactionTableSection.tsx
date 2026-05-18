@@ -22,11 +22,20 @@ export function TransactionTableSection({
     }
     return transactions.filter((tx) => tx.eventId === selectedEventId);
   }, [transactions, selectedEventId]);
+  const selectedEvent = useMemo(() => {
+    if (!selectedEventId) {
+      return undefined;
+    }
+    return events.find((e) => e.id === selectedEventId);
+  }, [events, selectedEventId]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
-        <TransactionTable data={filteredTransactions} />
+        <TransactionTable
+          data={filteredTransactions}
+          selectedEvent={selectedEvent}
+        />
       </div>
 
       <div>
