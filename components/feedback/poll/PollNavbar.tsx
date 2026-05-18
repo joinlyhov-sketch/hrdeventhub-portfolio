@@ -11,8 +11,8 @@ export const EventManagementNavbar = () => (
         </button>
         <div className="flex flex-col">
           <div className="flex items-center gap-1">
-            <span className="text-[#1C4D8D] font-bold text-base sm:text-lg">Poll</span>
-            <span className="text-[#FF9F2E] font-bold text-base sm:text-lg">Creation</span>
+            <span className="text-primary font-bold text-base sm:text-lg">Poll</span>
+            <span className="text-action font-bold text-base sm:text-lg">Creation</span>
           </div>
           <p className="hidden md:block text-gray-500 text-xs">
             Design new poll and track participant responses for all center events.

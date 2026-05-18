@@ -7,7 +7,8 @@ import {
   UserRoundCheck, 
   PlusCircle, 
   Lock, 
-  Printer 
+  Printer, 
+  Inbox
 } from 'lucide-react';
 
 export default function PollSidebar() {
@@ -42,7 +43,7 @@ export default function PollSidebar() {
             <div key={item.key} className="flex items-center gap-2 justify-between border border-slate-100 rounded-2xl p-4 hover:bg-slate-50 transition">
               <div className="flex items-center gap-1">
                 <div className="bg-gray-100 p-2 rounded-xl">
-                  <Icon className="w-5 h-5 text-[#0F2854]" />
+                  <Icon className="w-5 h-5 text-secondary" />
                 </div>
                 <span className="font-medium text-slate-600 text-sm">{item.label}</span>
               </div>
@@ -50,7 +51,7 @@ export default function PollSidebar() {
               <button
                 type="button"
                 onClick={() => setSettings(p => ({ ...p, [item.key]: !isActive }))}
-                className={`w-11 h-6 flex items-center rounded-full p-0.5 transition-colors duration-300 ${isActive ? 'bg-[#FF9F2E]' : 'bg-slate-200'}`}
+                className={`w-11 h-6 flex items-center rounded-full p-0.5 transition-colors duration-300 ${isActive ? 'bg-action' : 'bg-gray-200'}`}
               >
                 <div className={`bg-white w-5 h-5 rounded-full shadow transform transition-transform duration-300 ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
@@ -63,7 +64,8 @@ export default function PollSidebar() {
         <label className="text-xs font-bold text-slate-400 tracking-wider uppercase">Show Result</label>
         <div className="relative">
             
-          <Printer className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-[#0F2854]" />
+          <Inbox
+           className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-secondary" />
           <select
             value={settings.showResult}
             className="w-full appearance-none bg-white border border-slate-100 rounded-2xl pl-12 pr-10 py-4 font-medium text-slate-600 text-sm focus:outline-none cursor-pointer"
@@ -74,7 +76,7 @@ export default function PollSidebar() {
             <option value="After Voting">After Voting</option>
             <option value="After Poll Expire">After Poll Expire</option>
           </select>
-          <ChevronDown className="w-5 h-5 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="w-5 h-5 text-gray-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
       </div>
     </div>

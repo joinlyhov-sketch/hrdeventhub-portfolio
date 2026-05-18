@@ -27,7 +27,7 @@ const MediaUpload = () => {
 
   return (
     <div className="flex flex-col gap-3 w-full">
-      <label className="text-[#1E3A8A] font-bold text-md">
+      <label className="text-secondary font-bold text-md">
         Media Attachments
       </label>
       <div className="flex flex-row gap-4 overflow-x-auto w-full no-scrollbar items-start">
@@ -40,10 +40,10 @@ const MediaUpload = () => {
               className="hidden"
               onChange={handleFileChange}
             />
-            <div className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center mb-4 bg-white shadow-sm">
-              <Plus className="text-blue-600" size={20} />
+            <div className="w-10 h-10 rounded-full border border-secondary flex items-center justify-center mb-4 bg-white shadow-sm">
+              <Plus className="text-secondary" size={20} />
             </div>
-            <p className="text-xs font-bold text-slate-700 text-center leading-tight">
+            <p className="text-xs font-bold text-[#27445D] text-center leading-tight">
               Choose a file or drag & drop it here
             </p>
             <p className="text-[10px] text-slate-400 mt-1">

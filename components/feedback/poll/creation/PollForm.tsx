@@ -10,16 +10,16 @@ export default function PollForm() {
   return (
     <div className="space-y-6">
       <FeedbackBreadcrumb label="Create Poll" />
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 border-l-[6px] border-l-[#1E3A8A]">
+      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 border-l-[6px] border-l-primary">
         <input
           type="text"
           placeholder="Untitled Poll"
-          className="w-full text-3xl font-bold text-slate-500 placeholder-slate-400 outline-none mb-4"
+          className="w-full text-3xl font-bold text-secondary placeholder-gray-400 outline-none mb-4"
         />
         <input
           type="text"
           placeholder="Add a description for your Poll..."
-          className="w-full text-base text-slate-500 placeholder-slate-300 outline-none pb-2 border-b border-slate-100 focus:border-slate-300"
+          className="w-full text-base text-secondary placeholder-gray-400 outline-none pb-2 border-b border-slate-100 focus:border-slate-300"
         />
       </div>
 
@@ -32,11 +32,11 @@ export default function PollForm() {
             <input
               type="text"
               defaultValue={option}
-              className="w-full bg-transparent text-slate-600 font-medium outline-none"
+              className="w-full bg-transparent text-[#64748B] font-medium outline-none"
             />
             <button
               onClick={() => setOptions(options.filter((_, i) => i !== index))}
-              className="text-slate-400 hover:text-red-500 ml-2"
+              className="text-[#64748B] hover:text-red-500 ml-2"
             >
               <Delete className="w-5 h-5" />
             </button>
