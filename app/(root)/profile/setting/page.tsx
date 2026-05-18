@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Code, LockKeyhole, Link2, UserCircle, Bell } from "lucide-react";
 import ProfilePrivacy from "../../../../components/site/profile/privacy-profiles/Profile-privacy";
 import SettingVisibilityModeCard from "../../../../components/site/profile/privacy-profiles/SettingVisibilityModeCard";
+import HeaderProfile from "../../../../components/site/profile/privacy-profiles/HeaderProfile";
 
 interface SelectiveVisibility {
   profile: boolean;
@@ -77,20 +78,15 @@ export default function Page() {
 
   return (
     <main className="flex-1 w-full py-6 overflow-x-hidden text-slate-800">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-amber-500 flex items-center gap-2">
-          Privacy Setting
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Control who can see your profile information and manage your privacy.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 w-full items-start">
+      <HeaderProfile/>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+        <div className="xl:col-span-4">
         <ProfilePrivacy 
           visibilityMode={visibilityMode} 
           selectiveConfig={selectiveConfig} 
         />
+                  
+        </div>
         <SettingVisibilityModeCard 
           visibilityMode={visibilityMode}
           setVisibilityMode={setVisibilityMode}

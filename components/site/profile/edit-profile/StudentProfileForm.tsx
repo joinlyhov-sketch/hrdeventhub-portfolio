@@ -28,7 +28,7 @@ export default function StudentProfileForm() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 flex-1 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 text-primary gap-4 flex-1 w-full">
             <InputField label="First Name" defaultValue="Kaknika" />
             <InputField label="Last Name" defaultValue="Chham" />
             <InputField label="Username" defaultValue="Kaknika" />
