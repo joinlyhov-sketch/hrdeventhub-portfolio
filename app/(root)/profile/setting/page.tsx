@@ -66,8 +66,11 @@ const initialActivities: ActivityItem[] = [
 ];
 
 export default function Page() {
-  const [visibilityMode, setVisibilityMode] = useState<"share_all" | "private" | "selective">("share_all");
-  const [activities, setActivities] = useState<ActivityItem[]>(initialActivities);
+  const [visibilityMode, setVisibilityMode] = useState<
+    "share_all" | "private" | "selective"
+  >("share_all");
+  const [activities, setActivities] =
+    useState<ActivityItem[]>(initialActivities);
 
   const [selectiveConfig, setSelectiveConfig] = useState<SelectiveVisibility>({
     profile: true,
@@ -78,16 +81,15 @@ export default function Page() {
 
   return (
     <main className="flex-1 w-full py-6 overflow-x-hidden text-slate-800">
-      <HeaderProfile/>
+      <HeaderProfile />
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <div className="xl:col-span-4">
-        <ProfilePrivacy 
-          visibilityMode={visibilityMode} 
-          selectiveConfig={selectiveConfig} 
-        />
-                  
+          <ProfilePrivacy
+            visibilityMode={visibilityMode}
+            selectiveConfig={selectiveConfig}
+          />
         </div>
-        <SettingVisibilityModeCard 
+        <SettingVisibilityModeCard
           visibilityMode={visibilityMode}
           setVisibilityMode={setVisibilityMode}
           activities={activities}
