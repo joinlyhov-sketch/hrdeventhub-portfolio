@@ -85,6 +85,7 @@ export default function Page() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <div className="xl:col-span-4">
           <ProfilePrivacy
+            viewMode="STUDENT_SELF"
             visibilityMode={visibilityMode}
             selectiveConfig={selectiveConfig}
           />
