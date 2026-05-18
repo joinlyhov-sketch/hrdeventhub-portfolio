@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Camera,
-  Trash2,
-  X,
-  Lock,
-  Check,
-  Globe,
-} from "lucide-react";
+import { Camera, Trash2, X, Lock, Check, Globe } from "lucide-react";
 
 type Role = "admin" | "organizer" | "student";
 
@@ -142,7 +135,7 @@ function StudentProfileForm() {
         <h2>Social Account</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 width="40"
                 height="40"
@@ -188,7 +181,7 @@ function StudentProfileForm() {
           </div>
 
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 width="40"
                 height="40"
@@ -219,7 +212,7 @@ function StudentProfileForm() {
           </div>
 
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 width="40"
                 height="40"
@@ -247,7 +240,7 @@ function StudentProfileForm() {
           </div>
 
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 width="40"
                 height="40"

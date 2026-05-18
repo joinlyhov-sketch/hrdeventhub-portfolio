@@ -5,7 +5,7 @@ import { Search, Settings2, Plus } from "lucide-react";
 export default function GroupSearch({ role }: { role: string }) {
   return (
     <div className="flex items-center gap-2 mb-6 w-full">
-      <div className="relative flex-grow">
+      <div className="relative grow">
         <input
           type="text"
           placeholder="Search for group..."

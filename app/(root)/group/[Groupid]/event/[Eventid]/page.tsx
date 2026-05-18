@@ -1,25 +1,20 @@
 "use client";
 import {
-  CalendarMinus2,
   ChevronRight,
-  Clock,
   FolderClosed,
   Heart,
-  MapPin,
   MessageCircleMore,
   Send,
   Share2,
   ThumbsUp,
 } from "lucide-react";
-import { MOCK_EVENTS, CURRENT_USER } from "../../../../data/event-detail";
+import { MOCK_EVENTS, CURRENT_USER } from "../../../../../../data/event-detail";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "../../../../components/ui/button";
-import { Sen } from "next/font/google";
 import { useState } from "react";
-import PriceContentCOmponent from "../../../../components/site/event-detail/price-content";
-import MapContentComponent from "../../../../components/site/event-detail/map-content";
-import DetailContentComponent from "../../../../components/site/event-detail/detail-content";
+import PriceContentCOmponent from "../../../../../../components/site/event-detail/price-content";
+import MapContentComponent from "../../../../../../components/site/event-detail/map-content";
+import DetailContentComponent from "../../../../../../components/site/event-detail/detail-content";
 
 type Tab = "details" | "price" | "map";
 const tabs: { id: Tab; label: string }[] = [
@@ -51,14 +46,14 @@ export default function EventDetailPage() {
         </section>
 
         <section className="flex gap-x-1 items-center">
-          <Link href="/event" className="text-desc text-primary">
+          <Link href="/group/1" className="text-desc text-primary">
             Events
           </Link>
           <span>
             <ChevronRight size={16} className="text-primary text-sm" />
           </span>
           <Link
-            href="/id"
+            href="/group/1/event/1"
             className="text-desc-semibold font-medium text-action"
           >
             {event.id}

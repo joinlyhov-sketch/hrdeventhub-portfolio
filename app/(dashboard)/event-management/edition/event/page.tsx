@@ -2,7 +2,7 @@ import EditEventForm from "../../../../../components/dashboard/edition/EditEvent
 
 export default function EventEditionPage() {
   return (
-    <main className="flex-grow flex flex-col ">
+    <main className="grow flex flex-col ">
       <EditEventForm />
     </main>
   );

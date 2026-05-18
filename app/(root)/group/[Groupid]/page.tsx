@@ -1,13 +1,13 @@
 import { Search, Filter, Folder } from "lucide-react";
 import { Metadata } from "next";
-import { AnnouncementCard } from "../../../components/site/event/AnnouncementCard";
-import { ArticleCard } from "../../../components/site/event/ArticleCard";
-import { EventCard } from "../../../components/site/event/EventCard";
-import { PollCard } from "../../../components/site/event/PollCard";
-import { SurveyCard } from "../../../components/site/event/SurveyCard";
-import { PinnedCard } from "../../../components/site/event/PinnedCard";
-import GroupMemberCard from "../../../components/site/event/GroupMemberCard";
-import UpComingEventCard from "../../../components/site/event/UpComingEventCard";
+import { AnnouncementCard } from "../../../../components/site/event/AnnouncementCard";
+import { ArticleCard } from "../../../../components/site/event/ArticleCard";
+import { EventCard } from "../../../../components/site/event/EventCard";
+import { PollCard } from "../../../../components/site/event/PollCard";
+import { SurveyCard } from "../../../../components/site/event/SurveyCard";
+import { PinnedCard } from "../../../../components/site/event/PinnedCard";
+import GroupMemberCard from "../../../../components/site/event/GroupMemberCard";
+import UpComingEventCard from "../../../../components/site/event/UpComingEventCard";
 
 export const metadata: Metadata = {
   title: "Event Hub Platform",
