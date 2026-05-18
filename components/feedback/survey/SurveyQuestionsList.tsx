@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Trash2, X, Star, Plus, ChevronDown } from "lucide-react";
+import { Trash2, X, Star, Plus, Minus } from "lucide-react";
 
 export interface Question {
   id: string;
@@ -23,7 +23,6 @@ export interface Question {
   linearEnd?: number;
   minLabel?: string;
   maxLabel?: string;
-
   textAnswer?: string;
   ratingValue?: number;
   toggleValue?: boolean;
@@ -245,32 +244,26 @@ export default function SurveyQuestionsList({
 
           {q.type === "dropdown" && (
             <div className="space-y-4">
-              <div className="relative max-w-xs">
-                <select
-                  value={q.selectedChoice || ""}
-                  onChange={(e) =>
-                    updateQuestionState(q.id, "selectedChoice", e.target.value)
-                  }
-                  className="w-full p-2.5 pr-10 border border-gray-200 rounded-xl bg-white text-sm text-gray-700 outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer font-medium"
-                >
-                  <option value="" disabled>
-                    Select Dropdown Choice
+              <select
+                value={q.selectedChoice || ""}
+                onChange={(e) =>
+                  updateQuestionState(q.id, "selectedChoice", e.target.value)
+                }
+                className="w-full max-w-xs p-2.5 border border-gray-200 rounded-xl bg-white text-sm text-gray-700 outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer"
+              >
+                <option value="" disabled>
+                  Select Dropdown Choice
+                </option>
+                {q.options?.map((opt, idx) => (
+                  <option key={idx} value={opt}>
+                    {opt}
                   </option>
-                  {q.options?.map((opt, idx) => (
-                    <option key={idx} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
-              </div>
+                ))}
+              </select>
 
               <div className="space-y-2 pt-2 border-t border-gray-50">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
-                  Edit Choices Options
+                  Edit Choices
                 </p>
                 {q.options?.map((opt, optIdx) => (
                   <div
@@ -307,7 +300,7 @@ export default function SurveyQuestionsList({
 
           {q.type === "rating" && (
             <div className="flex flex-col gap-4">
-              <div className="relative w-32">
+              <div className="flex items-center gap-2">
                 <select
                   value={q.maxScale || 5}
                   onChange={(e) =>
@@ -317,7 +310,7 @@ export default function SurveyQuestionsList({
                       Number(e.target.value),
                     )
                   }
-                  className="w-full p-2 pr-10 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 font-bold appearance-none outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+                  className="p-1.5 border border-gray-200 rounded-lg bg-white text-xs font-bold outline-none"
                 >
                   {[3, 4, 5, 6, 7, 8, 9, 10].map((val) => (
                     <option key={val} value={val}>
@@ -325,10 +318,6 @@ export default function SurveyQuestionsList({
                     </option>
                   ))}
                 </select>
-                <ChevronDown
-                  size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
               </div>
 
               <div className="flex gap-8 justify-start pt-2 overflow-x-auto pb-1">
@@ -360,63 +349,48 @@ export default function SurveyQuestionsList({
 
           {q.type === "linear" && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-gray-600">
-                <div className="relative">
-                  <select
-                    value={q.linearStart || 1}
-                    onChange={(e) =>
-                      updateQuestionState(
-                        q.id,
-                        "linearStart",
-                        Number(e.target.value),
-                      )
-                    }
-                    className="p-1.5 pr-7 border border-gray-200 rounded-lg bg-white text-xs font-bold outline-none appearance-none cursor-pointer"
-                  >
-                    {[0, 1, 2, 3, 4, 5].map((val) => (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <select
+                  value={q.linearStart || 1}
+                  onChange={(e) =>
+                    updateQuestionState(
+                      q.id,
+                      "linearStart",
+                      Number(e.target.value),
+                    )
+                  }
+                  className="p-1.5 border border-gray-200 rounded-lg bg-white text-xs font-bold outline-none"
+                >
+                  {[0, 1, 2, 3, 4, 5].map((val) => (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  ))}
+                </select>
+                <span>to</span>
+                <select
+                  value={q.linearEnd || 5}
+                  onChange={(e) =>
+                    updateQuestionState(
+                      q.id,
+                      "linearEnd",
+                      Number(e.target.value),
+                    )
+                  }
+                  className="p-1.5 border border-gray-200 rounded-lg bg-white text-xs font-bold outline-none"
+                >
+                  {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(
+                    (val) => (
                       <option key={val} value={val}>
                         {val}
                       </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={12}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  />
-                </div>
-
-                <span>to</span>
-
-                <div className="relative">
-                  <select
-                    value={q.linearEnd || 5}
-                    onChange={(e) =>
-                      updateQuestionState(
-                        q.id,
-                        "linearEnd",
-                        Number(e.target.value),
-                      )
-                    }
-                    className="p-1.5 pr-7 border border-gray-200 rounded-lg bg-white text-xs font-bold outline-none appearance-none cursor-pointer"
-                  >
-                    {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(
-                      (val) => (
-                        <option key={val} value={val}>
-                          {val}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                  <ChevronDown
-                    size={12}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  />
-                </div>
+                    ),
+                  )}
+                </select>
               </div>
-
               <div className="space-y-3 max-w-xs">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-gray-700 w-4">
+                  <span className="text-sm font-semibold text-gray-700 w-4">
                     {q.linearStart || 1}
                   </span>
                   <input
@@ -430,7 +404,7 @@ export default function SurveyQuestionsList({
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-gray-700 w-4">
+                  <span className="text-sm font-semibold text-gray-700 w-4">
                     {q.linearEnd || 5}
                   </span>
                   <input
@@ -449,8 +423,8 @@ export default function SurveyQuestionsList({
 
           {q.type === "matrix" && q.matrixRows && q.matrixCols && (
             <div className="space-y-6">
-              <div className="w-full border border-gray-100 rounded-xl overflow-x-auto bg-gray-50/30">
-                <table className="w-full text-left border-collapse table-auto min-w-[750px]">
+              <div className="w-full border border-gray-100 rounded-xl overflow-x-auto bg-gray-50/30 shadow-sm">
+                 <table className="w-full text-left border-collapse table-auto min-w-[800px]">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50">
                       <th className="p-3 text-xs font-bold text-gray-400 max-w-[200px]">
@@ -493,7 +467,7 @@ export default function SurveyQuestionsList({
                           onClick={() =>
                             addMatrixItem(q.id, "matrixCols", "Column")
                           }
-                          className="text-blue-600 hover:scale-125 transition-transform"
+                          className="text-blue-600 hover:scale-110 transition-transform"
                         >
                           <Plus size={14} />
                         </button>
@@ -528,11 +502,11 @@ export default function SurveyQuestionsList({
                                   e.target.value,
                                 )
                               }
-                              className="w-full bg-transparent outline-none border-b border-transparent focus:border-blue-400 text-sm text-gray-700 font-medium"
+                              className="w-full bg-transparent outline-none border-b border-transparent focus:border-blue-400 text-sm text-gray-700"
                             />
                           </div>
                         </td>
-                        {q.matrixCols.map((col, cIdx) => {
+                        {q.matrixCols?.map((col, cIdx) => {
                           const isChecked = q.matrixAnswers?.[row] === col;
                           return (
                             <td key={cIdx} className="p-3 text-center">
@@ -560,6 +534,7 @@ export default function SurveyQuestionsList({
                   </tbody>
                 </table>
               </div>
+
               <button
                 type="button"
                 onClick={() =>
@@ -617,7 +592,7 @@ export default function SurveyQuestionsList({
                 onClick={() => addChoiceOption(q.id)}
                 className="flex items-center gap-3 text-sm text-gray-400 hover:text-gray-600 pt-1"
               >
-                <div className="w-5 h-5 rounded-full border border-dashed border-gray-300 flex items-center justify-center" />
+                <div className="w-5 h-5 rounded-full border border-dashed border-slate-200 flex items-center justify-center" />
                 Add Option
               </button>
             </div>
