@@ -1,9 +1,9 @@
-import React from 'react'
+import CreateEventForm from "../../../../../components/dashboard/creation/CreateEventForm";
 
-export default function page() {
+export default function EventCreationPage() {
   return (
-    <div>
-      event Creation page
-    </div>
-  )
+    <main className="flex-grow flex flex-col">
+      <CreateEventForm />
+    </main>
+  );
 }

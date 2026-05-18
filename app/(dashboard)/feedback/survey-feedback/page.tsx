@@ -1,9 +1,16 @@
-import React from 'react'
+import React from "react";
+import SurveyFeedbackFeature from "../../../../components/feedback/SurveyFeedbackCart";
+import { TopBar } from "../../../../components/feedback/Top-Bar";
+import { Metadata } from "next";
 
-export default function page() {
+export const metadata: Metadata = {
+  title: "Survey Feedback",
+};
+export default function Page() {
   return (
-    <div>
-      feedback survey page
-    </div>
-  )
+    <main className="w-full bg-background">
+      <TopBar />
+      <SurveyFeedbackFeature />
+    </main>
+  );
 }

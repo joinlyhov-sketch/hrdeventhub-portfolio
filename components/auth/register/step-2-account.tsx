@@ -127,25 +127,26 @@ export default function Step2Account() {
 
   return (
     <motion.div
-      className="flex flex-col gap-5"
+      // Switching to grid here forces the component to fill the parent's width
+      className="grid grid-cols-1 gap-5 w-full" 
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
+      style={{ width: "100%" }}
     >
       <div className="mb-5 text-center">
-        <h2 className="text-[48px] font-extrabold tracking-[-2px] text-[#17356f]">
+        <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
           Account Info
         </h2>
-        <p className="mt-2 text-[#6e7580]">Join HRD EventHub &amp; Get started</p>
+        <p className="mt-2 text-[#6e7580] text-[14px]">Join HRD EventHub & Get started</p>
       </div>
 
-      <div className="space-y-1">
-        <div className="flex flex-col gap-1">
-          <div
-            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
-              errors.email ? "border-red-400" : "border-[#dce6f0]"
-            }`}
-          >
+      <div className="space-y-4 w-full">
+        {/* Email Field */}
+        <div className="flex flex-col gap-1 w-full">
+          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+            errors.email ? "border-red-400" : "border-[#dce6f0]"
+          }`}>
             <Mail size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Email"
@@ -158,12 +159,11 @@ export default function Step2Account() {
           {errors.email && <FieldError message={errors.email} />}
         </div>
 
-        <div className="flex flex-col gap-1 pt-4">
-          <div
-            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
-              errors.password ? "border-red-400" : "border-[#dce6f0]"
-            }`}
-          >
+        {/* Password Field */}
+        <div className="flex flex-col gap-1 w-full">
+          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+            errors.password ? "border-red-400" : "border-[#dce6f0]"
+          }`}>
             <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Password"
@@ -176,7 +176,7 @@ export default function Step2Account() {
             <button
               type="button"
               onClick={() => setShowPassword((p) => !p)}
-              className="text-xs font-semibold text-[#24529a] shrink-0"
+              className="text-xs font-semibold text-[#24529a] shrink-0 px-2"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
@@ -184,12 +184,11 @@ export default function Step2Account() {
           {errors.password && <FieldError message={errors.password} />}
         </div>
 
-        <div className="flex flex-col gap-1 pt-4">
-          <div
-            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
-              errors.confirmPassword ? "border-red-400" : "border-[#dce6f0]"
-            }`}
-          >
+        {/* Confirm Password Field */}
+        <div className="flex flex-col gap-1 w-full">
+          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+            errors.confirmPassword ? "border-red-400" : "border-[#dce6f0]"
+          }`}>
             <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Confirm Password"
@@ -202,7 +201,7 @@ export default function Step2Account() {
             <button
               type="button"
               onClick={() => setShowConfirmPassword((p) => !p)}
-              className="text-xs font-semibold text-[#24529a] shrink-0"
+              className="text-xs font-semibold text-[#24529a] shrink-0 px-2"
             >
               {showConfirmPassword ? "Hide" : "Show"}
             </button>
@@ -211,23 +210,18 @@ export default function Step2Account() {
         </div>
       </div>
 
-      {serverError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
-          {serverError}
-        </div>
-      )}
-
-      <div className="mt-3 flex gap-4">
+      {/* Button Action Row */}
+      <div className="mt-3 grid grid-cols-2 gap-4 w-full">
         <button
           onClick={() => setStep(1)}
-          className="h-[58px] flex-1 rounded-2xl border border-[#c8d6ee] bg-white text-lg font-semibold text-[#17356f] transition-all duration-300 hover:bg-[#f0f5ff] cursor-pointer"
+          className="h-[58px] rounded-2xl border border-[#c8d6ee] bg-white text-lg font-semibold text-[#17356f] transition-all hover:bg-[#f0f5ff]"
         >
           Back
         </button>
         <button
           onClick={handleRegister}
           disabled={isPending}
-          className="h-[58px] flex-1 rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+          className="h-[58px] rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all hover:bg-[#1f4685] disabled:opacity-70"
         >
           {isPending ? "Registering..." : "Register"}
         </button>

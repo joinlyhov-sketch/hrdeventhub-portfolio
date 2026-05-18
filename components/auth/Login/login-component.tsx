@@ -86,13 +86,17 @@ export default function LoginComponent() {
       animate="visible"
       className="flex items-center justify-center w-full"
     >
-      <div className="w-[500px] rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-10">
+      <div className="w-[624px] rounded-[32px] border border-[#dce6f0] bg-[#f9fbff]/80 backdrop-blur-sm p-18 shadow-sm">
+        {/* Header Section */}
         <div className="mb-10 text-center">
-          <h1 className="text-[42px] font-extrabold tracking-[-2px] text-[#17356f]">
-            Welcome Back
+          <h1 className="text-[28px] font-bold tracking-tight text-[#17356f]">
+            Welcome Back !
           </h1>
-          <p className="mt-2 text-[#6e7580]">
-            Enter your details to access your hub
+          <p className="mt-2 text-[20px] font-semibold text-[#5f6470]">
+            Discover events with <span className="text-[#1f4f98]">HRD EventHub</span>
+          </p>
+          <p className="text-[14px] text-[#8a92a6] mt-1">
+            Enter your credential to access the website
           </p>
         </div>
 
@@ -171,7 +175,7 @@ export default function LoginComponent() {
             className="mt-5 h-[58px] w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] cursor-pointer disabled:opacity-70"
             disabled={isPending}
           >
-            {isPending ? "Signing in..." : "Sign In"}
+            {isPending ? "Signing in..." : "Login"}
           </button>
 
           <p className="text-center text-sm text-[#5f6470] pt-2">

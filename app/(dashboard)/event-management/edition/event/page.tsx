@@ -1,9 +1,9 @@
-import React from 'react'
+import EditEventForm from "../../../../../components/dashboard/edition/EditEventForm";
 
-export default function page() {
+export default function EventEditionPage() {
   return (
-    <div>
-      event edition page
-    </div>
-  )
+    <main className="flex-grow flex flex-col ">
+      <EditEventForm />
+    </main>
+  );
 }

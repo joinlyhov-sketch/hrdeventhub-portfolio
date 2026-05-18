@@ -4,7 +4,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Footer from "../components/landing/Footer";
-import { Metadata } from "next";
 
 
 export default function Home() {
