@@ -220,7 +220,7 @@ export function AppSidebar() {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Events" className="h-11">
-                <Link href="/event">
+                <Link href="/group/1ada/event">
                   <CalendarFold className="text-gray-500" />
                   <span
                     className={`
