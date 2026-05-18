@@ -58,7 +58,7 @@ export default function GroupCard({ group, role }: GroupCardProps) {
             </div>
           </div>
 
-          <Link href={`/event`}>
+          <Link href={`/group/${group.id}`}>
             <button className="bg-[#1C4D8D] text-white px-7 py-3 rounded-xl text-sm hover:bg-[#FFA02E] transition-all shadow-sm cursor-pointer">
               View Group
             </button>

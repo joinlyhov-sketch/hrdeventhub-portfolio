@@ -2,7 +2,7 @@ import CreateEventForm from "../../../../../components/dashboard/creation/Create
 
 export default function EventCreationPage() {
   return (
-    <main className="flex-grow flex flex-col ">
+    <main className="grow flex flex-col">
       <CreateEventForm />
     </main>
   );

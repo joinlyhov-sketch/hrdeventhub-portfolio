@@ -1,9 +1,10 @@
-import React from 'react'
+import React from "react";
+import EditArticleForm from "../../../../../components/dashboard/edition/EditArticleForm";
 
-export default function page() {
+export default function EditArticlePage() {
   return (
-    <div>
-      article
-    </div>
-  )
+    <main className="grow flex flex-col ">
+      <EditArticleForm />
+    </main>
+  );
 }
