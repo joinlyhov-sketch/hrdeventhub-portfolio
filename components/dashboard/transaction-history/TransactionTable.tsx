@@ -177,26 +177,26 @@ export function TransactionTable({ data }: TransactionTableProps) {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50 hover:bg-gray-50">
-              <TableHead className="text-gray-900 type-desc-semibold">
+            <TableRow>
+              <TableHead className="text-background type-desc-semibold text-center">
                 Transaction ID
               </TableHead>
-              <TableHead className="text-gray-900 font-semibold">
+              <TableHead className="text-background type-desc-semibold text-center">
                 Username
               </TableHead>
-              <TableHead className="text-gray-900 font-semibold">
-                Amount
+              <TableHead className="text-background type-desc-semibold relative">
+                <span className="flex justify-center">Amount</span>
               </TableHead>
-              <TableHead className="text-gray-900 font-semibold">
+              <TableHead className="text-background type-desc-semibold text-center">
                 Payment
               </TableHead>
-              <TableHead className="text-gray-900 font-semibold">
+              <TableHead className="text-background type-desc-semibold text-center">
                 Status
               </TableHead>
-              <TableHead className="text-gray-900 font-semibold">
+              <TableHead className="text-background type-desc-semibold text-center">
                 Timestamp
               </TableHead>
-              <TableHead className="text-gray-900 font-semibold">
+              <TableHead className="text-background type-desc-semibold text-center pr-3">
                 Action
               </TableHead>
             </TableRow>
@@ -226,28 +226,34 @@ export function TransactionTable({ data }: TransactionTableProps) {
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-gray-700 font-semibold">
+                <TableCell className="text-gray-700 flex justify-center font-semibold">
                   ${transaction.amount}
                 </TableCell>
                 <TableCell>
-                  <span className="inline-flex items-center justify-center w-12 h-6 bg-blue-50 text-blue-600 text-xs font-bold rounded">
-                    {transaction.payment}
+                  <span className="flex justify-center">
+                    <span className="inline-flex items-center justify-center w-16 h-6 bg-blue-50 text-blue-600 text-xs font-bold rounded">
+                      {transaction.payment}
+                    </span>
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="flex justify-center">
                   <span
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(transaction.status)}`}
                   >
-                    <span>{getStatusIcon(transaction.status)}</span>
+                    {/* <span>{getStatusIcon(transaction.status)}</span> */}
                     {transaction.status}
                   </span>
                 </TableCell>
                 <TableCell className="text-gray-600 text-sm">
-                  {transaction.timestamp}
+                  <span className="flex justify-center">
+                    {transaction.timestamp}
+                  </span>
                 </TableCell>
-                <TableCell>
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <ExternalLink className="w-4 h-4 text-gray-600" />
+                <TableCell className="w-7">
+                  <button className="p-3 hover:bg-gray-100 rounded-lg transition-colors">
+                    <span className="flex justify-end">
+                      <ExternalLink className="w-4 h-4 text-gray-600" />
+                    </span>
                   </button>
                 </TableCell>
               </TableRow>
@@ -272,7 +278,7 @@ export function TransactionTable({ data }: TransactionTableProps) {
             disabled={typeof page !== "number"}
             className={`px-3 py-1 rounded-lg text-sm font-medium ${
               page === currentPage
-                ? "bg-blue-600 text-white"
+                ? "bg-secondary text-white"
                 : typeof page === "number"
                   ? "hover:bg-gray-100 text-gray-700"
                   : "text-gray-400 cursor-default"

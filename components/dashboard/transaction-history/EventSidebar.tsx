@@ -66,18 +66,19 @@ export function EventSidebar({
     if (showAllEvents) {
       return events.filter((e) => e.year === selectedYear);
     }
-    // Show first 4 events from current year
     return events.filter((e) => e.year === 2026).slice(0, 4);
   }, [events, showAllEvents, selectedYear]);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 h-fit">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">All Event</h3>
+        <h3 className="type-subtitle-24 font-semibold text-secondary">
+          All Event
+        </h3>
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="text-sm text-gray-600 bg-white border border-gray-200 rounded px-2 py-1 cursor-pointer hover:border-gray-300"
+          className="type-desc text-gray-400 bg-white border border-gray-200 rounded px-2 py-1 cursor-pointer hover:border-gray-300"
         >
           {availableYears.map((year) => (
             <option key={year} value={year}>
@@ -91,7 +92,7 @@ export function EventSidebar({
         className={`
             space-y-4
             overflow-x-hidden
-            ${showAllEvents ? "max-h-[600px] overflow-y-auto" : "overflow-hidden"}
+            ${showAllEvents ? "max-h-150 overflow-y-auto" : "overflow-hidden"}
         `}
         style={{
           scrollbarWidth: "none",
@@ -133,7 +134,7 @@ export function EventSidebar({
                 </p>
               </div>
               <h4
-                className={`text-sm font-semibold mb-2 ${
+                className={`type-subtitle text-secondary font-semibold mb-2 ${
                   selectedEventId === event.id ? "text-action" : "text-gray-900"
                 }`}
               >
@@ -141,12 +142,12 @@ export function EventSidebar({
               </h4>
               <div className="flex items-center justify-between">
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(event.status)}`}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full type-detail font-semibold ${getStatusBadgeColor(event.status)}`}
                 >
                   <span>{getStatusIcon(event.status)}</span>
                   {event.status}
                 </span>
-                <p className="text-sm font-bold text-primary">
+                <p className="text-subtitle font-bold text-primary">
                   ${event.amount.toFixed(2)}
                 </p>
               </div>
