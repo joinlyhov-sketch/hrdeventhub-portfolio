@@ -1,9 +1,10 @@
 import React from 'react'
+import EditAnnouncementForm from '../../../../../components/dashboard/edition/EditAnnouncementForm';
 
-export default function page() {
+export default function EditAnnouncementPage() {
   return (
-    <div>
-      Annoucement edition page
-    </div>
-  )
+    <main className="flex-grow flex flex-col ">
+      <EditAnnouncementForm />
+    </main>
+  );
 }

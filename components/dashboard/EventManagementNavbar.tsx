@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Menu } from "lucide-react";
 
 export const EventManagementNavbar = () => (
-  <nav className="h-20 z-50">
+  <nav className="h-20 z-50 stricky top-0">
     <div className="flex items-center justify-between h-full">
       <div className="flex items-center gap-3 sm:gap-4">
         <button className="lg:hidden p-2 hover:bg-slate-50 rounded-lg text-slate-600">
