@@ -3,8 +3,6 @@
 import {
   Lock,
   Eye,
-  Link2,
-  UserCircle,
   Phone,
   Cake,
   Code2,

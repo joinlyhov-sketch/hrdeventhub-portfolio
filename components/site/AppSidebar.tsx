@@ -350,7 +350,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Setting" className="h-11">
-                <Link href={"profile/setting"}>
+                <Link href={"/profile/setting"}>
                   <Settings className="text-gray-500" />
                   <span
                     className={`
