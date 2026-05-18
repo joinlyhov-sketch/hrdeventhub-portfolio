@@ -39,13 +39,13 @@ const getStatusBorderColor = (status: string): string => {
 const getStatusIcon = (status: string): string => {
   switch (status) {
     case "Published":
-      return "★";
+      return "●";
     case "Active":
       return "●";
     case "Cancel":
-      return "✕";
+      return "●";
     default:
-      return "○";
+      return "●";
   }
 };
 
@@ -63,10 +63,12 @@ export function EventSidebar({
   }, [events]);
 
   const filteredEvents = useMemo(() => {
+    const yearEvents = events.filter((e) => e.year === selectedYear);
+
     if (showAllEvents) {
-      return events.filter((e) => e.year === selectedYear);
+      return yearEvents;
     }
-    return events.filter((e) => e.year === 2026).slice(0, 4);
+    return yearEvents.slice(0, 4);
   }, [events, showAllEvents, selectedYear]);
 
   return (
@@ -122,7 +124,7 @@ export function EventSidebar({
                     ${getStatusBorderColor(event.status)}
                     ${
                       selectedEventId === event.id
-                        ? "bg-purple-50 rounded-lg"
+                        ? "scale-95 ease-in-out duration-300 rounded-lg"
                         : "hover:bg-gray-50 rounded-lg"
                     }
                     `}
