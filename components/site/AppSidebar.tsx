@@ -66,7 +66,7 @@ type CurrentUser = {
 const MOCK_CURRENT_USER: CurrentUser = {
   name: "Dita Rector",
   email: "RectorDita@gmail.com",
-  role: "student",
+  role: "admin",
   avatarInitials: "PS",
 };
 
@@ -350,7 +350,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Setting" className="h-11">
-                <Link href={"/setting"}>
+                <Link href={"profile/setting"}>
                   <Settings className="text-gray-500" />
                   <span
                     className={`
