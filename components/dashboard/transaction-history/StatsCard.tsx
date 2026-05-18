@@ -27,7 +27,6 @@ export function StatsCard({ title, value, color, customIcon }: StatsCardProps) {
   return (
     <div className="bg-background rounded-lg p-6 border border-gray-200">
       <div className="flex flex-col items-start justify-between gap-2">
-        {/* Custom SVG */}
         <div className="mb-1">{customIcon}</div>
 
         <div>

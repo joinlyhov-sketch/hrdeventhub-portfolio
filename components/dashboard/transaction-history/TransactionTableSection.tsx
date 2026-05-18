@@ -25,12 +25,10 @@ export function TransactionTableSection({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Transaction Table - Takes 2 columns on large screens */}
       <div className="lg:col-span-2">
         <TransactionTable data={filteredTransactions} />
       </div>
 
-      {/* Event Sidebar */}
       <div>
         <EventSidebar
           events={events}

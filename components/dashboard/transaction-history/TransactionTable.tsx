@@ -96,7 +96,6 @@ export function TransactionTable({ data }: TransactionTableProps) {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-fs-subtitle font-semibold text-secondary flex items-center gap-2">
@@ -175,11 +174,10 @@ export function TransactionTable({ data }: TransactionTableProps) {
         </div>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-primary hover:bg-gray-50">
+            <TableRow className="bg-gray-50 hover:bg-gray-50">
               <TableHead className="text-gray-900 type-desc-semibold">
                 Transaction ID
               </TableHead>
@@ -258,7 +256,6 @@ export function TransactionTable({ data }: TransactionTableProps) {
         </Table>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-end gap-2 mt-6">
         <button
           onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
