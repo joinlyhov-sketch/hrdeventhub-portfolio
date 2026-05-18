@@ -30,7 +30,15 @@ export const weekHeaderDays = [
   { day: "SAT", date: "07" },
 ];
 
-export const weekTimeSlots = [
+export const weekDayTimeSlots = [
+  "12 AM",
+  "01 AM",
+  "02 AM",
+  "03 AM",
+  "04 AM",
+  "05 AM",
+  "06 AM",
+  "07 AM",
   "08 AM",
   "09 AM",
   "10 AM",
@@ -39,13 +47,21 @@ export const weekTimeSlots = [
   "01 PM",
   "02 PM",
   "03 PM",
+  "04 PM",
+  "05 PM",
+  "06 PM",
+  "07 PM",
+  "08 PM",
+  "09 PM",
+  "10 PM",
+  "11 PM",
 ];
 
 export const weekEvents = [
   {
     id: 1,
     dayIndex: 2,
-    top: 80,
+    top: 42,
     title: "PRODUCT REVIEW",
     time: "9:00 - 10:30",
     tone: "primary" as EventTone,
@@ -53,22 +69,22 @@ export const weekEvents = [
   {
     id: 2,
     dayIndex: 3,
-    top: 180,
+    top: 126,
     title: "CLIENT SYNC",
-    time: "11:00 - 12:30",
+    time: "11:00 - 12:00",
     tone: "accent" as EventTone,
   },
   {
     id: 3,
     dayIndex: 5,
-    top: 300,
+    top: 210,
     title: "DESIGN WORKSHOP",
     time: "1:00 - 3:00",
     tone: "destructive" as EventTone,
   },
 ];
 
-export const dayEvents = [
+export const calendarEvents = [
   {
     id: 1,
     title: "Tech Innovation Summit",

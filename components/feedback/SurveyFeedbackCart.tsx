@@ -61,9 +61,9 @@ function SearchAction() {
       <button
         type="button"
         title="Add Feedback"
-        className="inline-flex size-9 w-[80px] py-6 shrink-0 items-center justify-center bg-primary text-primary-foreground rounded-full"
+        className="inline-flex size-7 w-[60px] py-6 shrink-0 items-center justify-center bg-primary text-primary-foreground rounded-full"
       >
-        <Plus size={30} />
+        <Plus size={20} strokeWidth={2.5} />
       </button>
     </div>
   );
@@ -106,7 +106,7 @@ function StatusBadge({ status }: { status: string }) {
             : "bg-destructive/10 text-destructive"
         }`}
       >
-        <Circle size={10} className="mr-2 fill-current" />
+        <Circle size={10} className="mr-1 fill-current" />
         {status}
       </div>
     </>
