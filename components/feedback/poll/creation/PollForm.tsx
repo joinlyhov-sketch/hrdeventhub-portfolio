@@ -94,7 +94,6 @@ export default function PollForm() {
             )}
           </div>
         ))}
-
         <button
           type="button"
           onClick={() =>
