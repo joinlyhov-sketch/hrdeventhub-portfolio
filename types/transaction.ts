@@ -1,5 +1,3 @@
-import { ReactNode } from "react";
-
 export type TransactionStatus = "Successful" | "Failed" | "Pending";
 export type PaymentMethod = "WebPay" | "PayPal" | "Card";
 export type EventStatus = "Published" | "Active" | "Cancel";
@@ -28,6 +26,7 @@ export interface Event {
 export interface StatCard {
   title: string;
   value: string;
+  icon?: string;
   customIcon: React.ReactNode;
   color: string;
 }
