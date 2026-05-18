@@ -20,31 +20,31 @@ export default function CreateEventForm() {
       <Breadcrumb label="Event Creation" />
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col flex-grow mb-4">
         <div className="p-5 md:p-8 lg:p-10 border-b border-slate-50">
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-[#1E3A8A]">
+          <h1 className="text-xl md:text-2xl lg:text-3xl text-secondary font-bold">
             Creation Form
           </h1>
-          <p className="text-slate-400 text-xs md:text-sm lg:text-base mt-1">
+          <p className="text-gray-500 text-xs md:text-sm lg:text-base mt-1">
             Fill in the details below to publish your next conference or
             workshop.
           </p>
           <div className="mt-6 md:mt-8 grid grid-cols-3 bg-slate-50 p-1 md:p-1.5 rounded-xl md:rounded-2xl border border-slate-200">
             <Link
               href="/event-management/creation/event"
-              className="flex items-center justify-center gap-2 py-2.5 md:py-3.5 bg-[#1E3A8A] text-white rounded-lg md:rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold shadow-md transition-all active:scale-95"
+              className="flex items-center justify-center gap-2 py-2.5 md:py-3.5 bg-primary text-white rounded-lg md:rounded-xl text-detail-medium sm:text-xs md:text-sm font-semibold shadow-md transition-all active:scale-95"
             >
-              <CalendarDays size={16} className="md:w-[18px]" />
+              <CalendarDays size={16} className="md:w-[18px] " />
               <span>Event</span>
             </Link>
             <Link
               href="/event-management/creation/announcement"
-              className="flex items-center justify-center gap-2 py-2.5 md:py-3.5 text-slate-500 text-[10px] sm:text-xs md:text-sm font-semibold hover:bg-slate-100 rounded-lg md:rounded-xl transition-colors"
+              className="flex items-center justify-center gap-2 py-2.5 md:py-3.5 text-primary text-detail-medium sm:text-xs md:text-sm font-semibold hover:bg-slate-100 rounded-lg md:rounded-xl transition-colors"
             >
               <Megaphone size={16} className="md:w-[18px]" />
               <span className="truncate">Announcement</span>
             </Link>
             <Link
               href="/event-management/creation/article"
-              className="flex items-center justify-center gap-2 py-2.5 md:py-3.5 text-slate-500 text-[10px] sm:text-xs md:text-sm font-semibold hover:bg-slate-100 rounded-lg md:rounded-xl transition-colors"
+              className="flex items-center justify-center gap-2 py-2.5 md:py-3.5 text-primary text-desc-medium sm:text-xs md:text-sm font-semibold hover:bg-slate-100 rounded-lg md:rounded-xl transition-colors"
             >
               <BookOpenTextIcon size={16} className="md:w-[18px]" />
               <span className="truncate">Article</span>
@@ -101,7 +101,7 @@ export default function CreateEventForm() {
             type="number"
           />
           <div className="flex flex-col gap-2">
-            <label className="text-[#1E3A8A] font-bold text-sm md:text-base lg:text-lg">
+            <label className="text-secondary font-bold text-sm md:text-base lg:text-lg">
               Description
             </label>
             <textarea
@@ -115,7 +115,7 @@ export default function CreateEventForm() {
       <div className="p-3 bg-slate-50 flex flex-col sm:flex-row justify-end gap-3">
         <button
           type="button"
-          className="order-2 sm:order-1 w-full sm:w-auto px-12 py-3 border border-slate-200 bg-white text-slate-600 font-bold rounded-xl md:rounded-2xl hover:bg-slate-50 transition-all active:scale-95 text-sm shadow-sm"
+          className="order-2 sm:order-1 w-full sm:w-auto px-12 py-3 border border-slate-200 bg-white text-primary font-bold rounded-xl md:rounded-2xl hover:bg-slate-50 transition-all active:scale-95 text-sm shadow-sm"
         >
           Cancel
         </button>
