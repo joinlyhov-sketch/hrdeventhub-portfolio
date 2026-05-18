@@ -66,7 +66,7 @@ type CurrentUser = {
 const MOCK_CURRENT_USER: CurrentUser = {
   name: "Dita Rector",
   email: "RectorDita@gmail.com",
-  role: "student",
+  role: "admin",
   avatarInitials: "PS",
 };
 

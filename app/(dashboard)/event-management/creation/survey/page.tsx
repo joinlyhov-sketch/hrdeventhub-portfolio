@@ -1,9 +1,12 @@
-import React from 'react'
+import React from "react";
+import SurveyCreationForm from "../../../../../components/feedback/survey/SurveyCreationForm";
+import { FeedbackBreadcrumb } from "../../../../../components/dashboard/FeedbackBreadcrumb";
 
-export default function page() {
+export default async function SurveyCreationPage() {
   return (
-    <div>
-      creation for survey
+    <div className="w-full">
+      <FeedbackBreadcrumb label="Survey Creation" />
+      <SurveyCreationForm />
     </div>
-  )
+  );
 }
