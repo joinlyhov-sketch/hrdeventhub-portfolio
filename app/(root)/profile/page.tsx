@@ -15,7 +15,7 @@ export default function ProfilePage() {
   const showStudentTabs = viewMode === 'STUDENT_SELF' || viewMode === 'ALUMNI_VIEWING_STUDENT';
 
   return (
-    <div className='flex-1 overflow-y-auto bg-background min-h-screen flex flex-col gap-6'>
+    <div className='flex-1 overflow-y-auto bg-background min-h-screen flex flex-col gap-6 px-3.5'>
       <ProfileHeader />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
