@@ -1,13 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  Search,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  ExternalLink,
-} from "lucide-react";
+import { Search, Download } from "lucide-react";
 import { Event, Transaction } from "../../../types/transaction";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
@@ -28,15 +22,6 @@ interface TransactionTableProps {
   selectedEvent?: Event;
 }
 
-const getPaymentLogo = (payment: string): string => {
-  const logoMap: Record<string, string> = {
-    WebPay: "/payment-logos/webpay.svg",
-    PayPal: "/payment-logos/paypal.svg",
-    Card: "/payment-logos/card.svg",
-  };
-  return logoMap[payment] || "/payment-logos/webpay.svg";
-};
-
 const getStatusColor = (status: string): string => {
   switch (status) {
     case "Successful":
@@ -47,17 +32,6 @@ const getStatusColor = (status: string): string => {
       return "bg-yellow-100 text-yellow-700";
     default:
       return "bg-gray-100 text-gray-700";
-  }
-};
-
-const getStatusIcon = (status: string): string => {
-  switch (status) {
-    case "Successful":
-      return "✓";
-    case "Failed":
-      return "✕";
-    default:
-      return "○";
   }
 };
 
@@ -113,11 +87,11 @@ export function TransactionTable({
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-fs-subtitle font-semibold text-secondary flex items-center gap-2">
+          <h2 className="text-subtitle-24 font-semibold text-secondary flex items-center gap-2">
             <div className="w-5 h-5 rounded flex items-center justify-center">
               <svg
-                width="24"
-                height="24"
+                width="26"
+                height="26"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -196,19 +170,19 @@ export function TransactionTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-background type-desc-semibold text-center">
-                Transaction ID
+              <TableHead className="text-background type-detail-semibold text-center">
+                ID
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center">
+              <TableHead className="text-background type-detail-semibold text-center w-[125px]">
                 Username
               </TableHead>
-              <TableHead className="text-background type-desc-semibold relative">
+              <TableHead className="text-background type-detail-semibold relative">
                 <span className="flex justify-center">Amount</span>
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center">
+              <TableHead className="text-background type-detail-semibold text-center">
                 Payment
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center">
+              <TableHead className="text-background type-detail-semibold text-center">
                 <div className="flex justify-around items-center">
                   <span>Status</span>
                   <svg
@@ -225,10 +199,10 @@ export function TransactionTable({
                   </svg>
                 </div>
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center">
+              <TableHead className="text-background w-[80px] type-detail-semibold text-center">
                 Timestamp
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center pr-3">
+              <TableHead className="text-background type-detail-semibold text-center">
                 Action
               </TableHead>
             </TableRow>
@@ -240,12 +214,12 @@ export function TransactionTable({
                   key={index}
                   className="hover:bg-gray-50 border-gray-200"
                 >
-                  <TableCell className="type-desc text-sm text-gray-700">
+                  <TableCell className="type-detail mr-1.5 text-gray-700">
                     {transaction.id}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center ">
-                      <Avatar className="w-8 h-8">
+                      <Avatar className="w-7 h-7">
                         <AvatarImage
                           src={transaction.avatar}
                           alt={transaction.username}
@@ -254,21 +228,21 @@ export function TransactionTable({
                           {transaction.username.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="type-desc text-gray-700">
+                      <span className="type-detail text-gray-700">
                         {transaction.username}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="inline-flex items-center justify-center w-16 type-desc font-bold rounded text-gray-400">
+                    <span className="inline-flex items-center justify-center w-16 type-detail font-bold rounded text-gray-400">
                       ${transaction.amount}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="flex justify-center">
-                      <span className="inline-flex items-center justify-center w-16 h-6 text-xs font-bold rounded">
+                      <span className="inline-flex items-center justify-center w-16 h-6 type-detail font-bold rounded">
                         <svg
-                          width="47"
+                          width="45"
                           height="9"
                           viewBox="0 0 47 9"
                           fill="none"
@@ -328,14 +302,14 @@ export function TransactionTable({
                   <TableCell>
                     <span className="flex justify-center">
                       <span
-                        className={`type-detail nline-flex items-center justify-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(transaction.status)}`}
+                        className={`type-desc-small-semibold nline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full ${getStatusColor(transaction.status)}`}
                       >
                         {transaction.status}
                       </span>
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-600 text-sm">
-                    <span className="flex type-desc justify-center">
+                    <span className="flex type-desc-small-semibold justify-center">
                       {transaction.timestamp}
                     </span>
                   </TableCell>
