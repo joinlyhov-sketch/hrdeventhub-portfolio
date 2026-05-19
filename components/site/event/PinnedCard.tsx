@@ -3,9 +3,12 @@
 import { Clock } from "lucide-react";
 import image from "../../../public/images/PinnedCardTest.jpg";
 import Image from "next/image";
+import Link from "next/link";
+import { g } from "motion/react-client";
 
 const data = {
-  id: "evt-9921",
+  id: "1",
+  groupId: "1",
   badge: "NEW EVENT",
   title: "Songkran Festival Celebration",
   schedule: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
@@ -38,12 +41,14 @@ export function PinnedCard() {
         </div>
 
         <div className="w-full md:w-auto flex-shrink-0">
+          <Link href={`/group/${data.groupId}/event/${data.id}}`} className="w-full">
           <button
             type="button"
             className="w-full md:w-auto bg-white text-secondary hover:bg-grey-100 active:scale-[0.99] transition-all px-7 py-3.5 rounded-xl type-detail-semibold shadow-md whitespace-nowrap"
           >
             View Detail
           </button>
+          </Link>
         </div>
       </div>
     </article>
