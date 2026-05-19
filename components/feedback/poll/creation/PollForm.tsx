@@ -43,7 +43,7 @@ export default function PollForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full sm:w-auto p-2.5 px-6 rounded-xl bg-blue-900 text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
+          className="w-full sm:w-auto p-2.5 px-6 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
         >
           {isSubmitting && <Loader2 size={14} className="animate-spin" />}
           {isSubmitting ? "Posting..." : "Post Poll"}
