@@ -3,7 +3,7 @@ import EditAnnouncementForm from '../../../../../components/dashboard/edition/Ed
 
 export default function EditAnnouncementPage() {
   return (
-    <main className="flex-grow flex flex-col ">
+    <main className="grow flex flex-col ">
       <EditAnnouncementForm />
     </main>
   );

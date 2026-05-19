@@ -1,55 +1,75 @@
 "use client";
-import ProfileHeader from '../../../components/site/profile/ProfileHeader';
-import BackgroundTab from '../../../components/site/profile/BackgroundTab';
-import EventTab from '../../../components/site/profile/EventTab';
-import { useState } from 'react';
-import ProfileCard from '../../../components/site/profile/ProfileCard';
-import EndorsementTabs from '../../../components/site/profile/EndorsementTabs';
+import ProfileHeader from "../../../components/site/profile/ProfileHeader";
+import BackgroundTab from "../../../components/site/profile/BackgroundTab";
+import EventTab from "../../../components/site/profile/EventTab";
+import { useState } from "react";
+import ProfileCard from "../../../components/site/profile/ProfileCard";
+import EndorsementTabs from "../../../components/site/profile/EndorsementTabs";
 
-export type UserViewMode = 'ADMIN' | 'STUDENT_SELF' | 'ALUMNI_VIEWING_STUDENT';
+export type UserViewMode = "ADMIN" | "STUDENT_SELF" | "ALUMNI_VIEWING_STUDENT";
 
 export default function ProfilePage() {
-  const viewMode = 'ADMIN' as UserViewMode; 
+  const viewMode = 'ALUMNI_VIEWING_STUDENT' as UserViewMode; 
   
   const [activeTab, setActiveTab] = useState<'BG' | 'EV' | 'EN'>('BG');
   const showStudentTabs = viewMode === 'STUDENT_SELF' || viewMode === 'ALUMNI_VIEWING_STUDENT';
 
   return (
-    <div className='flex-1 p-10 overflow-y-auto bg-background min-h-screen flex flex-col gap-6'>
+    <div className='flex-1 overflow-y-auto bg-background min-h-screen flex flex-col gap-6'>
       <ProfileHeader />
-      
-      <div className='grid grid-cols-1 xl:grid-cols-12 gap-8 items-start'>
-        <div className='xl:col-span-4'>
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+        <div className="xl:col-span-4">
           <ProfileCard viewMode={viewMode} />
         </div>
-        <div className='xl:col-span-8 bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6'>
-          <div className='flex bg-muted p-1.5 rounded-lg border border-border gap-1'>
-            <Tabnav active={activeTab === 'BG'} label="Background" onClick={() => setActiveTab('BG')} />
-            
+        <div className="xl:col-span-8 bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
+          <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1">
+            <Tabnav
+              active={activeTab === "BG"}
+              label="Background"
+              onClick={() => setActiveTab("BG")}
+            />
+
             {showStudentTabs && (
               <>
-                <Tabnav active={activeTab === 'EV'} label="Participated Event" onClick={() => setActiveTab('EV')} />
-                <Tabnav active={activeTab === 'EN'} label="My Endorsement" onClick={() => setActiveTab('EN')} />
+                <Tabnav
+                  active={activeTab === "EV"}
+                  label="Participated Event"
+                  onClick={() => setActiveTab("EV")}
+                />
+                <Tabnav
+                  active={activeTab === "EN"}
+                  label="My Endorsement"
+                  onClick={() => setActiveTab("EN")}
+                />
               </>
             )}
           </div>
-          <div className='w-full'>
-            {activeTab === 'BG' && <BackgroundTab />}
-            {activeTab === 'EV' && showStudentTabs && <EventTab />}
-            {activeTab === 'EN' && showStudentTabs && <EndorsementTabs />}
+          <div className="w-full">
+            {activeTab === "BG" && <BackgroundTab />}
+            {activeTab === "EV" && showStudentTabs && <EventTab />}
+            {activeTab === "EN" && showStudentTabs && <EndorsementTabs />}
           </div>
         </div>
       </div>
     </div>
   );
 }
-const Tabnav = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
-  <button 
+const Tabnav = ({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) => (
+  <button
     onClick={onClick}
     className={`flex-1 py-2.5 px-4 rounded-md type-desc-semibold transition-all duration-100 ${
-      active 
-        ? 'bg-primary text-primary-foreground shadow-sm' 
-        : 'text-muted-foreground hover:bg-grey-50 hover:text-foreground'
+      active
+        ? "bg-primary text-primary-foreground shadow-sm"
+        : "text-muted-foreground hover:bg-grey-50 hover:text-foreground"
     }`}
   >
     {label}

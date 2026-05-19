@@ -8,7 +8,7 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const FormInput = ({ label, icon: Icon, ...props }: Props) => (
   <div className="flex flex-col gap-1.5 w-full">
-    <label className="text-[#1E3A8A] font-bold text-sm">{label}</label>
+    <label className="text-secondary font-bold text-sm">{label}</label>
     <div className="relative flex items-center">
       {Icon && (
         <Icon className="absolute left-4 text-slate-400" size={18} />
