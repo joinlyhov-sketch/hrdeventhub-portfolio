@@ -10,10 +10,7 @@ import {
   Mails,
   UserCircle,
   Users,
-  Code,
-  LockKeyhole,
-  Bell,
-  Globe
+  Globe,
 } from "lucide-react";
 import React, { useState } from "react";
 
@@ -48,7 +45,7 @@ export default function SettingVisibilityModeCard({
   activities,
   setActivities,
   selectiveConfig,
-  setSelectiveConfig
+  setSelectiveConfig,
 }: SettingVisibilityModeCardProps) {
   const [expandedSections, setExpandedSections] = useState({
     profile: true,
@@ -61,13 +58,13 @@ export default function SettingVisibilityModeCard({
     setActivities((prev) =>
       prev.map((act) =>
         act.id === id ? { ...act, isVisible: !act.isVisible } : act,
-      )
+      ),
     );
   };
 
   const setAllVisibility = (visible: boolean) => {
     setActivities((prev) =>
-      prev.map((act) => ({ ...act, isVisible: visible }))
+      prev.map((act) => ({ ...act, isVisible: visible })),
     );
   };
 
@@ -153,9 +150,7 @@ export default function SettingVisibilityModeCard({
               <div className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center mb-3">
                 <Lock className="w-4 h-4" />
               </div>
-              <h3 className="font-bold text-secondary text-xs">
-                Private Mode
-              </h3>
+              <h3 className="font-bold text-secondary text-xs">Private Mode</h3>
               <p className="type-detail text-muted-foreground mt-1 leading-relaxed">
                 Only your name is visible to others. All profile data is hidden.
               </p>
@@ -290,7 +285,8 @@ export default function SettingVisibilityModeCard({
               Your profile is fully private
             </h3>
             <p className="type-detail text-muted-foreground leading-relaxed max-w-sm">
-              While in Private Mode, all your personal details are hidden from others. Individual visibility controls are disabled.
+              While in Private Mode, all your personal details are hidden from
+              others. Individual visibility controls are disabled.
             </p>
 
             <div className="flex gap-1.5 mt-12">
@@ -363,7 +359,9 @@ export default function SettingVisibilityModeCard({
                       <CheckCircle2
                         className={`w-3 h-3 ${selectiveConfig.profile ? "opacity-100" : "opacity-40"}`}
                       />
-                      <span>{selectiveConfig.profile ? "Visible" : "Hidden"}</span>
+                      <span>
+                        {selectiveConfig.profile ? "Visible" : "Hidden"}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -411,7 +409,9 @@ export default function SettingVisibilityModeCard({
                       <CheckCircle2
                         className={`w-3 h-3 ${selectiveConfig.contactInfo ? "opacity-100" : "opacity-40"}`}
                       />
-                      <span>{selectiveConfig.contactInfo ? "Visible" : "Hidden"}</span>
+                      <span>
+                        {selectiveConfig.contactInfo ? "Visible" : "Hidden"}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -459,7 +459,9 @@ export default function SettingVisibilityModeCard({
                       <CheckCircle2
                         className={`w-3 h-3 ${selectiveConfig.education ? "opacity-100" : "opacity-40"}`}
                       />
-                      <span>{selectiveConfig.education ? "Visible" : "Hidden"}</span>
+                      <span>
+                        {selectiveConfig.education ? "Visible" : "Hidden"}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -507,7 +509,9 @@ export default function SettingVisibilityModeCard({
                       <CheckCircle2
                         className={`w-3 h-3 ${selectiveConfig.socialAccounts ? "opacity-100" : "opacity-40"}`}
                       />
-                      <span>{selectiveConfig.socialAccounts ? "Visible" : "Hidden"}</span>
+                      <span>
+                        {selectiveConfig.socialAccounts ? "Visible" : "Hidden"}
+                      </span>
                     </button>
                     <button
                       type="button"
