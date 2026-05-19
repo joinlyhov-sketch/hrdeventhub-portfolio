@@ -24,7 +24,7 @@ export default async function UserManagementPage() {
   const initialUsers = await fetchUsers();
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto my-auto p-3 bg-white rounded-3xl border border-gray-100 shadow-sm space-y-5">
+    <div className="w-full max-w-full mx-auto my-auto p-5 bg-white rounded-3xl border border-gray-100 shadow-sm space-y-5">
       <div className="flex items-center gap-2.5 text-secondary border-b border-gray-50 pb-2">
         <User2 size={24} className="stroke-[2.5]" />
         <h2 className="text-xl font-bold tracking-tight">Registered User</h2>

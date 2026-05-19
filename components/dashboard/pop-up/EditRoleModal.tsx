@@ -35,7 +35,7 @@ export default function EditRoleModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-slate-400 hover:text-red-500 transition-colors"
           >
             <X size={20} />
           </button>

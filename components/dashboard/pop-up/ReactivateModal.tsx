@@ -23,15 +23,14 @@ export default function ReactivateModal({ user, onClose, onConfirm }: Reactivate
               <p className="text-xs text-slate-400 font-medium">{user.email}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button type="button" onClick={onClose} className="text-slate-400 hover:text-red-500 transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        {/* Modal Content Body */}
         <div className="p-10 flex flex-col items-center text-center space-y-6">
           <div className="w-16 h-16 bg-[#E6F9F1] rounded-full flex items-center justify-center border border-[#CCF4E3]">
-            <CheckCircle2 className="w-8 h-8 text-[#00B074]" />
+            <CheckCircle2 className="w-8 h-8 text-subtle" />
           </div>
 
           <div className="space-y-3 w-full">
@@ -45,7 +44,6 @@ export default function ReactivateModal({ user, onClose, onConfirm }: Reactivate
             </p>
           </div>
 
-          {/* Action Trigger Buttons */}
           <div className="flex items-center justify-center gap-4 pt-4 w-full">
             <button
               type="button"

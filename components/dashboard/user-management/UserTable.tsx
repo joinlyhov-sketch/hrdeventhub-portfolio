@@ -85,36 +85,39 @@ export default function UserTableClient({
         </button>
       </div>
 
-      <div className="w-full overflow-x-auto rounded-xl border border-gray-100">
-        <table className="w-full text-left border-collapse min-w-full">
+      {/* 1. Added minimum height to wrapper to prevent page jumping layout shifts */}
+      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-[580px] bg-white">
+        
+        {/* 2. Added 'table-fixed' to freeze cell columns from shifting sizes dynamically */}
+        <table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <thead>
-            <tr className="bg-secondary text-white">
-              <th className="px-6 py-3.5 text-desc-semibold tracking-wider text-center">
+            <tr className="bg-secondary text-white h-[52px]">
+              <th className="px-5 py-3 text-desc-semibold tracking-wider text-center w-[5%]">
                 No.
               </th>
-              <th className="px-10 py-3.5 text-desc-semibold tracking-wider">
+              <th className="px-5 py-3 text-desc-semibold tracking-wider w-[18%]">
                 Username
               </th>
-              <th className="px-5 py-3.5 text-desc-semibold tracking-wider">
+              <th className="px-5 py-3 text-desc-semibold tracking-wider w-[20%]">
                 Email
               </th>
-              <th className="px-6 py-3.5 text-desc-semibold tracking-wider">
+              <th className="px-6 py-3 text-desc-semibold tracking-wider w-[12%]">
                 Phone
               </th>
-              <th className="px-6 py-3.5 text-desc-semibold tracking-wider">
+              <th className="px-6 py-3 text-desc-semibold tracking-wider w-[10%]">
                 Gender
               </th>
-              <th className="px-5 py-3.5 text-desc-semibold tracking-wider text-center w-28">
+              <th className="px-5 py-3 text-desc-semibold tracking-wider text-center w-[10%]">
                 <div className="flex items-center justify-center gap-1 cursor-pointer select-none">
                   Gen <ArrowUp size={16} /><ListFilter size={16} /> 
                 </div>
               </th>
-              <th className="px-6 py-3.5 text-desc-semibold tracking-wider w-36">
+              <th className="px-8 py-3 text-desc-semibold tracking-wider w-[12%]">
                 <div className="flex items-center gap-1 cursor-pointer select-none">
                   Status <ListFilter size={16} />
                 </div>
               </th>
-              <th className="px-6 py-3.5 text-desc-semibold tracking-wider w-24">
+              <th className="px-6 py-3 text-desc-semibold tracking-wider w-[10%]">
                 Action
               </th>
             </tr>
@@ -130,7 +133,7 @@ export default function UserTableClient({
                 />
               ))
             ) : (
-              <tr>
+              <tr className="h-[520px]">
                 <td colSpan={8} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center justify-center space-y-3">
                     <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
