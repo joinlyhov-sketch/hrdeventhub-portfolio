@@ -9,7 +9,7 @@ import EndorsementTabs from "../../../components/site/profile/EndorsementTabs";
 export type UserViewMode = "ADMIN" | "STUDENT_SELF" | "ALUMNI_VIEWING_STUDENT";
 
 export default function ProfilePage() {
-  const viewMode = 'ALUMNI_VIEWING_STUDENT' as UserViewMode; 
+  const viewMode = 'STUDENT_SELF' as UserViewMode; 
   
   const [activeTab, setActiveTab] = useState<'BG' | 'EV' | 'EN'>('BG');
   const showStudentTabs = viewMode === 'STUDENT_SELF' || viewMode === 'ALUMNI_VIEWING_STUDENT';

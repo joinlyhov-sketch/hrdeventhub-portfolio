@@ -13,6 +13,13 @@ import {
   BarChart4,
   Loader2,
   Plus,
+  Type,
+  TextAlignStart,
+  CircleDot,
+  SquareCheck,
+  ChevronDown,
+  ToggleRight,
+  LayoutGrid,
 } from "lucide-react";
 import SurveyHeader from "./SurveyHeader";
 import SurveyQuestionsList, { Question } from "./SurveyQuestionsList";
@@ -153,12 +160,12 @@ export default function SurveyCreationForm() {
               <div className="space-y-2">
                 <SidebarItemButton
                   label="Short Text"
-                  icon={<AlignLeft size={16} />}
+                  icon={<Type size={16} />}
                   onClick={() => addQuestionByType("short-text")}
                 />
                 <SidebarItemButton
                   label="Long Text"
-                  icon={<FileText size={16} />}
+                  icon={<TextAlignStart size={16} />}
                   onClick={() => addQuestionByType("long-text")}
                 />
               </div>
@@ -170,17 +177,17 @@ export default function SurveyCreationForm() {
               <div className="space-y-2">
                 <SidebarItemButton
                   label="Single Choice"
-                  icon={<CheckCircle size={16} />}
+                  icon={<CircleDot size={16} />}
                   onClick={() => addQuestionByType("choice")}
                 />
                 <SidebarItemButton
                   label="Multiple Choice"
-                  icon={<ListChecks size={16} />}
+                  icon={<SquareCheck size={16} />}
                   onClick={() => addQuestionByType("choice")}
                 />
                 <SidebarItemButton
                   label="Dropdown"
-                  icon={<ArrowDownCircle size={16} />}
+                  icon={<ChevronDown size={16} />}
                   onClick={() => addQuestionByType("dropdown")}
                 />
               </div>
@@ -197,12 +204,12 @@ export default function SurveyCreationForm() {
                 />
                 <SidebarItemButton
                   label="Yes/No Toggle"
-                  icon={<ToggleLeft size={16} />}
+                  icon={<ToggleRight size={16} />}
                   onClick={() => addQuestionByType("yes-no")}
                 />
                 <SidebarItemButton
                   label="Matrix"
-                  icon={<Grid size={16} />}
+                  icon={<LayoutGrid size={16} />}
                   onClick={() => addQuestionByType("matrix")}
                 />
                 <SidebarItemButton

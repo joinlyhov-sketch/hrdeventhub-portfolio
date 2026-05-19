@@ -15,16 +15,14 @@ import { PaginationDemo } from "./Pagination";
 
 export default function SurveyFeedbackFeature() {
   return (
-    <section className="rounded-xl border border-border bg-card p-8">
+    <section className="rounded-xl border border-border bg-card p-4">
       <SectionTitle />
       <SearchAction />
-
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {surveyFeedbacks.map((item) => (
           <FeedbackCard key={item.id} item={item} />
         ))}
       </div>
-
       <PaginationDemo />
     </section>
   );
@@ -71,16 +69,16 @@ function SearchAction() {
 
 function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
   return (
-    <article className="rounded-xl border border-accent/30 bg-card p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <article className="rounded-xl border border-accent/30 bg-card p-6">
+      <div className=" flex items-center justify-between">
         <StatusBadge status={item.status} />
         <div className="inline-flex size-12 items-center justify-center rounded-lg bg-accent/20 text-accent">
           <BarChart3 size={22} />
         </div>
       </div>
       <h3 className="type-subtitle text-primary">{item.title}</h3>
-      <p className="type-desc mt-2 text-muted-foreground">{item.date}</p>
-      <div className="my-8 text-center">
+      <p className="type-desc mt-2 mb-4 text-muted-foreground">{item.date}</p>
+      <div className=" text-center mb-4">
         <h1 className="type-h1 text-primary">{item.totalResponse}</h1>
         <p className="type-desc-semibold text-secondary">Total Response</p>
       </div>

@@ -1,6 +1,6 @@
 export default function ProfileHeader() {
   return (
-    <header className="mb-10">
+    <header className="mb-6">
       <h1 className="type-title text-primary">
         My <span className="text-action">Profile</span>
       </h1>

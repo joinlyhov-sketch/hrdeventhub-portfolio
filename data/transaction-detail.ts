@@ -26,7 +26,7 @@ export const transactionDetailsData: TransactionDetail[] = [
       date: "Tomorrow",
       time: "1:30 PM - 5:00 PM",
       location: "CKCC",
-      image: "/images/Workshop.png",
+      image: "/images/Workshop.webp",
       badge: "NEW EVENT",
       status: "Active",
     },

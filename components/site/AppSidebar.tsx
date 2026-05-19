@@ -431,7 +431,7 @@ export function AppSidebar() {
                   tooltip="Event Management"
                   className="h-11"
                 >
-                  <Link href="/event-management/attendees-list">
+                  <Link href="/event-management">
                     <CalendarRange className="text-gray-500" />
                     <span
                       className={`
