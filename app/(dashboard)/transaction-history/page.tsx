@@ -12,7 +12,7 @@ export default function TransactionHistoryPage() {
     <main className="min-h-screen">
       <TransactionHistoryHeader />
 
-      <div className="w-full mx-auto px-3 py-4">
+      <div className="w-full mx-auto py-4">
         <StatsCardsSection stats={statsData} />
 
         <TransactionTableSection
