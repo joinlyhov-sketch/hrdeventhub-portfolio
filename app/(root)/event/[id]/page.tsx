@@ -1,11 +1,8 @@
 "use client";
 import {
-  CalendarMinus2,
   ChevronRight,
-  Clock,
   FolderClosed,
   Heart,
-  MapPin,
   MessageCircleMore,
   Send,
   Share2,
@@ -14,8 +11,6 @@ import {
 import { MOCK_EVENTS, CURRENT_USER } from "../../../../data/event-detail";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "../../../../components/ui/button";
-import { Sen } from "next/font/google";
 import { useState } from "react";
 import PriceContentCOmponent from "../../../../components/site/event-detail/price-content";
 import MapContentComponent from "../../../../components/site/event-detail/map-content";
@@ -35,7 +30,7 @@ export default function EventDetailPage() {
 
   return (
     <>
-      <section className="w-full flex flex-col">
+      <section className="w-full flex-col md:flex lg:flex  gap-y-2">
         <section className="flex items-center gap-3 mb-6 border-b sticky top-0 z-50 py-2">
           <div className="bg-primary p-2 rounded-md text-white">
             <FolderClosed />
@@ -124,11 +119,11 @@ export default function EventDetailPage() {
                 ))}
               </section>
 
-              <div>
+              <section className="flex flex-col h-full justify-between py-2">
                 {activeTab === "details" && <DetailContentComponent />}
                 {activeTab === "price" && <PriceContentCOmponent />}
                 {activeTab === "map" && <MapContentComponent />}
-              </div>
+              </section>
 
               <button className="w-full  rounded-xl py-2.5 text-desc text-center text-white bg-primary hover:bg-primary-hover">
                 Register Now
