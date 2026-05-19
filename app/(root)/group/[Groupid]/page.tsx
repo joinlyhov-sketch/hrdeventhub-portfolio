@@ -16,18 +16,6 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <main className=" min-h-screen">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-primary p-2 rounded-lg text-white">
-          <Folder className="w-5 h-5" />
-        </div>
-        <div>
-          <span className="type-desc-small-semibold text-primary bg-muted px-2 py-0.5 rounded uppercase">
-            Internal
-          </span>
-          <h1 className="type-subtitle text-primary">14th Generation Group</h1>
-        </div>
-      </div>
-
       <div className="grid grid-cols-11 gap-5">
         <section className="col-span-8 space-y-4">
           <div className="flex items-center gap-4 mb-8">

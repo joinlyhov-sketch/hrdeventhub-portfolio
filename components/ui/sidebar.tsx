@@ -251,7 +251,7 @@ function SidebarTrigger({
       variant="ghost"
       size="icon-sm"
       className={cn(
-        "absolute top-6 right-0 translate-x-1/2 z-50 h-8 w-8 border-1 border-[#F6F6F6] bg-white hover:bg-gray-100",
+        "absolute top-6 right-0 translate-x-1/2 z-[9999] h-8 w-8 border-1 border-[#F6F6F6] bg-white hover:bg-gray-100",
         className,
       )}
       onClick={(event) => {

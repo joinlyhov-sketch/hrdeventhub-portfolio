@@ -29,31 +29,17 @@ export default function EventDetailPage() {
   const [activeTab, setActiveTab] = useState<Tab>("details");
 
   return (
-    <>
-      <section className="w-full flex flex-col">
-        <section className="flex items-center gap-3 mb-6 border-b sticky top-0 z-50 py-2">
-          <div className="bg-primary p-2 rounded-md text-white">
-            <FolderClosed />
-          </div>
-          <div>
-            <span className="text-desc-small-semibold text-primary bg-muted px-2 py-0.5 rounded">
-              Internal
-            </span>
-            <h1 className="type-subtitle text-primary">
-              14th Generation Group
-            </h1>
-          </div>
-        </section>
-
+    <> 
+      <section className="w-full flex-col md:flex lg:flex  gap-y-2">
         <section className="flex gap-x-1 items-center">
-          <Link href="/group/1" className="text-desc text-primary">
+          <Link href="/event" className="text-desc text-primary">
             Events
           </Link>
           <span>
             <ChevronRight size={16} className="text-primary text-sm" />
           </span>
           <Link
-            href="/group/1/event/1"
+            href="/id"
             className="text-desc-semibold font-medium text-action"
           >
             {event.id}
@@ -119,11 +105,11 @@ export default function EventDetailPage() {
                 ))}
               </section>
 
-              <div>
+              <section className="flex flex-col h-full justify-between py-2">
                 {activeTab === "details" && <DetailContentComponent />}
                 {activeTab === "price" && <PriceContentCOmponent />}
                 {activeTab === "map" && <MapContentComponent />}
-              </div>
+              </section>
 
               <button className="w-full  rounded-xl py-2.5 text-desc text-center text-white bg-primary hover:bg-primary-hover">
                 Register Now

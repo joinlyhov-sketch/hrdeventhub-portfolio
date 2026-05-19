@@ -1,6 +1,6 @@
 export default function TopBar() {
   return (
-    <div className="sticky top-0 bg-background z-100">
+    <div className="bg-background z-100">
       <h1 className="type-title text-primary">Calendar</h1>
       <p className="type-desc text-muted-foreground">
         Review all of the event in this page

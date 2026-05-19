@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-full flex flex-col max-w-full pr-8 lg:pr-12 lg:pl-12">
+    <div>
       <TooltipProvider>
         <SidebarProvider>
           <AppSidebar />

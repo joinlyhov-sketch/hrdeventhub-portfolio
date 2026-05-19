@@ -13,7 +13,7 @@ export default async function GroupPage() {
   const userRole: "admin" | "alumni" = "alumni";
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto min-h-full flex mt-6 flex-col max-w-full pr-8 lg:pr-12 lg:pl-12">
       <GroupHeader userRole={userRole} />
       <GroupSearch role={userRole} />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
