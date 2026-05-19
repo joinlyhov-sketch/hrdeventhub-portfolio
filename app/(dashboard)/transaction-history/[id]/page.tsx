@@ -13,12 +13,12 @@ export default function TransactionDetailPage({
   const detail = transactionDetailsData[0];
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen">
       <TransactionHistoryHeader />
 
       <div className="w-full px-6 py-2 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-secondary">
             {detail.transactionId}
           </h1>
           <p className="text-gray-600 text-sm mt-1">
