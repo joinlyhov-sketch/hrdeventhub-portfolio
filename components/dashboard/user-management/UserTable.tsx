@@ -1,17 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Search,
-  ArrowUpDown,
-  SlidersHorizontal,
-  UserX,
-  ArrowDownWideNarrowIcon,
-  ListFilter,
-  ArrowDown,
-  ArrowUp,
-  ArrowUpWideNarrow,
-} from "lucide-react";
+import { Search, UserX, ListFilter, ArrowUp } from "lucide-react";
 import UserRow from "./UserRow";
 import Pagination from "./Pagination";
 import EditRoleModal from "../pop-up/EditRoleModal";
@@ -107,7 +97,8 @@ export default function UserTableClient({
               </th>
               <th className="px-5 py-3 text-desc-semibold tracking-wider text-center w-[10%]">
                 <div className="flex items-center justify-center gap-1 cursor-pointer select-none">
-                  Gen <ArrowUp size={16} /><ListFilter size={16} /> 
+                  Gen <ArrowUp size={16} />
+                  <ListFilter size={16} />
                 </div>
               </th>
               <th className="px-8 py-3 text-desc-semibold tracking-wider w-[12%]">

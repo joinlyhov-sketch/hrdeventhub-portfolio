@@ -3,7 +3,7 @@ import EditArticleForm from "../../../../../components/dashboard/edition/EditArt
 
 export default function EditArticlePage() {
   return (
-    <main className="flex-grow flex flex-col ">
+    <main className="grow flex flex-col ">
       <EditArticleForm />
     </main>
   );

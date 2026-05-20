@@ -66,7 +66,7 @@ type CurrentUser = {
 const MOCK_CURRENT_USER: CurrentUser = {
   name: "Dita Rector",
   email: "RectorDita@gmail.com",
-  role: "admin",
+  role: "student",
   avatarInitials: "PS",
 };
 
@@ -84,7 +84,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader className="border-b">
         <SidebarMenu>
-          <SidebarMenuItem>
+          {/* <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
               className={`
@@ -135,6 +135,64 @@ export function AppSidebar() {
                 />
               </div>
             </SidebarMenuButton>
+          </SidebarMenuItem> */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              size="lg"
+              className={`
+                transition-all
+                duration-300
+                ease-in-out
+                ${state === "collapsed" ? "justify-center" : "justify-start"}
+              `}
+            >
+              <Link href="/">
+                <div
+                  className={`
+                  overflow-hidden
+                  transition-all
+                  duration-300
+                  ease-in-out
+                  ${
+                    state === "collapsed"
+                      ? "w-auto opacity-100 scale-100"
+                      : "w-0 hidden scale-75"
+                  }
+                `}
+                >
+                  <Image
+                    src="/images/hrdLogo.webp"
+                    alt="HRD Event Hub Logo"
+                    width={32}
+                    height={32}
+                    className="w-auto h-8 shrink-0"
+                  />
+                </div>
+
+                <div
+                  className={`
+                  overflow-hidden
+                  transition-all
+                  duration-300
+                  ease-in-out
+                  ${
+                    state === "collapsed"
+                      ? "w-0 opacity-0"
+                      : "w-auto scale-150 opacity-100 ml-4"
+                  }
+                `}
+                >
+                  <Image
+                    src="/images/Logo.webp"
+                    alt="HRD Event Hub Text Logo"
+                    width={120}
+                    height={24}
+                    className="w-auto h-5 shrink-0"
+                  />
+                </div>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarTrigger />
@@ -143,41 +201,92 @@ export function AppSidebar() {
       <SidebarContent className="py-2">
         <SidebarGroup>
           <SidebarGroupLabel
-            className={`text-[11px] mb-0.5 text-gray-500 font-semibold tracking-widest uppercase ${state === "collapsed" ? "hidden" : ""}`}
+            className={`
+                        text-fs-desc text-gray-500
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
           >
             General
           </SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Events" className="h-11">
-                <CalendarFold className="text-gray-500" />
-                <Link
-                  href="/event"
-                  className="text-fs-desc text-gray-500 transition-all duration-200 group-data-[collapsible=icon]:hidden"
-                >
-                  Events
+              <SidebarMenuButton asChild tooltip="Events" className="h-11">
+                <Link href="/group/1">
+                  <CalendarFold className="text-gray-500" />
+                  <span
+                    className={`
+                      text-fs-desc text-gray-500
+                    overflow-hidden
+                    whitespace-nowrap
+                    transition-all
+                    duration-500
+                    ease-[cubic-bezier(0.4,0,0.2,1)]
+                    ${
+                      state === "collapsed"
+                        ? "max-w-0 opacity-0 -translate-x-2"
+                        : "max-w-[200px] opacity-100 translate-x-0"
+                    }
+                  `}
+                  >
+                    Events
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Group" className="h-11">
-                <Users className="text-gray-500" />
-                <Link
-                  href="/group"
-                  className="text-fs-desc text-gray-500 transition-all duration-200 group-data-[collapsible=icon]:hidden"
-                >
-                  Group
+              <SidebarMenuButton asChild tooltip="Group" className="h-11">
+                <Link href="/group">
+                  <Users className="text-gray-500" />
+                  <span
+                    className={`
+                      text-fs-desc text-gray-500
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
+                  >
+                    Group
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Calendar" className="h-11">
-                <CalendarPlus className="text-gray-500" />
-                <Link
-                  href="/calendar"
-                  className="text-fs-desc text-gray-500 transition-all duration-200 group-data-[collapsible=icon]:hidden"
-                >
-                  Calendar
+              <SidebarMenuButton asChild tooltip="Calendar" className="h-11">
+                <Link href="/calendar">
+                  <CalendarPlus className="text-gray-500" />
+                  <span
+                    className={`
+                      text-fs-desc text-gray-500
+                    overflow-hidden
+                    whitespace-nowrap
+                    transition-all
+                    duration-500
+                    ease-[cubic-bezier(0.4,0,0.2,1)]
+                    ${
+                      state === "collapsed"
+                        ? "max-w-0 opacity-0 -translate-x-2"
+                        : "max-w-[200px] opacity-100 translate-x-0"
+                    }
+                  `}
+                  >
+                    Calendar
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -190,7 +299,21 @@ export function AppSidebar() {
               >
                 <Link href="/profile">
                   <User className="text-gray-500" />
-                  <span className="text-fs-desc text-gray-500 whitespace-nowrap transition-all duration-300 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:opacity-0">
+                  <span
+                    className={`
+                      text-fs-desc text-gray-500
+                    overflow-hidden
+                    whitespace-nowrap
+                    transition-all
+                    duration-500
+                    ease-[cubic-bezier(0.4,0,0.2,1)]
+                    ${
+                      state === "collapsed"
+                        ? "max-w-0 opacity-0 -translate-x-2"
+                        : "max-w-[200px] opacity-100 translate-x-0"
+                    }
+                  `}
+                  >
                     Profile
                   </span>
                 </Link>
@@ -205,18 +328,48 @@ export function AppSidebar() {
               >
                 <Link href={"/profile/edit-profile"}>
                   <UserPen className="text-gray-500" />
-                  <span className="text-fs-desc text-gray-500 whitespace-nowrap transition-all duration-300 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:opacity-0">
+                  <span
+                    className={`
+                      text-fs-desc text-gray-500
+                    overflow-hidden
+                    whitespace-nowrap
+                    transition-all
+                    duration-500
+                    ease-[cubic-bezier(0.4,0,0.2,1)]
+                    ${
+                      state === "collapsed"
+                        ? "max-w-0 opacity-0 -translate-x-2"
+                        : "max-w-[200px] opacity-100 translate-x-0"
+                    }
+                  `}
+                  >
                     Edit Profile
                   </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Setting" className="h-11">
-                <Settings className="text-gray-500" />
-                <span className="text-fs-desc text-gray-500 transition-all duration-200 group-data-[collapsible=icon]:hidden">
-                  Setting
-                </span>
+              <SidebarMenuButton asChild tooltip="Setting" className="h-11">
+                <Link href={"/profile/setting"}>
+                  <Settings className="text-gray-500" />
+                  <span
+                    className={`
+                      text-fs-desc text-gray-500
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
+                  >
+                    Setting
+                  </span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -225,7 +378,19 @@ export function AppSidebar() {
         {canSeeAdministration && (
           <SidebarGroup>
             <SidebarGroupLabel
-              className={`text-[12px] mb-0.5 text-gray-500 ${state === "collapsed" ? "hidden" : ""} font-semibold tracking-widest uppercase group-data-[collapsible=icon]:hidden`}
+              className={`
+                        text-fs-desc text-gray-500
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
             >
               Administration
             </SidebarGroupLabel>
@@ -239,7 +404,21 @@ export function AppSidebar() {
                 >
                   <Link href="/user-management">
                     <UserCog className="text-gray-500" />
-                    <span className="text-fs-desc text-gray-500 whitespace-nowrap transition-all duration-300 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:opacity-0">
+                    <span
+                      className={`
+                        text-fs-desc text-gray-500
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
+                    >
                       User Management
                     </span>
                   </Link>
@@ -254,7 +433,21 @@ export function AppSidebar() {
                 >
                   <Link href="/event-management/attendees-list">
                     <CalendarRange className="text-gray-500" />
-                    <span className="text-fs-desc text-gray-500 whitespace-nowrap transition-all duration-300 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:opacity-0">
+                    <span
+                      className={`
+                        text-fs-desc text-gray-500
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
+                    >
                       Event Management
                     </span>
                   </Link>
@@ -269,7 +462,21 @@ export function AppSidebar() {
                 >
                   <Link href="/transaction-history">
                     <Landmark className="text-gray-500" />
-                    <span className="text-fs-desc text-gray-500 whitespace-nowrap transition-all duration-300 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:opacity-0">
+                    <span
+                      className={`
+                        text-fs-desc text-gray-500
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
+                    >
                       Transaction History
                     </span>
                   </Link>
@@ -284,7 +491,21 @@ export function AppSidebar() {
                 >
                   <Link href="/feedback/survey-feedback">
                     <Newspaper className="text-gray-500" />
-                    <span className="text-fs-desc text-gray-500 whitespace-nowrap transition-all duration-300 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:opacity-0">
+                    <span
+                      className={`
+                        text-fs-desc text-gray-500
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
+                    >
                       Feedback & Polls
                     </span>
                   </Link>
@@ -301,7 +522,22 @@ export function AppSidebar() {
               <div className="w-8 h-8 rounded-full shrink-0 bg-linear-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
                 {currentUser?.avatarInitials ?? "?"}
               </div>
-              <div className="flex flex-col text-lg transition-all duration-200 group-data-[collapsible=icon]:hidden">
+              <div
+                className={`
+                        text-fs-desc text-gray-500
+                        flex flex-col
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
+              >
                 <span className="text-sm font-bold leading-tight">
                   {currentUser?.name ?? "Loading..."}
                 </span>
@@ -318,7 +554,20 @@ export function AppSidebar() {
               onClick={() => signOut({ callbackUrl: "/" })}
             >
               <LogOut />
-              <span className="text-base transition-all duration-200 group-data-[collapsible=icon]:hidden">
+              <span
+                className={`
+                      overflow-hidden
+                      whitespace-nowrap
+                      transition-all
+                      duration-500
+                      ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-[200px] opacity-100 translate-x-0"
+                      }
+                    `}
+              >
                 Logout
               </span>
             </SidebarMenuButton>
