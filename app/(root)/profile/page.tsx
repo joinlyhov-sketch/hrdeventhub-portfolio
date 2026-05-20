@@ -10,7 +10,7 @@ import HeaderNoProfile from "../../../components/dashboard/header/HeaderNoProfil
 export type UserViewMode = "ADMIN" | "STUDENT_SELF" | "ALUMNI_VIEWING_STUDENT";
 
 export default function ProfilePage() {
-  const viewMode = 'ADMIN' as UserViewMode; 
+  const viewMode = 'STUDENT_SELF' as UserViewMode; 
   
   const [activeTab, setActiveTab] = useState<'BG' | 'EV' | 'EN'>('BG');
   const showStudentTabs = viewMode === 'STUDENT_SELF' || viewMode === 'ALUMNI_VIEWING_STUDENT';

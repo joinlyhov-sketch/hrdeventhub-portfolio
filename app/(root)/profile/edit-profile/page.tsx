@@ -1,6 +1,5 @@
 import AdminProfileForm from "../../../../components/site/profile/edit-profile/AdminProfileForm";
 import StudentProfileForm from "../../../../components/site/profile/edit-profile/StudentProfileForm";
-import HeaderProfileEdit from "../../../../components/site/profile/edit-profile/HeaderProfileEdit";
 import HeaderNoProfile from "../../../../components/dashboard/header/HeaderNoProfile";
 
 type Role = "admin" | "organizer" | "student";

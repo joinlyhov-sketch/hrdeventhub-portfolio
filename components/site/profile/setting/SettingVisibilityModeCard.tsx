@@ -254,7 +254,7 @@ export default function SettingVisibilityModeCard({
                     height="50"
                     rx="25"
                     fill="#FF9F2E"
-                    fill-opacity="0.25"
+                    fillOpacity="0.25"
                   />
                   <path
                     d="M22.1586 23.87C22.0586 23.86 21.9386 23.86 21.8286 23.87C19.4486 23.79 17.5586 21.84 17.5586 19.44C17.5586 16.99 19.5386 15 21.9986 15C24.4486 15 26.4386 16.99 26.4386 19.44C26.4286 21.84 24.5386 23.79 22.1586 23.87Z"
@@ -480,7 +480,7 @@ export default function SettingVisibilityModeCard({
                           height="44"
                           rx="22"
                           fill="#1C4D8D"
-                          fill-opacity="0.2"
+                          fillOpacity="0.2"
                         />
                         <path
                           d="M22 22C24.7614 22 27 19.7614 27 17C27 14.2386 24.7614 12 22 12C19.2386 12 17 14.2386 17 17C17 19.7614 19.2386 22 22 22Z"
@@ -558,7 +558,7 @@ export default function SettingVisibilityModeCard({
                           height="44"
                           rx="22"
                           fill="#3BC1A8"
-                          fill-opacity="0.2"
+                          fillOpacity="0.2"
                         />
                         <path
                           d="M27 29C27 29.5304 26.7893 30.0391 26.4142 30.4142C26.0391 30.7893 25.5304 31 25 31H14C13.4696 31 12.9609 30.7893 12.5858 30.4142C12.2107 30.0391 12 29.5304 12 29V21C12 20.6489 12.0924 20.3041 12.268 20C12.4435 19.696 12.696 19.4435 13 19.268M32 15.5L25.581 19.679C25.2585 19.8862 24.8833 19.9963 24.5 19.9963C24.1167 19.9963 23.7415 19.8862 23.419 19.679L17 15.5M19 13H30C31.1046 13 32 13.8954 32 15V23C32 24.1046 31.1046 25 30 25H19C17.8954 25 17 24.1046 17 23V15C17 13.8954 17.8954 13 19 13Z"
@@ -629,7 +629,7 @@ export default function SettingVisibilityModeCard({
                           height="44"
                           rx="22"
                           fill="#4663AC"
-                          fill-opacity="0.2"
+                          fillOpacity="0.2"
                         />
                         <rect x="10" y="10" width="24" height="24" />
                         <mask id="path-3-inside-1_55420_172364" fill="white">
@@ -706,7 +706,7 @@ export default function SettingVisibilityModeCard({
                           height="44"
                           rx="22"
                           fill="#FF9F2E"
-                          fill-opacity="0.2"
+                          fillOpacity="0.2"
                         />
                         <path
                           d="M22 32C27.5228 32 32 27.5228 32 22C32 16.4772 27.5228 12 22 12C16.4772 12 12 16.4772 12 22C12 27.5228 16.4772 32 22 32Z"

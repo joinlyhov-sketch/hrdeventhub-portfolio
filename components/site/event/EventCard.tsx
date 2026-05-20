@@ -72,7 +72,7 @@ export function EventCard() {
 
   return (
     <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
             <img src={data.author.avatar} alt={data.author.name} className="w-full h-full object-cover" />
@@ -91,10 +91,10 @@ export function EventCard() {
         </span>
       </div>
 
-      <h2 className="text-xl font-bold text-primary mb-4">{data.title}</h2>
-      <p className="text-sm text-grey-500 leading-relaxed mb-6">{data.description}</p>
+      <h2 className="text-xl font-bold text-primary mb-2">{data.title}</h2>
+      <p className="text-sm text-grey-500 leading-relaxed mb-2">{data.description}</p>
       
-      <div className="bg-grey-50 rounded-[12px] p-3 space-y-3 mb-6">
+      <div className="bg-grey-50 rounded-[12px] p-3 space-y-3 mb-">
         <div className="flex items-start gap-3">
           <MapPin size={18} className="text-grey-400 mt-0.5 shrink-0" />
           <p className="text-sm text-grey-500">

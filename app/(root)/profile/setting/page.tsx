@@ -3,7 +3,6 @@
 import { useState } from "react";
 import ProfilePrivacy from "../../../../components/site/profile/setting/Profile-privacy";
 import SettingVisibilityModeCard from "../../../../components/site/profile/setting/SettingVisibilityModeCard";
-import HeaderProfile from "../../../../components/site/profile/setting/HeaderProfile";
 import HeaderNoProfile from "../../../../components/dashboard/header/HeaderNoProfile";
 
 interface SelectiveVisibility {
@@ -73,7 +72,7 @@ const initialActivities: ActivityItem[] = [
           height="44"
           rx="22"
           fill="#FF9F2E"
-          fill-opacity="0.2"
+          fillOpacity="0.2"
         />
         <path
           d="M17 21V17C17 15.6739 17.5268 14.4021 18.4645 13.4645C19.4021 12.5268 20.6739 12 22 12C23.3261 12 24.5979 12.5268 25.5355 13.4645C26.4732 14.4021 27 15.6739 27 17V21M15 21H29C30.1046 21 31 21.8954 31 23V30C31 31.1046 30.1046 32 29 32H15C13.8954 32 13 31.1046 13 30V23C13 21.8954 13.8954 21 15 21Z"
@@ -104,7 +103,7 @@ const initialActivities: ActivityItem[] = [
           height="44"
           rx="22"
           fill="#3BC1A8"
-          fill-opacity="0.2"
+          fillOpacity="0.2"
         />
         <rect x="10" y="10" width="24" height="24" />
         <path
@@ -143,7 +142,7 @@ const initialActivities: ActivityItem[] = [
           height="44"
           rx="22"
           fill="#D1D1D1"
-          fill-opacity="0.7"
+          fillOpacity="0.7"
         />
         <path
           d="M22 22C24.7614 22 27 19.7614 27 17C27 14.2386 24.7614 12 22 12C19.2386 12 17 14.2386 17 17C17 19.7614 19.2386 22 22 22Z"
@@ -181,14 +180,14 @@ const initialActivities: ActivityItem[] = [
           height="44"
           rx="22"
           fill="#1C4D8D"
-          fill-opacity="0.2"
+          fillOpacity="0.2"
         />
         <path
           d="M22.0186 12.9062C18.7086 12.9062 16.0186 15.5963 16.0186 18.9062V21.7963C16.0186 22.4063 15.7586 23.3362 15.4486 23.8562L14.2986 25.7663C13.5886 26.9463 14.0786 28.2563 15.3786 28.6963C19.6886 30.1363 24.3386 30.1363 28.6486 28.6963C29.8586 28.2963 30.3886 26.8663 29.7286 25.7663L28.5786 23.8562C28.2786 23.3362 28.0186 22.4063 28.0186 21.7963V18.9062C28.0186 15.6063 25.3186 12.9062 22.0186 12.9062Z"
           stroke="#1C4D8D"
           strokeOpacity="0.7"
           strokeWidth="2"
-          stroke-miterlimit="10"
+          strokeMiterlimit="10"
           strokeLinecap="round"
         />
         <path
@@ -196,7 +195,7 @@ const initialActivities: ActivityItem[] = [
           stroke="#1C4D8D"
           strokeOpacity="0.6"
           strokeWidth="2"
-          stroke-miterlimit="10"
+          strokeMiterlimit="10"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -205,7 +204,7 @@ const initialActivities: ActivityItem[] = [
           stroke="#1C4D8D"
           strokeOpacity="0.6"
           strokeWidth="2"
-          stroke-miterlimit="10"
+          strokeMiterlimit="10"
         />
       </svg>
     ),
