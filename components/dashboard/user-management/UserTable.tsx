@@ -76,6 +76,7 @@ export default function UserTableClient({
       </div>
 
       <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-[580px] bg-white">
+        
         <table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <thead>
             <tr className="bg-secondary text-white h-[52px]">
@@ -88,7 +89,7 @@ export default function UserTableClient({
               <th className="px-5 py-3 text-desc-semibold tracking-wider w-[20%]">
                 Email
               </th>
-              <th className="px-6 py-3 text-desc-semibold tracking-wider w-[12%]">
+              <th className="px-6 py-3 text-desc-semibold tracking-wider w-[13%]">
                 Phone
               </th>
               <th className="px-6 py-3 text-desc-semibold tracking-wider w-[10%]">
