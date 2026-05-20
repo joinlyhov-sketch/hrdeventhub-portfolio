@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, UserX, UserCheck, SquarePen, UserX2, UserRoundCheck } from "lucide-react";
+import { SquarePen, UserX2, UserRoundCheck } from "lucide-react";
 import { UserData } from "../../../data/UserData";
 
 interface UserRowProps {
