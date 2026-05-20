@@ -1,7 +1,6 @@
 import React from 'react'
 import AttendeeTableClient from '../../../../components/dashboard/event-management/attendee/AttendeeTable';
 import { User2 } from 'lucide-react';
-import { UserData } from '../../../../data/UserData';
 import { AttendeeData } from '../../../../data/AttendeeData';
 import { Breadcrumb } from '../../../../components/dashboard/BreadCrumb';
 
