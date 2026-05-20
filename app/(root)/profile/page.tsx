@@ -15,8 +15,11 @@ export default function ProfilePage() {
   const showStudentTabs = viewMode === 'STUDENT_SELF' || viewMode === 'ALUMNI_VIEWING_STUDENT';
 
   return (
-    <div className='flex-1 overflow-y-auto bg-background min-h-screen flex flex-col gap-6'>
-      <ProfileHeader />
+    <div className='flex-1 overflow-y-auto bg-background min-h-screen flex flex-col gap-6 '>
+      <ProfileHeader 
+      titlePrimary="My"
+        titleSecondary="Profile"
+        description="Monitor participant responses and review insights from completed community surveys."/>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <div className="xl:col-span-4">

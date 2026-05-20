@@ -61,7 +61,7 @@ export default function EventDetailPage() {
               ))}
             </div>
 
-            <div className="flex-grow py-4">
+            <div className="grow py-4">
               {activeTab === "details" && <DetailContentComponent />}
               {activeTab === "price" && <PriceContentCOmponent />}
               {activeTab === "map" && <MapContentComponent />}

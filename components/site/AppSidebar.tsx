@@ -12,27 +12,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   SidebarTrigger,
   useSidebar,
 } from "../ui/sidebar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCalendarCheck,
-  faUserGroup,
-  faCalendar,
-  faUser,
-  faChartColumn,
-  faUserPen,
-  faCalendarDays,
-  faClock,
-  faCommentDots,
-  faArrowRightFromBracket,
-  faShieldHalved,
-  faChevronDown,
-} from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
 import {
   CalendarFold,
@@ -73,8 +55,6 @@ const MOCK_CURRENT_USER: CurrentUser = {
 const ADMIN_ROLES: Role[] = ["admin", "organizer"];
 
 export function AppSidebar() {
-  const [isDashboardOpen, setIsDashboardOpen] = useState(true);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [currentUser] = useState<CurrentUser | null>(MOCK_CURRENT_USER);
   const { state } = useSidebar();
   const canSeeAdministration =

@@ -1,4 +1,3 @@
-import { EventManagementNavbar } from "../../../components/dashboard/EventManagementNavbar";
 import { Metadata } from "next";
 import Header from "../../../components/dashboard/header/Header";
 

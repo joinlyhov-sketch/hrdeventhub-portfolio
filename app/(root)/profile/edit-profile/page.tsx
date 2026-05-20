@@ -1,4 +1,3 @@
-import React from "react";
 import AdminProfileForm from "../../../../components/site/profile/edit-profile/AdminProfileForm";
 import StudentProfileForm from "../../../../components/site/profile/edit-profile/StudentProfileForm";
 import HeaderProfileEdit from "../../../../components/site/profile/edit-profile/HeaderProfileEdit";
@@ -33,7 +32,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="w-full min-w-0 transition-all duration-300 px-4 sm:px-6 py-4">
+    <div className="w-full min-w-0 transition-all duration-300 py-4">
       <div className="w-full min-w-0 block">
         <div className="mb-6">
           <h1 className="type-title text-secondary">
@@ -41,17 +40,12 @@ export default async function ProfilePage() {
               ? <HeaderProfileEdit />
               : "Edit Profile"}
           </h1>
-          {/* <p className="type-detail text-grey-500 mt-1">
-            {currentUser.role === "student"
-              ? "View and update your personal portfolio records"
-              : "Manage and organize system core fields and parameters"}
-          </p> */}
         </div>
         <div className="w-full min-w-0 flex flex-col">
           {currentUser.role === "student" ? (
             <StudentProfileForm />
           ) : (
-            <AdminProfileForm />
+            <AdminProfileForm user={currentUser} />
           )}
         </div>
       </div>

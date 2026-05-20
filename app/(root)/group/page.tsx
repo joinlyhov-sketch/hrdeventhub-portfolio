@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default async function GroupPage() {
   const groups = mockGroups;
-  const userRole: "admin" | "alumni" = "alumni";
+  const userRole: "admin" | "alumni" = "admin";
 
   return (
     <div className="container mx-auto min-h-full flex mt-6 flex-col max-w-full pr-8 lg:pr-12 lg:pl-12">
