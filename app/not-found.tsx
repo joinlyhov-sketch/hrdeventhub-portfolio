@@ -188,7 +188,7 @@ export default function NotFound() {
                   src="/images/notfound.gif"
                   alt="404 Animation"
                   fill
-                  className="object-contain p-2 select-none pointer-events-none"
+                  className="object-contain  select-none pointer-events-none"
                   unoptimized
                   priority
                 />
