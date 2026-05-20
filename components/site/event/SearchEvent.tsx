@@ -32,8 +32,6 @@ export default function SearchEvent({ role, onFilterChange, activeFilter }: Sear
 
   const handleCreateNavigation = (value: string) => {
     setIsCreateOpen(false);
-    
-    // Safely check that groupId exists and isn't literal text "null"
     if (groupId && groupId !== "null") {
       router.push(`/event-management/creation/${value}?groupId=${groupId}`);
     } else {
@@ -54,7 +52,6 @@ export default function SearchEvent({ role, onFilterChange, activeFilter }: Sear
         </button>
       </div>
 
-      {/* Filter Dropdown */}
       <details className="relative group [&_summary::-webkit-details-marker]:hidden">
         <summary className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full type-detail-semibold hover:bg-primary-hover transition-all cursor-pointer shadow-sm whitespace-nowrap list-none select-none">
           <Filter size={18} />
@@ -99,8 +96,6 @@ export default function SearchEvent({ role, onFilterChange, activeFilter }: Sear
           })}
         </div>
       </details>
-
-      {/* Admin Action Menu Dropdown */}
       {role === "admin" && (
         <div className="relative">
           <button 

@@ -55,7 +55,7 @@ export function EventManagementTable({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-xl border border-gray-100 shadow-sm bg-white">
+      <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-white">
         <Table className="w-full minimal-scrollbar">
           <TableHeader>
             <TableRow className="bg-secondary border-none">

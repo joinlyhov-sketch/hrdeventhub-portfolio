@@ -10,8 +10,8 @@ export default function ProfileHeader({
   description,
 }: HeaderProps) {
   return (
-    <div className="sticky top-0 z-50 bg-white lg:pr-12 lg:pl-12">
-      <header className="top-bar mb-5 flex items-center justify-between p-1">
+    <div className="sticky top-0 z-50 bg-red-100">
+      <header className="top-bar flex items-center justify-between">
         <div>
           <h1 className="type-title flex items-center gap-1">
             <span className="text-primary">{titlePrimary}</span>

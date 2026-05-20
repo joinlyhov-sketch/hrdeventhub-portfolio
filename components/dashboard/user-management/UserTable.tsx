@@ -2,16 +2,11 @@
 
 import React, { useState } from "react";
 import {
-  Search,
-  ArrowUpDown,
-  SlidersHorizontal,
   UserX,
-  ArrowDownWideNarrowIcon,
   ListFilter,
-  ArrowDown,
   ArrowUp,
-  ArrowUpWideNarrow,
 } from "lucide-react";
+import Search from "../../site/Search";
 import UserRow from "./UserRow";
 import Pagination from "./Pagination";
 import EditRoleModal from "../pop-up/EditRoleModal";
@@ -69,26 +64,8 @@ export default function UserTableClient({
 
   return (
     <div className="space-y-6">
-      <div className="relative w-full">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search for attendees"
-          className="w-full pl-5 pr-14 py-3 rounded-xl border border-gray-200 outline-none placeholder:text-gray-400 focus:border-blue-900 transition-colors text-sm"
-        />
-        <button
-          type="button"
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-blue-800 text-white p-2 rounded-full transition-colors shadow-sm"
-        >
-          <Search size={18} />
-        </button>
-      </div>
-
-      {/* 1. Added minimum height to wrapper to prevent page jumping layout shifts */}
-      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-[580px] bg-white">
-        
-        {/* 2. Added 'table-fixed' to freeze cell columns from shifting sizes dynamically */}
+      <Search/>
+      <div className="w-full overflow-x-auto rounded-2xl border border-gray-100 min-h-[580px] bg-white">
         <table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <thead>
             <tr className="bg-secondary text-white h-[52px]">

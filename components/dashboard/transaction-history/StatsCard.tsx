@@ -25,7 +25,7 @@ interface StatsCardProps extends StatCard {
 
 export function StatsCard({ title, value, color, customIcon }: StatsCardProps) {
   return (
-    <div className="bg-background rounded-lg p-6 border border-gray-200 shadow-sm">
+    <div className="bg-background rounded-2xl p-6 border border-gray-200 shadow-sm">
       <div className="flex flex-col items-start justify-between gap-2">
         <div className="mb-1">{customIcon}</div>
 

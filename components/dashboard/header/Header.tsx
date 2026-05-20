@@ -1,13 +1,9 @@
-interface HeaderProps {
-  titlePrimary: string;
-  titleSecondary?: string;
-  description: string;
-}
+import { HeaderProps } from "../../../types/HeaderProps";
 
 const MOCK_CURRENT_USER = {
-  name: "Alex Morgan",
-  email: "alex@community.org",
-  avatarInitials: "AM",
+  name: "Dita Rector",
+  email: "rectordita@gmail.com",
+  avatarInitials: "DR",
 };
 
 export default function Header({
@@ -16,7 +12,7 @@ export default function Header({
   description,
 }: HeaderProps) {
   return (
-    <div className="sticky top-0 z-50 bg-white lg:pr-12 lg:pl-12">
+    <div className="sticky top-0 z-50 bg-white pt-3 lg:pr-12 lg:pl-12">
       <header className="top-bar mb-5 flex items-center justify-between p-1">
         <div>
           <h1 className="type-title flex items-center gap-1">

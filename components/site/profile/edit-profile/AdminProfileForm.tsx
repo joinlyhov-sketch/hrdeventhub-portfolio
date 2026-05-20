@@ -20,7 +20,7 @@ interface CurrentUser {
 export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   return (
     <div className="space-y-6 w-full text-left">
-      <div className="bg-card rounded-xl border border-border p-6 shadow-xs flex items-center justify-between w-full">
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex items-center justify-between w-full">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center border border-border text-primary-foreground type-subtitle-24 uppercase">
             {user.avatarInitials || "A"}
@@ -34,7 +34,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         </button>
       </div>
 
-      <div className="bg-card rounded-xl border border-border p-6 shadow-xs space-y-6 w-full">
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-6 w-full">
         <h2 className="type-subtitle text-secondary border-b border-border pb-2">
           Personal Information
         </h2>
@@ -396,7 +396,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         </div>
       </div>
 
-      <div className="bg-card rounded-xl border border-border p-6 shadow-xs space-y-4 w-full">
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-4 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
           <div>
             <h3 className="type-subtitle text-secondary flex items-center gap-2">
@@ -448,7 +448,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           </button>
         </div>
 
-        <div className="flex items-start gap-3 p-4 bg-grey-50 border border-border rounded-xl w-full">
+        <div className="flex items-start gap-3 p-4 bg-grey-50 border border-border rounded-2xl w-full">
           <div className="rounded-full bg-subtle/10 flex items-center justify-center text-subtle shrink-0 mt-0.5">
             <svg
               width="45"

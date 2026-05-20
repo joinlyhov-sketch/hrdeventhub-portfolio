@@ -4,10 +4,10 @@ import {
   ArrowRight,
   BarChart3,
   Circle,
-  Plus,
-  Search,
   User,
+  Plus,
 } from "lucide-react";
+import Search from "../../components/site/Search";
 
 import { surveyFeedbacks } from "../../data/surveyFeedback";
 import Link from "next/link";
@@ -15,9 +15,18 @@ import { PaginationDemo } from "./Pagination";
 
 export default function SurveyFeedbackFeature() {
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
+    <section className="rounded-2xl border border-border bg-card p-4">
       <SectionTitle />
-      <SearchAction />
+      <div className="flex items-center justify-end mb-6 gap-2">
+        <Search/>
+        <button 
+            className="bg-primary p-2 text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[46px] h-[46px] relative z-50"
+          >
+            <div className={`transform transition-transform duration-300 flex items-center justify-center`}>
+              <Plus size={30} />
+            </div>
+          </button>
+      </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {surveyFeedbacks.map((item) => (
           <FeedbackCard key={item.id} item={item} />
@@ -37,39 +46,10 @@ function SectionTitle() {
   );
 }
 
-function SearchAction() {
-  return (
-    <div className="flex items-center gap-2 mb-6 w-full">
-      <div className="relative flex-grow">
-        <input
-          type="text"
-          placeholder="Search for group..."
-          className="w-full pl-6 pr-14 py-3 border border-gray-200 rounded-full text-base focus:ring-2 focus:ring-blue-100 outline-none placeholder:text-gray-400 shadow-sm"
-        />
-        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-3">
-          <button
-            title="Search"
-            className="bg-primary p-2 rounded-full text-white hover:bg-[#25437a]"
-          >
-            <Search size={20} strokeWidth={2.5} />
-          </button>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        title="Add Feedback"
-        className="inline-flex size-7 w-[60px] py-6 shrink-0 items-center justify-center bg-primary text-primary-foreground rounded-full"
-      >
-        <Plus size={20} strokeWidth={2.5} />
-      </button>
-    </div>
-  );
-}
 
 function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
   return (
-    <article className="rounded-xl border border-accent/30 bg-card p-6">
+    <article className="rounded-2xl border border-accent/30 bg-card p-6">
       <div className=" flex items-center justify-between">
         <StatusBadge status={item.status} />
         <div className="inline-flex size-12 items-center justify-center rounded-lg bg-accent/20 text-accent">
@@ -84,7 +64,7 @@ function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
       </div>
 
       <Link href={`/feedback/${item.id}`}>
-        <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm">
+        <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm">
           <span>Open Result</span>
           <ArrowRight size={20} strokeWidth={1.5} />
         </button>

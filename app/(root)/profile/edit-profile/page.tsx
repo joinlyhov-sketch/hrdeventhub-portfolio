@@ -1,6 +1,7 @@
 import AdminProfileForm from "../../../../components/site/profile/edit-profile/AdminProfileForm";
 import StudentProfileForm from "../../../../components/site/profile/edit-profile/StudentProfileForm";
 import HeaderProfileEdit from "../../../../components/site/profile/edit-profile/HeaderProfileEdit";
+import HeaderNoProfile from "../../../../components/dashboard/header/HeaderNoProfile";
 
 type Role = "admin" | "organizer" | "student";
 
@@ -14,7 +15,7 @@ type CurrentUser = {
 const MOCK_CURRENT_USER: CurrentUser = {
   name: "Dita Rector",
   email: "RectorDita@gmail.com",
-  role: "admin",
+  role: "student",
   avatarInitials: "DR",
 };
 
@@ -32,16 +33,15 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="w-full min-w-0 transition-all duration-300 py-4">
+    <div className="w-full min-w-0 transition-all duration-300">
       <div className="w-full min-w-0 block">
-        <div className="mb-6">
-          <h1 className="type-title text-secondary">
-            {currentUser.role === "student"
-              ? <HeaderProfileEdit />
-              : "Edit Profile"}
-          </h1>
-        </div>
-        <div className="w-full min-w-0 flex flex-col">
+       <HeaderNoProfile
+       titlePrimary="Edit"
+        titleSecondary="Profile"
+        description="Update your profile information and manage your account settings."
+       
+       />
+        <div className="w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12">
           {currentUser.role === "student" ? (
             <StudentProfileForm />
           ) : (
