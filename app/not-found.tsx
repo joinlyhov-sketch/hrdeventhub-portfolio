@@ -159,15 +159,41 @@ export default function NotFound() {
           variants={fadeUp}
           className="order-1 lg:order-2 lg:col-span-7 flex justify-center lg:justify-end items-center"
         >
-          <div className="relative w-full max-w-[480px] md:max-w-[580px] lg:max-w-[680px]">
-            <Image
-              src="/images/not-found.png"
-              alt="404 Space Exploration Illustration"
-              width={900}
-              height={650}
-              priority
-              className="w-full h-auto drop-shadow-xl select-none pointer-events-none"
+          <div className="w-full max-w-[480px] md:max-w-[580px] lg:max-w-[650px] aspect-square flex items-center justify-center relative">
+            <motion.div
+              animate={{
+                scale: [1, 1.03, 1],
+                rotate: [0, 1, -1, 0],
+              }}
+              transition={{
+                duration: 5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             />
+
+            <div className="relative w-[75%] bg-white rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] border border-slate-100 flex flex-col overflow-hidden z-10 aspect-[4/3.5]">
+              <div className="bg-secondary px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-action" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-accent" />
+                </div>
+                <div className="w-1/4 h-1.5 bg-blue-950/40 rounded-full" />
+                <div className="w-4 h-4" />
+              </div>
+
+              <div className="flex-1 flex items-center justify-center p-2 relative">
+                <Image
+                  src="/images/notfound.gif"
+                  alt="404 Animation"
+                  fill
+                  className="object-contain p-2 select-none pointer-events-none"
+                  unoptimized
+                  priority
+                />
+              </div>
+            </div>
           </div>
         </motion.div>
         

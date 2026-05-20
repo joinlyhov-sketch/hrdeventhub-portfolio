@@ -1,29 +1,66 @@
 export default function Loading() {
-  return (
-    <main className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="flex flex-col items-center gap-8">
+  const dots = [
+    { color: "text-[#2D3142]", size: "scale-50" },   
+    { color: "text-[#2D3142]", size: "scale-100" },  
+    { color: "text-[#FF4D6D]", size: "scale-100" },  
+    
+    { color: "text-[#2D3142]", size: "scale-100" },  
+    { color: "text-[#FFB703]", size: "scale-100" },  
+    { color: "text-[#2D3142]", size: "scale-100" },  
+    
+    { color: "text-[#219EBC]", size: "scale-50" },   
+    { color: "text-[#2D3142]", size: "scale-100" },  
+    { color: "text-[#52B788]", size: "scale-70" },   
+  ];
 
-        <div className="relative flex items-center justify-center w-20 h-20">
-          <span className="absolute inset-0 rounded-full border-4 border-muted" />
-          <span
-            className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"
-            style={{ animationDuration: "900ms" }}
-          />
-          <span className="w-3 h-3 rounded-full bg-primary" />
+  return (
+    <main className="min-h-screen bg-background flex flex-col items-center justify-center px-4 w-full">
+      
+      <style>{`
+        @keyframes matrixPulse {
+          0%, 100% { transform: scale(1); opacity: 0.4; }
+          50% { transform: scale(1.3); opacity: 1; }
+        }
+        .animate-matrix {
+          animation: matrixPulse 1.6s ease-in-out infinite;
+        }
+      `}</style>
+
+      <div className="flex flex-col items-center justify-center gap-8 w-full max-w-md mx-auto">
+        
+        <div className="grid grid-cols-3 gap-3 justify-items-center items-center w-20 h-20">
+          {dots.map((dot, i) => {
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            const delay = (row + col) * 200; 
+
+            return (
+              <svg
+                key={i}
+                className={`w-4 h-4 ${dot.color} ${dot.size} animate-matrix`}
+                style={{ animationDelay: `${delay}ms` }}
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+            );
+          })}
         </div>
 
         <div className="flex flex-col items-center gap-2 text-center">
           <p
-            className="type-desc-semibold text-foreground"
+            className="type-desc-semibold text-foreground font-semibold"
             style={{ animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite" }}
           >
             Loading...
           </p>
           <p className="type-detail text-muted-foreground">
-            Hang tight, we &apos re getting things ready.
+            Hang tight, we're getting things ready.
           </p>
         </div>
-        <div className="w-full max-w-md space-y-3 mt-2">
+
+        <div className="w-full space-y-3 mt-2">
           {[80, 60, 72].map((w, i) => (
             <div
               key={i}
