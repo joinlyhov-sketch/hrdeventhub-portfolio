@@ -63,7 +63,7 @@ export function ArticleCard() {
 
   return (
     <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
             <img src={data.author.avatar} alt={data.author.name} className="w-full h-full object-cover" />
@@ -83,10 +83,10 @@ export function ArticleCard() {
         </div>
       </div>
 
-      <h2 className="text-2xl font-bold text-grey-900 mb-4 tracking-tight leading-tight">
+      <h2 className="text-2xl font-bold text-grey-900 mb-2 tracking-tight leading-tight">
         {data.title}
       </h2>
-      <p className="type-desc text-grey-500 leading-relaxed mb-4">
+      <p className="type-desc text-grey-500 leading-relaxed mb-2">
         {data.bodyText}
       </p>
 

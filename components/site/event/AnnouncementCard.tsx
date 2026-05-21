@@ -97,7 +97,7 @@ export function AnnouncementCard({ onViewDetail }: AnnouncementCardProps) {
         </button>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
             <img src={data.author.avatar} alt={data.author.name} className="w-full h-full object-cover" />
@@ -112,10 +112,10 @@ export function AnnouncementCard({ onViewDetail }: AnnouncementCardProps) {
         </span>
       </div>
 
-      <h2 className="type-title text-primary mb-4">{data.title}</h2>
-      <p className="type-desc text-muted-foreground leading-relaxed mb-6">{data.description}</p>
+      <h2 className="type-title text-primary mb-2">{data.title}</h2>
+      <p className="type-desc text-muted-foreground leading-relaxed mb-2">{data.description}</p>
 
-      <div className="bg-grey-50 rounded-[12px] p-6 space-y-3 mb-6">
+      <div className="bg-grey-50 rounded-[12px] p-6 space-y-3 mb-2">
         <div className="flex items-start gap-3">
           <MapPin size={18} className="text-grey-400 mt-1 shrink-0" />
           <p className="type-detail text-grey-500">

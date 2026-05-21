@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "../../ui/table";
 import { PaginationDemo } from "../../feedback/Pagination";
+import Link from "next/link";
 
 interface EventManagementTableProps {
   events: EventManagement[];
@@ -55,7 +56,7 @@ export function EventManagementTable({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-xl border border-gray-100 shadow-sm bg-white">
+      <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-white">
         <Table className="w-full minimal-scrollbar">
           <TableHeader>
             <TableRow className="bg-secondary border-none">
@@ -110,7 +111,9 @@ export function EventManagementTable({
                     title={event.name}
                     className="max-w-[140px] truncate text-left text-primary type-desc cursor-pointer"
                   >
+                    <Link href={`/event-management/attendees-list/${event.id}`} className="hover:underline">
                     {event.name}
+                    </Link>
                   </TableCell>
 
                   <TableCell

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { UserManagementNavbar } from "../../../components/dashboard/UserManagementNavbar";
+import Header from "../../../components/dashboard/header/Header";
 
 export const metadata: Metadata = {
   title: { default: "Event Hub", template: "%s | HRD Event Hub" },
@@ -11,11 +12,15 @@ export default function EventManagementLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="flex flex-col flex-1 min-w-0">
-      <div className="w-full bg-white sticky top-0 z-20">
-        <UserManagementNavbar />
-      </div>
-      {children}
+    <div>
+        <Header
+        titlePrimary="User"
+        titleSecondary="Management"
+        description="Monitor participant responses and review insights from completed community surveys."
+      />
+      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12">
+        {children}
+      </main>
     </div>
   );
 }

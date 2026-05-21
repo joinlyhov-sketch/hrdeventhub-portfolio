@@ -12,27 +12,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   SidebarTrigger,
   useSidebar,
 } from "../ui/sidebar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCalendarCheck,
-  faUserGroup,
-  faCalendar,
-  faUser,
-  faChartColumn,
-  faUserPen,
-  faCalendarDays,
-  faClock,
-  faCommentDots,
-  faArrowRightFromBracket,
-  faShieldHalved,
-  faChevronDown,
-} from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
 import {
   CalendarFold,
@@ -53,28 +35,15 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  MOCK_CURRENT_USER,
+  type CurrentUser,
+  type UserRole,
+} from "../../data/mock-user";
 
-type Role = "admin" | "organizer" | "student";
-
-type CurrentUser = {
-  name: string;
-  email: string;
-  role: Role;
-  avatarInitials: string;
-};
-
-const MOCK_CURRENT_USER: CurrentUser = {
-  name: "Dita Rector",
-  email: "RectorDita@gmail.com",
-  role: "student",
-  avatarInitials: "PS",
-};
-
-const ADMIN_ROLES: Role[] = ["admin", "organizer"];
+const ADMIN_ROLES: UserRole[] = ["admin", "organizer"];
 
 export function AppSidebar() {
-  const [isDashboardOpen, setIsDashboardOpen] = useState(true);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [currentUser] = useState<CurrentUser | null>(MOCK_CURRENT_USER);
   const { state } = useSidebar();
   const canSeeAdministration =
@@ -431,7 +400,7 @@ export function AppSidebar() {
                   tooltip="Event Management"
                   className="h-11"
                 >
-                  <Link href="/event-management/attendees-list">
+                  <Link href="/event-management">
                     <CalendarRange className="text-gray-500" />
                     <span
                       className={`

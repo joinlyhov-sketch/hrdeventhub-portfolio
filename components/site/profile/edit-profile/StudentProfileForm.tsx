@@ -14,7 +14,7 @@ export default function StudentProfileForm() {
   ]);
 
   return (
-    <div className="xl:col-span-8 border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
+    <div className="xl:col-span-8 border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-6">
       <div className="space-y-6">
         <h2 className="type-subtitle-24 text-secondary border-b border-border pb-2">
           Edit Information
@@ -126,7 +126,7 @@ export default function StudentProfileForm() {
           </div>
 
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm w-full">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 width="40"
                 height="40"
@@ -185,7 +185,7 @@ export default function StudentProfileForm() {
           </div>
 
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm w-full">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 width="40"
                 height="40"

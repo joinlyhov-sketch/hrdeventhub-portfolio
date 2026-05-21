@@ -75,9 +75,9 @@ export default function SettingVisibilityModeCard({
   };
 
   return (
-    <div className="xl:col-span-8 bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
+    <div className="xl:col-span-8 bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-6">
       <div className="space-y-6">
-        <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
             <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
               1
@@ -90,7 +90,7 @@ export default function SettingVisibilityModeCard({
             <button
               type="button"
               onClick={() => setVisibilityMode("share_all")}
-              className={`relative p-4 rounded-xl border text-left transition flex flex-col justify-between min-h-[140px] group ${
+              className={`relative p-4 rounded-2xl border text-left transition flex flex-col justify-between min-h-[140px] group ${
                 visibilityMode === "share_all"
                   ? "border-primary ring-1 ring-primary/30 bg-primary/5"
                   : "border-border hover:border-grey-300"
@@ -109,37 +109,37 @@ export default function SettingVisibilityModeCard({
                     <path
                       d="M25 35C30.5228 35 35 30.5228 35 25C35 19.4772 30.5228 15 25 15C19.4772 15 15 19.4772 15 25C15 30.5228 19.4772 35 25 35Z"
                       stroke="#1C4D8D"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M21.0016 16H22.0016C20.0516 21.84 20.0516 28.16 22.0016 34H21.0016"
                       stroke="#1C4D8D"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M28 16C29.95 21.84 29.95 28.16 28 34"
                       stroke="#1C4D8D"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M16 29V28C21.84 29.95 28.16 29.95 34 28V29"
                       stroke="#1C4D8D"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M16 22.0016C21.84 20.0516 28.16 20.0516 34 22.0016"
                       stroke="#1C4D8D"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -173,7 +173,7 @@ export default function SettingVisibilityModeCard({
             <button
               type="button"
               onClick={() => setVisibilityMode("private")}
-              className={`relative p-4 rounded-xl border text-left transition flex flex-col min-h-[140px] ${
+              className={`relative p-4 rounded-2xl border text-left transition flex flex-col min-h-[140px] ${
                 visibilityMode === "private"
                   ? "border-primary ring-1 ring-primary/30 bg-primary/5"
                   : "border-border hover:border-grey-300"
@@ -191,23 +191,23 @@ export default function SettingVisibilityModeCard({
                   <path
                     d="M19 23V21C19 17.69 20 15 25 15C30 15 31 17.69 31 21V23"
                     stroke="#1C4D8D"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M25 31.5C26.3807 31.5 27.5 30.3807 27.5 29C27.5 27.6193 26.3807 26.5 25 26.5C23.6193 26.5 22.5 27.6193 22.5 29C22.5 30.3807 23.6193 31.5 25 31.5Z"
                     stroke="#1C4D8D"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M30 35H20C16 35 15 34 15 30V28C15 24 16 23 20 23H30C34 23 35 24 35 28V30C35 34 34 35 30 35Z"
                     stroke="#1C4D8D"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                 </svg>
               </div>
@@ -235,7 +235,7 @@ export default function SettingVisibilityModeCard({
             <button
               type="button"
               onClick={() => setVisibilityMode("selective")}
-              className={`relative p-4 rounded-xl border text-left transition flex flex-col min-h-[140px] ${
+              className={`relative p-4 rounded-2xl border text-left transition flex flex-col min-h-[140px] ${
                 visibilityMode === "selective"
                   ? "border-primary ring-1 ring-primary/30 bg-primary/5"
                   : "border-border hover:border-grey-300"
@@ -254,35 +254,35 @@ export default function SettingVisibilityModeCard({
                     height="50"
                     rx="25"
                     fill="#FF9F2E"
-                    fill-opacity="0.25"
+                    fillOpacity="0.25"
                   />
                   <path
                     d="M22.1586 23.87C22.0586 23.86 21.9386 23.86 21.8286 23.87C19.4486 23.79 17.5586 21.84 17.5586 19.44C17.5586 16.99 19.5386 15 21.9986 15C24.4486 15 26.4386 16.99 26.4386 19.44C26.4286 21.84 24.5386 23.79 22.1586 23.87Z"
                     stroke="#1C4D8D"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M29.4112 17C31.3512 17 32.9112 18.57 32.9112 20.5C32.9112 22.39 31.4113 23.93 29.5413 24C29.4613 23.99 29.3713 23.99 29.2812 24"
                     stroke="#1C4D8D"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M17.1588 27.56C14.7387 29.18 14.7387 31.82 17.1588 33.43C19.9088 35.27 24.4188 35.27 27.1688 33.43C29.5888 31.81 29.5888 29.17 27.1688 27.56C24.4288 25.73 19.9188 25.73 17.1588 27.56Z"
                     stroke="#1C4D8D"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M31.3398 33C32.0598 32.85 32.7398 32.56 33.2998 32.13C34.8598 30.96 34.8598 29.03 33.2998 27.86C32.7498 27.44 32.0798 27.16 31.3698 27"
                     stroke="#1C4D8D"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                 </svg>
               </div>
@@ -310,7 +310,7 @@ export default function SettingVisibilityModeCard({
         </div>
 
         {visibilityMode === "share_all" && (
-          <div className="bg-card rounded-xl border border-border shadow-sm p-5 animate-in fade-in duration-200">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-5 animate-in fade-in duration-200">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">
@@ -338,7 +338,7 @@ export default function SettingVisibilityModeCard({
               </div>
             </div>
 
-            <div className="divide-y divide-border border border-border rounded-xl overflow-hidden">
+            <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden">
               {activities.map((activity) => {
                 return (
                   <div
@@ -381,7 +381,7 @@ export default function SettingVisibilityModeCard({
         )}
 
         {visibilityMode === "private" && (
-          <div className="bg-card rounded-xl border border-border shadow-sm p-8 flex flex-col items-center justify-center min-h-[320px] text-center animate-in fade-in duration-200">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-8 flex flex-col items-center justify-center min-h-[320px] text-center animate-in fade-in duration-200">
             <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-muted-foreground border border-border mb-4 shadow-inner">
               <svg
                 width="64"
@@ -394,23 +394,23 @@ export default function SettingVisibilityModeCard({
                 <path
                   d="M26 30V28C26 24.69 27 22 32 22C37 22 38 24.69 38 28V30"
                   stroke="#1C4D8D"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M32 38.5C33.3807 38.5 34.5 37.3807 34.5 36C34.5 34.6193 33.3807 33.5 32 33.5C30.6193 33.5 29.5 34.6193 29.5 36C29.5 37.3807 30.6193 38.5 32 38.5Z"
                   stroke="#1C4D8D"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M37 42H27C23 42 22 41 22 37V35C22 31 23 30 27 30H37C41 30 42 31 42 35V37C42 41 41 42 37 42Z"
                   stroke="#1C4D8D"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </div>
@@ -432,7 +432,7 @@ export default function SettingVisibilityModeCard({
         )}
 
         {visibilityMode === "selective" && (
-          <div className="bg-card rounded-xl border border-border shadow-sm p-5 animate-in fade-in duration-200">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-5 animate-in fade-in duration-200">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
@@ -460,7 +460,7 @@ export default function SettingVisibilityModeCard({
               </div>
             </div>
 
-            <div className="border border-border rounded-xl overflow-hidden divide-y divide-border">
+            <div className="border border-border rounded-2xl overflow-hidden divide-y divide-border">
               <div className="p-3 hover:bg-muted/20 transition">
                 <div className="flex items-center justify-between gap-4">
                   <div
@@ -480,21 +480,21 @@ export default function SettingVisibilityModeCard({
                           height="44"
                           rx="22"
                           fill="#1C4D8D"
-                          fill-opacity="0.2"
+                          fillOpacity="0.2"
                         />
                         <path
                           d="M22 22C24.7614 22 27 19.7614 27 17C27 14.2386 24.7614 12 22 12C19.2386 12 17 14.2386 17 17C17 19.7614 19.2386 22 22 22Z"
                           stroke="#1C4D8D"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M30.5901 32C30.5901 28.13 26.7402 25 22.0002 25C17.2602 25 13.4102 28.13 13.4102 32"
                           stroke="#1C4D8D"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </svg>
                     </div>
@@ -558,14 +558,14 @@ export default function SettingVisibilityModeCard({
                           height="44"
                           rx="22"
                           fill="#3BC1A8"
-                          fill-opacity="0.2"
+                          fillOpacity="0.2"
                         />
                         <path
                           d="M27 29C27 29.5304 26.7893 30.0391 26.4142 30.4142C26.0391 30.7893 25.5304 31 25 31H14C13.4696 31 12.9609 30.7893 12.5858 30.4142C12.2107 30.0391 12 29.5304 12 29V21C12 20.6489 12.0924 20.3041 12.268 20C12.4435 19.696 12.696 19.4435 13 19.268M32 15.5L25.581 19.679C25.2585 19.8862 24.8833 19.9963 24.5 19.9963C24.1167 19.9963 23.7415 19.8862 23.419 19.679L17 15.5M19 13H30C31.1046 13 32 13.8954 32 15V23C32 24.1046 31.1046 25 30 25H19C17.8954 25 17 24.1046 17 23V15C17 13.8954 17.8954 13 19 13Z"
                           stroke="#3BC1A8"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </svg>
                     </div>
@@ -629,7 +629,7 @@ export default function SettingVisibilityModeCard({
                           height="44"
                           rx="22"
                           fill="#4663AC"
-                          fill-opacity="0.2"
+                          fillOpacity="0.2"
                         />
                         <rect x="10" y="10" width="24" height="24" />
                         <mask id="path-3-inside-1_55420_172364" fill="white">
@@ -706,42 +706,42 @@ export default function SettingVisibilityModeCard({
                           height="44"
                           rx="22"
                           fill="#FF9F2E"
-                          fill-opacity="0.2"
+                          fillOpacity="0.2"
                         />
                         <path
                           d="M22 32C27.5228 32 32 27.5228 32 22C32 16.4772 27.5228 12 22 12C16.4772 12 12 16.4772 12 22C12 27.5228 16.4772 32 22 32Z"
                           stroke="#FF9F2E"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M18.0016 13H19.0016C17.0516 18.84 17.0516 25.16 19.0016 31H18.0016"
                           stroke="#FF9F2E"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M25 13C26.95 18.84 26.95 25.16 25 31"
                           stroke="#FF9F2E"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M13 26V25C18.84 26.95 25.16 26.95 31 25V26"
                           stroke="#FF9F2E"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M13 19.0016C18.84 17.0516 25.16 17.0516 31 19.0016"
                           stroke="#FF9F2E"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </svg>
                     </div>
@@ -791,7 +791,7 @@ export default function SettingVisibilityModeCard({
       </div>
 
       <div className="flex justify-end mt-4">
-        <button className="px-6 py-2 bg-primary text-primary-foreground rounded-xl type-desc-semibold hover:opacity-90 shadow-sm transition">
+        <button className="px-6 py-2 bg-primary text-primary-foreground rounded-2xl type-desc-semibold hover:opacity-90 shadow-sm transition">
           Save changes
         </button>
       </div>

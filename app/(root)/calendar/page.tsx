@@ -5,10 +5,11 @@ import TopBarCalendar from "../../../components/calendarEvents/calendar/Top-Bar"
 
 export const metadata: Metadata = {
   title: "Calendar",
+  
 };
 export default function Page() {
   return (
-    <main className="w-full bg-background">
+    <main className="w-full bg-background min-h-full flex mt-6 flex-col max-w-full pr-8 lg:pr-12 lg:pl-12">
       <TopBarCalendar />
       <CalendarFeature />
       <UpcomingEventSection />

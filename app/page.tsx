@@ -30,7 +30,7 @@ export default function Home() {
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between relative z-10">
           <div className="max-w-2xl">
             <div className="inline-block px-4 py-1.5 mb-6 bg-blue-100 text-blue-700 rounded-full text-xs font-bold tracking-wide uppercase">
-              ✨ KS-HRD Internal Platform
+               KS-HRD Internal Platform
             </div>
             <h1 className="text-6xl md:text-7xl font-extrabold leading-tight mb-6 text-blue-950">
               Your Gateway to <br />

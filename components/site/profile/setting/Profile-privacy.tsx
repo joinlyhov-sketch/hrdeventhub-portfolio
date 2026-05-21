@@ -210,11 +210,11 @@ export default function ProfilePrivacy({
   if (visibilityMode === "private") {
     return (
       <>
-        <div className="card border border-border rounded-xl p-6 shadow-sm  flex flex-col gap-6">
+        <div className="card border border-border rounded-2xl p-6 shadow-sm  flex flex-col gap-6">
           <div className="w-full border-slate-100 type-subtitle-24 font-bold text-[#0f2d59]">
           Preview As Public
         </div>
-          <div className="h-32 bg-primary w-full rounded-xl shrink-0" />
+          <div className="h-32 bg-primary w-full rounded-2xl shrink-0" />
           <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow justify-between">
             <div className="w-full flex flex-col items-center">
               <div className="w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10">
@@ -235,7 +235,7 @@ export default function ProfilePrivacy({
         </div>
 
         <div className="w-full px-4 mb-4">
-          <div className="border  py-2.5 rounded-xl text-center flex items-center justify-center">
+          <div className="border  py-2.5 rounded-2xl text-center flex items-center justify-center">
             <span className="text-grey-400 type-subtitle tracking-wide">
               Chham Kaknika's profile is Locked
             </span>
@@ -259,13 +259,13 @@ export default function ProfilePrivacy({
 
   return (
     <>
-      <div className="xl:col-span-8 w-full h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
+      <div className="xl:col-span-8 w-full h-full bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-6">
         <div className="w-full border-slate-100 type-subtitle-24 font-bold text-[#0f2d59]">
           Preview As Public
         </div>
         {showProfile && (
           <>
-            <div className="h-36 bg-[#1e4e8c]  border border-border rounded-xl p-6 shadow-sm shrink-0 relative" />
+            <div className="h-36 bg-[#1e4e8c]  border border-border rounded-2xl p-6 shadow-sm shrink-0 relative" />
 
             <div className="px-6 flex flex-col items-center -mt-16 w-full relative z-10">
               <div className="w-32 h-32 rounded-full mb-4">
