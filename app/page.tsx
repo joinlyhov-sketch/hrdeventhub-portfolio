@@ -23,7 +23,7 @@ export default function Home() {
           <img
             src="/images/bubble.webp"
             alt=""
-            className="w-full h-full object-contain object-right-top opacity-100"
+            className="w-full h-full object-contain object-top-right opacity-100"
           />
         </div>
 

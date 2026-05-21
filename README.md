@@ -36,3 +36,15 @@ This document summarizes the key technologies used in the HRD EventHub UI projec
 - **Build**: `next build` for production bundles.
 - **Dev**: `next dev` for local development.
 - **Deployment**: Works on any platform that supports Next.js (Vercel recommended).
+
+
+
+
+---------
+- forbidden
+- message : UNVERIFIED_EMAIL
+```json
+payload : {
+    email : "penhseyha4879@gmail.com"
+}
+```

@@ -6,34 +6,72 @@ import { useRouter } from "next/navigation";
 import { resendOtpAction, verifyOtpAction } from "../../../actions/auth.action";
 import { useRegisterStore } from "../../../store/useRegisterStore";
 
-export default function Step3OTP() {
-  const otpEmail = useRegisterStore((s) => s.otpEmail);
-  const setStep = useRegisterStore((s) => s.setStep);
+function secondsFromExpiry(expiresAt: number | null): number {
+  if (!expiresAt) return 300;
+  return Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+}
 
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [resendMessage, setResendMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [secondsLeft, setSecondsLeft] = useState(300);
+export default function Step3OTP() {
+  const [hydrated, setHydrated] = useState(false);
+
+  const otpEmail     = useRegisterStore((s) => s.otpEmail);
+  const otpExpiresAt = useRegisterStore((s) => s.otpExpiresAt);
+  const goToOTP      = useRegisterStore((s) => s.goToOTP);
+  const reset        = useRegisterStore((s) => s.reset);
+
+  const [otp, setOtp]                             = useState(["", "", "", "", "", ""]);
+  const [error, setError]                         = useState<string | null>(null);
+  const [success, setSuccess]                     = useState<string | null>(null);
+  const [resendMessage, setResendMessage]         = useState<string | null>(null);
+  const [isPending, startTransition]              = useTransition();
   const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
+  const [secondsLeft, setSecondsLeft]             = useState(300);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const router = useRouter();
+  const router    = useRouter();
+
 
   useEffect(() => {
-    if (secondsLeft <= 0) return;
-    const timer = window.setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [secondsLeft]);
+    setHydrated(true);
+  }, []);
+
+
   useEffect(() => {
+    if (!hydrated) return;
+
+    // Sync immediately with the real persisted value
+    const initial = secondsFromExpiry(otpExpiresAt);
+    setSecondsLeft(initial);
+    if (initial <= 0) return;
+
+    const timer = window.setInterval(() => {
+      const remaining = secondsFromExpiry(otpExpiresAt);
+      setSecondsLeft(remaining);
+      if (remaining <= 0) window.clearInterval(timer);
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [hydrated, otpExpiresAt]);
+
+
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+
+  useEffect(() => {
+    if (!hydrated) return;
     const isFilled = otp.every((d) => d !== "");
     if (isFilled && autoSubmitEnabled && !isPending) {
       submitOtp(otp.join(""));
     }
-  }, [otp]);
+  }, [otp, hydrated]);
+
 
   const submitOtp = (code: string) => {
     setError(null);
@@ -58,14 +96,13 @@ export default function Step3OTP() {
       }
       if (result?.ok) {
         setSuccess(result.message ?? "Verification successful.");
+        reset(); 
         setTimeout(() => router.push("/login"), 300);
       }
     });
   };
 
-  const handleVerify = () => {
-    submitOtp(otp.join(""));
-  };
+  const handleVerify = () => submitOtp(otp.join(""));
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d*$/.test(value)) return;
@@ -81,13 +118,13 @@ export default function Step3OTP() {
     }
   };
 
+
   const handleResend = () => {
     if (secondsLeft > 0) return;
     if (!otpEmail) {
       setError("Email is missing. Please register again.");
       return;
     }
-
     setError(null);
     setResendMessage(null);
 
@@ -98,15 +135,16 @@ export default function Step3OTP() {
         return;
       }
       setResendMessage(result.message ?? "Verification OTP successfully resent.");
-      setSecondsLeft(300);
+      goToOTP(otpEmail); 
       setOtp(["", "", "", "", "", ""]);
-      setAutoSubmitEnabled(true); 
+      setAutoSubmitEnabled(true);
       inputRefs.current[0]?.focus();
     });
   };
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
+
 
   return (
     <motion.div
@@ -173,20 +211,6 @@ export default function Step3OTP() {
       >
         {isPending ? "Verifying..." : "Submit"}
       </button>
-
-      {/* <div className="flex items-center gap-4 mt-2">
-        <div className="h-px flex-1 bg-[#dce6f0]" />
-        <span className="text-sm text-[#6e7580] whitespace-nowrap">
-          Or Back to{" "}
-          <button
-            onClick={() => setStep(2)}
-            className="font-semibold text-[#17356f] underline underline-offset-2 cursor-pointer"
-          >
-            Login
-          </button>
-        </span>
-        <div className="h-px flex-1 bg-[#dce6f0]" />
-      </div> */}
     </motion.div>
   );
 }

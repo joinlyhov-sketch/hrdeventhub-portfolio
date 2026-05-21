@@ -67,7 +67,7 @@ export default function Loading() {
               className="flex items-center gap-3"
               style={{ animationDelay: `${i * 120}ms` }}
             >
-              <span className="w-10 h-10 rounded-full bg-muted flex-shrink-0 animate-pulse" />
+              <span className="w-10 h-10 rounded-full bg-muted shrink-0 animate-pulse" />
               <div className="flex-1 space-y-2">
                 <span
                   className="block h-3 rounded-full bg-muted animate-pulse"
