@@ -2,20 +2,34 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Search, Filter, Plus, FileText, Megaphone, Calendar, CheckCircle2, BarChart3 } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Plus,
+  FileText,
+  Megaphone,
+  Calendar,
+  CheckCircle2,
+  BarChart3,
+} from "lucide-react";
+import type { UserRole } from "../../../data/mock-user";
 
 interface SearchEventProps {
-  role: "admin" | "student";
+  role: UserRole;
   onFilterChange: (category: string | null) => void;
   activeFilter: string | null;
 }
 
-export default function SearchEvent({ role, onFilterChange, activeFilter }: SearchEventProps) {
+export default function SearchEvent({
+  role,
+  onFilterChange,
+  activeFilter,
+}: SearchEventProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const router = useRouter();
   const params = useParams();
-  
-  const groupId = params.groupId; 
+
+  const groupId = params.groupId;
 
   const categories = [
     { label: "Announcement", value: "announcement", icon: Megaphone },
@@ -57,9 +71,11 @@ export default function SearchEvent({ role, onFilterChange, activeFilter }: Sear
           <Filter size={18} />
           {activeFilter ? `Filtered: ${activeFilter}` : "Filter by category"}
         </summary>
-        <div 
-          className="fixed inset-0 z-40 cursor-default" 
-          onClick={(e) => e.currentTarget.closest("details")?.removeAttribute("open")}
+        <div
+          className="fixed inset-0 z-40 cursor-default"
+          onClick={(e) =>
+            e.currentTarget.closest("details")?.removeAttribute("open")
+          }
         />
 
         <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -84,12 +100,19 @@ export default function SearchEvent({ role, onFilterChange, activeFilter }: Sear
                   closeDetailsDropdown(e);
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm hover:cursor-pointer font-medium rounded-xl transition-all duration-150 relative z-50 ${
-                  activeFilter === option.value 
-                    ? "bg-blue-50 text-primary font-semibold" 
+                  activeFilter === option.value
+                    ? "bg-blue-50 text-primary font-semibold"
                     : "text-gray-600 hover:bg-blue-50/50 hover:text-blue-900"
                 }`}
               >
-                <Icon size={18} className={activeFilter === option.value ? "text-primary" : "text-gray-500"} />
+                <Icon
+                  size={18}
+                  className={
+                    activeFilter === option.value
+                      ? "text-primary"
+                      : "text-gray-500"
+                  }
+                />
                 <span>{option.label}</span>
               </button>
             );
@@ -98,19 +121,24 @@ export default function SearchEvent({ role, onFilterChange, activeFilter }: Sear
       </details>
       {role === "admin" && (
         <div className="relative">
-          <button 
+          <button
             onClick={() => setIsCreateOpen(!isCreateOpen)}
             className="bg-primary p-2 text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[46px] h-[46px] relative z-50"
           >
-            <div className={`transform transition-transform duration-300 flex items-center justify-center ${isCreateOpen ? "rotate-45" : "rotate-0"}`}>
+            <div
+              className={`transform transition-transform duration-300 flex items-center justify-center ${isCreateOpen ? "rotate-45" : "rotate-0"}`}
+            >
               <Plus size={30} />
             </div>
           </button>
 
           {isCreateOpen && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setIsCreateOpen(false)} />
-              
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsCreateOpen(false)}
+              />
+
               <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 {categories.map((option) => {
                   const Icon = option.icon;
@@ -120,7 +148,10 @@ export default function SearchEvent({ role, onFilterChange, activeFilter }: Sear
                       onClick={() => handleCreateNavigation(option.value)}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-blue-50/50 hover:text-blue-900 rounded-xl transition-all duration-150 relative z-50 cursor-pointer"
                     >
-                      <Icon size={18} className="text-gray-500 group-hover:text-blue-900" />
+                      <Icon
+                        size={18}
+                        className="text-gray-500 group-hover:text-blue-900"
+                      />
                       <span>{option.label}</span>
                     </button>
                   );

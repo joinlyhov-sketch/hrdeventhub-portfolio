@@ -1,18 +1,4 @@
-
-
-interface CurrentUser {
-  name: string;
-  email: string;
-  role: string;
-  avatarInitials: string;
-}
-
-const MOCK_CURRENT_USER: CurrentUser = {
-  name: "Dita Rector",
-  email: "RectorDita@gmail.com",
-  role: "admin",
-  avatarInitials: "PS",
-};
+import { MOCK_CURRENT_USER } from "../../data/mock-user";
 
 export function TopBar() {
   return (

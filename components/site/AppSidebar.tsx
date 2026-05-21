@@ -35,24 +35,13 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  MOCK_CURRENT_USER,
+  type CurrentUser,
+  type UserRole,
+} from "../../data/mock-user";
 
-type Role = "admin" | "organizer" | "student";
-
-type CurrentUser = {
-  name: string;
-  email: string;
-  role: Role;
-  avatarInitials: string;
-};
-
-const MOCK_CURRENT_USER: CurrentUser = {
-  name: "Dita Rector",
-  email: "RectorDita@gmail.com",
-  role: "admin",
-  avatarInitials: "PS",
-};
-
-const ADMIN_ROLES: Role[] = ["admin", "organizer"];
+const ADMIN_ROLES: UserRole[] = ["admin", "organizer"];
 
 export function AppSidebar() {
   const [currentUser] = useState<CurrentUser | null>(MOCK_CURRENT_USER);

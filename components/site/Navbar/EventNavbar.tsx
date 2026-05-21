@@ -2,7 +2,7 @@ import { FolderClosed } from "lucide-react";
 
 export default function EventNavbar() {
   return (
-    <section className="flex items-center bg-white gap-3 lg:pr-12 lg:pl-12 mb-6 border-b sticky top-0 z-50 py-2">
+    <section className="flex items-center bg-white gap-3 lg:pr-12 lg:pl-12 border-b sticky top-0 z-50 py-2">
           <div className="bg-primary p-2 rounded-md text-white">
             <FolderClosed />
           </div>

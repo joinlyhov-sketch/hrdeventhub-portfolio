@@ -2,6 +2,7 @@ import GroupHeader from "../../../components/site/group/group-header";
 import GroupCard from "../../../components/site/group/group-card";
 import GroupSearch from "../../../components/site/group/group-search";
 import { mockGroups } from "../../../data/groups";
+import { MOCK_USER_ROLE } from "../../../data/mock-user";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function GroupPage() {
   const groups = mockGroups;
-  const userRole: "admin" | "alumni" = "admin";
+  const userRole = MOCK_USER_ROLE;
 
   return (
     <div className="container mx-auto min-h-full flex mt-6 flex-col max-w-full pr-8 lg:pr-12 lg:pl-12">

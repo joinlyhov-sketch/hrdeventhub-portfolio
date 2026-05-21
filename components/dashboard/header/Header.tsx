@@ -1,10 +1,5 @@
 import { HeaderProps } from "../../../types/HeaderProps";
-
-const MOCK_CURRENT_USER = {
-  name: "Dita Rector",
-  email: "rectordita@gmail.com",
-  avatarInitials: "DR",
-};
+import { MOCK_CURRENT_USER } from "../../../data/mock-user";
 
 export default function Header({
   titlePrimary,
@@ -21,9 +16,7 @@ export default function Header({
               <span className="text-action">{titleSecondary}</span>
             )}
           </h1>
-          <p className="type-desc mt-1 text-muted-foreground">
-            {description}
-          </p>
+          <p className="type-desc mt-1 text-muted-foreground">{description}</p>
         </div>
 
         <div className="flex items-center gap-4">

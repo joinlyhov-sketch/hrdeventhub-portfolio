@@ -65,25 +65,25 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <path
                       d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -114,25 +114,25 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <path
                       d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -163,25 +163,25 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <path
                       d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -212,25 +212,25 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <path
                       d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -261,25 +261,25 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <path
                       d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -310,25 +310,25 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <path
                       d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
                       stroke="#93A3CA"
-                      stroke-width="1.5"
-                      stroke-miterlimit="10"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -360,25 +360,25 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                   <path
                     d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
                     stroke="#93A3CA"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
                     stroke="#93A3CA"
-                    stroke-width="1.5"
-                    stroke-miterlimit="10"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeMiterlimit="10"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
                     stroke="#93A3CA"
-                    stroke-width="1.5"
-                    stroke-miterlimit="10"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeMiterlimit="10"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                 </svg>
               </div>
@@ -410,30 +410,30 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                 <path
                   d="M18.04 13.55C17.62 13.96 17.38 14.55 17.44 15.18C17.53 16.26 18.52 17.05 19.6 17.05H21.5V18.24C21.5 20.31 19.81 22 17.74 22H6.26C4.19 22 2.5 20.31 2.5 18.24V11.51C2.5 9.44001 4.19 7.75 6.26 7.75H17.74C19.81 7.75 21.5 9.44001 21.5 11.51V12.95H19.48C18.92 12.95 18.41 13.17 18.04 13.55Z"
                   stroke="#0F2854"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M2.5 12.4113V7.84132C2.5 6.65132 3.23 5.59128 4.34 5.17128L12.28 2.17128C13.52 1.70128 14.85 2.62131 14.85 3.95131V7.7513"
                   stroke="#0F2854"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M22.5588 13.9731V16.0331C22.5588 16.5831 22.1188 17.0331 21.5588 17.0531H19.5988C18.5188 17.0531 17.5288 16.2631 17.4388 15.1831C17.3788 14.5531 17.6188 13.9631 18.0388 13.5531C18.4088 13.1731 18.9188 12.9531 19.4788 12.9531H21.5588C22.1188 12.9731 22.5588 13.4231 22.5588 13.9731Z"
                   stroke="#0F2854"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M7 12H14"
                   stroke="#0F2854"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
               WeBill365 Information
@@ -460,16 +460,16 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               <path
                 d="M22.5 41.25C32.8125 41.25 41.25 32.8125 41.25 22.5C41.25 12.1875 32.8125 3.75 22.5 3.75C12.1875 3.75 3.75 12.1875 3.75 22.5C3.75 32.8125 12.1875 41.25 22.5 41.25Z"
                 stroke="#2A9D8F"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M14.5312 22.5016L19.8375 27.8078L30.4688 17.1953"
                 stroke="#2A9D8F"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </div>

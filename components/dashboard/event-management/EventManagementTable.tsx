@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "../../ui/table";
 import { PaginationDemo } from "../../feedback/Pagination";
+import Link from "next/link";
 
 interface EventManagementTableProps {
   events: EventManagement[];
@@ -110,7 +111,9 @@ export function EventManagementTable({
                     title={event.name}
                     className="max-w-[140px] truncate text-left text-primary type-desc cursor-pointer"
                   >
+                    <Link href={`/event-management/attendees-list/${event.id}`} className="hover:underline">
                     {event.name}
+                    </Link>
                   </TableCell>
 
                   <TableCell
