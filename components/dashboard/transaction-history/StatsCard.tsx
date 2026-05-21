@@ -1,23 +1,8 @@
 "use client";
 
 import { ReactNode } from "react";
-import { LucideIcon, Wallet, DollarSign, Users, Calendar } from "lucide-react";
 
 import { StatCard } from "../../../types/transaction";
-
-const iconMap: Record<string, LucideIcon> = {
-  wallet: Wallet,
-  dollar: DollarSign,
-  users: Users,
-  calendar: Calendar,
-};
-
-const valueColorMap: Record<string, string> = {
-  blue: "text-blue-600",
-  green: "text-green-600",
-  red: "text-red-600",
-  teal: "text-teal-600",
-};
 
 interface StatsCardProps extends StatCard {
   customIcon?: ReactNode;

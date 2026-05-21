@@ -13,12 +13,12 @@ export default function TransactionDetailPage({
   const detail = transactionDetailsData[0];
 
   return (
-    <main className="min-h-screen ">
+    <main className="min-h-screen max-w-370">
       <Header
-              titlePrimary="Transaction"
-              titleSecondary="Details"
-              description="Monitor participant responses and review insights from completed community surveys."
-            />
+        titlePrimary="Transaction"
+        titleSecondary="Details"
+        description="Monitor participant responses and review insights from completed community surveys."
+      />
 
       <div className="w-full px-6 py-2 space-y-6 flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12">
         <div>
