@@ -15,7 +15,7 @@ export default function CreateArticleForm() {
     <div className="flex flex-col">
       <Breadcrumb label="Article Creation" backHref="/group/${groupId}" />
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col flex-grow mb-4">
-        <div className="p-5 md:p-8 lg:p-10 border-b border-slate-50">
+        <div className="p-5 md:px-1 lg:px-10 border-b border-slate-50">
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-secondary">
             Creation Form
           </h1>
@@ -47,7 +47,7 @@ export default function CreateArticleForm() {
             </Link>
           </div>
         </div>
-        <div className="p-5 md:p-8 lg:p-10 space-y-6 md:space-y-8 flex-grow">
+       <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 flex-grow">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-12 gap-y-5 md:gap-y-6">
             <FormInput
               label="Article title"
