@@ -5,9 +5,9 @@ import { UserX, ListFilter, ArrowUp } from "lucide-react";
 import Search from "../../site/search/Search";
 import UserRow from "./UserRow";
 import Pagination from "./Pagination";
-import EditRoleModal from "../pop-up/EditRoleModal";
-import SuspendModal from "../pop-up/SuspendModal";
-import ReactivateModal from "../pop-up/ReactivateModal";
+import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
+import SuspendModal from "../pop-up/user-management-pop-up/SuspendModal";
+import ReactivateModal from "../pop-up/user-management-pop-up/ReactivateModal";
 import { UserData } from "../../../data/UserData";
 
 interface UserTableClientProps {

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { X, AlertOctagon, ChevronDown, ChevronUp } from "lucide-react";
-import { UserData } from "../../../data/UserData";
+import { UserData } from "../../../../data/UserData";
 
 interface SuspendModalProps {
   user: UserData;
@@ -93,7 +93,6 @@ export default function SuspendModal({
 
               {isOpen && (
                 <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-150">
-                  
                   <div className="max-h-[200px] overflow-y-auto scrollbar-thin pr-1">
                     {REASON_OPTIONS.map((option) => (
                       <button
@@ -115,9 +114,7 @@ export default function SuspendModal({
 
             <p className="text-detail text-slate-500 max-w-md mx-auto leading-relaxed pt-2">
               Are you sure you want to suspend{" "}
-              <span className="font-bold text-gray-900">
-                '{user.username}'
-              </span>
+              <span className="font-bold text-gray-900">'{user.username}'</span>
               ?<br />
               This user will be barred from login and registration. You will
               need to manually reactivate them to restore access.
