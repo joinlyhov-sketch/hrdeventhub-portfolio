@@ -5,9 +5,9 @@ import { UserX, ListFilter, ArrowUp } from "lucide-react";
 import Search from "../../site/search/Search";
 import UserRow from "./UserRow";
 import Pagination from "./Pagination";
-import EditRoleModal from "../pop-up/EditRoleModal";
-import SuspendModal from "../pop-up/SuspendModal";
-import ReactivateModal from "../pop-up/ReactivateModal";
+import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
+import SuspendModal from "../pop-up/user-management-pop-up/SuspendModal";
+import ReactivateModal from "../pop-up/user-management-pop-up/ReactivateModal";
 import { UserData } from "../../../data/UserData";
 
 interface UserTableClientProps {
@@ -121,10 +121,10 @@ export default function UserTableClient({
                       <UserX size={30} className="text-red-500" />
                     </div>
                     <div>
-                      <p className="text-base font-bold text-slate-700">
+                      <p className="text-base font-bold text-secondary">
                         User doesn't exist
                       </p>
-                      <p className="text-sm text-slate-400 font-medium">
+                      <p className="text-sm text-gray-400 font-medium">
                         We couldn't find any match for your current query.
                       </p>
                     </div>

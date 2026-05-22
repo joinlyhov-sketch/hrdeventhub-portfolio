@@ -88,11 +88,11 @@ export default function AttendeeTableClient({
                       <UserX size={30} className="text-red-500"/>
                     </div>
                     <div>
-                      <p className="text-base font-bold text-slate-700">
+                      <p className="text-base font-bold text-secondary">
                         Attendee doesn't exist
                       </p>
-                      <p className="text-sm text-slate-400 font-medium">
-                        We couldn't find any match for your current query.
+                      <p className="text-sm text-gray-400 font-medium">
+                        We couldn't find any attendees match for your search.
                       </p>
                     </div>
                   </div>
