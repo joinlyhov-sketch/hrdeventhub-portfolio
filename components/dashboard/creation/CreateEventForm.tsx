@@ -112,16 +112,16 @@ export default function CreateEventForm() {
           <MediaUpload />
         </div>
       </div>
-      <div className="p-3 bg-slate-50 flex flex-col sm:flex-row justify-end gap-3">
+      <div className="p-2 flex flex-col sm:flex-row justify-end gap-3">
         <button
           type="button"
-          className="order-2 sm:order-1 w-full sm:w-auto px-12 py-3 border border-slate-200 bg-white text-primary font-bold rounded-xl md:rounded-2xl hover:bg-slate-50 transition-all active:scale-95 text-sm shadow-sm"
+          className="order-2 sm:order-1 w-full sm:w-auto px-8 py-2 border border-slate-200 bg-white text-primary font-bold rounded-xl md:rounded-2xl hover:bg-slate-50 transition-all active:scale-95 text-sm shadow-sm"
         >
           Cancel
         </button>
         <button
           type="button"
-          className="order-1 sm:order-2 w-full sm:w-auto px-12 py-3 bg-[#1E3A8A] text-white font-bold rounded-xl md:rounded-2xl hover:bg-blue-900 transition-all shadow-md active:scale-95 text-sm"
+          className="order-1 sm:order-2 w-full sm:w-auto px-8 py-2 bg-primary text-white font-bold rounded-xl md:rounded-2xl hover:bg-blue-900 transition-all shadow-md active:scale-95 text-sm"
         >
           Create
         </button>

@@ -31,8 +31,8 @@ const MediaUpload = () => {
         Media Attachments
       </label>
       <div className="flex flex-row gap-4 overflow-x-auto w-full no-scrollbar items-start">
-        <div className="border-2 border-solid border-slate-200 rounded-2xl p-2">
-          <label className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-white hover:bg-slate-50 transition-colors cursor-pointer w-full max-w-[280px] sm:max-w-[320px] h-[220px]">
+        <div className="border-2 border-solid border-slate-200 rounded-2xl p-2 inline-block">
+          <label className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-white hover:bg-slate-50 transition-colors cursor-pointer w-[320px] h-[220px]">
             <input
               type="file"
               multiple
