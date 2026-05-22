@@ -158,7 +158,7 @@ export function TransactionTable({
           </div>
           <Button
             onClick={() => alert("Export Excel Successfully")}
-            className="bg-primary hover:bg-primary-hover text-white gap-2 rounded-lg flex items-center"
+            className="bg-primary hover:bg-primary-hover text-white gap-2 rounded-lg flex items-center cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>Export</span>
@@ -166,7 +166,7 @@ export function TransactionTable({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>

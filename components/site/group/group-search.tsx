@@ -10,7 +10,10 @@ interface GroupSearchProps {
   initialSearchValue: string;
 }
 
-export default function GroupSearch({ role, initialSearchValue }: GroupSearchProps) {
+export default function GroupSearch({
+  role,
+  initialSearchValue,
+}: GroupSearchProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [search, setSearch] = useState(initialSearchValue);
@@ -22,13 +25,13 @@ export default function GroupSearch({ role, initialSearchValue }: GroupSearchPro
   const handleSearchChange = (value: string) => {
     setSearch(value);
     const params = new URLSearchParams(window.location.search);
-    
+
     if (value.trim()) {
       params.set("search", value);
     } else {
       params.delete("search");
     }
-    
+
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -39,7 +42,7 @@ export default function GroupSearch({ role, initialSearchValue }: GroupSearchPro
         onChange={(e) => handleSearchChange(e.target.value)}
         placeholder="Search for groups..."
       />
-      <button className="p-2 border border-gray-200 rounded-xl hover:bg-white hover:shadow-md transition-all shrink-0">
+      <button className="p-2 border border-gray-200 rounded-xl hover:bg-white hover:shadow-md transition-all shrink-0 cursor-pointer">
         <Settings2 size={24} className="text-gray-600" />
       </button>
 
