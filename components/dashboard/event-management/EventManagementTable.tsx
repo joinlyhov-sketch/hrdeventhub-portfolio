@@ -111,8 +111,11 @@ export function EventManagementTable({
                     title={event.name}
                     className="max-w-[140px] truncate text-left text-primary type-desc cursor-pointer"
                   >
-                    <Link href={`/event-management/attendees-list/${event.id}`} className="hover:underline">
-                    {event.name}
+                    <Link
+                      href={`/event-management/attendees-list/${event.id}`}
+                      className="hover:underline"
+                    >
+                      {event.name}
                     </Link>
                   </TableCell>
 
@@ -148,7 +151,7 @@ export function EventManagementTable({
                   </TableCell>
 
                   <TableCell className="text-center">
-                    <button className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-lg transition-colors inline-flex items-center justify-center">
+                    <button className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-lg transition-colors inline-flex items-center justify-center cursor-pointer">
                       <MoreVertical className="w-4 h-4" />
                     </button>
                   </TableCell>
