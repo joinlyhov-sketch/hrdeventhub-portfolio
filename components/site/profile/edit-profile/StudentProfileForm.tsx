@@ -14,21 +14,21 @@ export default function StudentProfileForm() {
   ]);
 
   return (
-    <div className="bg-white rounded-lg border border-border shadow-xs p-6 space-y-8 w-full">
+    <div className="xl:col-span-8 border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-6">
       <div className="space-y-6">
-        <h2 className="type-subtitle text-secondary border-b border-border pb-2">
+        <h2 className="type-subtitle-24 text-secondary border-b border-border pb-2">
           Edit Information
         </h2>
 
         <div className="flex flex-col sm:flex-row gap-6 items-start">
-          <div className="relative group w-24 h-24 bg-grey-900 rounded-full flex flex-col items-center justify-center cursor-pointer overflow-hidden border border-border shrink-0">
+          <div className="relative group w-36 h-36 bg-grey-900 rounded-full flex flex-col items-center justify-center cursor-pointer overflow-hidden border border-border shrink-0">
             <Camera className="w-6 h-6 text-white mb-1" />
-            <span className="text-[10px] text-grey-300 font-medium text-center px-1">
+            <span className="type-detail text-grey-300 text-center px-1">
               Upload Profile
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 text-primary gap-4 flex-1 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 type-desc text-primary gap-4 flex-1 w-full">
             <InputField label="First Name" defaultValue="Kaknika" />
             <InputField label="Last Name" defaultValue="Chham" />
             <InputField label="Username" defaultValue="Kaknika" />
@@ -66,19 +66,19 @@ export default function StudentProfileForm() {
         </div>
 
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="type-detail-semibold text-grey-900">
+          <label className="type-desc text-secondary">
             Profile Bio
           </label>
           <textarea
             rows={3}
-            className="w-full p-3 bg-white border border-border rounded-lg type-detail text-grey-900 focus:outline-hidden focus:border-primary resize-none"
+            className="w-full p-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary resize-none"
             defaultValue="Dedicated Computer Science student at RUPP with a focus on building web structures using Next.js and secure APIs."
           />
         </div>
       </div>
 
       <section className="space-y-4">
-        <h2>Social Account</h2>
+        <div className="type-subtitle-24 text-primary">Social Account</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm w-full">
             <div className="flex-shrink-0">
@@ -126,7 +126,7 @@ export default function StudentProfileForm() {
           </div>
 
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm w-full">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 width="40"
                 height="40"
@@ -185,7 +185,7 @@ export default function StudentProfileForm() {
           </div>
 
           <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm w-full">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 width="40"
                 height="40"
@@ -233,24 +233,24 @@ export default function StudentProfileForm() {
 
       <div className="space-y-4 w-full">
         <div className="flex justify-between items-center gap-2">
-          <h2 className="type-subtitle text-secondary">Education</h2>
+          <h2 className="type-subtitle-24 text-primary">Education</h2>
           <button className="text-subtle type-detail-semibold flex items-center gap-1 hover:underline bg-transparent border-0 cursor-pointer">
             + add
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
+        <div className="type-desc-semibold text-primary grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
           <InputField
             label="University/Institute/Center"
-            defaultValue="The Royal University of Phnom Penh"
+            placeholder="The Royal University of Phnom Penh"
           />
-          <InputField label="Major/Course" defaultValue="Computer Science" />
-          <InputField label="Start year" defaultValue="2023" />
-          <InputField label="End year" defaultValue="2026" />
+          <InputField label="Major/Course" placeholder="Computer Science" />
+          <InputField label="Start year" placeholder="2023" />
+          <InputField label="End year" placeholder="2026" />
         </div>
       </div>
 
       <div className="space-y-3 w-full">
-        <label className="type-detail-semibold text-grey-900 block">
+        <label className="type-desc-bold text-seconary block">
           Skills & Expertise
         </label>
         <div className="flex flex-wrap gap-2 items-center">

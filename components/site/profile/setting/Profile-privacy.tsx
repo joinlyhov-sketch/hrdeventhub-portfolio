@@ -5,9 +5,7 @@ import {
   Code,
   Phone,
   GraduationCap,
-  User,
   Cake,
-  LockKeyholeIcon,
   Users,
 } from "lucide-react";
 
@@ -212,29 +210,42 @@ export default function ProfilePrivacy({
   if (visibilityMode === "private") {
     return (
       <>
-        <div className="w-full bg-gradient-to-b bg-primary rounded-xl h-36 flex items-center justify-center relative mb-16">
-          <div className="w-32 h-32 rounded-full overflow-hidden shadow-sm absolute -bottom-14 left-1/2 -translate-x-1/2 z-10">
-            <img
-              src="/images/Profiles.png"
-              alt="Chham Kaknika"
-              className="w-full h-full object-cover"
-            />
-          </div>
+        <div className="card border border-border rounded-2xl p-6 shadow-sm  flex flex-col gap-6">
+          <div className="w-full border-slate-100 type-subtitle-24 font-bold text-[#0f2d59]">
+          Preview As Public
         </div>
-
+          <div className="h-32 bg-primary w-full rounded-2xl shrink-0" />
+          <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow justify-between">
+            <div className="w-full flex flex-col items-center">
+              <div className="w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10">
+                <img
+                  src="/images/Profiles.png"
+                  alt="Chham Kaknika"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
         <div className="text-center w-full mt-2">
-          <h3 className="font-bold text-slate-800 text-base leading-tight mb-0.5 tracking-tight">
+          <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
             Chham Kaknika
           </h3>
-          <p className="text-xs text-slate-500 font-medium mb-4">@kaknika</p>
+          <p className="type-desc text-slate-400 font-medium mb-4">
+            @kaknika
+          </p>
         </div>
 
         <div className="w-full px-4 mb-4">
-          <div className="bg-[#f9fafb] border  py-2.5 rounded-xl text-center flex items-center justify-center">
-            <span className="text-[11px]  var(--primary-text-color) font-medium tracking-wide">
+          <div className="border  py-2.5 rounded-2xl text-center flex items-center justify-center">
+            <span className="text-grey-400 type-subtitle tracking-wide">
               Chham Kaknika's profile is Locked
             </span>
           </div>
+        </div>
+               </div>
+        </div>
+        <div className="p-3 type-detail flex items-center justify-center gap-1.5 text-[10px] text-[0F2854]">
+          <Eye className="w-3.5 h-3.5" />
+          <span>Only visible information is shown to others</span>
         </div>
       </>
     );
@@ -247,63 +258,71 @@ export default function ProfilePrivacy({
     visibilityMode === "share_all" || selectiveConfig.education;
 
   return (
-    <div className="p-5 flex-1 flex flex-col items-center w-full">
-      {showProfile && (
-        <>
-          <div className="w-full bg-gradient-to-b bg-primary rounded-xl h-36 flex items-center justify-center relative mb-16">
-            <div className="w-32 h-32 rounded-full overflow-hidden shadow-sm absolute -bottom-14 left-1/2 -translate-x-1/2 z-10">
-              <img
-                src="/images/Profiles.png"
-                alt="Chham Kaknika"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
-          <div className="text-center w-full mt-2">
-            <h3 className="font-bold text-slate-800 text-base leading-tight mb-0.5 tracking-tight">
-              Chham Kaknika
-            </h3>
-            <p className="text-xs text-slate-500 font-medium mb-4">@kaknika</p>
-          </div>
-
-          <p className="text-xs text-slate-600 text-center leading-relaxed px-2 mb-6">
-            Dedicated FullStack web Development student with a passion for
-            building scalable HR solutions and strategic talent acquisition
-            platforms.
-          </p>
-        </>
-      )}
-
-      {(showProfile || showContact || showEducation) && (
-        <div className="w-full space-y-3.5 border-t border-slate-100 pt-5">
-          <h4 className="text-sm text-[#0f2854] font-semibold mb-2">
-            Personal Information
-          </h4>
-
-          <div className="space-y-3">
-            {showContact && (
-              <div className="w-full space-y-3 text-left">
-                <InfoRow icon={<Mail size={16} />} text="kaknika@gmail.com" />
-                <InfoRow icon={<Cake size={16} />} text="12 July 2007" />
-                <InfoRow icon={<Users size={16} />} text="14th Generation" />
-                <InfoRow
-                  icon={<Code size={16} />}
-                  text="Fullstack web development"
-                />
-                <InfoRow icon={<Phone size={16} />} text="015849376" />
-                <InfoRow icon={<GraduationCap size={16} />} text="Studying" />
-                <InfoRow icon={<FemaleIcon />} text="Female" />
-              </div>
-            )}
-
-            <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
-              <Eye className="w-3.5 h-3.5" />
-              <span>Only visible information is shown to others</span>
-            </div>
-          </div>
+    <>
+      <div className="xl:col-span-8 w-full h-full bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+        <div className="w-full border-slate-100 type-subtitle-24 font-bold text-[#0f2d59]">
+          Preview As Public
         </div>
-      )}
-    </div>
+        {showProfile && (
+          <>
+            <div className="h-36 bg-[#1e4e8c]  border border-border rounded-2xl p-6 shadow-sm shrink-0 relative" />
+
+            <div className="px-6 flex flex-col items-center -mt-16 w-full relative z-10">
+              <div className="w-32 h-32 rounded-full mb-4">
+                <img
+                  src="/images/Profiles.png"
+                  alt="Chham Kaknika"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="text-center w-full mt-2">
+                <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
+                  Chham Kaknika
+                </h3>
+                <p className="type-desc text-slate-400 mb-3">
+                  @kaknika
+                </p>
+
+                <p className="text-xs text-seconary text-center leading-relaxed font-medium px-4 max-w-md mx-auto mb-6">
+                  "Dedicated FullStack web Development student with a passion
+                  for building scalable HR solutions and strategic talent
+                  acquisition platforms"
+                </p>
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="px-6 flex-1 flex flex-col justify-between">
+          {(showProfile || showContact || showEducation) && (
+            <div className="w-full space-y-4 border-t border-slate-100 pt-5">
+              <h4 className="type-subtitle-24 text-primary mb-3">
+                Personal Information
+              </h4>
+
+              {showContact && (
+                <div className="space-y-3.5">
+                  <InfoRow icon={<Mail size={16} />} text="kaknika@gmail.com" />
+                  <InfoRow icon={<Cake size={16} />} text="12 July 2007" />
+                  <InfoRow icon={<Users size={16} />} text="14th Generation" />
+                  <InfoRow
+                    icon={<Code size={16} />}
+                    text="Fullstack web development"
+                  />
+                  <InfoRow icon={<Phone size={16} />} text="015849376" />
+                  <InfoRow icon={<GraduationCap size={16} />} text="Studying" />
+                  <InfoRow icon={<FemaleIcon />} text="Female" />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="p-3 type-detail flex items-center justify-center gap-1.5 text-[10px] text-[0F2854]">
+        <Eye className="w-3.5 h-3.5" />
+        <span>Only visible information is shown to others</span>
+      </div>
+    </>
   );
 }

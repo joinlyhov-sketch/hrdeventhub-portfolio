@@ -72,7 +72,7 @@ export function EventSidebar({
   }, [events, showAllEvents, selectedYear]);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 h-fit">
+    <div className="bg-white rounded-2xl border border-gray-200 p-6 h-fit">
       <div className="flex items-center justify-between mb-6">
         <h3 className="type-subtitle-24 font-semibold text-secondary">
           All Event

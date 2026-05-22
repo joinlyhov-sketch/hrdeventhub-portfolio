@@ -1,29 +1,50 @@
 "use client";
 
-import { Search, Settings2, Plus } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Settings2, Plus } from "lucide-react";
+import Search from "../search/Search";
 
-export default function GroupSearch({ role }: { role: string }) {
+interface GroupSearchProps {
+  role: string;
+  initialSearchValue: string;
+}
+
+export default function GroupSearch({ role, initialSearchValue }: GroupSearchProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [search, setSearch] = useState(initialSearchValue);
+
+  useEffect(() => {
+    setSearch(initialSearchValue);
+  }, [initialSearchValue]);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    const params = new URLSearchParams(window.location.search);
+    
+    if (value.trim()) {
+      params.set("search", value);
+    } else {
+      params.delete("search");
+    }
+    
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
   return (
     <div className="flex items-center gap-2 mb-6 w-full">
-      <div className="relative grow">
-        <input
-          type="text"
-          placeholder="Search for group..."
-          className="w-full pl-6 pr-14 py-3 border border-gray-200 rounded-full text-base focus:ring-2 focus:ring-blue-100 outline-none placeholder:text-gray-400 shadow-sm"
-        />
-        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-3">
-          <button className="bg-primary p-2 rounded-full text-white hover:bg-[#25437a]">
-            <Search size={20} strokeWidth={2.5} />
-          </button>
-        </div>
-      </div>
-
-      <button className="p-4 border border-gray-200 rounded-xl hover:bg-white hover:shadow-md transition-all">
+      <Search
+        value={search}
+        onChange={(e) => handleSearchChange(e.target.value)}
+        placeholder="Search for groups..."
+      />
+      <button className="p-2 border border-gray-200 rounded-xl hover:bg-white hover:shadow-md transition-all shrink-0">
         <Settings2 size={24} className="text-gray-600" />
       </button>
 
       {role === "admin" && (
-        <button className="flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap">
+        <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0">
           Create
           <Plus size={20} strokeWidth={3} />
         </button>

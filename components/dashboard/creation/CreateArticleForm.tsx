@@ -13,7 +13,7 @@ import MediaUpload from "../MediaUpload";
 export default function CreateArticleForm() {
   return (
     <div className="flex flex-col">
-      <Breadcrumb label="Article Creation" />
+      <Breadcrumb label="Article Creation" backHref="/group/${groupId}" />
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col flex-grow mb-4">
         <div className="p-5 md:p-8 lg:p-10 border-b border-slate-50">
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-secondary">

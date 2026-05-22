@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { MoreVertical, ArrowUpDown } from "lucide-react";
+import { MoreVertical, ListFilter } from "lucide-react";
 
 import { EventManagement } from "../../../types/event-management";
 
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "../../ui/table";
 import { PaginationDemo } from "../../feedback/Pagination";
+import Link from "next/link";
 
 interface EventManagementTableProps {
   events: EventManagement[];
@@ -40,17 +41,11 @@ export function EventManagementTable({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  // Filter Events
   const filteredEvents = useMemo(() => {
     return events.filter((event) =>
       event.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [events, searchTerm]);
-
-  // Reset Page on Search
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
 
   const totalPages = Math.ceil(filteredEvents.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -61,42 +56,41 @@ export function EventManagementTable({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-xl border border-gray-100 shadow-sm bg-white">
-        {/* Removed table-fixed to allow column auto-balancing with custom max percentage boundaries */}
+      <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-white">
         <Table className="w-full minimal-scrollbar">
           <TableHeader>
-            <TableRow className="bg-[#0F2854] hover:bg-[#0F2854] border-none">
-              <TableHead className="text-white font-semibold text-center w-[6%] h-12">
+            <TableRow className="bg-secondary border-none">
+              <TableHead className="text-white type-desc-semibold text-center w-[6%] h-12">
                 No.
               </TableHead>
 
-              <TableHead className="text-white font-semibold w-[34%] text-left">
+              <TableHead className="text-white type-desc-semibold w-[24%] text-left">
                 Event Name
               </TableHead>
 
-              <TableHead className="text-white font-semibold w-[18%] text-left">
-                <div className="flex items-center gap-1 cursor-pointer select-none group">
+              <TableHead className="text-white type-desc-semibold w-[18%] text-left">
+                <div className="flex items-center gap-3 cursor-pointer select-none group">
                   <span>Date</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-white transition-colors" />
+                  <ListFilter size={17} />
                 </div>
               </TableHead>
 
-              <TableHead className="text-white font-semibold w-[15%] text-left">
+              <TableHead className="text-white type-desc-semibold w-[15%] text-left">
                 Category
               </TableHead>
 
-              <TableHead className="text-white font-semibold w-[12%] text-left">
-                <div className="flex items-center gap-1 cursor-pointer select-none group">
+              <TableHead className="text-white type-desc-semibold w-[12%] text-left">
+                <div className="flex items-center gap-3 cursor-pointer select-none group">
                   <span>Status</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-white transition-colors" />
+                  <ListFilter size={17} />
                 </div>
               </TableHead>
 
-              <TableHead className="text-white font-semibold text-center w-[10%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[10%]">
                 Attendee
               </TableHead>
 
-              <TableHead className="text-white font-semibold text-center w-[5%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[8%]">
                 Action
               </TableHead>
             </TableRow>
@@ -109,34 +103,36 @@ export function EventManagementTable({
                   key={event.id}
                   className="hover:bg-gray-50/80 border-b border-gray-100 h-14"
                 >
-                  <TableCell className="text-center text-gray-500 font-medium text-sm">
+                  <TableCell className="text-center text-secondary type-desc">
                     {event.no}
                   </TableCell>
 
                   <TableCell
                     title={event.name}
-                    className="max-w-[240px] truncate text-left text-secondary font-semibold type-detail hover:underline cursor-pointer"
+                    className="max-w-[140px] truncate text-left text-primary type-desc cursor-pointer"
                   >
+                    <Link href={`/event-management/attendees-list/${event.id}`} className="hover:underline">
                     {event.name}
+                    </Link>
                   </TableCell>
 
                   <TableCell
                     title={event.date}
-                    className="max-w-[140px] truncate text-left text-gray-600 text-sm font-medium"
+                    className="max-w-[140px] truncate text-left text-gray-500 type-desc"
                   >
                     {event.date}
                   </TableCell>
 
                   <TableCell
                     title={event.category}
-                    className="max-w-[120px] truncate text-left text-gray-500 text-sm"
+                    className="max-w-[120px] truncate text-left text-gray-500 type-desc"
                   >
                     {event.category || "-"}
                   </TableCell>
 
                   <TableCell className="text-left">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusStyles(
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full type-desc-small-semibold font-bold whitespace-nowrap ${getStatusStyles(
                         event.status,
                       )}`}
                     >
@@ -145,7 +141,7 @@ export function EventManagementTable({
                     </span>
                   </TableCell>
 
-                  <TableCell className="text-center text-[#0F2854] font-bold text-sm">
+                  <TableCell className="text-center text-secondary type-desc">
                     {event.attendees !== null && event.attendees !== undefined
                       ? event.attendees.toLocaleString()
                       : "-"}
