@@ -10,8 +10,8 @@ export type CurrentUser = {
 export const MOCK_USER_ROLE: UserRole = "student";
 
 export const MOCK_CURRENT_USER: CurrentUser = {
-  name: "Dita Rector",
-  email: "RectorDita@gmail.com",
-  role: "admin",
-  avatarInitials: "DR",
+  name: "Mork Sathim",
+  email: "sathim35@gmail.com",
+  role: "student",
+  avatarInitials: "MS",
 };
