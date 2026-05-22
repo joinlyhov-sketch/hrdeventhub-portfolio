@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
-import { UserData } from "../../../data/UserData";
+import { UserData } from "../../../../data/UserData";
 
 interface EditRoleModalProps {
   user: UserData;
