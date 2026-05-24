@@ -21,7 +21,7 @@ export default function Navbar() {
     <>
       <header className="fixed top-0 left-0 w-full z-50 flex justify-center pt-4 pointer-events-none">
         <nav
-          className={`pointer-events-auto transform-gpu transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] flex items-center justify-between px-6
+          className={`pointer-events-auto transform-gpu transition-all duration-400 flex items-center justify-between px-6
           ${
             scrolled
               ? "w-full max-w-none rounded-none bg-white/90 backdrop-blur-xl shadow-sm border-b border-slate-200/50 h-16 mt-[-16px]" 
@@ -38,30 +38,17 @@ export default function Navbar() {
             />
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
-            {["Event", "Calendar", "About Us"].map((item) => (
-              <Link 
-                key={item}
-                href={`/${item.toLowerCase().replace(/\s+/g, '')}`} 
-                className="text-md font-bold text-[#0F2B54] hover:text-[#FF9F2E] transition-colors relative group"
-              >
-                {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FF9F2E] transition-all duration-300 group-hover:w-full" />
-              </Link>
-            ))}
-          </div>
-
           <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden sm:block text-xs font-bold border border-[#0F2B54] px-5 py-2 rounded-full text-[#0F2B54] hover:bg-[#0F2B54] hover:text-white transition-all active:scale-95">
+            <Link href="/login" className="hidden sm:block type-subtitle border border-grey-400 rimary px-5 py-2 rounded-xl text-primary hover:bg-primary hover:text-white transition-all active:scale-95">
               Log in
             </Link>
             <Link href="/sign-up">
-              <button className="bg-[#0F2B54] text-white px-5 py-2 rounded-full font-bold text-xs shadow-md hover:bg-[#1a3a6b] transition-all active:scale-95 cursor-pointer">
+              <button className="bg-primary text-white px-5 py-2 rounded-xl type-subtitle shadow-md hover:bg-primary transition-all active:scale-95 cursor-pointer">
                 Register
               </button>
             </Link>
             <button 
-              className="md:hidden text-[#0F2B54] p-1" 
+              className="md:hidden text-primary p-1" 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -73,18 +60,14 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[60] bg-white flex flex-col p-8 space-y-6 md:hidden animate-in fade-in slide-in-from-top-5 duration-300">
           <div className="flex justify-end">
-            <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-[#0F2B54]"><X size={32} /></button>
+            <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-primary"><X size={32} /></button>
           </div>
-          <Link href="/event" className="text-3xl font-black text-[#0F2B54]" onClick={() => setMobileMenuOpen(false)}>Event</Link>
-          <Link href="/calendar" className="text-3xl font-black text-[#0F2B54]" onClick={() => setMobileMenuOpen(false)}>Calendar</Link>
-          <Link href="/about" className="text-3xl font-black text-[#0F2B54]" onClick={() => setMobileMenuOpen(false)}>About Us</Link>
-          <Link href="/contact" className="text-3xl font-black text-[#0F2B54]" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
           <div className="pt-10">
             <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
-              <button className="w-full bg-[#0F2B54] text-white py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform">Sign Up</button>
+              <button className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform">Sign Up</button>
             </Link>
             <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-              <button className="w-full  border-1 border-[#0F2B54] my-3 py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform hover:cursor-pointer">login</button>
+              <button className="w-full  border-1 border-primary my-3 py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform hover:cursor-pointer">login</button>
             </Link>
             
           </div>
