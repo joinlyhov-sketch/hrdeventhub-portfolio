@@ -1,4 +1,5 @@
-import { MOCK_EVENTS, CURRENT_USER } from "../../../../../../data/event-detail";
+import { MOCK_EVENTS } from "../../../../../../data/event-detail";
+import { MOCK_CURRENT_USER } from "../../../../../../data/mock-user";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import EventDetailClient from "../../../../../../components/site/event-detail/event-detail-client";
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function EventDetailPage() {
   const event = MOCK_EVENTS[0];
-  const isAdminOrOrganizer = CURRENT_USER.role === "Student" || CURRENT_USER.role === "Admin";
+  const isAdminOrOrganizer = MOCK_CURRENT_USER.role === "admin" || MOCK_CURRENT_USER.role === "organizer";
 
   return (
     <section className="w-full flex flex-col gap-y-4 bg-background">
@@ -19,7 +20,6 @@ export default function EventDetailPage() {
         <ChevronRight size={14} />
         <span className="text-action type-detail-semibold">Sport Reunion Events</span>
       </section>
-
       <EventDetailClient event={event} isAdminOrOrganizer={isAdminOrOrganizer} />
     </section>
   );
