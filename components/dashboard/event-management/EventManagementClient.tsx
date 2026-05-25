@@ -43,7 +43,7 @@ export function EventManagementClient({
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search for events..."
             />
-            <button className="bg-primary p-2 text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[40px] h-[40px] relative z-50">
+            <button className="bg-primary p-2 text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[40px] h-[40px] relative z-10">
               <div className="transform transition-transform duration-300 flex items-center justify-center">
                 <Plus size={20} />
               </div>

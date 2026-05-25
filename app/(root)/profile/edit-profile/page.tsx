@@ -20,14 +20,14 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="w-full min-w-0 transition-all duration-300">
+    <div className="w-full min-w-0 transition-all duration-300 z-20">
       <div className="w-full min-w-0 block">
         <HeaderNoProfile
           titlePrimary="Edit"
           titleSecondary="Profile"
           description="Update your profile information and manage your account settings."
         />
-        <div className="max-w-7xl m-auto w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12">
+        <div className="max-w-420 m-auto w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12">
           {currentUser.role === "student" ? (
             <StudentProfileForm />
           ) : (
