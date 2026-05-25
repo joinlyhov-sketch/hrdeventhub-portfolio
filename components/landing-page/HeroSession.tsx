@@ -4,7 +4,10 @@ import { Heart } from "lucide-react";
 export default function HeroSession() {
   return (
     <>
-      <section className="bg-white text-[#17191C] w-full min-h-screen flex flex-col justify-between relative overflow-hidden px-6 py-12 md:px-12 lg:px-24 select-none">
+      <section className="relative w-full h-full bg-white text-seconary flex flex-col justify-between select-none">
+        <div className="absolute top-[15%] -left-32 w-80 h-80 bg-[#7FAEF5]/20 rounded-full blur-[90px] pointer-events-none z-0 hidden md:block" />
+        <div className="absolute top-[10%] -right-40 w-[450] h-[450] bg-[#7FAEF5]/25 rounded-full blur-[110px] pointer-events-none z-0 hidden md:block" />
+
         <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden hidden md:block">
           <svg
             className="absolute w-full h-full left-0 top-0"
@@ -22,49 +25,145 @@ export default function HeroSession() {
             />
           </svg>
 
-          <div className="absolute left-[5%] top-[28%] border border-seconary/20 text-primary/70 w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-sm">
-            <span className="font-semibold">$</span>
+          <div className="absolute left-[5%] top-[28%] text-primary/70 w-10 h-10 rounded-full flex items-center justify-center shadow-sm">
+            <svg
+              width="76"
+              height="76"
+              viewBox="0 0 76 76"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M28.1935 38.7452C26.8093 41.3958 27.7275 44.595 30.2548 45.9148L35.4121 48.6081C37.6106 49.7562 40.3747 48.82 41.5765 46.5187C42.8856 44.0119 42.258 42.5597 40.9352 41.1367L34.1569 33.9358C32.8342 32.5128 32.2066 31.0606 33.5157 28.5539C34.7174 26.2526 37.4815 25.3163 39.68 26.4645L44.8373 29.1578C47.3646 30.4776 48.2829 33.6768 46.8987 36.3273"
+                stroke="url(#paint0_linear_4386_136289)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M43.9712 25.2031L31.095 49.8596"
+                stroke="url(#paint1_linear_4386_136289)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M26.8021 58.0822C38.1499 64.0083 52.1532 59.6131 58.0793 48.2653C64.0055 36.9175 59.6103 22.9141 48.2625 16.988C36.9146 11.0619 22.9113 15.4571 16.9852 26.8049C11.059 38.1527 15.4542 52.1561 26.8021 58.0822Z"
+                stroke="url(#paint2_linear_4386_136289)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
+              <defs>
+                <linearGradient
+                  id="paint0_linear_4386_136289"
+                  x1="32.5458"
+                  y1="47.1112"
+                  x2="42.5463"
+                  y2="27.9613"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stop-color="#1C4D8D" />
+                  <stop offset="1" stop-color="#FFA02E" />
+                </linearGradient>
+                <linearGradient
+                  id="paint1_linear_4386_136289"
+                  x1="31.5382"
+                  y1="50.0911"
+                  x2="44.4144"
+                  y2="25.4346"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stop-color="#1C4D8D" />
+                  <stop offset="1" stop-color="#FFA02E" />
+                </linearGradient>
+                <linearGradient
+                  id="paint2_linear_4386_136289"
+                  x1="26.8021"
+                  y1="58.0822"
+                  x2="48.2625"
+                  y2="16.988"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stop-color="#1C4D8D" />
+                  <stop offset="1" stop-color="#FFA02E" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
 
           <div className="absolute right-[6%] top-[26%] bg-primary border border-white text-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg">
             <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
+              width="30"
+              height="30"
+              viewBox="0 0 30 30"
               fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              <path
+                d="M22.4996 8.95C22.4246 8.9375 22.3371 8.9375 22.2621 8.95C20.5371 8.8875 19.1621 7.475 19.1621 5.725C19.1621 3.9375 20.5996 2.5 22.3871 2.5C24.1746 2.5 25.6121 3.95 25.6121 5.725C25.5996 7.475 24.2246 8.8875 22.4996 8.95Z"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M21.2113 18.0502C22.9238 18.3377 24.8113 18.0377 26.1363 17.1502C27.8988 15.9752 27.8988 14.0502 26.1363 12.8752C24.7988 11.9877 22.8863 11.6877 21.1738 11.9877"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M7.46406 8.95C7.53906 8.9375 7.62656 8.9375 7.70156 8.95C9.42656 8.8875 10.8016 7.475 10.8016 5.725C10.8016 3.9375 9.36406 2.5 7.57656 2.5C5.78906 2.5 4.35156 3.95 4.35156 5.725C4.36406 7.475 5.73906 8.8875 7.46406 8.95Z"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M8.75078 18.0502C7.03828 18.3377 5.15078 18.0377 3.82578 17.1502C2.06328 15.9752 2.06328 14.0502 3.82578 12.8752C5.16328 11.9877 7.07578 11.6877 8.78828 11.9877"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M14.9996 18.2859C14.9246 18.2734 14.8371 18.2734 14.7621 18.2859C13.0371 18.2234 11.6621 16.8109 11.6621 15.0609C11.6621 13.2734 13.0996 11.8359 14.8871 11.8359C16.6746 11.8359 18.1121 13.2859 18.1121 15.0609C18.0996 16.8109 16.7246 18.2359 14.9996 18.2859Z"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M11.3629 22.2203C9.60039 23.3953 9.60039 25.3203 11.3629 26.4953C13.3629 27.8328 16.6379 27.8328 18.6379 26.4953C20.4004 25.3203 20.4004 23.3953 18.6379 22.2203C16.6504 20.8953 13.3629 20.8953 11.3629 22.2203Z"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </div>
 
-          <div className="absolute right-[5%] bottom-[30%] bg-action border border-white text-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
+          <div className="absolute right-[5%] bottom-[30%] bg-action text-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg">
+            <svg width="71" height="71" viewBox="0 0 71 71" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="28.2741" y="0.692859" width="50" height="50" rx="25" transform="rotate(33.4786 28.2741 0.692859)" fill="#FF9F2E" />
+              <rect x="28.2741" y="0.692859" width="50" height="50" rx="25" transform="rotate(33.4786 28.2741 0.692859)" stroke="white" />
+              <path d="M38.0606 22.1484L35.992 25.2763" stroke="white" strokeWidth="2" stroke-miterlimit="10" strokeLinecap="round" stroke-linejoin="round" />
+              <path d="M46.4024 27.6641L44.3338 30.7919" stroke="white" strokeWidth="2" stroke-miterlimit="10" strokeLinecap="round" stroke-linejoin="round" />
+              <path d="M35.3199 49.4105C37.1626 50.6291 39.6442 50.1233 40.8628 48.2806C42.0814 46.438 41.5756 43.9564 39.7329 42.7378C37.8903 41.5191 35.4087 42.025 34.1901 43.8676C32.9714 45.7103 33.4773 48.1919 35.3199 49.4105Z" stroke="white" strokeWidth="2" strokeLinecap="round" stroke-linejoin="round" />
+              <path d="M38.8688 52.654L38.5157 50.9219" stroke="white" strokeWidth="2" strokeLinecap="round" stroke-linejoin="round" />
+              <path d="M28.4806 26.4375L46.205 38.1595" stroke="white" strokeWidth="2" stroke-miterlimit="10" strokeLinecap="round" stroke-linejoin="round" />
+              <path d="M29.8701 46.7044L24.2713 43.0017C20.6221 40.5883 20.4373 37.4688 22.5059 34.3409L28.3669 25.4787C30.4355 22.3509 33.3785 21.2999 37.0276 23.7133L45.3685 29.2295C49.0177 31.6429 49.2025 34.7624 47.134 37.8903L44.0311 42.582" stroke="white" strokeWidth="2" stroke-miterlimit="10" strokeLinecap="round" stroke-linejoin="round" />
+              <path d="M34.1592 37.1045L34.1686 37.1107" stroke="white" strokeWidth="2" strokeLinecap="round" stroke-linejoin="round" />
+              <path d="M30.3018 34.5498L30.3111 34.556" stroke="white" strokeWidth="2" strokeLinecap="round" stroke-linejoin="round" />
+              <path d="M28.2315 37.6748L28.2408 37.681" stroke="white" strokeWidth="2" strokeLinecap="round" stroke-linejoin="round" />
             </svg>
           </div>
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center text-center max-w-7xl mx-auto my-8 relative z-10 w-full">
-          <h2 className="type-title 28px Bold Post titles, card main headings text-action mb-3 tracking-wide">
+          <h2 className="type-title text-action mb-3 tracking-wide font-bold">
             Bring Together <span className="text-secondary">Alumni</span> &amp;{" "}
             <span className="text-secondary">Student</span>
           </h2>
@@ -76,12 +175,11 @@ export default function HeroSession() {
 
           <p className="type-desc text-secondary max-w-3xl px-6 mb-12 leading-relaxed">
             Your all-in-one platform for event registration, group
-            collaboration, and career-ready growth.
-            Discover the next big event and
-            link up with the brightest minds at HRD.
+            collaboration, and career-ready growth. Discover the next big event
+            and link up with the brightest minds at HRD.
           </p>
 
-          <div className="relative w-full max-w-5xl mx-auto h-[480px] flex items-center justify-center mt-6">
+          <div className="relative w-full max-w-5xl mx-auto h-[480] flex items-center justify-center mt-6">
             <div className="absolute md:left-[-3%] w-[33%] rotate-[-15deg] translate-y-16 box-border z-30">
               <div className="w-full">
                 <img
@@ -280,3 +378,4 @@ export default function HeroSession() {
     </>
   );
 }
+

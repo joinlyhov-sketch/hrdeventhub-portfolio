@@ -6,7 +6,7 @@ export default function LandingPage() {
   return (
     <>
       <Navbar />
-      <div className="relative min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden py-20 px-6 md:px-12 lg:px-24 select-none">
+      <div className="relative min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden py-20 px-6 md:px-12 select-none">
         <HeroSession />
       </div>
       <Footer />
