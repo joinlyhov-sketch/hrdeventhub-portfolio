@@ -83,14 +83,14 @@ export default function SearchEvent({
             }
           />
 
-          <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-10 animate-in fade-in slide-in-from-top-2 duration-200">
             {activeFilter && (
               <button
                 onClick={(e) => {
                   onFilterChange(null);
                   closeDetailsDropdown(e);
                 }}
-                className="w-full flex items-center gap-3 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-all mb-1 cursor-pointer"
+                className="w-full flex items-center gap-3 px-4 py-2 text-xs font-semibold hover:bg-red-50 rounded-xl transition-all mb-1 cursor-pointer"
               >
                 Clear Filter
               </button>
@@ -128,7 +128,7 @@ export default function SearchEvent({
           <div className="relative">
             <button
               onClick={() => setIsCreateOpen(!isCreateOpen)}
-              className="bg-primary  text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[40px] h-[40px] relative z-50"
+              className="bg-primary  text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[40px] h-[40px] relative z-0"
             >
               <div
                 className={`transform transition-transform duration-300 flex items-center justify-center ${isCreateOpen ? "rotate-45" : "rotate-0"}`}
@@ -144,7 +144,7 @@ export default function SearchEvent({
                   onClick={() => setIsCreateOpen(false)}
                 />
 
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-10 animate-in fade-in slide-in-from-top-2 duration-200">
                   {categories.map((option) => {
                     const Icon = option.icon;
                     return (
@@ -169,7 +169,7 @@ export default function SearchEvent({
       </div>
 
       {isEmpty && (
-        <div className="p-12 text-center flex flex-col items-center justify-center min-h-[260px] mt-6 animate-in fade-in zoom-in-95 duration-150">
+        <div className="p-12 text-center flex flex-col items-center justify-center min-h-65 mt-6 animate-in fade-in zoom-in-95 duration-150">
           <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center text-gray-400 mb-4">
             <CalendarX size={30} className="text-red-500" />
           </div>
@@ -177,7 +177,7 @@ export default function SearchEvent({
             No matching items found
           </h3>
           <p className="text-sm text-gray-400 max-w-sm mx-auto leading-relaxed">
-            We couldn't find any results matching &ldquo;
+            We couldn&apos;t find any results matching &ldquo;
             <span className="font-medium text-gray-700">{searchQuery}</span>
             &rdquo;
             {activeFilter && (

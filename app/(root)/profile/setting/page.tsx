@@ -197,7 +197,7 @@ export default function Page() {
   });
 
   return (
-    <main className="flex-1 w-full overflow-x-hidden text-slate-800 z-20">
+    <main className="flex-1 w-full overflow-x-hidden text-slate-800 z-20 ">
       <HeaderNoProfile
         titlePrimary="Privacy"
         titleSecondary="Settings"

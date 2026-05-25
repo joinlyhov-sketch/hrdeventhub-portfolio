@@ -212,8 +212,8 @@ export default function ProfilePrivacy({
       <>
         <div className="card border border-border rounded-2xl p-6 shadow-sm  flex flex-col gap-6">
           <div className="w-full border-slate-100 type-subtitle-24 font-bold text-[#0f2d59]">
-          Preview As Public
-        </div>
+            Preview As Public
+          </div>
           <div className="h-32 bg-primary w-full rounded-2xl shrink-0" />
           <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow justify-between">
             <div className="w-full flex flex-col items-center">
@@ -225,23 +225,23 @@ export default function ProfilePrivacy({
                 />
               </div>
             </div>
-        <div className="text-center w-full mt-2">
-          <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
-            Chham Kaknika
-          </h3>
-          <p className="type-desc text-slate-400 font-medium mb-4">
-            @kaknika
-          </p>
-        </div>
+            <div className="text-center w-full mt-2">
+              <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
+                Chham Kaknika
+              </h3>
+              <p className="type-desc text-slate-400 font-medium mb-4">
+                @kaknika
+              </p>
+            </div>
 
-        <div className="w-full px-4 mb-4">
-          <div className="border  py-2.5 rounded-2xl text-center flex items-center justify-center">
-            <span className="text-grey-400 type-subtitle tracking-wide">
-              Chham Kaknika's profile is Locked
-            </span>
+            <div className="w-full px-4 mb-4">
+              <div className="border  py-2.5 rounded-2xl text-center flex items-center justify-center">
+                <span className="text-grey-400 type-subtitle tracking-wide">
+                  Chham Kaknika&apos;s profile is Locked
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-               </div>
         </div>
         <div className="p-3 type-detail flex items-center justify-center gap-1.5 text-[10px] text-[0F2854]">
           <Eye className="w-3.5 h-3.5" />
@@ -280,14 +280,12 @@ export default function ProfilePrivacy({
                 <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
                   Chham Kaknika
                 </h3>
-                <p className="type-desc text-slate-400 mb-3">
-                  @kaknika
-                </p>
+                <p className="type-desc text-slate-400 mb-3">@kaknika</p>
 
                 <p className="text-xs text-seconary text-center leading-relaxed font-medium px-4 max-w-md mx-auto mb-6">
-                  "Dedicated FullStack web Development student with a passion
-                  for building scalable HR solutions and strategic talent
-                  acquisition platforms"
+                  &quot;Dedicated FullStack web Development student with a
+                  passion for building scalable HR solutions and strategic
+                  talent acquisition platforms&quot;
                 </p>
               </div>
             </div>
