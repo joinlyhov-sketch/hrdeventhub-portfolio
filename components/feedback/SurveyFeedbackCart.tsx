@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowRight, BarChart3, Circle, User, Plus, FileExclamationPoint } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Circle,
+  User,
+  Plus,
+  FileExclamationPoint,
+} from "lucide-react";
 import Search from "../site/search/Search";
 
 import { surveyFeedbacks } from "../../data/surveyFeedback";
@@ -119,7 +126,7 @@ function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
         </div>
 
         <Link href={`/feedback/${item.id}`} className="w-full block">
-          <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm">
+          <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm cursor-pointer">
             <span>Open Result</span>
             <ArrowRight size={20} strokeWidth={1.5} />
           </button>
