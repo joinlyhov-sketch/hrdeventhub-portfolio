@@ -1,10 +1,10 @@
 export type CommentUser = {
-  id: string;
-  name: string;
+  id: number;
+  authorName: string;
 };
 
 export type CommentItem = {
-  id: string;
+  id: number;
   content: string;
   user: CommentUser;
 };
