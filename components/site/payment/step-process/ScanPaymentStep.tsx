@@ -1,24 +1,22 @@
 "use client";
 
-import { paymentEventMock } from "../../../../data/paymentData";
-import { usePaymentModalStore } from "../../../../store/usePaymentStoreModal";
+import { paymentEventMock } from "@/data/paymentData";
+import { usePaymentModalStore } from "@/store/usePaymentModalStore";
 
 export default function ScanPaymentStep() {
   const { form, nextStep, prevStep } = usePaymentModalStore();
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="shrink-0">
+    <div className="flex h-full flex-col justify-between">
+      <div>
         <h2 className="type-desc-semibold text-foreground">Scan to pay</h2>
         <p className="mt-1 type-detail-small-medium text-muted-foreground">
           Open your banking app and scan the QR code below
         </p>
-      </div>
 
-      <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
-        <div className="rounded-xl border-2 border-accent/30 p-5 text-center">
+        <div className="mt-2 rounded-xl border-2 border-accent/30 p-3 text-center">
           <div className="flex items-center justify-between gap-3">
-            <span className="rounded-full bg-destructive px-4 py-1 type-detail-small-medium text-white">
+            <span className="rounded-full bg-destructive px-3 py-1 type-detail-small-medium text-white">
               KHQR
             </span>
 
@@ -32,27 +30,29 @@ export default function ScanPaymentStep() {
             </div>
           </div>
 
-          <div className="mx-auto mt-5 flex size-[190px] items-center justify-center bg-muted type-title">
+          <div className="mx-auto mt-3 flex h-[130px] w-[140px] items-center justify-center bg-muted type-title">
             QR
           </div>
 
-          <h3 className="mt-4 type-subtitle text-foreground">${form.amount}</h3>
+          <h3 className="mt-2 type-subtitle text-foreground">
+            ${form.amount.toFixed(2)}
+          </h3>
         </div>
       </div>
 
-      <div className="mt-5 flex shrink-0 gap-3">
+      <div className="flex gap-3">
         <button
           onClick={prevStep}
-          className="h-10 flex-1 rounded-md bg-muted type-detail-small-medium text-secondary"
+          className="h-9 flex-1 rounded-md bg-muted type-detail-small-medium text-secondary"
         >
           Back
         </button>
 
         <button
           onClick={nextStep}
-          className="h-10 flex-1 rounded-md bg-primary type-detail-small-medium text-primary-foreground"
+          className="h-9 flex-1 rounded-md bg-primary type-detail-small-medium text-primary-foreground"
         >
-          I've completed
+          I’ve completed the payment{" "}
         </button>
       </div>
     </div>
