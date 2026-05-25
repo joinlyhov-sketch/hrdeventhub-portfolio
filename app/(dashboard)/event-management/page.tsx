@@ -6,7 +6,7 @@ import {
 
 export default function EventManagementPage() {
   return (
-    <main className="min-h-screen max-w-7xl mx-auto">
+    <main className="min-h-screen max-w-420 mx-auto">
       <EventManagementClient
         events={eventManagementData}
         stats={eventManagementStats}

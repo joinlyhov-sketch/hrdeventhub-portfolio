@@ -7,8 +7,6 @@ export type CurrentUser = {
   avatarInitials: string;
 };
 
-export const MOCK_USER_ROLE: UserRole = "student";
-
 export const MOCK_CURRENT_USER: CurrentUser = {
   name: "Dita Rector",
   email: "RectorDita@gmail.com",

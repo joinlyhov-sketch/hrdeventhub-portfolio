@@ -16,19 +16,7 @@ import {
   useSidebar,
 } from "../ui/sidebar";
 import Image from "next/image";
-import {
-  CalendarFold,
-  CalendarPlus,
-  CalendarRange,
-  Landmark,
-  LogOut,
-  Newspaper,
-  Settings,
-  User,
-  UserCog,
-  UserPen,
-  Users,
-} from "lucide-react";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
 import {
   MOCK_CURRENT_USER,
@@ -47,7 +35,7 @@ export function AppSidebar() {
     currentUser !== null && ADMIN_ROLES.includes(currentUser.role);
 
   return (
-    <Sidebar collapsible="icon" className="border-r z-999">
+    <Sidebar collapsible="icon" className="border-r z-50">
       <SidebarHeader className="border-b py-4">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -131,7 +119,7 @@ export function AppSidebar() {
           >
             General
           </SidebarGroupLabel>
-          <SidebarMenu>
+          <SidebarMenu className="flex flex-col gap-1">
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -569,7 +557,7 @@ export function AppSidebar() {
               Administration
             </SidebarGroupLabel>
 
-            <SidebarMenu>
+            <SidebarMenu className="flex flex-col gap-1">
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={pathname === "/user-management"}
@@ -859,34 +847,36 @@ export function AppSidebar() {
       <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="pointer-events-none">
-              <div className="w-8 h-8 rounded-full shrink-0 bg-linear-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                {currentUser?.avatarInitials ?? "?"}
-              </div>
-              <div
-                className={`
-                        text-fs-desc text-gray-500
-                        flex flex-col
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
-              >
-                <span className="text-sm font-bold leading-tight">
-                  {currentUser?.name ?? "Loading..."}
-                </span>
-                <span className="text-xs text-muted-foreground leading-tight">
-                  {currentUser?.email ?? ""}
-                </span>
-              </div>
-            </SidebarMenuButton>
+            {currentUser?.role === "student" && (
+              <SidebarMenuButton size="lg" className="pointer-events-none">
+                <div className="w-8 h-8 rounded-full shrink-0 bg-linear-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                  {currentUser?.avatarInitials ?? "?"}
+                </div>
+                <div
+                  className={`
+          text-fs-desc text-gray-500
+          flex flex-col
+          overflow-hidden
+          whitespace-nowrap
+          transition-all
+          duration-500
+          ease-in-out
+          ${
+            state === "collapsed"
+              ? "max-w-0 opacity-0 -translate-x-2"
+              : "max-w-50 opacity-100 translate-x-0"
+          }
+        `}
+                >
+                  <span className="text-sm font-bold leading-tight">
+                    {currentUser?.name ?? "Loading..."}
+                  </span>
+                  <span className="text-xs text-muted-foreground leading-tight">
+                    {currentUser?.email ?? ""}
+                  </span>
+                </div>
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton

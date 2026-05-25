@@ -135,6 +135,9 @@ export default async function AttendeesManagementPage() {
   return (
     <>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7f4421c241fb49aab105e7c9f89bdb8132f6b8f3
       <Breadcrumb label="All attendees list" backHref="/event-management" />
       <div className="w-full max-w-full mx-auto my-auto p-5 bg-white rounded-3xl border border-gray-100 shadow-sm space-y-5">
         <div className="flex items-center gap-2.5 text-secondary border-b border-gray-50 pb-2">
@@ -144,6 +147,7 @@ export default async function AttendeesManagementPage() {
           </h2>
         </div>
         <AttendeeTableClient initialAttendees={initialAttendee} />
+<<<<<<< HEAD
 =======
       <div>
         <Breadcrumb label="All attendees list" backHref="/event-management" />
@@ -157,6 +161,8 @@ export default async function AttendeesManagementPage() {
           <AttendeeTableClient initialAttendees={initialAttendee} />
         </div>
 >>>>>>> 331a0bda41aa0c710f5ad7d61ce7f04235808fe5
+=======
+>>>>>>> 7f4421c241fb49aab105e7c9f89bdb8132f6b8f3
       </div>
     </>
   );

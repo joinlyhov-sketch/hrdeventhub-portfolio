@@ -17,13 +17,13 @@ export default function ProfilePage() {
     viewMode === "STUDENT_SELF" || viewMode === "ALUMNI_VIEWING_STUDENT";
 
   return (
-    <div className=" w-full bg-background">
+    <div className=" w-full bg-background z-30">
       <HeaderNoProfile
         titlePrimary="My"
         titleSecondary="Profile"
         description="View your profile information, background details, and endorsements from participated events."
       />
-      <div className="lg:pr-12 lg:pl-12 max-w-7xl m-auto">
+      <div className="lg:pr-12 lg:pl-12 max-w-420 m-auto">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
           <div className="xl:col-span-4">
             <ProfileCard viewMode={viewMode} />
