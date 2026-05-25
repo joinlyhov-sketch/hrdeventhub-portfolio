@@ -54,17 +54,20 @@ export const authService = {
     return res.json();
   },
 
-  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
-    const res = await fetch(`${apiBaseUrl}/auths/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+register: async (data: RegisterRequest): Promise<RegisterResponse> => {
+  const res = await fetch(`${apiBaseUrl}/auths/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
 
-    if (!res.ok) await handleResponseError(res, "Registration failed");
-    return res.json();
-  },
+  if (res.status === 409) {
+    throw new Error("This email is already taken. Please use a different one.");
+  }
 
+  if (!res.ok) await handleResponseError(res, "Registration failed");
+  return res.json();
+},
   verifyOtp: async (email: string, otp: string): Promise<VerifyOtpResponse> => {
     const url = new URL(`${apiBaseUrl}/auths/verify-otp`);
     url.searchParams.set("email", email);

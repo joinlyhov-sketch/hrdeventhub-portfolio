@@ -91,11 +91,6 @@ export const MOCK_EVENTS: HRDEvent[] = [
     shareCount: 8,
     price: 0,
     isPaid: false,
-
-    // Switch this string to test your 3 UI views instantly:
-    // 'NOT_REGISTERED' -> Shows blue "Register now"
-    // 'REGISTERED'     -> Shows green "✓ You are registered!"
-    // 'ADMIN_VIEW'     -> Shows dark blue "Go to dashboard"
     currentUserAvatarUrl: "https://i.pinimg.com/736x/da/b6/99/dab69971a54d8a4ad59c187a99188103.jpg",
     currentUserStatus: "REGISTERED",
 

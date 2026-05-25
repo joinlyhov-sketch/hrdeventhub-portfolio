@@ -1,7 +1,9 @@
+"use client";
+
 import React from "react";
 import { SquarePen, UserX2, UserRoundCheck } from "lucide-react";
 import { UserData } from "../../../data/UserData";
-
+import { TableCell, TableRow } from "../../ui/table"; 
 interface UserRowProps {
   user: UserData;
   onEditRole: (user: UserData) => void;
@@ -16,58 +18,73 @@ export default function UserRow({
   const isActive = user.status === "Active";
 
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-      <td className="px-5 py-3 text-desc text-gray-500 text-center ">
+    <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
+      <TableCell className="px-5 py-3 text-desc text-gray-500 text-center w-[5%] truncate">
         {user.no}
-      </td>
-      <td className="px-6 py-3 text-desc text-gray-500">
-        <div className="flex items-center gap-3">
+      </TableCell>
+      
+      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[18%]">
+        <div className="inline-flex items-center gap-3 truncate">
           <img
             src={user.avatar}
             alt=""
-            className="w-8 h-8 rounded-full object-cover"
+            className="w-8 h-8 rounded-full object-cover shrink-0"
           />
-          <span className="text-desc text-gray-500">{user.username}</span>
+          <span className="truncate">{user.username}</span>
         </div>
-      </td>
-      <td className="px-5 py-3 text-desc text-gray-500 ">{user.email}</td>
-      <td className="px-6 py-3 text-desc text-gray-500 ">{user.phone}</td>
-      <td className="px-6 py-3 text-desc text-gray-500 ">{user.gender}</td>
-      <td className="px-5 py-3 text-desc text-gray-500 text-center">
+      </TableCell>
+      
+      <TableCell className="px-5 py-3 text-desc text-gray-500 w-[20%] truncate">
+        {user.email}
+      </TableCell>
+      
+      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[13%] truncate">
+        {user.phone}
+      </TableCell>
+      
+      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[10%] truncate">
+        {user.gender}
+      </TableCell>
+      
+      <TableCell className="px-5 py-3 text-desc text-gray-500 text-center w-[10%] truncate">
         {user.gen}
-      </td>
-      <td className="px-6 py-3 text-desc text-gray-500 text-center">
+      </TableCell>
+      
+      <TableCell className="px-6 py-3 text-desc text-gray-500 text-center w-[12%]">
         <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium shrink-0 ${
             isActive
               ? "bg-[#E6F9F1] text-accent"
               : "bg-[#FEECEB] text-[#EA1D24]"
           }`}
         >
           <span
-            className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-accent" : "bg-[#EA1D24]"}`}
+            className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? "bg-accent" : "bg-[#EA1D24]"}`}
           />
           {user.status}
         </span>
-      </td>
-      <td className="px-6 py-3 text-sm">
-        <div className="flex items-center gap-4">
+      </TableCell>
+      
+      <TableCell className="px-6 py-3 text-sm w-[10%]">
+        <div className="inline-flex items-center gap-4">
           <button
             type="button"
             onClick={() => onEditRole(user)}
-            className="text-slate-600 hover:text-blue-900 transition-colors"
+            className="text-slate-600 hover:text-blue-900 transition-colors cursor-pointer shrink-0"
           >
             <SquarePen size={18} />
           </button>
           <button
             type="button"
             onClick={() => onToggleSuspend(user)}
-            className={`transition-colors ${isActive ? "text-[#EA1D24] hover:text-red-700" : "text-accent hover:text-green-700"}`}
+            className={`transition-colors cursor-pointer shrink-0 ${
+              isActive ? "text-[#EA1D24] hover:text-red-700" : "text-accent hover:text-green-700"
+            }`}
           >
             {isActive ? <UserX2 size={18} /> : <UserRoundCheck size={18} />}
           </button>
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
