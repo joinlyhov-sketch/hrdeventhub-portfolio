@@ -90,7 +90,7 @@ export default function SettingVisibilityModeCard({
             <button
               type="button"
               onClick={() => setVisibilityMode("share_all")}
-              className={`relative p-4 rounded-2xl border text-left transition flex flex-col justify-between min-h-[140px] group ${
+              className={`relative p-4 rounded-2xl border text-left transition flex flex-col justify-between min-h-[140px] group cursor-pointer ${
                 visibilityMode === "share_all"
                   ? "border-primary ring-1 ring-primary/30 bg-primary/5"
                   : "border-border hover:border-grey-300"
@@ -173,7 +173,7 @@ export default function SettingVisibilityModeCard({
             <button
               type="button"
               onClick={() => setVisibilityMode("private")}
-              className={`relative p-4 rounded-2xl border text-left transition flex flex-col min-h-[140px] ${
+              className={`relative p-4 rounded-2xl border text-left transition flex flex-col min-h-[140px] cursor-pointer ${
                 visibilityMode === "private"
                   ? "border-primary ring-1 ring-primary/30 bg-primary/5"
                   : "border-border hover:border-grey-300"
@@ -235,10 +235,10 @@ export default function SettingVisibilityModeCard({
             <button
               type="button"
               onClick={() => setVisibilityMode("selective")}
-              className={`relative p-4 rounded-2xl border text-left transition flex flex-col min-h-[140px] ${
+              className={`relative p-4 rounded-2xl border text-left transition flex flex-col min-h-[140px]${
                 visibilityMode === "selective"
-                  ? "border-primary ring-1 ring-primary/30 bg-primary/5"
-                  : "border-border hover:border-grey-300"
+                  ? "border-primary ring-1 ring-primary/30 bg-primary/5 cursor-pointer"
+                  : "border-border hover:border-grey-300 cursor-pointer"
               }`}
             >
               <div className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center mb-3">
@@ -324,14 +324,14 @@ export default function SettingVisibilityModeCard({
                 <button
                   type="button"
                   onClick={() => setAllVisibility(false)}
-                  className="px-2.5 py-1 text-[10px] font-medium text-grey-500 bg-muted hover:bg-grey-100 border border-border rounded-md transition"
+                  className="px-2.5 py-1 text-[10px] font-medium text-grey-500 bg-muted hover:bg-grey-100 border border-border rounded-md transition cursor-pointer"
                 >
                   Make All Private
                 </button>
                 <button
                   type="button"
                   onClick={() => setAllVisibility(true)}
-                  className="px-2.5 py-1 text-[10px] font-medium text-grey-500 bg-muted hover:bg-grey-100 border border-border rounded-md transition"
+                  className="px-2.5 py-1 text-[10px] font-medium text-grey-500 bg-muted hover:bg-grey-100 border border-border rounded-md transition cursor-pointer"
                 >
                   Make All Public
                 </button>
@@ -446,14 +446,14 @@ export default function SettingVisibilityModeCard({
                 <button
                   type="button"
                   onClick={() => setAllSelective(false)}
-                  className="px-2.5 py-1 type-detail text-primary transition"
+                  className="px-2.5 py-1 type-detail text-primary transition cursor-pointer"
                 >
                   Make All Private
                 </button>
                 <button
                   type="button"
                   onClick={() => setAllSelective(true)}
-                  className="px-2.5 py-1 type-detail text-primary transition"
+                  className="px-2.5 py-1 type-detail text-primary transition cursor-pointer"
                 >
                   Make All Public
                 </button>
@@ -511,7 +511,7 @@ export default function SettingVisibilityModeCard({
                     <button
                       type="button"
                       onClick={() => toggleSelectiveField("profile")}
-                      className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 ${
+                      className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 cursor-pointer ${
                         selectiveConfig.profile
                           ? "bg-emerald-50 border-emerald-100 text-emerald-600"
                           : "bg-muted border-border text-muted-foreground"
@@ -527,7 +527,7 @@ export default function SettingVisibilityModeCard({
                     <button
                       type="button"
                       onClick={() => toggleAccordion("profile")}
-                      className="p-1 text-muted-foreground hover:text-secondary rounded"
+                      className="p-1 text-muted-foreground hover:text-secondary rounded cursor-pointer"
                     >
                       {expandedSections.profile ? (
                         <ChevronUp className="w-3.5 h-3.5" />
@@ -582,7 +582,7 @@ export default function SettingVisibilityModeCard({
                     <button
                       type="button"
                       onClick={() => toggleSelectiveField("contactInfo")}
-                      className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 ${
+                      className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 cursor-pointer ${
                         selectiveConfig.contactInfo
                           ? "bg-emerald-50 border-emerald-100 text-emerald-600"
                           : "bg-muted border-border text-muted-foreground"
@@ -598,7 +598,7 @@ export default function SettingVisibilityModeCard({
                     <button
                       type="button"
                       onClick={() => toggleAccordion("contactInfo")}
-                      className="p-1 text-muted-foreground hover:text-secondary rounded"
+                      className="p-1 text-muted-foreground hover:text-secondary rounded cursor-pointer"
                     >
                       {expandedSections.contactInfo ? (
                         <ChevronUp className="w-3.5 h-3.5" />
@@ -659,7 +659,7 @@ export default function SettingVisibilityModeCard({
                     <button
                       type="button"
                       onClick={() => toggleSelectiveField("education")}
-                      className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 ${
+                      className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 cursor-pointer${
                         selectiveConfig.education
                           ? "bg-emerald-50 border-emerald-100 text-asscent"
                           : "bg-muted border-border text-muted-foreground"
@@ -675,7 +675,7 @@ export default function SettingVisibilityModeCard({
                     <button
                       type="button"
                       onClick={() => toggleAccordion("education")}
-                      className="p-1 text-muted-foreground hover:text-secondary rounded"
+                      className="p-1 text-muted-foreground hover:text-secondary rounded cursor-pointer"
                     >
                       {expandedSections.education ? (
                         <ChevronUp className="w-3.5 h-3.5" />
@@ -758,7 +758,7 @@ export default function SettingVisibilityModeCard({
                     <button
                       type="button"
                       onClick={() => toggleSelectiveField("socialAccounts")}
-                      className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 ${
+                      className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 cursor-pointer ${
                         selectiveConfig.socialAccounts
                           ? "bg-emerald-50 border-emerald-100 text-emerald-600"
                           : "bg-muted border-border text-muted-foreground"
@@ -774,7 +774,7 @@ export default function SettingVisibilityModeCard({
                     <button
                       type="button"
                       onClick={() => toggleAccordion("socialAccounts")}
-                      className="p-1 text-muted-foreground hover:text-secondary rounded"
+                      className="p-1 text-muted-foreground hover:text-secondary rounded cursor-pointer"
                     >
                       {expandedSections.socialAccounts ? (
                         <ChevronUp className="w-3.5 h-3.5" />
@@ -791,7 +791,7 @@ export default function SettingVisibilityModeCard({
       </div>
 
       <div className="flex justify-end mt-4">
-        <button className="px-6 py-2 bg-primary text-primary-foreground rounded-2xl type-desc-semibold hover:opacity-90 shadow-sm transition">
+        <button className="px-6 py-2 bg-primary text-primary-foreground rounded-2xl type-desc-semibold hover:opacity-90 shadow-sm transition cursor-pointer">
           Save changes
         </button>
       </div>

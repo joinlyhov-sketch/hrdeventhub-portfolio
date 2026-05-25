@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { UserRole } from "../../../data/mock-user";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
@@ -16,6 +16,40 @@ interface FilteredFeedProps {
 
 export default function FilteredFeed({ role }: FilteredFeedProps) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const [visibleCards, setVisibleCards] = useState<{ [key: string]: boolean }>({
+    event: true,
+    announcement: true,
+    poll: true,
+    survey: true,
+    article: true,
+  });
+
+  useEffect(() => {
+    setVisibleCards({
+      event: true,
+      announcement: true,
+      poll: true,
+      survey: true,
+      article: true,
+    });
+  }, [searchQuery, activeFilter]);
+
+  const handleCardVisibility = (type: string, hasResults: boolean) => {
+    if (visibleCards[type] !== hasResults) {
+      setVisibleCards((prev) => ({ ...prev, [type]: hasResults }));
+    }
+  };
+
+  const isCategoryActive = (type: string) => !activeFilter || activeFilter === type;
+
+  const isFeedEmpty = 
+    (!isCategoryActive("event") || !visibleCards.event) &&
+    (!isCategoryActive("announcement") || !visibleCards.announcement) &&
+    (!isCategoryActive("poll") || !visibleCards.poll) &&
+    (!isCategoryActive("survey") || !visibleCards.survey) &&
+    (!isCategoryActive("article") || !visibleCards.article);
 
   return (
     <div className="space-y-4">
@@ -23,16 +57,44 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
         role={role}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        isEmpty={isFeedEmpty}
       />
-      <PinnedSection />
+      
+      {!searchQuery && !isFeedEmpty && <PinnedSection />}
+      
       <div className="space-y-4">
-        {(!activeFilter || activeFilter === "event") && <EventCard />}
-        {(!activeFilter || activeFilter === "announcement") && (
-          <AnnouncementCard />
+        {isCategoryActive("event") && (
+          <EventCard 
+            searchQuery={searchQuery} 
+            onVisibilityChange={(hasItems) => handleCardVisibility("event", hasItems)}
+          />
         )}
-        {(!activeFilter || activeFilter === "poll") && <PollCard />}
-        {(!activeFilter || activeFilter === "survey") && <SurveyCard />}
-        {(!activeFilter || activeFilter === "article") && <ArticleCard />}
+        {isCategoryActive("announcement") && (
+          <AnnouncementCard 
+            searchQuery={searchQuery} 
+            onVisibilityChange={(hasItems) => handleCardVisibility("announcement", hasItems)}
+          />
+        )}
+        {isCategoryActive("poll") && (
+          <PollCard 
+            searchQuery={searchQuery} 
+            onVisibilityChange={(hasItems) => handleCardVisibility("poll", hasItems)}
+          />
+        )}
+        {isCategoryActive("survey") && (
+          <SurveyCard 
+            searchQuery={searchQuery} 
+            onVisibilityChange={(hasItems) => handleCardVisibility("survey", hasItems)}
+          />
+        )}
+        {isCategoryActive("article") && (
+          <ArticleCard 
+            searchQuery={searchQuery} 
+            onVisibilityChange={(hasItems) => handleCardVisibility("article", hasItems)}
+          />
+        )}
       </div>
     </div>
   );

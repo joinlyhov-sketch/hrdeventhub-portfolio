@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MoreVertical, BarChart3 } from "lucide-react";
 
 const data = {
@@ -12,13 +12,34 @@ const data = {
     { id: "no", label: "No", votes: 29 },
     { id: "considering", label: "Considering", votes: 22 },
     { id: "idk", label: "Considering", votes: 22 },
-    { id: "why not", label: "Considering", votes: 22 }
-  ]
+    { id: "why not", label: "Considering", votes: 22 },
+  ],
 };
 
-export function PollCard() {
+// Added onVisibilityChange callback required by parent container matching logic
+interface PollCardProps {
+  searchQuery: string;
+  onVisibilityChange: (hasItems: boolean) => void;
+}
+
+export function PollCard({ searchQuery, onVisibilityChange }: PollCardProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
+
+  // Checks if the typed input matches the poll question text
+  const isMatch = data.question
+    .toLowerCase()
+    .includes((searchQuery || "").toLowerCase().trim());
+
+  // Notify parent container of visibility state changes when search updates
+  useEffect(() => {
+    onVisibilityChange(isMatch);
+  }, [isMatch, onVisibilityChange]);
+
+  // Hides the component entirely if it doesn't match the current search string
+  if (!isMatch) {
+    return null;
+  }
 
   const totalVotes = data.options.reduce((acc, curr) => acc + curr.votes, 0);
 
@@ -58,9 +79,13 @@ export function PollCard() {
           <div className="space-y-3 mb-6">
             {data.options.map((option) => {
               const isChecked = selectedOption === option.id;
-              const currentVotes = hasVoted && isChecked ? option.votes + 1 : option.votes;
+              const currentVotes =
+                hasVoted && isChecked ? option.votes + 1 : option.votes;
               const currentTotal = hasVoted ? totalVotes + 1 : totalVotes;
-              const percentage = currentTotal > 0 ? Math.round((currentVotes / currentTotal) * 100) : 0;
+              const percentage =
+                currentTotal > 0
+                  ? Math.round((currentVotes / currentTotal) * 100)
+                  : 0;
 
               return (
                 <label

@@ -6,11 +6,11 @@ import {
 
 export default function EventManagementPage() {
   return (
-    <main className="min-h-screen">
-        <EventManagementClient
-          events={eventManagementData}
-          stats={eventManagementStats}
-        />
+    <main className="min-h-screen max-w-7xl mx-auto">
+      <EventManagementClient
+        events={eventManagementData}
+        stats={eventManagementStats}
+      />
     </main>
   );
 }

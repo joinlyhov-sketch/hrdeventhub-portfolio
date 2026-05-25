@@ -11,7 +11,7 @@ import { Button } from "../../ui/button";
 import { EventManagementTable } from "./EventManagementTable";
 import { EventManagement } from "../../../types/event-management";
 import { StatCard } from "../../../types/transaction";
-import Search from "../../site/Search";
+import Search from "../../site/search/Search";
 
 interface EventManagementClientProps {
   events: EventManagement[];
@@ -36,16 +36,21 @@ export function EventManagementClient({
             <span>All Events</span>
           </h2>
         </div>
-        <div className="flex items-center justify-end mb-6 gap-2">
-          <Search/>
-       <button 
-            className="bg-primary p-2 text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[46px] h-[46px] relative z-50">
-            <div className="transform transition-transform duration-300 flex items-center justify-center">
-              <Plus size={30} />
-            </div>
-          </button>
+        <div className="flex items-center justify-end mb-3 gap-2">
+          <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
+            <Search
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search for events..."
+            />
+            <button className="bg-primary p-2 text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[40px] h-[40px] relative z-50">
+              <div className="transform transition-transform duration-300 flex items-center justify-center">
+                <Plus size={20} />
+              </div>
+            </button>
+          </div>
         </div>
-        
+
         <EventManagementTable events={events} searchTerm={searchTerm} />
       </div>
     </div>

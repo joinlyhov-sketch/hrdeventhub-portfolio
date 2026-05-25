@@ -16,9 +16,9 @@ import MediaUpload from "../MediaUpload";
 export default function CreateAnnouncementForm() {
   return (
     <div className="flex flex-col">
-      <Breadcrumb label="Announcement Creation" backHref="/group/${groupId}"/>
+      <Breadcrumb label="Announcement Creation" backHref="/group/${groupId}" />
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col flex-grow mb-4">
-        <div className="p-5 md:p-8 lg:p-10 border-b border-slate-50">
+        <div className="p-5 md:px-1 lg:px-10 border-b border-slate-50">
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-secondary">
             Creation Form
           </h1>
@@ -50,7 +50,7 @@ export default function CreateAnnouncementForm() {
             </Link>
           </div>
         </div>
-        <div className="p-5 md:p-8 lg:p-10 space-y-6 md:space-y-8 flex-grow">
+        <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 flex-grow">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-12 gap-y-5 md:gap-y-6">
             <FormInput
               label="Event title"
@@ -99,16 +99,16 @@ export default function CreateAnnouncementForm() {
           <MediaUpload />
         </div>
       </div>
-      <div className="p-3 bg-slate-50 flex flex-col sm:flex-row justify-end gap-3">
+      <div className="p-2 flex flex-col sm:flex-row justify-end gap-3">
         <button
           type="button"
-          className="order-2 sm:order-1 w-full sm:w-auto px-12 py-3 border border-slate-200 bg-white text-primary font-bold rounded-xl md:rounded-2xl hover:bg-slate-50 transition-all active:scale-95 text-sm shadow-sm"
+          className="order-2 sm:order-1 w-full sm:w-auto px-8 py-2 border border-slate-200 bg-white text-primary font-bold rounded-xl md:rounded-2xl hover:bg-slate-50 transition-all active:scale-95 text-sm shadow-sm"
         >
           Cancel
         </button>
         <button
           type="button"
-          className="order-1 sm:order-2 w-full sm:w-auto px-12 py-3 bg-primary text-white font-bold rounded-xl md:rounded-2xl hover:bg-blue-900 transition-all shadow-md active:scale-95 text-sm"
+          className="order-1 sm:order-2 w-full sm:w-auto px-8 py-2 bg-primary text-white font-bold rounded-xl md:rounded-2xl hover:bg-blue-900 transition-all shadow-md active:scale-95 text-sm"
         >
           Create
         </button>

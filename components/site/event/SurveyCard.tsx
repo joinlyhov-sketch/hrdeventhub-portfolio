@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Star, ChevronLeft, MoreVertical } from "lucide-react";
 
 const steps = 5;
@@ -11,13 +11,39 @@ interface SurveyData {
   suggestions: string;
 }
 
-export function SurveyCard() {
+// Added onVisibilityChange callback required by parent container matching logic
+interface SurveyCardProps {
+  searchQuery: string;
+  onVisibilityChange: (hasItems: boolean) => void;
+}
+
+export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<SurveyData>({
-    favoriteSession: "Cloud Infrastructure 2025", 
-    rating: 2, 
+    favoriteSession: "Cloud Infrastructure 2025",
+    rating: 2,
     suggestions: "",
   });
+
+  const title = "Event Feedback: Tech Innovation Summit";
+  const description = "Help us improve the summit experience";
+
+  // Checks if the typed input matches either the card title or subtitle description text
+  const isMatch =
+    title.toLowerCase().includes((searchQuery || "").toLowerCase().trim()) ||
+    description
+      .toLowerCase()
+      .includes((searchQuery || "").toLowerCase().trim());
+
+  // Notify parent container of visibility state changes when search updates
+  useEffect(() => {
+    onVisibilityChange(isMatch);
+  }, [isMatch, onVisibilityChange]);
+
+  // Hides the component entirely if it doesn't match the current search string
+  if (!isMatch) {
+    return null;
+  }
 
   const sessionOptions = [
     "AI Ethics and Policy",
@@ -29,7 +55,10 @@ export function SurveyCard() {
     if (currentStep < steps) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      alert("Survey completed! Data submitted: " + JSON.stringify(formData, null, 2));
+      alert(
+        "Survey completed! Data submitted: " +
+          JSON.stringify(formData, null, 2),
+      );
     }
   };
 
@@ -43,9 +72,7 @@ export function SurveyCard() {
     <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm text-grey-900">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-baseline gap-3">
-          <h2 className="text-xl font-bold text-secondary">
-            Event Feedback: Tech Innovation Summit
-          </h2>
+          <h2 className="text-xl font-bold text-secondary">{title}</h2>
           <span className="bg-[#EBF5FB] text-[#3FA6DC] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
             Survey
           </span>
@@ -54,10 +81,8 @@ export function SurveyCard() {
           <MoreVertical size={20} />
         </button>
       </div>
-      
-      <p className="text-sm text-grey-500 mb-8">
-        Help us improve the summit experience
-      </p>
+
+      <p className="text-sm text-grey-500 mb-8">{description}</p>
 
       {currentStep === 1 ? (
         <div className="space-y-8">
@@ -84,7 +109,10 @@ export function SurveyCard() {
                         value={option}
                         checked={isSelected}
                         onChange={(e) =>
-                          setFormData({ ...formData, favoriteSession: e.target.value })
+                          setFormData({
+                            ...formData,
+                            favoriteSession: e.target.value,
+                          })
                         }
                         className="sr-only"
                       />
@@ -98,7 +126,9 @@ export function SurveyCard() {
                         )}
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-grey-700">{option}</span>
+                    <span className="text-sm font-medium text-grey-700">
+                      {option}
+                    </span>
                   </label>
                 );
               })}
@@ -117,7 +147,9 @@ export function SurveyCard() {
                   <button
                     key={starValue}
                     type="button"
-                    onClick={() => setFormData({ ...formData, rating: starValue })}
+                    onClick={() =>
+                      setFormData({ ...formData, rating: starValue })
+                    }
                     className="text-[#FFA02E] hover:scale-110 transition-transform cursor-pointer"
                   >
                     <Star
@@ -138,7 +170,9 @@ export function SurveyCard() {
             <textarea
               rows={4}
               value={formData.suggestions}
-              onChange={(e) => setFormData({ ...formData, suggestions: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, suggestions: e.target.value })
+              }
               placeholder="Type your response here..."
               className="w-full border border-grey-200 rounded-xl p-4 text-sm text-grey-900 placeholder:text-grey-400 outline-none focus:border-grey-400 focus:ring-1 focus:ring-grey-400 transition-all resize-none"
             />
@@ -150,9 +184,12 @@ export function SurveyCard() {
           <p className="text-sm font-semibold text-primary uppercase tracking-wide">
             Step {currentStep} of {steps}
           </p>
-          <h3 className="text-lg font-bold text-secondary">Additional Survey Sections</h3>
+          <h3 className="text-lg font-bold text-secondary">
+            Additional Survey Sections
+          </h3>
           <p className="text-sm text-grey-400 max-w-sm mx-auto">
-            This workspace dynamically keeps track of form entries as you route through modules.
+            This workspace dynamically keeps track of form entries as you route
+            through modules.
           </p>
         </div>
       )}
@@ -168,7 +205,9 @@ export function SurveyCard() {
           }`}
         >
           <ChevronLeft size={18} />
-          <span className="uppercase tracking-wider">Step {currentStep} of {steps}</span>
+          <span className="uppercase tracking-wider">
+            Step {currentStep} of {steps}
+          </span>
         </button>
 
         <button

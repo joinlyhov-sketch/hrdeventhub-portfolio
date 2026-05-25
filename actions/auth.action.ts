@@ -23,7 +23,6 @@ export async function loginAction(formData: FormData) {
   return { ok: true };
 }
 export async function registerAction(payload: RegisterRequest) {
-  console.log("Register action payload", payload);
   const {
     firstName,
     lastName,
@@ -33,28 +32,20 @@ export async function registerAction(payload: RegisterRequest) {
     dateOfBirth,
     phoneNumber,
   } = payload;
-    const rawPhone = phoneNumber.trim();
+
+  if (!firstName || !lastName || !gender || !email || !password || !dateOfBirth || !phoneNumber) {
+    return { error: "All fields are required." };
+  }
+
+  const rawPhone = phoneNumber.trim();
   const digitsOnly = rawPhone.replace(/\D/g, "");
-  const normalized = digitsOnly.startsWith("0")
-    ? digitsOnly.slice(1)
-    : digitsOnly;
+  const normalized = digitsOnly.startsWith("0") ? digitsOnly.slice(1) : digitsOnly;
   const formattedPhone = `+855${normalized}`;
 
   const normalizedPayload: RegisterRequest = {
     ...payload,
     phoneNumber: formattedPhone,
   };
-  if (
-    !firstName ||
-    !lastName ||
-    !gender ||
-    !email ||
-    !password ||
-    !dateOfBirth ||
-    !phoneNumber
-  ) {
-    return { error: "All fields are required." };
-  }
 
   try {
     const response = await authService.register(normalizedPayload);

@@ -27,7 +27,7 @@ export default async function ProfilePage() {
           titleSecondary="Profile"
           description="Update your profile information and manage your account settings."
         />
-        <div className="w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12">
+        <div className="max-w-7xl m-auto w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12">
           {currentUser.role === "student" ? (
             <StudentProfileForm />
           ) : (
