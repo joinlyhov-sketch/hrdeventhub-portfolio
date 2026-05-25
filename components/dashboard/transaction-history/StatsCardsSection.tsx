@@ -66,7 +66,7 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
       />
       <StatsCard
         key={2}
-        title={"Total Revenue"}
+        title={"Total Donations"}
         value={"124,50"}
         customIcon={
           <svg

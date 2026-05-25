@@ -3,7 +3,7 @@
 import React from "react";
 import { EllipsisVertical } from "lucide-react";
 import { AttendeeData } from "../../../../data/AttendeeData";
-
+import { TableCell, TableRow } from "../../../ui/table";
 interface AttendeeRowProps {
   attendee: AttendeeData;
   onEditRole: (attendee: AttendeeData) => void;
@@ -41,11 +41,12 @@ export default function AttendeeRow({
   const badgeStyle = getStatusStyles(attendee.status);
 
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[64px]">
-      <td className="px-5 py-3 text-sm text-slate-500 font-medium text-center w-[60px] min-w-[60px] max-w-[60px] truncate">
+    <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[64px]">
+      <TableCell className="px-5 py-3 text-desc text-slate-500 font-medium text-center w-[5%] truncate">
         {attendee.no}
-      </td>
-      <td className="px-6 py-3 text-sm text-slate-700 font-semibold w-[220px] min-w-[220px] max-w-[220px]">
+      </TableCell>
+
+      <TableCell className="px-5 py-3 text-sm text-slate-700 font-semibold w-[18%]">
         <div className="flex items-center gap-3 truncate">
           <img
             src={attendee.avatar || "/placeholder-avatar.png"}
@@ -54,40 +55,44 @@ export default function AttendeeRow({
           />
           <span className="truncate">{attendee.name}</span>
         </div>
-      </td>
-      <td className="px-6 py-3 text-sm text-slate-500 font-medium w-[120px] min-w-[120px] max-w-[120px] truncate">
+      </TableCell>
+
+      <TableCell className="px-5 py-3 text-sm text-slate-500 font-medium w-[10%] truncate">
         {attendee.gender}
-      </td>
-      <td className="px-6 py-3 text-sm text-slate-400 font-normal w-[160px] min-w-[160px] max-w-[160px] truncate">
+      </TableCell>
+
+      <TableCell className="px-3 py-3 text-sm text-slate-400 font-normal w-[12%] truncate">
         {attendee.timestamp}
-      </td>
-      <td className="px-6 py-3 text-sm text-primary text-desc w-[360px] min-w-[360px] max-w-[360px] truncate">
+      </TableCell>
+
+      <TableCell className="px-8 py-3 text-sm text-primary text-desc w-[22%] truncate">
         {attendee.remark}
-      </td>
-      <td className="px-6 py-3 text-sm text-slate-500 font-medium text-center w-[130px] min-w-[130px] max-w-[130px] truncate">
+      </TableCell>
+
+      <TableCell className="px-5 py-3 text-sm text-slate-500 font-medium text-center w-[10%] truncate">
         {attendee.amount.toString().startsWith("$")
           ? attendee.amount
           : `$${attendee.amount}`}
-      </td>
-      <td className="px-6 py-3 text-sm w-[150px] min-w-[150px] max-w-[150px]">
+      </TableCell>
+
+      <TableCell className="px-8 py-3 text-sm w-[12%]">
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium capitalize shrink-0 ${badgeStyle.bg}`}
         >
-          <span
-            className={`w-2 h-2 rounded-full shrink-0 ${badgeStyle.dot}`}
-          />
+          <span className={`w-2 h-2 rounded-full shrink-0 ${badgeStyle.dot}`} />
           {attendee.status}
         </span>
-      </td>
-      <td className="px-6 py-3 text-sm text-center w-[80px] min-w-[80px] max-w-[80px]">
+      </TableCell>
+
+      <TableCell className="px-6 py-3 text-sm text-center w-[10%]">
         <button
           type="button"
           onClick={() => onEditRole(attendee)}
-          className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition-colors inline-flex items-center justify-center"
+          className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition-colors inline-flex items-center justify-center cursor-pointer shrink-0"
         >
           <EllipsisVertical size={18} />
         </button>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }

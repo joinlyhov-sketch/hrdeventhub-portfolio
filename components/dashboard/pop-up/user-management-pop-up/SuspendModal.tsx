@@ -1,8 +1,24 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { X, AlertOctagon, ChevronDown, ChevronUp } from "lucide-react";
+import React, { useState } from "react";
+import { AlertOctagon } from "lucide-react";
 import { UserData } from "../../../../data/UserData";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../../../ui/modal-user-management/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../ui/modal-user-management/select";
+import { CancelButton } from "../../../site/user-mangement/button/CancelButton";
+import { SuspendButton } from "../../../site/user-mangement/button/SuspendButton";
 
 interface SuspendModalProps {
   user: UserData;
@@ -23,28 +39,12 @@ export default function SuspendModal({
   onClose,
   onConfirm,
 }: SuspendModalProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedReason, setSelectedReason] = useState("Reason");
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside of the element
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const [selectedReason, setSelectedReason] = useState<string>("");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-2xl rounded-[32px] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="bg-[#F8FAFC] px-8 py-5 flex items-center justify-between border-b border-gray-100">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-[32px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="bg-[#F8FAFC] px-8 py-3 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
             <img
               src={user.avatar}
@@ -58,88 +58,56 @@ export default function SuspendModal({
               <p className="text-xs text-slate-400 font-medium">{user.email}</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-slate-400 hover:text-red-500 transition-colors"
-          >
-            <X size={20} />
-          </button>
         </div>
 
-        <div className="p-10 flex flex-col items-center text-center space-y-6">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center border border-red-100">
-            <AlertOctagon className="w-8 h-8 text-[#EF4444]" />
+        <div className="p-5 space-y-5 text-center">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center border border-red-100 mx-auto">
+            <AlertOctagon className="w-8 h-8 text-red-500" />
           </div>
 
           <div className="space-y-5 w-full relative">
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight">
-              Suspend this user?
-            </h3>
+            <DialogHeader className="space-y-1.5 text-center">
+              <DialogTitle className="text-2xl font-bold text-slate-800 tracking-tight">
+                Suspend this user?
+              </DialogTitle>
+            </DialogHeader>
 
-            <div className="max-w-xs mx-auto relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-[#EFEFEF] hover:bg-gray-200/80 text-black rounded-2xl px-6 py-3.5 text-base font-bold flex items-center justify-between transition-colors outline-none"
-              >
-                <span>{selectedReason}</span>
-                {isOpen ? (
-                  <ChevronUp size={20} className="text-black" />
-                ) : (
-                  <ChevronDown size={20} className="text-black" />
-                )}
-              </button>
-
-              {isOpen && (
-                <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="max-h-[200px] overflow-y-auto scrollbar-thin pr-1">
-                    {REASON_OPTIONS.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => {
-                          setSelectedReason(option);
-                          setIsOpen(false);
-                        }}
-                        className="w-full px-6 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors text-left block"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="max-w-md mx-auto">
+              <Select value={selectedReason} onValueChange={setSelectedReason}>
+                <SelectTrigger className="w-full bg-[#EFEFEF] hover:bg-gray-200/80 text-black rounded-2xl px-6 py-6 text-base font-bold flex items-center justify-between border-none outline-none focus:ring-0 focus:ring-offset-0 cursor-pointer">
+                  <SelectValue placeholder="Reason" />
+                </SelectTrigger>
+                <SelectContent className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-[200px] overflow-y-auto">
+                  {REASON_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option}
+                      value={option}
+                      className="px-6 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
+                    >
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <p className="text-detail text-slate-500 max-w-md mx-auto leading-relaxed pt-2">
+            <DialogDescription className="text-sm text-slate-500 max-w-md mx-auto">
               Are you sure you want to suspend{" "}
               <span className="font-bold text-gray-900">'{user.username}'</span>
               ?<br />
               This user will be barred from login and registration. You will
               need to manually reactivate them to restore access.
-            </p>
+            </DialogDescription>
           </div>
 
           <div className="flex items-center justify-center gap-4 pt-4 w-full">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-10 py-3 rounded-2xl border border-[#1E3A8A] text-primary font-bold text-sm hover:bg-slate-50 transition-colors min-w-[140px]"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={selectedReason === "Reason"}
-              onClick={() => onConfirm(user.no, selectedReason)}
-              className="px-10 py-3 rounded-2xl bg-[#EF4444] text-white font-bold text-sm hover:bg-red-600 transition-colors min-w-[140px] disabled:opacity-300 disabled:cursor-not-allowed"
-            >
-              Suspend
-            </button>
+            <CancelButton onClick={onClose} />
+            <SuspendButton
+              onClick={() => onConfirm(user.no, selectedReason || "Reason")}
+            />
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

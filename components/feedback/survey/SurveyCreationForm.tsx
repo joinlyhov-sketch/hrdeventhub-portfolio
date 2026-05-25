@@ -51,7 +51,7 @@ export default function SurveyCreationForm() {
     {
       id: "2",
       type: "linear",
-      text: "On a scale of 1 to 15, how satisfied were you with today's event?",
+      text: "On a scale of 1 to 5, how satisfied were you with today's event?",
       linearStart: 1,
       linearEnd: 5,
     },
@@ -97,7 +97,6 @@ export default function SurveyCreationForm() {
   const handleFormSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    console.log("Submitting survey object:", { title, description, questions });
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSubmitting(false);
     alert("Survey Created Successfully!");
@@ -106,19 +105,16 @@ export default function SurveyCreationForm() {
   return (
     <form
       onSubmit={handleFormSubmission}
-      className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-screen bg-gray-50/50 border-t border-gray-100"
+      className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full"
     >
-      <div className="lg:col-span-3 p-6 lg:p-8 max-w-4xl w-full mx-auto flex flex-col justify-between">
+      <div className="lg:col-span-3 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 ">
-            <div >
-            
-            </div>
-
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
+            <div></div>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto p-2.5 px-2 rounded-xl bg-blue-900 text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[100px]"
+              className="w-full sm:w-auto p-2.5 px-5 rounded-xl bg-blue-900 text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
             >
               {isSubmitting && <Loader2 size={14} className="animate-spin" />}
               {isSubmitting ? "Posting..." : "Post Survey"}
@@ -132,10 +128,12 @@ export default function SurveyCreationForm() {
             setDescription={setDescription}
           />
 
-          <SurveyQuestionsList
-            questions={questions}
-            setQuestions={setQuestions}
-          />
+          <div className="w-full max-w-full overflow-hidden">
+            <SurveyQuestionsList
+              questions={questions}
+              setQuestions={setQuestions}
+            />
+          </div>
 
           <button
             type="button"
@@ -147,14 +145,15 @@ export default function SurveyCreationForm() {
         </div>
       </div>
 
-      <div className="bg-white border-l border-gray-100 p-6 space-y-6 overflow-y-auto">
+      <div className="bg-white border-t lg:border-t-0 lg:border-l border-gray-100 p-4 sm:p-6 space-y-6 order-2 lg:h-[calc(100vh-64px)] lg:sticky lg:top-16 overflow-y-auto sticky top-50 z-30">
         <div>
-          <h3 className="text-sm font-bold text-gray-400 tracking-wider mb-4 uppercase">
+          <h3 className="text-xs sm:text-sm font-bold text-gray-400 tracking-wider mb-4 uppercase">
             Question Types
           </h3>
-          <div className="space-y-6">
-            <div>
-              <span className="text-xs font-bold text-gray-300 block mb-2 tracking-widest">
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-6 sm:gap-4 lg:space-y-6">
+            <div className="bg-slate-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-100 sm:border-none">
+              <span className="text-[10px] font-bold text-gray-300 block mb-2 tracking-widest">
                 BASIC
               </span>
               <div className="space-y-2">
@@ -170,8 +169,9 @@ export default function SurveyCreationForm() {
                 />
               </div>
             </div>
-            <div>
-              <span className="text-xs font-bold text-gray-300 block mb-2 tracking-widest">
+
+            <div className="bg-slate-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-100 sm:border-none">
+              <span className="text-[10px] font-bold text-gray-300 block mb-2 tracking-widest">
                 CHOICE
               </span>
               <div className="space-y-2">
@@ -192,8 +192,9 @@ export default function SurveyCreationForm() {
                 />
               </div>
             </div>
-            <div>
-              <span className="text-xs font-bold text-gray-300 block mb-2 tracking-widest">
+
+            <div className="bg-slate-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-100 sm:border-none">
+              <span className="text-[10px] font-bold text-gray-300 block mb-2 tracking-widest">
                 ADVANCED
               </span>
               <div className="space-y-2">
