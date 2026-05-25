@@ -7,8 +7,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../../components/ui/comment-modal/dialog";
-import { Textarea } from "../../../../components/ui/comment-modal/textarea";
+} from "@/components/ui/comment-modal/dialog";
+import { Textarea } from "@/components/ui/comment-modal/textarea";
 import { Button } from "@/components/ui/button";
 
 type Props = {

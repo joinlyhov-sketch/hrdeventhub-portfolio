@@ -1,12 +1,12 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-} from "../../../../components/ui/comment-modal/dialog";
-import { Button } from "../../../../components/ui/button";
+} from "@/components/ui/comment-modal/dialog";
+import { AlertTriangle } from "lucide-react";
 
 type Props = {
   open: boolean;
