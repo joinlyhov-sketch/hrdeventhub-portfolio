@@ -2,9 +2,9 @@ import { CalendarMinus2, Clock, MapPin } from "lucide-react";
 import { MOCK_EVENTS } from "../../../data/event-detail";
 
 export default function DetailContentComponent() {
-    const event = MOCK_EVENTS[0];
+  const event = MOCK_EVENTS[0];
   return (
-    <section className="flex flex-col justify-between h-full w-full">
+    <section className="flex flex-col justify-between h-full">
       <section>
         <p className="text-subtitle font-semibold text-secondary">
           {event.eventTitle}
