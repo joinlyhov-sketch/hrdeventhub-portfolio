@@ -8,22 +8,29 @@ import type { RegisterRequest } from "../../../types/auth-types";
 import { useRegisterStore } from "../../../store/useRegisterStore";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 
-const step2Schema = z.object({
-  email: z.string().min(1, "Email is required").pipe(z.email({ message: "Email is invalid" })),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
-    .regex(/[0-9]/, "Password must contain at least 1 number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const step2Schema = z
+  .object({
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .pipe(z.email({ message: "Email is invalid" })),
+    password: z
+      .string()
+      .min(1, "Password is required")
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
+      .regex(/[0-9]/, "Password must contain at least 1 number")
+      .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
-type AccountValidate = Partial<Record<"email" | "password" | "confirmPassword", string>>;
+type AccountValidate = Partial<
+  Record<"email" | "password" | "confirmPassword", string>
+>;
 
 const passwordSchema = z
   .string()
@@ -114,7 +121,11 @@ export default function Step2Account() {
     startTransition(async () => {
       const res = await registerAction(payload);
       if (res?.error) {
-        if (res.error.toLowerCase().includes("email")) {
+        if (
+          res.error.toLowerCase().includes("email") ||
+          res.error.toLowerCase().includes("already taken") ||
+          res.error.toLowerCase().includes("conflict")
+        ) {
           setErrors({ email: res.error });
         } else {
           setServerError(res.error);
@@ -127,8 +138,7 @@ export default function Step2Account() {
 
   return (
     <motion.div
-      // Switching to grid here forces the component to fill the parent's width
-      className="grid grid-cols-1 gap-5 w-full" 
+      className="grid grid-cols-1 gap-5 w-full"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
@@ -138,15 +148,18 @@ export default function Step2Account() {
         <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
           Account Info
         </h2>
-        <p className="mt-2 text-[#6e7580] text-[14px]">Join HRD EventHub & Get started</p>
+        <p className="mt-2 text-[#6e7580] text-[14px]">
+          Join HRD EventHub & Get started
+        </p>
       </div>
 
       <div className="space-y-4 w-full">
-        {/* Email Field */}
         <div className="flex flex-col gap-1 w-full">
-          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
-            errors.email ? "border-red-400" : "border-[#dce6f0]"
-          }`}>
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+              errors.email ? "border-red-400" : "border-[#dce6f0]"
+            }`}
+          >
             <Mail size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Email"
@@ -159,11 +172,12 @@ export default function Step2Account() {
           {errors.email && <FieldError message={errors.email} />}
         </div>
 
-        {/* Password Field */}
         <div className="flex flex-col gap-1 w-full">
-          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
-            errors.password ? "border-red-400" : "border-[#dce6f0]"
-          }`}>
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+              errors.password ? "border-red-400" : "border-[#dce6f0]"
+            }`}
+          >
             <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Password"
@@ -184,11 +198,12 @@ export default function Step2Account() {
           {errors.password && <FieldError message={errors.password} />}
         </div>
 
-        {/* Confirm Password Field */}
         <div className="flex flex-col gap-1 w-full">
-          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
-            errors.confirmPassword ? "border-red-400" : "border-[#dce6f0]"
-          }`}>
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+              errors.confirmPassword ? "border-red-400" : "border-[#dce6f0]"
+            }`}
+          >
             <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Confirm Password"
@@ -206,11 +221,18 @@ export default function Step2Account() {
               {showConfirmPassword ? "Hide" : "Show"}
             </button>
           </div>
-          {errors.confirmPassword && <FieldError message={errors.confirmPassword} />}
+          {errors.confirmPassword && (
+            <FieldError message={errors.confirmPassword} />
+          )}
         </div>
       </div>
 
-      {/* Button Action Row */}
+      {serverError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          {serverError}
+        </div>
+      )}
+
       <div className="mt-3 grid grid-cols-2 gap-4 w-full">
         <button
           onClick={() => setStep(1)}

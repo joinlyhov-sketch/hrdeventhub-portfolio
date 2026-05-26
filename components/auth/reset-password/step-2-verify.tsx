@@ -8,34 +8,66 @@ import {
 } from "../../../actions/auth.action";
 import { useResetPasswordStore } from "../../../store/useResetPasswordStore";
 
+function secondsFromExpiry(expiresAt: number | null): number {
+  if (!expiresAt) return 300;
+  return Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+}
+
 export default function VerifyStep() {
-  const email = useResetPasswordStore((s) => s.email);
-  const storeToken = useResetPasswordStore((s) => s.storeToken);
+  const [hydrated, setHydrated] = useState(false);
+  const email        = useResetPasswordStore((s) => s.email);
+  const storeToken   = useResetPasswordStore((s) => s.storeToken);
+  const otpExpiresAt = useResetPasswordStore((s) => s.otpExpiresAt);
+  const storeEmail   = useResetPasswordStore((s) => s.storeEmail);
+  const reset        = useResetPasswordStore((s) => s.reset);
 
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [resendMessage, setResendMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [secondsLeft, setSecondsLeft] = useState(300);
-  const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true); 
+  const [otp, setOtp]                             = useState(["", "", "", "", "", ""]);
+  const [error, setError]                         = useState<string | null>(null);
+  const [success, setSuccess]                     = useState<string | null>(null);
+  const [resendMessage, setResendMessage]         = useState<string | null>(null);
+  const [isPending, startTransition]              = useTransition();
+  const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
+  const [secondsLeft, setSecondsLeft]             = useState(300);
 
-
+  // ── Wait for Zustand persist to rehydrate before doing anything ──────────
   useEffect(() => {
-    if (secondsLeft <= 0) return;
+    setHydrated(true);
+  }, []);
+
+  // ── Countdown — starts only after hydration so otpExpiresAt is real ──────
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const initial = secondsFromExpiry(otpExpiresAt);
+    setSecondsLeft(initial);
+    if (initial <= 0) return;
+
     const timer = window.setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      const remaining = secondsFromExpiry(otpExpiresAt);
+      setSecondsLeft(remaining);
+      if (remaining <= 0) window.clearInterval(timer);
     }, 1000);
+
     return () => window.clearInterval(timer);
-  }, [secondsLeft]);
+  }, [hydrated, otpExpiresAt]);
 
   useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     const isFilled = otp.every((d) => d !== "");
     if (isFilled && autoSubmitEnabled && !isPending) {
       submitOtp(otp.join(""));
     }
-  }, [otp]);
+  }, [otp, hydrated]);
 
   const submitOtp = (code: string) => {
     setError(null);
@@ -55,10 +87,11 @@ export default function VerifyStep() {
       const result = await verifyForgotPasswordAction(email, code);
       if (result?.error) {
         setError(result.error);
-        setAutoSubmitEnabled(false); 
+        setAutoSubmitEnabled(false);
         return;
       }
       if (result?.ok && result.token) {
+        reset(); 
         storeToken(result.token);
       }
     });
@@ -96,7 +129,7 @@ export default function VerifyStep() {
         return;
       }
       setResendMessage(result.message ?? "Verification OTP successfully resent.");
-      setSecondsLeft(300);
+      storeEmail(email); 
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
       inputs.current[0]?.focus();
@@ -105,6 +138,7 @@ export default function VerifyStep() {
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
+
 
   return (
     <motion.div

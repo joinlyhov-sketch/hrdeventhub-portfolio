@@ -13,6 +13,7 @@ export default function Page() {
       <div className="max-w-420 mx-auto w-full">
         <CalendarFeature />
         <UpcomingEventSection />
+    
       </div>
     </main>
   );
