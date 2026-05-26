@@ -28,7 +28,7 @@ export const useCommentModalStore = create<CommentModalStore>((set) => ({
     set({
       modalType: "edit",
       selectedComment: comment,
-      editValue: comment.comment,
+      editValue: comment.content,
     }),
 
   openDelete: (comment) =>
