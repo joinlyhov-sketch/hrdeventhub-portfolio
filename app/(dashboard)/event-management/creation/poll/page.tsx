@@ -6,13 +6,13 @@ import PollSidebar from "../../../../../components/feedback/poll/creation/PollSi
 export default function PollCreatePage() {
   return (
     <main className="p-6">
-      <div className="max-w-full mx-auto flex flex-col lg:flex-row gap-8 items-start">
+      <div className="max-w-full mx-auto flex flex-col lg:flex-row items-start">
         <div className="flex-1 w-full">
           <PollForm />
         </div>
-        <aside className="w-30% lg:w-30% h-full sticky top-24">
+        {/* <aside className=" h-full sticky top-24">
           <PollSidebar />
-        </aside>
+        </aside> */}
       </div>
     </main>
   );

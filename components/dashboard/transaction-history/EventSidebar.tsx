@@ -3,6 +3,13 @@
 import { useState, useMemo } from "react";
 import { Event } from "../../../types/transaction";
 import { Button } from "../../ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../ui/select";
 
 interface EventSidebarProps {
   events: Event[];
@@ -39,11 +46,8 @@ const getStatusBorderColor = (status: string): string => {
 const getStatusIcon = (status: string): string => {
   switch (status) {
     case "Published":
-      return "●";
     case "Active":
-      return "●";
     case "Cancel":
-      return "●";
     default:
       return "●";
   }
@@ -64,11 +68,7 @@ export function EventSidebar({
 
   const filteredEvents = useMemo(() => {
     const yearEvents = events.filter((e) => e.year === selectedYear);
-
-    if (showAllEvents) {
-      return yearEvents;
-    }
-    return yearEvents.slice(0, 4);
+    return showAllEvents ? yearEvents : yearEvents.slice(0, 4);
   }, [events, showAllEvents, selectedYear]);
 
   return (
@@ -77,24 +77,33 @@ export function EventSidebar({
         <h3 className="type-subtitle-24 font-semibold text-secondary">
           All Event
         </h3>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="type-desc text-gray-400 bg-white border border-gray-200 rounded px-2 py-1 cursor-pointer hover:border-gray-300"
+
+        <Select
+          value={String(selectedYear)}
+          onValueChange={(val) => setSelectedYear(Number(val))}
         >
-          {availableYears.map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-20 h-8 text-xs text-gray-400 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:border-gray-300 focus:ring-0 focus:ring-offset-0">
+            <SelectValue placeholder="Year" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableYears.map((year) => (
+              <SelectItem
+                key={year}
+                value={String(year)}
+                className="text-xs cursor-pointer text-primary focus:bg-blue-100 focus:text-blue-700 cursor-pointer"
+              >
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div
         className={`
-            space-y-4
-            overflow-x-hidden
-            ${showAllEvents ? "max-h-150 overflow-y-auto" : "overflow-hidden"}
+          space-y-4
+          overflow-x-hidden
+          ${showAllEvents ? "max-h-150 overflow-y-auto" : "overflow-hidden"}
         `}
         style={{
           scrollbarWidth: "none",
@@ -112,22 +121,16 @@ export function EventSidebar({
                 )
               }
               className={`
-                    border-b
-                    border-gray-200
-                    border-l-4
-                    last:border-b-0
-                    last:pb-0
-                    cursor-pointer
-                    transition-all
-                    px-3
-                    py-3
-                    ${getStatusBorderColor(event.status)}
-                    ${
-                      selectedEventId === event.id
-                        ? "scale-95 ease-in-out duration-300 rounded-lg"
-                        : "hover:bg-gray-50 rounded-lg"
-                    }
-                    `}
+                border-b border-gray-200 border-l-4
+                last:border-b-0 last:pb-0
+                cursor-pointer transition-all px-3 py-3
+                ${getStatusBorderColor(event.status)}
+                ${
+                  selectedEventId === event.id
+                    ? "scale-95 ease-in-out duration-300 rounded-lg"
+                    : "hover:bg-gray-50 rounded-lg"
+                }
+              `}
             >
               <div className="flex items-start justify-between mb-2">
                 <p className="text-xs text-gray-500">{event.date}</p>
@@ -164,7 +167,7 @@ export function EventSidebar({
 
       <Button
         onClick={() => setShowAllEvents(!showAllEvents)}
-        className="w-full mt-8 border border-primary text-primary bg-background hover:bg-blue-50 rounded-lg"
+        className="w-full mt-8 border border-primary text-primary bg-background hover:bg-blue-50 rounded-lg cursor-pointer"
       >
         {showAllEvents ? "Show Less" : "View All Event"}
       </Button>

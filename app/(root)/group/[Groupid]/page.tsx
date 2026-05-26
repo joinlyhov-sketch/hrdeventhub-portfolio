@@ -10,16 +10,20 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="min-h-screen">
-      <div className="grid grid-cols-11 gap-5">
-        <section className="col-span-8 space-y-4">
-          <FilteredFeed role={MOCK_USER_ROLE} />
-        </section>
+    <main className="min-h-screen w-full">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col gap-6 2xl:flex-row">
+          <section className="w-full 2xl:max-w-4xl flex-1">
+            <FilteredFeed role={MOCK_USER_ROLE} />
+          </section>
 
-        <aside className="col-span-3 space-y-2">
-          <UpComingEventCard />
-          <GroupMemberCard />
-        </aside>
+          <aside className="hidden 2xl:block">
+            <div className="fixed right-6 top-24 w-80 space-y-4">
+              <UpComingEventCard />
+              <GroupMemberCard />
+            </div>
+          </aside>
+        </div>
       </div>
     </main>
   );

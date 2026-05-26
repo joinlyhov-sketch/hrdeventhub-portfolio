@@ -35,13 +35,7 @@ const initialActivities: ActivityItem[] = [
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect
-          width="44"
-          height="44"
-          rx="22"
-          fill="#1C4D8D"
-          fillOpacity="0.2"
-        />
+        <rect width="44" height="44" rx="22" fill="#1C4D8D" fillOpacity="0.2" />
         <rect x="10" y="10" width="24" height="24" />
         <path
           d="M28 26L32 22L28 18M16 18L12 22L16 26M24.5 14L19.5 30"
@@ -67,13 +61,7 @@ const initialActivities: ActivityItem[] = [
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect
-          width="44"
-          height="44"
-          rx="22"
-          fill="#FF9F2E"
-          fillOpacity="0.2"
-        />
+        <rect width="44" height="44" rx="22" fill="#FF9F2E" fillOpacity="0.2" />
         <path
           d="M17 21V17C17 15.6739 17.5268 14.4021 18.4645 13.4645C19.4021 12.5268 20.6739 12 22 12C23.3261 12 24.5979 12.5268 25.5355 13.4645C26.4732 14.4021 27 15.6739 27 17V21M15 21H29C30.1046 21 31 21.8954 31 23V30C31 31.1046 30.1046 32 29 32H15C13.8954 32 13 31.1046 13 30V23C13 21.8954 13.8954 21 15 21Z"
           stroke="#FF9F2E"
@@ -98,13 +86,7 @@ const initialActivities: ActivityItem[] = [
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect
-          width="44"
-          height="44"
-          rx="22"
-          fill="#3BC1A8"
-          fillOpacity="0.2"
-        />
+        <rect width="44" height="44" rx="22" fill="#3BC1A8" fillOpacity="0.2" />
         <rect x="10" y="10" width="24" height="24" />
         <path
           d="M23.0598 20.9375C25.3098 23.1875 25.3098 26.8275 23.0598 29.0675C20.8098 31.3075 17.1698 31.3175 14.9298 29.0675C12.6898 26.8175 12.6798 23.1775 14.9298 20.9375"
@@ -137,13 +119,7 @@ const initialActivities: ActivityItem[] = [
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect
-          width="44"
-          height="44"
-          rx="22"
-          fill="#D1D1D1"
-          fillOpacity="0.7"
-        />
+        <rect width="44" height="44" rx="22" fill="#D1D1D1" fillOpacity="0.7" />
         <path
           d="M22 22C24.7614 22 27 19.7614 27 17C27 14.2386 24.7614 12 22 12C19.2386 12 17 14.2386 17 17C17 19.7614 19.2386 22 22 22Z"
           stroke="#9B9B9B"
@@ -175,13 +151,7 @@ const initialActivities: ActivityItem[] = [
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect
-          width="44"
-          height="44"
-          rx="22"
-          fill="#1C4D8D"
-          fillOpacity="0.2"
-        />
+        <rect width="44" height="44" rx="22" fill="#1C4D8D" fillOpacity="0.2" />
         <path
           d="M22.0186 12.9062C18.7086 12.9062 16.0186 15.5963 16.0186 18.9062V21.7963C16.0186 22.4063 15.7586 23.3362 15.4486 23.8562L14.2986 25.7663C13.5886 26.9463 14.0786 28.2563 15.3786 28.6963C19.6886 30.1363 24.3386 30.1363 28.6486 28.6963C29.8586 28.2963 30.3886 26.8663 29.7286 25.7663L28.5786 23.8562C28.2786 23.3362 28.0186 22.4063 28.0186 21.7963V18.9062C28.0186 15.6063 25.3186 12.9062 22.0186 12.9062Z"
           stroke="#1C4D8D"
@@ -229,11 +199,11 @@ export default function Page() {
   return (
     <main className="flex-1 w-full overflow-x-hidden text-slate-800">
       <HeaderNoProfile
-      titlePrimary="Privacy"
-      titleSecondary="Settings"
-      description="Manage your profile visibility and control who can see your information and activities."
+        titlePrimary="Privacy"
+        titleSecondary="Settings"
+        description="Manage your profile visibility and control who can see your information and activities."
       />
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12">
+      <div className="max-w-7xl m-auto grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12">
         <div className="xl:col-span-4">
           <ProfilePrivacy
             viewMode="STUDENT_SELF"

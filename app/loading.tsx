@@ -57,7 +57,7 @@ export default function Loading() {
           </p>
         </div>
 
-        <div className="w-full space-y-3 mt-2">
+        {/* <div className="w-full space-y-3 mt-2">
           {[80, 60, 72].map((w: number, i: number) => (
             <div
               key={i}
@@ -77,7 +77,7 @@ export default function Loading() {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
 
       </div>
     </main>

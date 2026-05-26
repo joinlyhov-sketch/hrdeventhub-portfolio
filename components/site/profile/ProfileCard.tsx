@@ -218,7 +218,7 @@ export default function ProfileCard({ viewMode }: ProfileCardProps) {
               platforms"
             </p>
           </div>
-          
+
           <div className="w-full space-y-3 pt-6 border-t border-border text-left">
             <h3 className="type-subtitle text-secondary font-semibold mb-2">
               Personal Information
@@ -241,13 +241,13 @@ export default function ProfileCard({ viewMode }: ProfileCardProps) {
               <button
                 key={i}
                 aria-label={social.name}
-                className=" text-primary-foreground rounded-full transition-colors duration-150 "
+                className=" text-primary-foreground rounded-full transition-colors duration-150 cursor-pointer"
               >
                 {social.svg}
               </button>
             ))}
           </div>
-          <button className="w-full mt-6 bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium">
+          <button className="w-full mt-6 bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer">
             {viewMode === "ALUMNI_VIEWING_STUDENT" ? "Endorse" : "Edit Profile"}
           </button>
         </div>
