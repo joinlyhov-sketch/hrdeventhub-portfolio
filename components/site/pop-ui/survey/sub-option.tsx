@@ -2,12 +2,12 @@
 
 import { CheckCircle2, Plus, Search, ChartColumnBig, X } from "lucide-react";
 
-import { Button } from "../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "../../../components/ui/popover/popover";
+} from "@/components/ui/popover/popover";
 
 export default function ActionButtons() {
   return (
@@ -16,8 +16,8 @@ export default function ActionButtons() {
         <PopoverTrigger asChild>
           <Button
             className="
-              h-[44px]
-              w-[72px]
+              h-11
+              w-18
               rounded-full
               bg-primary
               text-primary-foreground
@@ -32,7 +32,7 @@ export default function ActionButtons() {
           align="end"
           sideOffset={14}
           className="
-            w-[200px]
+            w-50
             rounded-[18px]
             border
             border-border

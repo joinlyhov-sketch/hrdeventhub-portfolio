@@ -11,7 +11,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 10);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -19,31 +19,32 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-2 left-6 right-6 z-50 flex justify-center pt-4 pointer-events-none">
+      <header className={`fixed top-0 left-2 right-0 z-50 flex justify-center transition-all duration-500 ease-out pointer-events-none ${scrolled ? "pt-4" : "pt-5"}`}>
         <nav
-          className={`pointer-events-auto p-9 transform-gpu transition-all duration-400 shadow-sm border border-slate-300/50 flex items-center justify-between px-6
+          className={`pointer-events-auto transform-gpu transition-all duration-500 ease-out flex items-center justify-between px-8
           ${
             scrolled
-              ? "w-full max-w-none rounded-full bg-white/90 backdrop-blur-xl shadow-sm border-slate-200/50 h-16" 
-              : "w-[90%] max-w-5xl rounded-full bg-white/80 backdrop-blur-md border border-slate-300/50 shadow-lg h-14 mt-0"
+              ? "w-[92%] max-w-5xl rounded-full bg-white/80 backdrop-blur-md border border-slate-300/40 shadow-lg h-16" 
+              : "w-full max-w-none rounded-none bg-white border-b border-transparent shadow-none h-20" 
           }`}
         >
-          <Link href="/" className="flex items-center gap-1.5 no-underline shrink-0 transition-transform duration-300 active:scale-95">
+          <Link href="/" className="flex items-center no-underline shrink-0 transition-transform duration-300 active:scale-95">
             <Image
               src="/images/Logo.webp"
               alt="HRD Event Hub Logo"
-              width={160}
-              height={40}
-              className="w-auto h-8 md:h-10 transition-all duration-500"
+              width={220}
+              height={55}
+              className={`w-auto transition-all duration-500 ease-out ${scrolled ? "h-9 md:h-11" : "h-12 md:h-15"}`}
+              priority
             />
           </Link>
 
           <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden sm:block type-desc border border-grey-400 rimary px-5 py-2 rounded-full text-primary hover:bg-primary hover:text-white transition-all active:scale-95">
+            <Link href="/login" className="hidden sm:block border border-slate-300 px-5 py-2 rounded-full text-primary hover:bg-primary hover:text-white transition-all duration-300 active:scale-95">
               Log in
             </Link>
             <Link href="/sign-up">
-              <button className="bg-primary text-white px-5 py-2 rounded-full type-desc shadow-md hover:bg-primary transition-all active:scale-95 cursor-pointer">
+              <button className="bg-primary text-white px-5 py-2 rounded-full shadow-md hover:bg-primary transition-all duration-300 active:scale-95 cursor-pointer">
                 Register
               </button>
             </Link>
@@ -58,7 +59,7 @@ export default function Navbar() {
       </header>
 
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-white flex flex-col p-8 space-y-6 md:hidden animate-in fade-in slide-in-from-top-5 duration-300">
+        <div className="fixed inset-0 bg-white flex flex-col p-8 space-y-6 md:hidden animate-in fade-in slide-in-from-top-5 duration-300 z-50">
           <div className="flex justify-end">
             <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-primary"><X size={32} /></button>
           </div>
@@ -67,9 +68,8 @@ export default function Navbar() {
               <button className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform">Sign Up</button>
             </Link>
             <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-              <button className="w-full border-primary my-3 py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform hover:cursor-pointer">login</button>
+              <button className="w-full border border-primary my-3 py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform hover:cursor-pointer">Log In</button>
             </Link>
-            
           </div>
         </div>
       )}
