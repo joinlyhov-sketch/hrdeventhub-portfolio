@@ -87,11 +87,6 @@ export default function Footer() {
       </div>
       <div className="container mx-auto pt-10 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4 type-detail text-slate-400 tracking-widest">
         <p>© 2026 HRD EventHub. Orchestrating professional excellence.</p>
-        <div className="flex gap-8">
-          <a href="#">LinkedIn</a>
-          <a href="#">Twitter</a>
-          <a href="#">Instagram</a>
-        </div>
       </div>
     </footer>
   );
