@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Lock, Globe, MoreHorizontal, Link2 } from "lucide-react";
+import { Lock, Globe, Link2 } from "lucide-react";
 import { Group } from "../../../data/groups";
+import GroupDropDown from "../pop-up/action-button/action-button-group";
 
 interface GroupCardProps {
   group: Group;
@@ -16,7 +17,7 @@ export default function GroupCard({ group, role }: GroupCardProps) {
         className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
           isInternal 
             ? "bg-[linear-gradient(225deg,#F6F0EC_17%,#FDFDFD_42%)]" 
-            : "bg-[linear-gradient(225deg,#ECF0F6_17%,#FDFDFD_42%)]"
+            : "bg-[linear-gradient(225deg,#FDFDFD_42%)]"
         } opacity-90`} 
       />
       <div className="relative z-10 flex flex-col h-full">
@@ -27,9 +28,7 @@ export default function GroupCard({ group, role }: GroupCardProps) {
           </span>
 
           {role === "admin" ? (
-            <button className="text-gray-400 hover:text-primary cursor-pointer">
-              <MoreHorizontal size={24} />
-            </button>
+            <GroupDropDown group={group} />
           ) : (
             <div className="p-2 rounded-full border border-[#FFD7A1] text-[#EFCF8B] hover:scale-110 transition-transform cursor-pointer">
               <Link2 size={20} />

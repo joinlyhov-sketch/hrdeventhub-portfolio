@@ -102,7 +102,7 @@ const cards = [
 
 export default function PlatformEssentials() {
   return (
-    <section className="min-h-screen overflow-hidden bg-[#F8F8F8] py-14">
+    <section className="min-h-screen overflow-hidden py-14 mb-32 mt-12">
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="type-h1 font-black leading-none tracking-[-2px]">
           <span className="text-primary">Platform </span>

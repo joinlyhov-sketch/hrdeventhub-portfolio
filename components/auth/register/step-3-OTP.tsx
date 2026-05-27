@@ -14,32 +14,29 @@ function secondsFromExpiry(expiresAt: number | null): number {
 export default function Step3OTP() {
   const [hydrated, setHydrated] = useState(false);
 
-  const otpEmail     = useRegisterStore((s) => s.otpEmail);
+  const otpEmail = useRegisterStore((s) => s.otpEmail);
   const otpExpiresAt = useRegisterStore((s) => s.otpExpiresAt);
-  const goToOTP      = useRegisterStore((s) => s.goToOTP);
-  const reset        = useRegisterStore((s) => s.reset);
+  const goToOTP = useRegisterStore((s) => s.goToOTP);
+  const reset = useRegisterStore((s) => s.reset);
 
-  const [otp, setOtp]                             = useState(["", "", "", "", "", ""]);
-  const [error, setError]                         = useState<string | null>(null);
-  const [success, setSuccess]                     = useState<string | null>(null);
-  const [resendMessage, setResendMessage]         = useState<string | null>(null);
-  const [isPending, startTransition]              = useTransition();
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
-  const [secondsLeft, setSecondsLeft]             = useState(300);
+  const [secondsLeft, setSecondsLeft] = useState(300);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const router    = useRouter();
-
+  const router = useRouter();
 
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-
   useEffect(() => {
     if (!hydrated) return;
 
-    // Sync immediately with the real persisted value
     const initial = secondsFromExpiry(otpExpiresAt);
     setSecondsLeft(initial);
     if (initial <= 0) return;
@@ -53,7 +50,6 @@ export default function Step3OTP() {
     return () => window.clearInterval(timer);
   }, [hydrated, otpExpiresAt]);
 
-
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
     const handlePopState = () => {
@@ -63,7 +59,6 @@ export default function Step3OTP() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-
   useEffect(() => {
     if (!hydrated) return;
     const isFilled = otp.every((d) => d !== "");
@@ -71,7 +66,6 @@ export default function Step3OTP() {
       submitOtp(otp.join(""));
     }
   }, [otp, hydrated]);
-
 
   const submitOtp = (code: string) => {
     setError(null);
@@ -96,7 +90,7 @@ export default function Step3OTP() {
       }
       if (result?.ok) {
         setSuccess(result.message ?? "Verification successful.");
-        reset(); 
+        reset();
         setTimeout(() => router.push("/login"), 300);
       }
     });
@@ -118,7 +112,6 @@ export default function Step3OTP() {
     }
   };
 
-
   const handleResend = () => {
     if (secondsLeft > 0) return;
     if (!otpEmail) {
@@ -134,8 +127,10 @@ export default function Step3OTP() {
         setError(result.error);
         return;
       }
-      setResendMessage(result.message ?? "Verification OTP successfully resent.");
-      goToOTP(otpEmail); 
+      setResendMessage(
+        result.message ?? "Verification OTP successfully resent.",
+      );
+      goToOTP(otpEmail);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
       inputRefs.current[0]?.focus();
@@ -144,7 +139,6 @@ export default function Step3OTP() {
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
-
 
   return (
     <motion.div
@@ -156,14 +150,18 @@ export default function Step3OTP() {
         <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
           Enter Verification Code
         </h2>
-        <p className="mt-2 text-[#6e7580] text-[14px]">We sent a code to your email</p>
+        <p className="mt-2 text-[#6e7580] text-[14px]">
+          We sent a code to your email
+        </p>
       </div>
 
       <div className="flex justify-between gap-3 my-2">
         {otp.map((digit, index) => (
           <input
             key={index}
-            ref={(el) => { inputRefs.current[index] = el; }}
+            ref={(el) => {
+              inputRefs.current[index] = el;
+            }}
             type="text"
             inputMode="numeric"
             maxLength={1}

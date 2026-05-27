@@ -2,8 +2,8 @@ import CreateAnnounmentForm from "../../../../../components/dashboard/creation/C
 
 export default function AnnounmentCreationPage() {
   return (
-    <main className="grow flex flex-col">
-          <CreateAnnounmentForm />
-        </main>
+    <main className="grow flex flex-col w-full max-w-420 mx-auto">
+      <CreateAnnounmentForm />
+    </main>
   );
 }

@@ -28,8 +28,8 @@ export default function ContentTypePopover() {
         <Button
           size="icon"
           className="
-          h-[44px]
-              w-[72px]
+          h-11
+              w-18
               rounded-full
               bg-primary
               text-primary-foreground
@@ -44,7 +44,7 @@ export default function ContentTypePopover() {
         align="end"
         sideOffset={14}
         className="
-            w-[200px]
+            w-50
             rounded-[18px]
             border
             border-border

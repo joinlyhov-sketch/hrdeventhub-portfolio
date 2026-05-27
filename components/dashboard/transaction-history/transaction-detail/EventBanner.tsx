@@ -3,6 +3,7 @@
 import { Clock } from "lucide-react";
 import { EventDetail } from "../../../../types/transaction-detail";
 import { Button } from "../../../ui/button";
+import Link from "next/link";
 
 interface EventBannerProps {
   event: EventDetail;
@@ -30,9 +31,13 @@ export function EventBanner({ event }: EventBannerProps) {
               {event.date}, {event.time} - {event.location}
             </p>
           </div>
-          <Button className="bg-white text-secondary hover:bg-gray-100 type-desc-semibold w-[140px] h-[44px] rounded-lg">
+
+          <Link
+            href={"/group/1/event/1%7D"}
+            className="flex items-center justify-center bg-white text-secondary hover:bg-gray-100 type-desc-semibold w-[140px] h-[44px] rounded-lg"
+          >
             View Detail
-          </Button>
+          </Link>
         </div>
       </div>
     </div>

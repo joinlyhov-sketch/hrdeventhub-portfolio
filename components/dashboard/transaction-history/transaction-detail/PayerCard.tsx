@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Payer } from "../../../../types/transaction-detail";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../ui/avatar";
+import Link from "next/link";
 
 interface PayerCardProps {
   payer: Payer;
@@ -25,15 +26,15 @@ export function PayerCard({ payer }: PayerCardProps) {
             Payer Information
           </h3>
         </div>
-        <a
-          href="#"
+        <Link
+          href={"/profile"}
           target="_blank"
           rel="noopener noreferrer"
           className="flex text-primary items-center gap-1.5 text-sm font-semibold type-desc hover:underline"
         >
           <span>View Profile</span>
           <ExternalLink className="w-4 h-4" strokeWidth={2.5} />
-        </a>
+        </Link>
       </div>
 
       <div className="flex items-center gap-4 mb-6">
@@ -89,7 +90,6 @@ export function PayerCard({ payer }: PayerCardProps) {
       </div>
 
       <div className="space-y-3">
-        {/* Email Field */}
         <div className="flex items-center gap-4 bg-[#F5F8FF] rounded-xl p-4 transition-colors hover:bg-[#EEF3FF]">
           <Mail className="w-5 h-5 text-[#0F2854]" strokeWidth={2} />
           <div>
