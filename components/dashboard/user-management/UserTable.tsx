@@ -4,7 +4,6 @@ import React, { useState, useMemo } from "react";
 import { UserX, ListFilter, ArrowUp } from "lucide-react";
 import Search from "../../site/search/Search";
 import UserRow from "./UserRow";
-import Pagination from "./Pagination";
 import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
 import SuspendModal from "../pop-up/user-management-pop-up/SuspendModal";
 import ReactivateModal from "../pop-up/user-management-pop-up/ReactivateModal";
@@ -24,6 +23,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "../../ui/drop-down/dropdown-menu";
+import { PaginationDemo } from "@/components/feedback/Pagination";
 
 interface UserTableClientProps {
   initialUsers: UserData[];
@@ -36,6 +36,8 @@ export default function UserTableClient({
   const [search, setSearch] = useState("");
   const [selectedGen, setSelectedGen] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [selectedUserForRole, setSelectedUserForRole] =
     useState<UserData | null>(null);
@@ -64,6 +66,28 @@ export default function UserTableClient({
     return matchesSearch && matchesGen && matchesStatus;
   });
 
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredUsers, currentPage]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleGenChange = (value: string) => {
+    setSelectedGen(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
+    setCurrentPage(1);
+  };
+
   const handleActionClick = (user: UserData) => {
     if (user.status === "Active") {
       setSelectedUserForSuspend(user);
@@ -91,7 +115,7 @@ export default function UserTableClient({
       <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
         <Search
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearchChange}
           placeholder="Search for users..."
         />
       </div>
@@ -127,10 +151,10 @@ export default function UserTableClient({
                       <ListFilter size={16} className="shrink-0" />
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-0 min-w-[135px]">
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-0 min-w-[1px]">
                     <DropdownMenuRadioGroup
                       value={selectedGen}
-                      onValueChange={setSelectedGen}
+                      onValueChange={handleGenChange}
                     >
                       <DropdownMenuRadioItem
                         value="all"
@@ -166,7 +190,7 @@ export default function UserTableClient({
                   <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[125px]">
                     <DropdownMenuRadioGroup
                       value={selectedStatus}
-                      onValueChange={setSelectedStatus}
+                      onValueChange={handleStatusChange}
                     >
                       <DropdownMenuRadioItem
                         value="all"
@@ -197,8 +221,8 @@ export default function UserTableClient({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            {paginatedUsers.length > 0 ? (
+              paginatedUsers.map((user) => (
                 <UserRow
                   key={user.no}
                   user={user}
@@ -229,7 +253,13 @@ export default function UserTableClient({
         </Table>
       </div>
 
-      {filteredUsers.length > 0 && <Pagination />}
+      {filteredUsers.length > 0 && (
+        <PaginationDemo
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       {selectedUserForRole && (
         <EditRoleModal

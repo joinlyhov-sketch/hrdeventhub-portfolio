@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   CheckCircle2,
-  
   ArrowRight,
   BarChart3,
   Circle,
@@ -12,7 +11,6 @@ import {
 } from "lucide-react";
 import Search from "../site/search/Search";
 import { PopoverItem } from "../site/pop-up/contents/pop-over-content";
-
 import { surveyFeedbacks } from "../../data/surveyFeedback";
 import Link from "next/link";
 import { PaginationDemo } from "./Pagination";
@@ -20,9 +18,14 @@ import ContentTypePopover from "../site/pop-up/contents/pop-over-content";
 
 export default function SurveyFeedbackFeature() {
   const [search, setSearch] = useState("");
-const contentMenuOptions: PopoverItem[] = [
-  { label: "Survey", icon: CheckCircle2, href: "/event-management/creation/survey" },
-  { label: "Poll", icon: BarChart3, href: "/event-management/creation/poll" },];
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const contentMenuOptions: PopoverItem[] = [
+    { label: "Survey", icon: CheckCircle2, href: "/event-management/creation/survey" },
+    { label: "Poll", icon: BarChart3, href: "/event-management/creation/poll" },
+  ];
+
   const filteredFeedbacks = surveyFeedbacks.filter((item) => {
     const searchLower = (search || "").toLowerCase().trim();
 
@@ -39,6 +42,18 @@ const contentMenuOptions: PopoverItem[] = [
     return titleMatch || statusMatch || dateMatch;
   });
 
+  const totalPages = Math.ceil(filteredFeedbacks.length / itemsPerPage);
+
+  const paginatedFeedbacks = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredFeedbacks.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredFeedbacks, currentPage]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
   const hasResults = filteredFeedbacks.length > 0;
 
   return (
@@ -49,11 +64,10 @@ const contentMenuOptions: PopoverItem[] = [
         <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
           <Search
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             placeholder="Search for feedback..."
           />
-          <ContentTypePopover items={contentMenuOptions}/>
-          
+          <ContentTypePopover items={contentMenuOptions} />
         </div>
 
         <div className="relative w-full block box-border min-h-110">
@@ -62,7 +76,7 @@ const contentMenuOptions: PopoverItem[] = [
               hasResults ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           >
-            {(hasResults ? filteredFeedbacks : surveyFeedbacks).map((item) => (
+            {paginatedFeedbacks.map((item) => (
               <div key={item.id} className="w-full block box-border min-w-0">
                 <FeedbackCard item={item} />
               </div>
@@ -88,7 +102,11 @@ const contentMenuOptions: PopoverItem[] = [
 
         {hasResults && (
           <div className="mt-6 w-full block box-border clear-both">
-            <PaginationDemo />
+            <PaginationDemo
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </section>

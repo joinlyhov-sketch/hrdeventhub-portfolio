@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ListFilter, Pencil, Trash2, XCircle } from "lucide-react";
-
+import { ListFilter, Pencil, Trash2, XCircle, UserX } from "lucide-react";
 import { EventManagement } from "../../../types/event-management";
-
 import {
   Table,
   TableBody,
@@ -53,7 +51,7 @@ export function EventManagementTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
-  const itemsPerPage = 12;
+  const itemsPerPage = 10;
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -107,18 +105,19 @@ export function EventManagementTable({
     });
   }, [events, searchTerm, selectedStatus, selectedDateRange]);
 
-  // const totalPages = Math.ceil(filteredEvents.length / itemsPerPage) || 1;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedEvents = filteredEvents.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  );
+  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
+
+  const paginatedEvents = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredEvents.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredEvents, currentPage]);
 
   const handleDeleteRequest = (id: string) => {
     if (confirm("Are you sure you want to delete this event?")) {
       console.log(`Deleting event with ID: ${id}`);
     }
   };
+
   const handleCancelRequest = (id: string) => {
     if (confirm("Are you sure you want to cancel this event?")) {
       console.log(`Canceling event with ID: ${id}`);
@@ -136,29 +135,29 @@ export function EventManagementTable({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-white">
-        <Table className="w-full minimal-scrollbar">
+    <div className="space-y-6">
+      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-[580px] bg-white">
+        <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <TableHeader>
-            <TableRow className="bg-secondary border-none">
-              <TableHead className="text-white type-desc-semibold text-center w-[6%] h-12">
+            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
+              <TableHead className="px-5 py-3 text-center text-white type-desc-semibold w-[6%]">
                 No.
               </TableHead>
 
-              <TableHead className="text-white type-desc-semibold w-[24%] text-left">
+              <TableHead className="px-5 py-3 text-left text-white type-desc-semibold w-[24%]">
                 Event Name
               </TableHead>
 
-              <TableHead className="text-white type-desc-semibold w-[18%] text-left">
+              <TableHead className="px-5 py-3 text-left text-white type-desc-semibold w-[18%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer select-none group transition-colors duration-150 hover:text-blue-200">
+                    <div className="flex items-center gap-2 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
                       <span className="truncate">
                         {selectedDateRange === "all"
                           ? "Date"
                           : dateLabels[selectedDateRange]}
                       </span>
-                      <ListFilter size={17} className="shrink-0" />
+                      <ListFilter size={16} className="shrink-0" />
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[150px]">
@@ -216,19 +215,19 @@ export function EventManagementTable({
                 </DropdownMenu>
               </TableHead>
 
-              <TableHead className="text-white type-desc-semibold w-[15%] text-left">
+              <TableHead className="px-5 py-3 text-left text-white type-desc-semibold w-[15%]">
                 Category
               </TableHead>
 
-              <TableHead className="text-white type-desc-semibold w-[12%] text-left">
+              <TableHead className="px-5 py-3 text-left text-white type-desc-semibold w-[15%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer select-none group transition-colors duration-150 hover:text-blue-200">
+                    <div className="flex items-center gap-2 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
                       <span className="truncate">
                         Status{" "}
                         {selectedStatus !== "all" ? `(${selectedStatus})` : ""}
                       </span>
-                      <ListFilter size={17} className="shrink-0" />
+                      <ListFilter size={16} className="shrink-0" />
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[130px]">
@@ -268,11 +267,11 @@ export function EventManagementTable({
                 </DropdownMenu>
               </TableHead>
 
-              <TableHead className="text-white type-desc-semibold text-center w-[10%]">
+              <TableHead className="px-5 py-3 text-center text-white type-desc-semibold w-[12%]">
                 Attendee
               </TableHead>
 
-              <TableHead className="text-white type-desc-semibold text-center w-[8%]">
+              <TableHead className="px-5 py-3 text-center text-white type-desc-semibold w-[10%]">
                 Action
               </TableHead>
             </TableRow>
@@ -359,12 +358,24 @@ export function EventManagementTable({
                 );
               })
             ) : (
-              <TableRow>
+              <TableRow className="hover:bg-transparent border-b-0">
                 <TableCell
                   colSpan={7}
-                  className="h-40 text-center text-gray-400 text-sm font-medium bg-slate-50/50"
+                  className="px-6 py-16 text-center h-[520px]"
                 >
-                  No matching events found.
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-slate-400 border border-slate-100">
+                      <UserX size={30} className="text-red-500" />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-secondary">
+                        Event doesn't exist
+                      </p>
+                      <p className="text-sm text-gray-400 font-medium">
+                        We couldn't find any events match for your search.
+                      </p>
+                    </div>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -372,7 +383,13 @@ export function EventManagementTable({
         </Table>
       </div>
 
-      <PaginationDemo />
+      {filteredEvents.length > 0 && (
+        <PaginationDemo
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }

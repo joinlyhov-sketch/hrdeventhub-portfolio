@@ -49,7 +49,7 @@ export default function PollForm() {
   return (
     <form
       onSubmit={handleFormSubmission}
-      className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-auto border-gray-100 w-full items-start"
+      className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start"
     >
       <div className="lg:col-span-9 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
@@ -81,7 +81,7 @@ export default function PollForm() {
         </div>
       </div>
 
-      <aside className="lg:col-span-3 order-5 w-full flex justify-center items-start lg:border-l lg:border-gray-100 lg:sticky lg:top-16 py-6 px-5">
+      <aside className="lg:col-span-3 order-2 lg:order-5 w-full lg:sticky lg:top-24 p-4 flex justify-end">
         <PollSidebar />
       </aside>
     </form>
