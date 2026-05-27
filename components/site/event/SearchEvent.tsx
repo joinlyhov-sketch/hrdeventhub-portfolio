@@ -83,7 +83,7 @@ export default function SearchEvent({
             }
           />
 
-          <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-10 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
             {activeFilter && (
               <button
                 onClick={(e) => {
@@ -144,14 +144,14 @@ export default function SearchEvent({
                   onClick={() => setIsCreateOpen(false)}
                 />
 
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-10 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-40 animate-in fade-in slide-in-from-top-2 duration-200">
                   {categories.map((option) => {
                     const Icon = option.icon;
                     return (
                       <button
                         key={option.value}
                         onClick={() => handleCreateNavigation(option.value)}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-blue-50/50 hover:text-blue-900 rounded-xl transition-all duration-150 relative z-50 cursor-pointer"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-blue-50/50 hover:text-blue-900 rounded-xl transition-all duration-150 relative z-20 cursor-pointer"
                       >
                         <Icon
                           size={18}
