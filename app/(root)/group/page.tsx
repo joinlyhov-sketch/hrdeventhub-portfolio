@@ -36,10 +36,19 @@ export default async function GroupPage({ searchParams }: PageProps) {
 
       <div className="max-w-420 mx-auto w-full">
         <GroupSearch role={userRole} initialSearchValue={searchQuery} />
-
-        <div className="relative w-full flex box-border min-h-110 mt-6">
+        <div className="relative w-full flex box-border min-h-110">
+          <div className="invisible grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 w-full auto-rows-fr box-border pointer-events-none">
+            {mockGroups.map((group) => (
+              <div
+                key={`spacer-${group.id}`}
+                className="w-full block box-border min-w-0"
+              >
+                <GroupCard group={group} role={userRole} />
+              </div>
+            ))}
+          </div>
           {hasResults ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 w-full auto-rows-fr box-border">
+            <div className="absolute inset-0 w-full h-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 auto-rows-fr box-border left-0 top-0">
               {filteredGroups.map((group) => (
                 <div key={group.id} className="w-full block box-border min-w-0">
                   <GroupCard group={group} role={userRole} />
@@ -47,16 +56,16 @@ export default async function GroupPage({ searchParams }: PageProps) {
               ))}
             </div>
           ) : (
-            <div className="w-full min-h-[300px] flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-2xl border border-gray-100 box-border p-6">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-slate-400 border border-slate-100">
-                <BadgeInfo size={30} className="text-red-500" />
+            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-2xl border border-gray-100 box-border p-6 left-0 top-0">
+              <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                <UserX size={22} />
               </div>
               <div>
-                <p className="text-base font-bold text-secondary">
-                  Group doesn't exist
+                <p className="text-base font-bold text-slate-700">
+                  Data doesn't exist
                 </p>
-                <p className="text-sm text-gray-400 font-medium">
-                  We couldn't find any group match for your search.
+                <p className="text-sm text-slate-400 font-medium">
+                  We couldn't find any match for your current query.
                 </p>
               </div>
             </div>

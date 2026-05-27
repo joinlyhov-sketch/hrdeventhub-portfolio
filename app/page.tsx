@@ -1,7 +1,7 @@
 import Navbar from "../components/landing/Navbar";
 import Footer from "../components/landing/Footer";
 import HeroSession from "../components/landing-page/HeroSession";
-import { ListCard } from "../components/landing/ListCard";
+import MediaListSection, { ListCard } from "../components/landing/ListCard";
 import PlatformEssentials from "../components/landing/PlatFormEssential";
 import { FeatureCard } from "../components/landing/FeatureCard";
 import { MediaItem } from "../components/landing/types";
@@ -28,29 +28,28 @@ export default function LandingPage() {
       <div className="relative min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden py-20 px-6 md:px-12 select-none">
         <HeroSession />
       </div>
-      <div className="min-h-screen bg-background pr-12 pl-12">
-      <div className="mb-6">
-            <h1 className="type-h1 text-secondary`">
-             Community <span className="text-action">Updates</span>
-            </h1>
-            <p className="type-desc text-secondary mt-2 ">
-              Stay connected with the latest events, success story, and learning resources from the KSHRD family.
-            </p>
-          </div>
-      <div className=" mx-auto">
-        <div className="grid grid-cols-12 gap-8 items-stretch">
-          <div className="col-span-7">
-            <FeatureCard item={featuredData} />
-          </div>
-          <div className="col-span-5 flex flex-col justify-between gap-4">
-            {listData.map((mediaItem, index) => (
-              <ListCard key={`${mediaItem.id}-${index}`} item={mediaItem} />
-            ))}
+      <div className="min-h-screen bg-background pr-32 pl-32">
+        <div className="mb-6 ml-18">
+          <h1 className="type-h1 text-secondary">
+            Community <span className="text-action">Updates</span>
+          </h1>
+          <p className="type-desc text-secondary mt-2 ">
+            Stay connected with the latest events, success story, and learning
+            resources from the KSHRD family.
+          </p>
+        </div>
+        <div className="mx-auto ">
+          <div className="flex gap-6 justify-center  w-full">
+            <div className="w-[50%] shrink-0">
+              <FeatureCard item={featuredData} />
+            </div>
+            <div className="w-[40%] shrink-0">
+              <MediaListSection />
+            </div>
           </div>
         </div>
+        <PlatformEssentials />
       </div>
-      <PlatformEssentials/>
-    </div>
 
       <Footer />
     </>
