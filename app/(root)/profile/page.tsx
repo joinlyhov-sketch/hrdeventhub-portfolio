@@ -1,5 +1,4 @@
 "use client";
-import ProfileHeader from "../../../components/site/profile/ProfileHeader";
 import BackgroundTab from "../../../components/site/profile/BackgroundTab";
 import EventTab from "../../../components/site/profile/EventTab";
 import { useState } from "react";
