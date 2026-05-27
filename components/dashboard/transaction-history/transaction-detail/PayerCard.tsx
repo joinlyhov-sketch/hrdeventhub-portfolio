@@ -90,7 +90,6 @@ export function PayerCard({ payer }: PayerCardProps) {
       </div>
 
       <div className="space-y-3">
-        {/* Email Field */}
         <div className="flex items-center gap-4 bg-[#F5F8FF] rounded-xl p-4 transition-colors hover:bg-[#EEF3FF]">
           <Mail className="w-5 h-5 text-[#0F2854]" strokeWidth={2} />
           <div>

@@ -3,7 +3,7 @@ import GroupCard from "../../../components/site/group/group-card";
 import GroupSearch from "../../../components/site/group/group-search";
 import { mockGroups } from "../../../data/groups";
 import { Metadata } from "next";
-import { BadgeInfo } from "lucide-react";
+import { BadgeInfo, UserX } from "lucide-react";
 import { MOCK_CURRENT_USER } from "../../../data/mock-user";
 
 export const metadata: Metadata = {
@@ -11,21 +11,28 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ search?: string }> | { search?: string };
+  searchParams:
+    | Promise<{ search?: string; type?: string }>
+    | { search?: string; type?: string };
 }
 
 export default async function GroupPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
   const searchQuery = resolvedParams?.search || "";
+  const typeFilter = resolvedParams?.type || "All";
   const userRole = MOCK_CURRENT_USER.role;
-
   const filteredGroups = mockGroups.filter((group) => {
     const searchLower = searchQuery.toLowerCase().trim();
-    return (
+
+    const matchesSearch =
       (group.title || "").toLowerCase().includes(searchLower) ||
-      (group.description || "").toLowerCase().includes(searchLower) ||
-      (group.type || "").toLowerCase().includes(searchLower)
-    );
+      (group.description || "").toLowerCase().includes(searchLower);
+
+    const matchesType =
+      typeFilter === "All" ||
+      (group.type || "").toLowerCase() === typeFilter.toLowerCase();
+
+    return matchesSearch && matchesType;
   });
 
   const hasResults = filteredGroups.length > 0;
@@ -36,6 +43,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
 
       <div className="max-w-420 mx-auto w-full">
         <GroupSearch role={userRole} initialSearchValue={searchQuery} />
+
         <div className="relative w-full flex box-border min-h-110">
           <div className="invisible grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 w-full auto-rows-fr box-border pointer-events-none">
             {mockGroups.map((group) => (

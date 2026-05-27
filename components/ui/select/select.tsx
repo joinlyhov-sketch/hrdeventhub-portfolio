@@ -50,11 +50,6 @@ function SelectTrigger({
       {...props}
     >
       {children}
-      {/* <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon
-          className={`pointer-events-none size-4 text-muted-foreground transition-transform ${open ? "rotate-0" : "rotate-180"}`}
-        />
-      </SelectPrimitive.Icon> */}
     </SelectPrimitive.Trigger>
   );
 }

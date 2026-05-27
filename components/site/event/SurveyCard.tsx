@@ -11,13 +11,15 @@ interface SurveyData {
   suggestions: string;
 }
 
-// Added onVisibilityChange callback required by parent container matching logic
 interface SurveyCardProps {
   searchQuery: string;
   onVisibilityChange: (hasItems: boolean) => void;
 }
 
-export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps) {
+export function SurveyCard({
+  searchQuery,
+  onVisibilityChange,
+}: SurveyCardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<SurveyData>({
     favoriteSession: "Cloud Infrastructure 2025",
@@ -28,19 +30,16 @@ export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps)
   const title = "Event Feedback: Tech Innovation Summit";
   const description = "Help us improve the summit experience";
 
-  // Checks if the typed input matches either the card title or subtitle description text
   const isMatch =
     title.toLowerCase().includes((searchQuery || "").toLowerCase().trim()) ||
     description
       .toLowerCase()
       .includes((searchQuery || "").toLowerCase().trim());
 
-  // Notify parent container of visibility state changes when search updates
   useEffect(() => {
     onVisibilityChange(isMatch);
   }, [isMatch, onVisibilityChange]);
 
-  // Hides the component entirely if it doesn't match the current search string
   if (!isMatch) {
     return null;
   }
@@ -135,7 +134,6 @@ export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps)
             </div>
           </div>
 
-          {/* Question 2: Star Ratings */}
           <div>
             <h3 className="text-sm font-medium text-grey-900 mb-4">
               How would you rate the overall keynote quality?
@@ -179,7 +177,6 @@ export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps)
           </div>
         </div>
       ) : (
-        /* Fallback View Mock Content for Step 2 through 5 */
         <div className="py-16 text-center space-y-2">
           <p className="text-sm font-semibold text-primary uppercase tracking-wide">
             Step {currentStep} of {steps}

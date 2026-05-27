@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { Settings2, Plus } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { Settings2, Plus, Check } from "lucide-react";
 import Search from "../search/Search";
-import CreateGroupModal from "@/components/site/pop-up/action-button/CreateGroupForm"; 
+import CreateGroupModal from "@/components/site/pop-up/action-button/CreateGroupForm";
+
 interface GroupSearchProps {
   role: string;
   initialSearchValue: string;
@@ -16,13 +17,31 @@ export default function GroupSearch({
 }: GroupSearchProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [search, setSearch] = useState(initialSearchValue);
-  
+  const currentType = searchParams.get("type") || "All";
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSearch(initialSearchValue);
   }, [initialSearchValue]);
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsFilterOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -37,30 +56,74 @@ export default function GroupSearch({
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  const handleFilterSelect = (typeValue: string) => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (typeValue !== "All") {
+      params.set("type", typeValue);
+    } else {
+      params.delete("type");
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
+    setIsFilterOpen(false);
+  };
+
   return (
-    <div className="flex items-center gap-2 mb-6 w-full">
+    <div className="flex items-center gap-2 mb-6 w-full relative">
       <Search
         value={search}
         onChange={(e) => handleSearchChange(e.target.value)}
         placeholder="Search for groups..."
       />
-      <button className="p-2 border border-gray-200 rounded-xl hover:bg-white hover:shadow-md transition-all shrink-0 cursor-pointer">
-        <Settings2 size={24} className="text-gray-600" />
-      </button>
+
+      <div className="relative shrink-0" ref={dropdownRef}>
+        <button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className={`p-2 border rounded-xl transition-all shrink-0 cursor-pointer h-[42px] w-[42px] flex items-center justify-center box-border ${
+            isFilterOpen || currentType !== "All"
+              ? "border-primary bg-primary/5 text-primary shadow-sm"
+              : "border-gray-200 text-gray-600 hover:bg-white hover:shadow-md"
+          }`}
+        >
+          <Settings2 size={24} />
+        </button>
+
+        {isFilterOpen && (
+          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-50 py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+            {[
+              { label: "All Types", value: "All" },
+              { label: "Internal", value: "Internal" },
+              { label: "External", value: "External" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleFilterSelect(option.value)}
+                className="w-full text-left px-4 py-2 text-sm font-medium text-gray-700 hover:bg-slate-50 flex items-center justify-between transition-colors cursor-pointer"
+              >
+                {option.label}
+                {currentType === option.value && (
+                  <Check size={16} className="text-primary" strokeWidth={3} />
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {role === "admin" && (
-        <button 
+        <button
           onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer"
+          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer h-[42px] box-border"
         >
           Create
           <Plus size={20} strokeWidth={3} />
         </button>
       )}
 
-      <CreateGroupModal 
-        isOpen={isCreateOpen} 
-        onClose={() => setIsCreateOpen(false)} 
+      <CreateGroupModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
       />
     </div>
   );
