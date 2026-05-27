@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, X, Loader2 } from "lucide-react";
-import { FeedbackBreadcrumb } from "../../../dashboard/FeedbackBreadcrumb";
+import { Loader2 } from "lucide-react";
+import { Button } from "../../../ui/button";
+import PollHeader from "../../survey/PollHeader";
+import PollOptionsList from "./PollOptionsList";
+import PollSidebar from "./PollSidebar";
 
 export default function PollForm() {
   const [title, setTitle] = useState("");
@@ -14,6 +17,16 @@ export default function PollForm() {
     const updatedOptions = [...options];
     updatedOptions[index] = text;
     setOptions(updatedOptions);
+  };
+
+  const handleAddOption = () => {
+    setOptions([...options, `Option ${options.length + 1}`]);
+  };
+
+  const handleRemoveOption = (index: number) => {
+    if (options.length > 1) {
+      setOptions(options.filter((_, i) => i !== index));
+    }
   };
 
   const handleFormSubmission = async (e: React.FormEvent) => {
@@ -34,77 +47,43 @@ export default function PollForm() {
   };
 
   return (
-    <form onSubmit={handleFormSubmission} className="space-y-2">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
-        <FeedbackBreadcrumb label="Create Poll" />
-      </div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
-        <div></div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full sm:w-auto p-2.5 px-6 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
-        >
-          {isSubmitting && <Loader2 size={14} className="animate-spin" />}
-          {isSubmitting ? "Posting..." : "Post Poll"}
-        </button>
-      </div>
-
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 border-l-[6px] border-l-blue-900">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Untitled Poll"
-          required
-          className="w-full text-3xl font-bold text-gray-800 placeholder-gray-400 outline-none mb-4 bg-transparent"
-        />
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add a description for your Poll..."
-          className="w-full text-base text-gray-600 placeholder-gray-400 outline-none pb-2 border-b border-gray-200 focus:border-gray-300 bg-transparent"
-        />
-      </div>
-
-      <div className="space-y-3">
-        {options.map((option, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between bg-white border border-slate-200 rounded-2xl px-6 py-4 shadow-sm hover:border-slate-300 transition"
-          >
-            <input
-              type="text"
-              value={option}
-              onChange={(e) => handleOptionTextChange(index, e.target.value)}
-              className="w-full bg-transparent text-[#64748B] font-medium outline-none"
-              required
-            />
-            {options.length > 1 && (
-              <button
-                type="button"
-                onClick={() =>
-                  setOptions(options.filter((_, i) => i !== index))
-                }
-                className="text-gray-400 hover:text-red-500 ml-2 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+    <form
+      onSubmit={handleFormSubmission}
+      className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-auto border-gray-100 w-full items-start"
+    >
+      <div className="lg:col-span-9 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
+            <div />
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto px-5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
+            >
+              {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+              {isSubmitting ? "Posting..." : "Post Poll"}
+            </Button>
           </div>
-        ))}
-        <button
-          type="button"
-          onClick={() =>
-            setOptions([...options, `Option ${options.length + 1}`])
-          }
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-500 font-medium py-4 rounded-2xl hover:bg-slate-50 transition bg-white/50"
-        >
-          <Plus className="w-4 h-4" />
-          Add Option
-        </button>
+
+          <PollHeader
+            title={title}
+            setTitle={setTitle}
+            description={description}
+            setDescription={setDescription}
+          />
+
+          <PollOptionsList
+            options={options}
+            onOptionChange={handleOptionTextChange}
+            onAddOption={handleAddOption}
+            onRemoveOption={handleRemoveOption}
+          />
+        </div>
       </div>
+
+      <aside className="lg:col-span-3 order-5 w-full flex justify-center items-start lg:border-l lg:border-gray-100 lg:sticky lg:top-16 py-6 px-5">
+        <PollSidebar />
+      </aside>
     </form>
   );
 }

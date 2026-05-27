@@ -24,17 +24,25 @@ import {
   type UserRole,
 } from "../../data/mock-user";
 import { usePathname } from "next/navigation";
+import { LogoutModal } from "./pop-up/commons/LogoutModal"; 
 
 const ADMIN_ROLES: UserRole[] = ["admin", "organizer"];
 
 export function AppSidebar() {
   const [currentUser] = useState<CurrentUser | null>(MOCK_CURRENT_USER);
-  const { state } = useSidebar();
+  const { state } = useSidebar(); 
   const pathname = usePathname();
   const canSeeAdministration =
     currentUser !== null && ADMIN_ROLES.includes(currentUser.role);
+  
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
+  const handleConfirmLogout = () => {
+    setIsLogoutOpen(false);
+    signOut({ callbackUrl: "/" });
+  };
   return (
+    <>
     <Sidebar collapsible="icon" className="border-r z-50">
       <SidebarHeader className="border-b py-4">
         <SidebarMenu>
@@ -368,7 +376,7 @@ export function AppSidebar() {
                 tooltip="Event Management"
                 className="h-11"
               >
-                <Link href="/profile">
+                <Link href="/profile/1">
                   <svg
                     width={18}
                     height={18}
@@ -414,12 +422,12 @@ export function AppSidebar() {
 
             <SidebarMenuItem>
               <SidebarMenuButton
-                isActive={pathname === "/profile/edit-profile"}
+                isActive={pathname === "/profile/1/edit-profile"}
                 asChild
                 tooltip="Edit-Profile"
                 className="h-11"
               >
-                <Link href={"/profile/edit-profile"}>
+                <Link href={"/profile/1/edit-profile"}>
                   <svg
                     width={18}
                     height={18}
@@ -483,12 +491,12 @@ export function AppSidebar() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
-                isActive={pathname === "/profile/setting"}
+                isActive={pathname === "/profile/1/setting"}
                 asChild
                 tooltip="Setting"
                 className="h-11"
               >
-                <Link href={"/profile/setting"}>
+                <Link href={"/profile/1/setting"}>
                   <svg
                     width={18}
                     height={18}
@@ -878,33 +886,40 @@ export function AppSidebar() {
               </SidebarMenuButton>
             )}
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Logout"
-              className="h-11 text-red-500 hover:text-red-600 hover:bg-red-50 "
-              onClick={() => signOut({ callbackUrl: "/" })}
-            >
-              <LogOut />
-              <span
-                className={`
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+         <SidebarMenuItem>
+        <SidebarMenuButton
+                tooltip="Logout"
+                className="h-11 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                onClick={() => setIsLogoutOpen(true)}
               >
-                Logout
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+                <LogOut />
+                <span
+                  className={`
+                    overflow-hidden
+                    whitespace-nowrap
+                    transition-all
+                    duration-500
+                    ease-in-out
+                    ${
+                      state === "collapsed"
+                        ? "max-w-0 opacity-0 -translate-x-2"
+                        : "max-w-50 opacity-100 translate-x-0"
+                    }
+                  `}
+                >
+                  Logout
+                </span>
+              </SidebarMenuButton>
+      </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+    <LogoutModal
+        isOpen={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        onConfirm={handleConfirmLogout}
+      />
+      </>
+    
   );
 }

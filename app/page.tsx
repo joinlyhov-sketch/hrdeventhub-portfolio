@@ -1,6 +1,6 @@
 import Navbar from "../components/landing/Navbar";
 import Footer from "../components/landing/Footer";
-import HeroSession from "../components/landing-page/HeroSession";
+import HeroSession from "../components/landing/HeroSession";
 import MediaListSection, { ListCard } from "../components/landing/ListCard";
 import PlatformEssentials from "../components/landing/PlatFormEssential";
 import { FeatureCard } from "../components/landing/FeatureCard";
@@ -48,9 +48,8 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        <PlatformEssentials />
       </div>
-
+      <PlatformEssentials/>
       <Footer />
     </>
   );

@@ -16,7 +16,6 @@ const data = {
   ],
 };
 
-// Added onVisibilityChange callback required by parent container matching logic
 interface PollCardProps {
   searchQuery: string;
   onVisibilityChange: (hasItems: boolean) => void;
@@ -26,17 +25,15 @@ export function PollCard({ searchQuery, onVisibilityChange }: PollCardProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
 
-  // Checks if the typed input matches the poll question text
   const isMatch = data.question
     .toLowerCase()
     .includes((searchQuery || "").toLowerCase().trim());
 
-  // Notify parent container of visibility state changes when search updates
+
   useEffect(() => {
     onVisibilityChange(isMatch);
   }, [isMatch, onVisibilityChange]);
 
-  // Hides the component entirely if it doesn't match the current search string
   if (!isMatch) {
     return null;
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Download } from "lucide-react";
+import { Search, Download, ListFilter } from "lucide-react";
 import { Event, Transaction } from "../../../types/transaction";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
@@ -13,6 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "../../ui/drop-down/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
 import { PaginationDemo } from "../../feedback/Pagination";
 import Link from "next/link";
@@ -40,16 +47,22 @@ export function TransactionTable({
   selectedEvent,
 }: TransactionTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 11;
 
-  const filteredData = useMemo(
-    () =>
-      data.filter((transaction) =>
-        transaction.username.toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
-    [data, searchTerm],
-  );
+  const filteredData = useMemo(() => {
+    return data.filter((transaction) => {
+      const matchesSearch = transaction.username
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      const matchesStatus =
+        selectedStatus === "all" || transaction.status === selectedStatus;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [data, searchTerm, selectedStatus]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -57,31 +70,6 @@ export function TransactionTable({
     startIndex,
     startIndex + itemsPerPage,
   );
-
-  const renderPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-      if (currentPage > 3) pages.push("...");
-      for (
-        let i = Math.max(2, currentPage - 1);
-        i <= Math.min(totalPages - 1, currentPage + 1);
-        i++
-      ) {
-        pages.push(i);
-      }
-      if (currentPage < totalPages - 2) pages.push("...");
-      pages.push(totalPages);
-    }
-
-    return pages;
-  };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -182,23 +170,55 @@ export function TransactionTable({
               <TableHead className="text-background type-detail-semibold text-center">
                 Payment
               </TableHead>
+
               <TableHead className="text-background type-detail-semibold text-center">
-                <div className="flex justify-around items-center">
-                  <span>Status</span>
-                  <svg
-                    width="16"
-                    height="11"
-                    viewBox="0 0 16 11"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5.90313 10.0639L5.89147 8.39724L9.22473 8.37393L9.23638 10.0406L5.90313 10.0639ZM2.54074 5.92061L2.52908 4.25399L12.5288 4.18405L12.5405 5.85068L2.54074 5.92061ZM0.0116565 1.77153L0 0.104908L14.9996 0L15.0113 1.66663L0.0116565 1.77153Z"
-                      fill="white"
-                    />
-                  </svg>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex justify-center items-center gap-2 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
+                      <span>
+                        Status{" "}
+                        {selectedStatus !== "all" ? `(${selectedStatus})` : ""}
+                      </span>
+                      <ListFilter size={15} className="shrink-0" />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[135px]">
+                    <DropdownMenuRadioGroup
+                      value={selectedStatus}
+                      onValueChange={(val) => {
+                        setSelectedStatus(val);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <DropdownMenuRadioItem
+                        value="all"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        All
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="Successful"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Successful
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="Failed"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Failed
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="Pending"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Pending
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableHead>
+
               <TableHead className="text-background w-[80px] type-detail-semibold text-center">
                 Timestamp
               </TableHead>
@@ -299,10 +319,13 @@ export function TransactionTable({
                       </span>
                     </span>
                   </TableCell>
+
                   <TableCell>
                     <span className="flex justify-center">
                       <span
-                        className={`type-desc-small-semibold nline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full ${getStatusColor(transaction.status)}`}
+                        className={`type-desc-small-semibold inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full ${getStatusColor(
+                          transaction.status,
+                        )}`}
                       >
                         {transaction.status}
                       </span>
