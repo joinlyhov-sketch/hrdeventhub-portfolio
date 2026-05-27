@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import ProfilePrivacy from "../../../../components/site/profile/setting/Profile-privacy";
-import SettingVisibilityModeCard from "../../../../components/site/profile/setting/SettingVisibilityModeCard";
-import HeaderNoProfile from "../../../../components/dashboard/header/HeaderNoProfile";
+import ProfilePrivacy from "@/components/site/profile/setting/Profile-privacy";
+import SettingVisibilityModeCard from "@/components/site/profile/setting/SettingVisibilityModeCard";
+import HeaderNoProfile from "@/components/dashboard/header/HeaderNoProfile";
 
 interface SelectiveVisibility {
   profile: boolean;

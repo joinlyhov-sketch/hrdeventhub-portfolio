@@ -14,8 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../ui/table"; // Adjusted according to your project path
-
+} from "../../../ui/table"; 
 interface AttendeeTableClientProps {
   initialAttendees: AttendeeData[];
 }
@@ -84,8 +83,15 @@ export default function AttendeeTableClient({
                 <AttendeeRow
                   key={attendee.no}
                   attendee={attendee}
-                  onEditRole={(a) => console.log(a)}
-                  onToggleSuspend={(a) => console.log(a)}
+                  onViewProfile={(attendee) => {
+                    console.log("View profile for:", attendee);
+                  }}
+                  onDeleteAttendee={(id) => {
+                    console.log("Delete attendee with ID:", id);
+                    setAttendees((prev) =>
+                      prev.filter((item) => item.no !== id)
+                    );
+                  }}
                 />
               ))
             ) : (

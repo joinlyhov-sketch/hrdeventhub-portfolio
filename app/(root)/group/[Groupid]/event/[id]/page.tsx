@@ -1,5 +1,5 @@
-import { MOCK_EVENTS } from "../../../../../../data/event-detail";
-import { MOCK_CURRENT_USER } from "../../../../../../data/mock-user";
+import { MOCK_EVENTS } from "@/data/event-detail";
+import { MOCK_CURRENT_USER } from "@/data/mock-user";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import EventDetailClient from "../../../../../../components/site/event-detail/event-detail-client";
