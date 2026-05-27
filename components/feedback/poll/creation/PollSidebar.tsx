@@ -79,7 +79,7 @@ export default function PollSidebar() {
         </label>
 
         <Select value={settings.showResult} onValueChange={handleSelectChange} >
-          <SelectTrigger className="w-[250px] h-12 bg-white border border-slate-200/80 rounded-2xl pl-11 py-5 font-medium text-slate-600 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 relative shadow-sm transition-all">
+          <SelectTrigger className="w-[250px] h-20 bg-white border border-slate-200/80 rounded-2xl pl-11 py-5  font-medium text-slate-600 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 relative shadow-sm transition-all">
             <Inbox className="w-5 h-5 absolute left-4  text-secondary" />
             <SelectValue placeholder="Select" />
           </SelectTrigger>
