@@ -211,7 +211,7 @@ export default function ProfileCard({ viewMode, userRole }: ProfileCardProps) {
           </div>
           <div className="text-center w-full px-2">
             <h2 className="type-title text-primary font-bold text-xl">
-              Chham Makara
+              Chham Kaknika
             </h2>
             <p className="text-[20px] text-secondary mb-4 border-b pb-2.5 border-border">
               @kaknika
