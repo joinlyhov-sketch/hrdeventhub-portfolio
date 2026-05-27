@@ -12,8 +12,8 @@ export default function EventManagementLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div>
-        <Header
+    <div className="z-10">
+      <Header
         titlePrimary="User"
         titleSecondary="Management"
         description="Monitor participant responses and review insights from completed community surveys."

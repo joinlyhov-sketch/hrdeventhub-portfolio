@@ -42,9 +42,10 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
     }
   };
 
-  const isCategoryActive = (type: string) => !activeFilter || activeFilter === type;
+  const isCategoryActive = (type: string) =>
+    !activeFilter || activeFilter === type;
 
-  const isFeedEmpty = 
+  const isFeedEmpty =
     (!isCategoryActive("event") || !visibleCards.event) &&
     (!isCategoryActive("announcement") || !visibleCards.announcement) &&
     (!isCategoryActive("poll") || !visibleCards.poll) &&
@@ -61,38 +62,48 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
         onSearchChange={setSearchQuery}
         isEmpty={isFeedEmpty}
       />
-      
+
       {!searchQuery && !isFeedEmpty && <PinnedSection />}
-      
+
       <div className="space-y-4">
         {isCategoryActive("event") && (
-          <EventCard 
-            searchQuery={searchQuery} 
-            onVisibilityChange={(hasItems) => handleCardVisibility("event", hasItems)}
+          <EventCard
+            searchQuery={searchQuery}
+            onVisibilityChange={(hasItems) =>
+              handleCardVisibility("event", hasItems)
+            }
           />
         )}
         {isCategoryActive("announcement") && (
-          <AnnouncementCard 
-            searchQuery={searchQuery} 
-            onVisibilityChange={(hasItems) => handleCardVisibility("announcement", hasItems)}
+          <AnnouncementCard
+            searchQuery={searchQuery}
+            onVisibilityChange={(hasItems) =>
+              handleCardVisibility("announcement", hasItems)
+            }
           />
         )}
         {isCategoryActive("poll") && (
-          <PollCard 
-            searchQuery={searchQuery} 
-            onVisibilityChange={(hasItems) => handleCardVisibility("poll", hasItems)}
+          <PollCard
+            searchQuery={searchQuery}
+            onVisibilityChange={(hasItems) =>
+              handleCardVisibility("poll", hasItems)
+            }
           />
         )}
         {isCategoryActive("survey") && (
-          <SurveyCard 
-            searchQuery={searchQuery} 
-            onVisibilityChange={(hasItems) => handleCardVisibility("survey", hasItems)}
+          <SurveyCard
+            searchQuery={searchQuery}
+            onVisibilityChange={(hasItems) =>
+              handleCardVisibility("survey", hasItems)
+            }
           />
         )}
         {isCategoryActive("article") && (
-          <ArticleCard 
-            searchQuery={searchQuery} 
-            onVisibilityChange={(hasItems) => handleCardVisibility("article", hasItems)}
+          <ArticleCard
+            searchQuery={searchQuery}
+            onVisibilityChange={(hasItems) =>
+              handleCardVisibility("article", hasItems)
+            }
           />
         )}
       </div>

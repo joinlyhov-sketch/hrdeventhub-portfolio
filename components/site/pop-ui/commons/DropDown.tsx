@@ -1,14 +1,9 @@
 "use client";
 
-import { Button } from "../../components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/drop-down/dropdown-menu";
-import { SquarePen, Trash2, Link2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/drop-down/dropdown-menu";
+import { Link2, SquarePen, Trash2 } from "lucide-react";
+
 
 export function DropdownMenuDemo() {
   return (
@@ -18,7 +13,7 @@ export function DropdownMenuDemo() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="flex flex-col justify-center px-2 w-20 h-30 bg-card gap-10"
+        className="flex flex-col justify-center w-20 h-25 bg-card gap-10"
         align="start"
       >
         <DropdownMenuGroup>

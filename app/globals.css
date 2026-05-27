@@ -73,7 +73,7 @@
   --subtle: #3bc1a8;
 
   /* 2. Greyscale */
-  --grey-50:  #f9fafb;
+  --grey-50: #f9fafb;
   --grey-100: #f3f4f6;
   --grey-200: #e5e7eb;
   --grey-300: #d1d5db;
@@ -93,7 +93,7 @@
   --action-foreground: var(--grey-900);
   --subtle-foreground: var(--grey-900);
   --muted: var(--grey-100);
-  --muted-foreground: var(--grey-500); 
+  --muted-foreground: var(--grey-500);
   --accent: var(--subtle);
   --accent-foreground: var(--grey-900);
   --destructive: #ef4444;
@@ -106,8 +106,8 @@
   ----------------------------------------------------------------- */
 
   /* h1 · 40/58 */
-  --fs-h1: 2.5rem;         /* 40px */
-  --lh-h1: 3.625rem;       /* 58px */
+  --fs-h1: 2.5rem; /* 40px */
+  --lh-h1: 3.625rem; /* 58px */
   --fw-h1: 700;
 
   /* subtitle-24 · 22/Auto */
@@ -116,8 +116,8 @@
   --fw-subtitle-24: 600;
 
   /* title · 24/34 */
-  --fs-title: 1.5rem;      /* 24px */
-  --lh-title: 2.125rem;    /* 34px */
+  --fs-title: 1.5rem; /* 24px */
+  --lh-title: 2.125rem; /* 34px */
   --fw-title: 700;
 
   /* subtitle · 18/30 */
@@ -126,8 +126,8 @@
   --fw-subtitle: 600;
 
   /* desc · 15/24  (regular weight) */
-  --fs-desc: 0.9375rem;    /* 15px */
-  --lh-desc: 1.5rem;       /* 24px */
+  --fs-desc: 0.9375rem; /* 15px */
+  --lh-desc: 1.5rem; /* 24px */
   --fw-desc: 400;
 
   /* desc-medium · 15/24  (medium weight) */
@@ -146,8 +146,8 @@
   --fw-desc-small-semibold: 600;
 
   /* detail · 13/20  (regular weight) */
-  --fs-detail: 0.8125rem;  /* 13px */
-  --lh-detail: 1.25rem;    /* 20px */
+  --fs-detail: 0.8125rem; /* 13px */
+  --lh-detail: 1.25rem; /* 20px */
   --fw-detail: 400;
 
   /* detail-medium · 13/20 */

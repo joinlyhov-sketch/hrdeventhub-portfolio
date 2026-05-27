@@ -1,6 +1,10 @@
-export type CommentItem = {
+export type CommentUser = {
   id: number;
   authorName: string;
-  comment: string;
-  createdAt: string;
+};
+
+export type CommentItem = {
+  id: number;
+  content: string;
+  user: CommentUser;
 };

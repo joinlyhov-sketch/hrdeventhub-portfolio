@@ -7,7 +7,7 @@ export type PaymentForm = {
   email: string;
   phone: string;
   generation: string;
-  remark: string;
+  dollarSign: string;
   amount: number;
   anonymous: boolean;
 };

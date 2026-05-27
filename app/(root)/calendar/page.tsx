@@ -10,9 +10,10 @@ export default function Page() {
   return (
     <main className="w-full bg-background min-h-full flex mt-6 flex-col pr-8 lg:pr-12 lg:pl-12">
       <TopBarCalendar />
-      <div className="max-w-7xl mx-auto w-full">
+      <div className="max-w-420 mx-auto w-full">
         <CalendarFeature />
         <UpcomingEventSection />
+    
       </div>
     </main>
   );

@@ -197,13 +197,13 @@ export default function Page() {
   });
 
   return (
-    <main className="flex-1 w-full overflow-x-hidden text-slate-800">
+    <main className="flex-1 w-full overflow-x-hidden text-slate-800 z-20 ">
       <HeaderNoProfile
         titlePrimary="Privacy"
         titleSecondary="Settings"
         description="Manage your profile visibility and control who can see your information and activities."
       />
-      <div className="max-w-7xl m-auto grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12">
+      <div className="max-w-420 m-auto grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12">
         <div className="xl:col-span-4">
           <ProfilePrivacy
             viewMode="STUDENT_SELF"

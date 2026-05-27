@@ -19,7 +19,7 @@ const defaultForm: PaymentForm = {
   email: "sovichea@gmail.com",
   phone: "+855 XX XXX XXX",
   generation: "12",
-  remark: "",
+  dollarSign: "$",
   amount: 15,
   anonymous: false,
 };
