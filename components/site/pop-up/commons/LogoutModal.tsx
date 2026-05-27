@@ -1,54 +1,45 @@
 "use client";
 
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-modal/alert-dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogMedia, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-modal/alert-dialog";
 import { LogOut } from "lucide-react";
 
-
-
-type LogoutModalProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+interface LogoutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   onConfirm: () => void;
-};
+}
 
-export default function LogoutModal({
-  open,
-  onOpenChange,
-  onConfirm,
-}: LogoutModalProps) {
+export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="logout-modal-card">
-        <div className="logout-modal-center flex flex-col items-center text-center">
-          <div className="logout-modal-icon">
-            <LogOut size={28} strokeWidth={2.5} className="text-destructive" />
-          </div>
-
-          <AlertDialogTitle className="logout-modal-title">
-            Log out of HRD EventHub?
-          </AlertDialogTitle>
-
-          <AlertDialogDescription className="logout-modal-desc">
-            You will need to sign in again to access your admin dashboard.
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogMedia className="bg-red-50 text-red-500 rounded-full dark:bg-red-950/50 dark:text-red-400">
+            <LogOut size={22} />
+          </AlertDialogMedia>
+          <AlertDialogTitle>Account Logout</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to log out of your account? You will need to sign back in to access your dashboard.
           </AlertDialogDescription>
-
-          <div className="logout-modal-actions mt-8 flex items-center gap-3">
-            <AlertDialogCancel
-              className="logout-modal-btn logout-modal-cancel"
-              variant="outline"
-            >
-              Cancel
-            </AlertDialogCancel>
-
-            <AlertDialogAction
-              onClick={onConfirm}
-              className="logout-modal-btn logout-modal-confirm "
-              variant="destructive"
-            >
-              Logout
-            </AlertDialogAction>
-          </div>
-        </div>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onClose} variant="outline">
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} variant="destructive">
+            Logout
+          </AlertDialogAction>
+        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
