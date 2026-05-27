@@ -1,13 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  Search,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  ExternalLink,
-} from "lucide-react";
+import { Search, Download, ListFilter } from "lucide-react";
 import { Event, Transaction } from "../../../types/transaction";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
@@ -19,6 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "../../ui/drop-down/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
 import { PaginationDemo } from "../../feedback/Pagination";
 import Link from "next/link";
@@ -27,15 +28,6 @@ interface TransactionTableProps {
   data: Transaction[];
   selectedEvent?: Event;
 }
-
-const getPaymentLogo = (payment: string): string => {
-  const logoMap: Record<string, string> = {
-    WebPay: "/payment-logos/webpay.svg",
-    PayPal: "/payment-logos/paypal.svg",
-    Card: "/payment-logos/card.svg",
-  };
-  return logoMap[payment] || "/payment-logos/webpay.svg";
-};
 
 const getStatusColor = (status: string): string => {
   switch (status) {
@@ -50,74 +42,46 @@ const getStatusColor = (status: string): string => {
   }
 };
 
-const getStatusIcon = (status: string): string => {
-  switch (status) {
-    case "Successful":
-      return "✓";
-    case "Failed":
-      return "✕";
-    default:
-      return "○";
-  }
-};
-
 export function TransactionTable({
   data,
   selectedEvent,
 }: TransactionTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 11;
 
-  const filteredData = useMemo(
-    () =>
-      data.filter((transaction) =>
-        transaction.username.toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
-    [data, searchTerm],
-  );
+  const filteredData = useMemo(() => {
+    return data.filter((transaction) => {
+      const matchesSearch = transaction.username
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+      const matchesStatus =
+        selectedStatus === "all" || transaction.status === selectedStatus;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [data, searchTerm, selectedStatus]);
+
+  // const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(
     startIndex,
     startIndex + itemsPerPage,
   );
 
-  const renderPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-      if (currentPage > 3) pages.push("...");
-      for (
-        let i = Math.max(2, currentPage - 1);
-        i <= Math.min(totalPages - 1, currentPage + 1);
-        i++
-      ) {
-        pages.push(i);
-      }
-      if (currentPage < totalPages - 2) pages.push("...");
-      pages.push(totalPages);
-    }
-
-    return pages;
-  };
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-2xl border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-fs-subtitle font-semibold text-secondary flex items-center gap-2">
+          <h2 className="text-subtitle-24 font-semibold text-secondary flex items-center gap-2">
             <div className="w-5 h-5 rounded flex items-center justify-center">
               <svg
-                width="24"
-                height="24"
+                width="26"
+                height="26"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -184,7 +148,7 @@ export function TransactionTable({
           </div>
           <Button
             onClick={() => alert("Export Excel Successfully")}
-            className="bg-primary hover:bg-primary-hover text-white gap-2 rounded-lg flex items-center"
+            className="bg-primary hover:bg-primary-hover text-white gap-2 rounded-lg flex items-center cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>Export</span>
@@ -192,43 +156,75 @@ export function TransactionTable({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-background type-desc-semibold text-center">
-                Transaction ID
+              <TableHead className="text-background type-detail-semibold text-center">
+                ID
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center">
+              <TableHead className="text-background type-detail-semibold text-center w-[125px]">
                 Username
               </TableHead>
-              <TableHead className="text-background type-desc-semibold relative">
+              <TableHead className="text-background type-detail-semibold relative">
                 <span className="flex justify-center">Amount</span>
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center">
+              <TableHead className="text-background type-detail-semibold text-center">
                 Payment
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center">
-                <div className="flex justify-around items-center">
-                  <span>Status</span>
-                  <svg
-                    width="16"
-                    height="11"
-                    viewBox="0 0 16 11"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5.90313 10.0639L5.89147 8.39724L9.22473 8.37393L9.23638 10.0406L5.90313 10.0639ZM2.54074 5.92061L2.52908 4.25399L12.5288 4.18405L12.5405 5.85068L2.54074 5.92061ZM0.0116565 1.77153L0 0.104908L14.9996 0L15.0113 1.66663L0.0116565 1.77153Z"
-                      fill="white"
-                    />
-                  </svg>
-                </div>
+
+              <TableHead className="text-background type-detail-semibold text-center">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex justify-center items-center gap-2 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
+                      <span>
+                        Status{" "}
+                        {selectedStatus !== "all" ? `(${selectedStatus})` : ""}
+                      </span>
+                      <ListFilter size={15} className="shrink-0" />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[135px]">
+                    <DropdownMenuRadioGroup
+                      value={selectedStatus}
+                      onValueChange={(val) => {
+                        setSelectedStatus(val);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <DropdownMenuRadioItem
+                        value="all"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        All
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="Successful"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Successful
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="Failed"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Failed
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="Pending"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Pending
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center">
+
+              <TableHead className="text-background w-[80px] type-detail-semibold text-center">
                 Timestamp
               </TableHead>
-              <TableHead className="text-background type-desc-semibold text-center pr-3">
+              <TableHead className="text-background type-detail-semibold text-center">
                 Action
               </TableHead>
             </TableRow>
@@ -240,12 +236,12 @@ export function TransactionTable({
                   key={index}
                   className="hover:bg-gray-50 border-gray-200"
                 >
-                  <TableCell className="type-desc text-sm text-gray-700">
+                  <TableCell className="type-detail mr-1.5 text-gray-700">
                     {transaction.id}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center ">
-                      <Avatar className="w-8 h-8">
+                      <Avatar className="w-7 h-7">
                         <AvatarImage
                           src={transaction.avatar}
                           alt={transaction.username}
@@ -254,21 +250,21 @@ export function TransactionTable({
                           {transaction.username.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="type-desc text-gray-700">
+                      <span className="type-detail text-gray-700">
                         {transaction.username}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="inline-flex items-center justify-center w-16 type-desc font-bold rounded text-gray-400">
+                    <span className="inline-flex items-center justify-center w-16 type-detail font-bold rounded text-gray-400">
                       ${transaction.amount}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="flex justify-center">
-                      <span className="inline-flex items-center justify-center w-16 h-6 text-xs font-bold rounded">
+                      <span className="inline-flex items-center justify-center w-16 h-6 type-detail font-bold rounded">
                         <svg
-                          width="47"
+                          width="45"
                           height="9"
                           viewBox="0 0 47 9"
                           fill="none"
@@ -325,17 +321,20 @@ export function TransactionTable({
                       </span>
                     </span>
                   </TableCell>
+
                   <TableCell>
                     <span className="flex justify-center">
                       <span
-                        className={`type-detail nline-flex items-center justify-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(transaction.status)}`}
+                        className={`type-desc-small-semibold inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full ${getStatusColor(
+                          transaction.status,
+                        )}`}
                       >
                         {transaction.status}
                       </span>
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-600 text-sm">
-                    <span className="flex type-desc justify-center">
+                    <span className="flex type-desc-small-semibold justify-center">
                       {transaction.timestamp}
                     </span>
                   </TableCell>
@@ -394,7 +393,11 @@ export function TransactionTable({
       </div>
 
       <div className="flex items-center justify-end gap-2 mt-6">
-        <PaginationDemo />
+        <PaginationDemo
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

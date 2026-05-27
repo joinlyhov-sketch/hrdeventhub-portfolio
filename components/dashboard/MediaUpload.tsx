@@ -1,7 +1,10 @@
 "use client";
-import React, { useState, ChangeEvent } from "react";
-import { Delete, Plus, X } from "lucide-react";
+
+import { useState, ChangeEvent } from "react";
+import { Delete, Plus } from "lucide-react";
 import Image from "next/image";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 
 interface UploadedImage {
   id: string;
@@ -27,13 +30,13 @@ const MediaUpload = () => {
 
   return (
     <div className="flex flex-col gap-3 w-full">
-      <label className="text-secondary font-bold text-md">
+      <Label className="text-secondary font-bold text-md cursor-default">
         Media Attachments
-      </label>
+      </Label>
       <div className="flex flex-row gap-4 overflow-x-auto w-full no-scrollbar items-start">
-        <div className="border-2 border-solid border-slate-200 rounded-2xl p-2">
-          <label className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-white hover:bg-slate-50 transition-colors cursor-pointer w-full max-w-[280px] sm:max-w-[320px] h-[220px]">
-            <input
+        <div className="border-2 border-solid border-slate-200 rounded-2xl p-2 inline-block">
+          <label className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-white hover:bg-slate-50 transition-colors cursor-pointer w-[320px] h-[220px]">
+            <Input
               type="file"
               multiple
               accept="image/jpeg, image/png"
@@ -72,7 +75,7 @@ const MediaUpload = () => {
             <button
               type="button"
               onClick={() => removeImage(image.id)}
-              className="absolute top-1 right-1  text-red-500 flex items-center justify-center hover:text-red-700 active:scale-90 transition-all z-10"
+              className="absolute top-1 right-1 text-red-500 flex items-center justify-center hover:text-red-700 active:scale-90 transition-all z-10"
               aria-label="Remove image"
             >
               <Delete size={36} strokeWidth={2} />

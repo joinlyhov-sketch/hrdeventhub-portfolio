@@ -52,7 +52,6 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 
         return (
           <div key={stepNum} className="flex items-center">
-            {/* Step Circle & Label Container */}
             <div className="relative flex flex-col items-center w-10">
               <div
                 className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-500 z-10 ${
@@ -63,16 +62,16 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               >
                 {stepNum}
               </div>
-              
-              {/* Absolute Label - Prevents horizontal spacing issues */}
-              <span className={`absolute top-12 whitespace-nowrap text-[13px] font-medium transition-colors duration-300 ${
-                isActive ? "text-[#17356f]" : "text-[#94a3b8]"
-              }`}>
+
+              <span
+                className={`absolute top-12 whitespace-nowrap text-[13px] font-medium transition-colors duration-300 ${
+                  isActive ? "text-[#17356f]" : "text-[#94a3b8]"
+                }`}
+              >
                 {label}
               </span>
             </div>
 
-            {/* Connector Line */}
             {!isLast && (
               <div className="relative h-[1.5px] w-16 bg-[#e2e8f0] mx-1">
                 <motion.div

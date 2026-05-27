@@ -7,7 +7,7 @@ interface StatsCardsSectionProps {
   stats: StatCard[];
 }
 
-export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
+export function StatsCardsSection({stats }: StatsCardsSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <StatsCard
@@ -66,7 +66,7 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
       />
       <StatsCard
         key={2}
-        title={"Total Revenue"}
+        title={"Total Donations"}
         value={"124,50"}
         customIcon={
           <svg

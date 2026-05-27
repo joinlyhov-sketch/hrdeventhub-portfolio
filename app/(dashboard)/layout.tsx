@@ -10,7 +10,7 @@ export default function DashboardLayout({
     <TooltipProvider>
       <SidebarProvider>
         <AppSidebar />
-        <div className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12">
+        <div className="flex flex-col flex-1">
           {children}
         </div>
       </SidebarProvider>

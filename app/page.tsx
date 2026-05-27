@@ -1,77 +1,55 @@
 import Navbar from "../components/landing/Navbar";
-import {
-  Users,
-  ArrowRight,
-} from "lucide-react";
 import Footer from "../components/landing/Footer";
+import HeroSession from "../components/landing/HeroSession";
+import MediaListSection from "../components/landing/ListCard";
+import PlatformEssentials from "../components/landing/PlatFormEssential";
+import { FeatureCard } from "../components/landing/FeatureCard";
+import { MediaItem } from "../components/landing/types";
 
+const featuredData: MediaItem = {
+  id: "feat-1",
+  title: "Sport Reunion 2026: Celebrating 14th Generation",
+  category: "GATHERING",
+  imageUrl: "/images/sport.png",
+};
+// const listData: MediaItem[] = Array(3).fill({
+//   id: "list-1",
+//   title: "Gen 13 Graduate Secure Global Roles ",
+//   description:
+//     "Congratulations to our latest graduates! 95% employment rate within 2 months of completing the software engineering.",
+//   category: "SUCCESS STORY",
+//   imageUrl: "/images/songkran.png",
+// });
 
-export default function Home() {
+export default function LandingPage() {
   return (
     <>
       <Navbar />
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden min-h-screen flex items-center">
-        <div className="absolute inset-0 z-0">
-          <div
-            className="w-full h-full bg-cover bg-center opacity-100"
-            style={{ backgroundImage: 'url("/images/bubble.webp")' }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white/80 to-amber-50 -z-10" />
+      <div className="relative min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden py-20 px-6 md:px-12 select-none">
+        <HeroSession />
+      </div>
+      <div className="min-h-screen bg-background pr-32 pl-32">
+        <div className="mb-6 ml-18">
+          <h1 className="type-h1 text-secondary">
+            Community <span className="text-action">Updates</span>
+          </h1>
+          <p className="type-desc text-secondary mt-2 ">
+            Stay connected with the latest events, success story, and learning
+            resources from the KSHRD family.
+          </p>
         </div>
-
-        <div className="absolute top-0 right-0 w-1/3 h-1/2 z-0 hidden lg:block">
-          <img
-            src="/images/bubble.webp"
-            alt=""
-            className="w-full h-full object-contain object-right-top opacity-100"
-          />
-        </div>
-
-        <div className="container mx-auto flex flex-col md:flex-row items-center justify-between relative z-10">
-          <div className="max-w-2xl">
-            <div className="inline-block px-4 py-1.5 mb-6 bg-blue-100 text-blue-700 rounded-full text-xs font-bold tracking-wide uppercase">
-              ✨ KS-HRD Internal Platform
+        <div className="mx-auto ">
+          <div className="flex gap-6 justify-center  w-full">
+            <div className="w-[50%] shrink-0">
+              <FeatureCard item={featuredData} />
             </div>
-            <h1 className="text-6xl md:text-7xl font-extrabold leading-tight mb-6 text-blue-950">
-              Your Gateway to <br />
-              <span className="text-amber-500">Every HRD Event</span>
-            </h1>
-            <p className="text-lg text-slate-500 mb-10 max-w-lg leading-relaxed">
-              Discover the next big event and link up with the brightest minds
-              at HRD. Your all-in-one platform for growth.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <button className="px-8 py-4 bg-amber-500 text-white rounded-2xl font-bold hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/30">
-                Get Started
-              </button>
-              <button className="px-8 py-4 bg-blue-900 text-white rounded-2xl font-bold hover:bg-blue-800 transition-all shadow-xl shadow-blue-900/30 flex items-center gap-2">
-                Explore Events <ArrowRight size={20} />
-              </button>
-            </div>
-          </div>
-
-          <div className="relative mt-20 md:mt-0">
-            <div className="w-80 h-96 bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-white rotate-3">
-              <img
-                src="/images/landingImage.webp"
-                alt="Event"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="absolute -bottom-6 -left-12 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 animate-bounce">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                <Users size={20} />
-              </div>
-              <div>
-                <p className="text-xs font-bold">Live Engagement</p>
-                <p className="text-[10px] text-slate-400">
-                  Active participants now
-                </p>
-              </div>
+            <div className="w-[40%] shrink-0">
+              <MediaListSection />
             </div>
           </div>
         </div>
-      </section>
+      </div>
+      <PlatformEssentials/>
       <Footer />
     </>
   );

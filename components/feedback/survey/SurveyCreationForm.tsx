@@ -1,24 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  AlignLeft,
-  FileText,
-  CheckCircle,
-  ListChecks,
-  ArrowDownCircle,
-  Star,
-  ToggleLeft,
-  Grid,
-  BarChart4,
-  Loader2,
-  Plus,
-} from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import SurveyHeader from "./SurveyHeader";
-import SurveyQuestionsList, { Question } from "./SurveyQuestionsList";
-import SidebarItemButton from "./SidebarItemButton";
+import SurveyQuestionsList from "./SurveyQuestionsList";
+import QuestionTypeSidebar from "./QuestionTypeSidebar";
+import { Button } from "../../ui/button";
+import { Question } from "../../../data/Question";
 
-type QuestionType =
+export type QuestionType =
   | "short-text"
   | "long-text"
   | "choice"
@@ -44,7 +34,7 @@ export default function SurveyCreationForm() {
     {
       id: "2",
       type: "linear",
-      text: "On a scale of 1 to 15, how satisfied were you with today's event?",
+      text: "On a scale of 1 to 5, how satisfied were you with today's event?",
       linearStart: 1,
       linearEnd: 5,
     },
@@ -90,7 +80,6 @@ export default function SurveyCreationForm() {
   const handleFormSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    console.log("Submitting survey object:", { title, description, questions });
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSubmitting(false);
     alert("Survey Created Successfully!");
@@ -99,23 +88,20 @@ export default function SurveyCreationForm() {
   return (
     <form
       onSubmit={handleFormSubmission}
-      className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-screen bg-gray-50/50 border-t border-gray-100"
+      className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full items-start"
     >
-      <div className="lg:col-span-3 p-6 lg:p-8 max-w-4xl w-full mx-auto flex flex-col justify-between">
+      <div className="lg:col-span-3 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 ">
-            <div >
-            
-            </div>
-
-            <button
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
+            <div />
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto p-2.5 px-2 rounded-xl bg-blue-900 text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[100px]"
+              className="w-full sm:w-auto px-5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
             >
               {isSubmitting && <Loader2 size={14} className="animate-spin" />}
               {isSubmitting ? "Posting..." : "Post Survey"}
-            </button>
+            </Button>
           </div>
 
           <SurveyHeader
@@ -125,96 +111,28 @@ export default function SurveyCreationForm() {
             setDescription={setDescription}
           />
 
-          <SurveyQuestionsList
-            questions={questions}
-            setQuestions={setQuestions}
-          />
-
-          <button
-            type="button"
-            onClick={() => addQuestionByType("choice")}
-            className="w-full p-4 border border-dashed border-gray-300 rounded-xl flex items-center justify-center gap-2 text-gray-400 hover:bg-gray-100/50 hover:text-gray-600 transition-all text-sm font-semibold shadow-sm"
-          >
-            <Plus size={16} /> Add Questions
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white border-l border-gray-100 p-6 space-y-6 overflow-y-auto">
-        <div>
-          <h3 className="text-sm font-bold text-gray-400 tracking-wider mb-4 uppercase">
-            Question Types
-          </h3>
-          <div className="space-y-6">
-            <div>
-              <span className="text-xs font-bold text-gray-300 block mb-2 tracking-widest">
-                BASIC
-              </span>
-              <div className="space-y-2">
-                <SidebarItemButton
-                  label="Short Text"
-                  icon={<AlignLeft size={16} />}
-                  onClick={() => addQuestionByType("short-text")}
-                />
-                <SidebarItemButton
-                  label="Long Text"
-                  icon={<FileText size={16} />}
-                  onClick={() => addQuestionByType("long-text")}
-                />
-              </div>
-            </div>
-            <div>
-              <span className="text-xs font-bold text-gray-300 block mb-2 tracking-widest">
-                CHOICE
-              </span>
-              <div className="space-y-2">
-                <SidebarItemButton
-                  label="Single Choice"
-                  icon={<CheckCircle size={16} />}
-                  onClick={() => addQuestionByType("choice")}
-                />
-                <SidebarItemButton
-                  label="Multiple Choice"
-                  icon={<ListChecks size={16} />}
-                  onClick={() => addQuestionByType("choice")}
-                />
-                <SidebarItemButton
-                  label="Dropdown"
-                  icon={<ArrowDownCircle size={16} />}
-                  onClick={() => addQuestionByType("dropdown")}
-                />
-              </div>
-            </div>
-            <div>
-              <span className="text-xs font-bold text-gray-300 block mb-2 tracking-widest">
-                ADVANCED
-              </span>
-              <div className="space-y-2">
-                <SidebarItemButton
-                  label="Rating"
-                  icon={<Star size={16} />}
-                  onClick={() => addQuestionByType("rating")}
-                />
-                <SidebarItemButton
-                  label="Yes/No Toggle"
-                  icon={<ToggleLeft size={16} />}
-                  onClick={() => addQuestionByType("yes-no")}
-                />
-                <SidebarItemButton
-                  label="Matrix"
-                  icon={<Grid size={16} />}
-                  onClick={() => addQuestionByType("matrix")}
-                />
-                <SidebarItemButton
-                  label="Linear Scale"
-                  icon={<BarChart4 size={16} />}
-                  onClick={() => addQuestionByType("linear")}
-                />
-              </div>
-            </div>
+          <div className="w-full max-w-full overflow-hidden">
+            <SurveyQuestionsList
+              questions={questions}
+              setQuestions={setQuestions}
+            />
           </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => addQuestionByType("choice")}
+            className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-detail font-semibold text-gray-500 shadow-sm hover:bg-slate-50/50"
+          >
+            <span>
+              <Plus size={24} />
+            </span>
+            Add Questions
+          </Button>
         </div>
       </div>
+
+      <QuestionTypeSidebar onAddQuestion={addQuestionByType} />
     </form>
   );
 }

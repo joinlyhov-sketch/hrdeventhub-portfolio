@@ -49,12 +49,17 @@ export default function UpComingEventCard() {
           <div className="p-4 bg-grey-100 rounded-2xl mb-4 shrink-0">
             <Calendar size={48} className="text-grey-400" />
           </div>
-          <p className="type-detail font-medium text-muted-foreground text-center">No upcoming events.</p>
+          <p className="type-detail font-medium text-muted-foreground text-center">
+            No upcoming events.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-6 w-full">
           {events.map((event) => (
-            <div key={event.id} className="flex items-center gap-4 min-w-0 w-full">
+            <div
+              key={event.id}
+              className="flex items-center gap-4 min-w-0 w-full"
+            >
               <div
                 className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl shrink-0 select-none ${
                   event.variant === "blue"

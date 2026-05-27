@@ -8,22 +8,29 @@ import type { RegisterRequest } from "../../../types/auth-types";
 import { useRegisterStore } from "../../../store/useRegisterStore";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 
-const step2Schema = z.object({
-  email: z.string().min(1, "Email is required").pipe(z.email({ message: "Email is invalid" })),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
-    .regex(/[0-9]/, "Password must contain at least 1 number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const step2Schema = z
+  .object({
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .pipe(z.email({ message: "Email is invalid" })),
+    password: z
+      .string()
+      .min(1, "Password is required")
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
+      .regex(/[0-9]/, "Password must contain at least 1 number")
+      .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
-type AccountValidate = Partial<Record<"email" | "password" | "confirmPassword", string>>;
+type AccountValidate = Partial<
+  Record<"email" | "password" | "confirmPassword", string>
+>;
 
 const passwordSchema = z
   .string()
@@ -34,15 +41,15 @@ const passwordSchema = z
   .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol");
 
 export default function Step2Account() {
-  const form = useRegisterStore((s) => s.form);
+  const form        = useRegisterStore((s) => s.form);
   const updateField = useRegisterStore((s) => s.updateField);
-  const setStep = useRegisterStore((s) => s.setStep);
-  const goToOTP = useRegisterStore((s) => s.goToOTP);
+  const setStep     = useRegisterStore((s) => s.setStep);
+  const goToOTP     = useRegisterStore((s) => s.goToOTP);
 
-  const [errors, setErrors] = useState<AccountValidate>({});
+  const [errors, setErrors]           = useState<AccountValidate>({});
   const [serverError, setServerError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [showPassword, setShowPassword] = useState(false);
+  const [isPending, startTransition]  = useTransition();
+  const [showPassword, setShowPassword]               = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (field: keyof AccountValidate, value: string) => {
@@ -53,10 +60,7 @@ export default function Step2Account() {
   const handlePasswordBlur = () => {
     const result = passwordSchema.safeParse(form.password);
     if (!result.success) {
-      setErrors((prev) => ({
-        ...prev,
-        password: result.error.issues[0].message,
-      }));
+      setErrors((prev) => ({ ...prev, password: result.error.issues[0].message }));
     } else {
       setErrors((prev) => ({ ...prev, password: undefined }));
     }
@@ -64,17 +68,11 @@ export default function Step2Account() {
 
   const handleConfirmPasswordBlur = () => {
     if (!form.confirmPassword) {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: "Please confirm your password",
-      }));
+      setErrors((prev) => ({ ...prev, confirmPassword: "Please confirm your password" }));
       return;
     }
     if (form.password !== form.confirmPassword) {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: "Passwords do not match",
-      }));
+      setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match" }));
     } else {
       setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
     }
@@ -84,8 +82,8 @@ export default function Step2Account() {
     setServerError(null);
 
     const result = step2Schema.safeParse({
-      email: form.email.trim(),
-      password: form.password,
+      email:           form.email.trim(),
+      password:        form.password,
       confirmPassword: form.confirmPassword,
     });
 
@@ -102,33 +100,47 @@ export default function Step2Account() {
     setErrors({});
 
     const payload: RegisterRequest = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      gender: form.gender ? form.gender[0].toUpperCase() : "",
-      email: form.email.trim(),
-      password: form.password,
+      firstName:   form.firstName.trim(),
+      lastName:    form.lastName.trim(),
+      gender:      form.gender ? form.gender[0].toUpperCase() : "",
+      email:       form.email.trim(),
+      password:    form.password,
       dateOfBirth: form.dateOfBirth,
       phoneNumber: form.phoneNumber.trim(),
     };
 
     startTransition(async () => {
       const res = await registerAction(payload);
+
       if (res?.error) {
-        if (res.error.toLowerCase().includes("email")) {
-          setErrors({ email: res.error });
+        const msg = res.error;
+        const lower = msg.toLowerCase();
+
+        if (
+          lower.includes("password") ||
+          lower.includes("stronger") ||
+          lower.includes("weak")
+        ) {
+          setErrors({ password: msg });
+        } else if (
+          lower.includes("email") ||
+          lower.includes("already taken") ||
+          lower.includes("conflict")
+        ) {
+          setErrors({ email: msg });
         } else {
-          setServerError(res.error);
+          setServerError(msg);
         }
         return;
       }
+
       if (res?.ok) goToOTP(form.email);
     });
   };
 
   return (
     <motion.div
-      // Switching to grid here forces the component to fill the parent's width
-      className="grid grid-cols-1 gap-5 w-full" 
+      className="grid grid-cols-1 gap-5 w-full"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
@@ -138,15 +150,18 @@ export default function Step2Account() {
         <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
           Account Info
         </h2>
-        <p className="mt-2 text-[#6e7580] text-[14px]">Join HRD EventHub & Get started</p>
+        <p className="mt-2 text-[#6e7580] text-[14px]">
+          Join HRD EventHub &amp; Get started
+        </p>
       </div>
 
       <div className="space-y-4 w-full">
-        {/* Email Field */}
         <div className="flex flex-col gap-1 w-full">
-          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
-            errors.email ? "border-red-400" : "border-[#dce6f0]"
-          }`}>
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+              errors.email ? "border-red-400" : "border-[#dce6f0]"
+            }`}
+          >
             <Mail size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Email"
@@ -159,11 +174,12 @@ export default function Step2Account() {
           {errors.email && <FieldError message={errors.email} />}
         </div>
 
-        {/* Password Field */}
         <div className="flex flex-col gap-1 w-full">
-          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
-            errors.password ? "border-red-400" : "border-[#dce6f0]"
-          }`}>
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+              errors.password ? "border-red-400" : "border-[#dce6f0]"
+            }`}
+          >
             <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Password"
@@ -184,11 +200,12 @@ export default function Step2Account() {
           {errors.password && <FieldError message={errors.password} />}
         </div>
 
-        {/* Confirm Password Field */}
         <div className="flex flex-col gap-1 w-full">
-          <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
-            errors.confirmPassword ? "border-red-400" : "border-[#dce6f0]"
-          }`}>
+          <div
+            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 w-full transition-all focus-within:border-[#24529a] ${
+              errors.confirmPassword ? "border-red-400" : "border-[#dce6f0]"
+            }`}
+          >
             <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="Confirm Password"
@@ -210,7 +227,12 @@ export default function Step2Account() {
         </div>
       </div>
 
-      {/* Button Action Row */}
+      {serverError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          {serverError}
+        </div>
+      )}
+
       <div className="mt-3 grid grid-cols-2 gap-4 w-full">
         <button
           onClick={() => setStep(1)}

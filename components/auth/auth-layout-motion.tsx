@@ -5,8 +5,6 @@ import NextImage from "next/image";
 export default function AuthLayoutMotion() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-      
-      {/* --- Top Left Blur --- */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -21,7 +19,6 @@ export default function AuthLayoutMotion() {
         />
       </motion.div>
 
-      {/* --- Top Right Design --- */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
         <motion.div
           initial={{ opacity: 0, x: 30, y: -20 }}
@@ -55,7 +52,6 @@ export default function AuthLayoutMotion() {
         </motion.div>
       </div>
 
-      {/* --- Bottom Right Blur --- */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -70,7 +66,6 @@ export default function AuthLayoutMotion() {
         />
       </motion.div>
 
-      {/* --- Bottom Left Design --- */}
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px]">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -78,10 +73,10 @@ export default function AuthLayoutMotion() {
           transition={{ duration: 1.2, delay: 0.2 }}
           className="absolute bottom-[-50px] left-[-50px]"
         >
-          <NextImage 
-            src="/images/orangeCircle.svg" 
-            alt="" 
-            width={400} 
+          <NextImage
+            src="/images/orangeCircle.svg"
+            alt=""
+            width={400}
             height={400}
             className="object-contain"
           />
@@ -92,9 +87,9 @@ export default function AuthLayoutMotion() {
           transition={{ duration: 1 }}
           className="absolute bottom-0 left-0"
         >
-          <NextImage 
+          <NextImage
             src="/images/btBlueWave.svg"
-            alt="" 
+            alt=""
             width={220.205}
             height={271.545}
             className="object-left-bottom object-contain"
@@ -102,7 +97,6 @@ export default function AuthLayoutMotion() {
           />
         </motion.div>
       </div>
-      
     </div>
   );
 }
