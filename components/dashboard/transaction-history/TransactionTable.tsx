@@ -391,7 +391,11 @@ export function TransactionTable({
       </div>
 
       <div className="flex items-center justify-end gap-2 mt-6">
-        <PaginationDemo />
+        <PaginationDemo
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

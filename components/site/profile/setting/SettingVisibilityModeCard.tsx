@@ -130,7 +130,7 @@ export default function SettingVisibilityModeCard({
               }`}
             >
               <div>
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-3">
+                <div className="w-8 h-8 rounded-lg text-primary flex items-center justify-center mb-3">
                   <svg
                     width="50"
                     height="50"
@@ -214,7 +214,7 @@ export default function SettingVisibilityModeCard({
                   : "border-border hover:border-grey-300"
               }`}
             >
-              <div className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center mb-3">
+              <div className="w-8 h-8 rounded-lg text-muted-foreground flex items-center justify-center mb-3">
                 <svg
                   width="50"
                   height="50"
@@ -276,7 +276,7 @@ export default function SettingVisibilityModeCard({
                   : "border-border hover:border-grey-300 cursor-pointer"
               }`}
             >
-              <div className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center mb-3">
+              <div className="w-8 h-8 rounded-lg text-muted-foreground flex items-center justify-center mb-3">
                 <svg
                   width="50"
                   height="50"

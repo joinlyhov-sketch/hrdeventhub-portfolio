@@ -1,6 +1,6 @@
 import React from "react";
-import SurveyCreationForm from "../../../../../components/feedback/survey/SurveyCreationForm";
-import { FeedbackBreadcrumb } from "../../../../../components/dashboard/FeedbackBreadcrumb";
+import SurveyCreationForm from "@/components/feedback/survey/SurveyCreationForm";
+import { FeedbackBreadcrumb } from "@/components/dashboard/FeedbackBreadcrumb";
 
 export default async function SurveyCreationPage() {
   return (
