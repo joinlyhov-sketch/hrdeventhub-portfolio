@@ -7,7 +7,6 @@ import {
   BarChart3,
   Circle,
   User,
-  Plus,
   FileExclamationPoint,
 } from "lucide-react";
 import Search from "../site/search/Search";

@@ -3,8 +3,8 @@ import GroupCard from "../../../components/site/group/group-card";
 import GroupSearch from "../../../components/site/group/group-search";
 import { mockGroups } from "../../../data/groups";
 import { Metadata } from "next";
-import { BadgeInfo, UserX } from "lucide-react";
-import { MOCK_CURRENT_USER } from "../../../data/mock-user";
+import { UserX } from "lucide-react";
+import { MOCK_CURRENT_USER } from "@/data/mock-user";
 
 export const metadata: Metadata = {
   title: "Group",
@@ -70,10 +70,10 @@ export default async function GroupPage({ searchParams }: PageProps) {
               </div>
               <div>
                 <p className="text-base font-bold text-slate-700">
-                  Data doesn't exist
+                  Data doesn&apos;t exist
                 </p>
                 <p className="text-sm text-slate-400 font-medium">
-                  We couldn't find any match for your current query.
+                  We couldn&apos;t find any match for your current query.
                 </p>
               </div>
             </div>

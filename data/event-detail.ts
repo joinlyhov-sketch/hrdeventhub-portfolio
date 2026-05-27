@@ -1,5 +1,3 @@
-import { User } from "next-auth";
-
 export type UserRole = "Admin" | "Organizer" | "Student" | "Alumni";
 export type RegistrationStatus = "NOT_REGISTERED" | "REGISTERED" | "ADMIN_VIEW";
 

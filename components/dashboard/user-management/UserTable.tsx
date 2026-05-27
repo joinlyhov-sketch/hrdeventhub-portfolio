@@ -181,7 +181,8 @@ export default function UserTableClient({
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
                       <span className="truncate">
-                        Status {selectedStatus !== "all" ? `(${selectedStatus})` : ""}
+                        Status{" "}
+                        {selectedStatus !== "all" ? `(${selectedStatus})` : ""}
                       </span>
                       <ListFilter size={16} className="shrink-0" />
                     </div>
@@ -238,10 +239,10 @@ export default function UserTableClient({
                     </div>
                     <div>
                       <p className="text-base font-bold text-secondary">
-                        User doesn't exist
+                        User doesn&apos;t exist
                       </p>
                       <p className="text-sm text-gray-400 font-medium">
-                        We couldn't find any match for your current query.
+                        We couldn&apos;t find any match for your current query.
                       </p>
                     </div>
                   </div>

@@ -43,7 +43,7 @@ export default function SuspendModal({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-[32px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+      <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-4xl p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150">
         <div className="bg-[#F8FAFC] px-8 py-3 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
             <img
@@ -77,7 +77,7 @@ export default function SuspendModal({
                 <SelectTrigger className="w-full bg-[#EFEFEF] hover:bg-gray-200/80 text-black rounded-2xl px-6 py-6 text-base font-bold flex items-center justify-between border-none outline-none focus:ring-0 focus:ring-offset-0 cursor-pointer">
                   <SelectValue placeholder="Reason" />
                 </SelectTrigger>
-                <SelectContent className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-[200px] overflow-y-auto">
+                <SelectContent className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-50 overflow-y-auto">
                   {REASON_OPTIONS.map((option) => (
                     <SelectItem
                       key={option}
@@ -93,7 +93,9 @@ export default function SuspendModal({
 
             <DialogDescription className="text-sm text-slate-500 max-w-md mx-auto">
               Are you sure you want to suspend{" "}
-              <span className="font-bold text-gray-900">'{user.username}'</span>
+              <span className="font-bold text-gray-900">
+                &ldquo;{user.username}&rdquo;
+              </span>
               ?<br />
               This user will be barred from login and registration. You will
               need to manually reactivate them to restore access.

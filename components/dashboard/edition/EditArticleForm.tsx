@@ -1,11 +1,7 @@
 "use client";
 import {
   FileText,
-  Megaphone,
-  BookOpenTextIcon,
-  CalendarDays,
 } from "lucide-react";
-import Link from "next/link";
 import { Breadcrumb } from "../BreadCrumb";
 import { FormInput } from "../FormInput";
 import MediaUpload from "../MediaUpload";
@@ -29,7 +25,7 @@ export default function EditArticleForm() {
           </p>
           <EditionTabs />
         </div>
-        <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 flex-grow">
+        <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 grow">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-12 gap-y-5 md:gap-y-6">
             <FormInput
               label="Article title"

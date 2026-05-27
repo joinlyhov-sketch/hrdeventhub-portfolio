@@ -85,8 +85,8 @@ export default function AttendeeTableClient({
         />
       </div>
 
-      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-[580px] bg-white">
-        <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
+      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-145 bg-white">
+        <Table className="w-full text-left border-collapse min-w-250 table-fixed">
           <TableHeader>
             <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
               <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[5%]">
@@ -173,17 +173,14 @@ export default function AttendeeTableClient({
               ))
             ) : (
               <TableRow className="hover:bg-transparent border-b-0">
-                <TableCell
-                  colSpan={8}
-                  className="px-6 py-16 text-center h-[520px]"
-                >
+                <TableCell colSpan={8} className="px-6 py-16 text-center h-130">
                   <div className="flex flex-col items-center justify-center space-y-3">
                     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-slate-400 border border-slate-100">
                       <UserX size={30} className="text-red-500" />
                     </div>
                     <div>
                       <p className="text-base font-bold text-secondary">
-                        Attendee doesn't exist
+                        Attendee doesn&apos;t exist
                       </p>
                       <p className="text-sm text-gray-400 font-medium">
                         We couldn't find any attendees match for your search

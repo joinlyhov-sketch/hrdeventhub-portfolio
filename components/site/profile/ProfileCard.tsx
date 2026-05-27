@@ -7,6 +7,7 @@ import {
   Phone,
   GraduationCap,
 } from "lucide-react";
+import Link from "next/link";
 
 const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <div className="flex items-center gap-3 w-full">
@@ -16,7 +17,8 @@ const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
 );
 
 interface ProfileCardProps {
-  viewMode: "ADMIN" | "STUDENT_SELF" | "ALUMNI_VIEWING_STUDENT";
+  viewMode?: "ALUMNI_VIEWING_STUDENT" | "STUDENT_SELF" | "ADMIN_VIEWING";
+  userRole: "STUDENT" | "ADMIN" | "ALUMNI"; 
 }
 
 const FemaleIcon = () => (
@@ -51,7 +53,11 @@ const FemaleIcon = () => (
   </svg>
 );
 
-export default function ProfileCard({ viewMode }: ProfileCardProps) {
+export default function ProfileCard({ viewMode, userRole }: ProfileCardProps) {
+  const handleAdminActionClick = () => {
+
+    console.log("Admin modal triggered");
+  };
   const socials = [
     {
       name: "Facebook",
@@ -205,7 +211,7 @@ export default function ProfileCard({ viewMode }: ProfileCardProps) {
           </div>
           <div className="text-center w-full px-2">
             <h2 className="type-title text-primary font-bold text-xl">
-              Chham Makara
+              Chham Kaknika
             </h2>
             <p className="text-[20px] text-secondary mb-4 border-b pb-2.5 border-border">
               @kaknika
@@ -224,32 +230,49 @@ export default function ProfileCard({ viewMode }: ProfileCardProps) {
             <InfoRow icon={<Mail size={16} />} text="kaknika@gmail.com" />
             <InfoRow icon={<Calendar size={16} />} text="12 July 2007" />
             <InfoRow icon={<Users size={16} />} text="14th Generation" />
-            <InfoRow
-              icon={<Code size={16} />}
-              text="Fullstack web development"
-            />
+            <InfoRow icon={<Code size={16} />} text="Fullstack web development" />
             <InfoRow icon={<Phone size={16} />} text="015849376" />
             <InfoRow icon={<GraduationCap size={16} />} text="Studying" />
             <InfoRow icon={<FemaleIcon />} text="Female" />
           </div>
         </div>
+        
         <div className="w-full">
           <div className="mt-6 flex gap-3 w-full">
             {socials.map((social, i) => (
               <button
                 key={i}
                 aria-label={social.name}
-                className=" text-primary-foreground rounded-full transition-colors duration-150 cursor-pointer"
+                className="text-primary-foreground rounded-full transition-colors duration-150 cursor-pointer"
               >
                 {social.svg}
               </button>
             ))}
           </div>
-          <button className="w-full mt-6 bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer">
-            {viewMode === "ALUMNI_VIEWING_STUDENT" ? "Endorse" : "Edit Profile"}
-          </button>
+
+          <div className="mt-6 w-full">
+            {userRole === "ADMIN" ? (
+              <button 
+                onClick={handleAdminActionClick}
+                className="w-full bg-destructive text-destructive-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer"
+              >
+                 Endorse as admin
+              </button>
+            ) : userRole === "STUDENT" ? (
+              // Student View: Wrapped in a Link so you can direct them to an edit route
+              <Link href="/profile/edit" className="block w-full">
+                <button className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
+                  Edit Profile
+                </button>
+              </Link>
+            ) : viewMode === "ALUMNI_VIEWING_STUDENT" ? (
+              <button className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer">
+                Endorse
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};

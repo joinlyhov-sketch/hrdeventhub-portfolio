@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import { CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 import { UserData } from "../../../../data/UserData";
 import {
   Dialog,
@@ -26,12 +26,19 @@ export default function ReactivateModal({
 }: ReactivateModalProps) {
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-[32px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+      <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-4xl p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150">
         <div className="bg-[#F8FAFC] px-8 py-3 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <img
+            {/* <img
               src={user.avatar}
               alt=""
+              className="w-12 h-12 rounded-full object-cover"
+            /> */}
+            <Image 
+            src={user.avatar}
+              alt="avatar"
+              width ={48}
+              height={48}
               className="w-12 h-12 rounded-full object-cover"
             />
             <div>
@@ -58,7 +65,7 @@ export default function ReactivateModal({
             <DialogDescription className="text-sm text-slate-500 max-w-md mx-auto">
               Are you sure you want to reactivate{" "}
               <span className="font-bold text-slate-700">
-                '{user.username}'
+                &ldquo;{user.username}&rdquo;
               </span>
               ?
               <span className="block mt-1 text-slate-400">

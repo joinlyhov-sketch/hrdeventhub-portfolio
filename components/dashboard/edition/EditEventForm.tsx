@@ -4,19 +4,12 @@ import {
   Clock,
   MapPin,
   FileText,
-  Megaphone,
-  BookOpenTextIcon,
   BadgeDollarSign,
-  CalendarDays,
 } from "lucide-react";
-import Link from "next/link";
 import { Breadcrumb } from "../BreadCrumb";
 import { FormInput } from "../FormInput";
 import MediaUpload from "../MediaUpload";
 import { Button } from "../../ui/button";
-import { CreationTabs } from "../CreationTab";
-import { Textarea } from "../../ui/textarea";
-import { Label } from "../../ui/label";
 import { FormTextarea } from "../FormTextarea";
 import { EditionTabs } from "../EditionTab";
 

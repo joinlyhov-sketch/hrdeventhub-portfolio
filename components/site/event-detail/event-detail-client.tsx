@@ -10,12 +10,13 @@ import { AdminOverview } from "../../../components/site/event-detail//register-t
 import { DiscussionSection } from "../../../components/site/event-detail//discussion-section";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import Link from "next/link";
+import type { HRDEvent } from "../../../data/event-detail";
 
 type Tab = "details" | "price" | "map";
 type AdminSubTab = "overview" | "discussion";
 
 interface EventDetailClientProps {
-  event: any;
+  event: HRDEvent;
   isAdminOrOrganizer: boolean;
 }
 
@@ -68,7 +69,7 @@ export default function EventDetailClient({
               <>
                 <span className="bg-primary/10 px-6 py-3 rounded-xl text-primary type-desc-small-semibold">
                   Admin
-                </span>  
+                </span>
                 <Link href={`/event-management/edition/event `}>
                   <button className="flex items-center gap-x-1 border border-border px-6 py-3 rounded-xl text-grey-900 type-desc-small-semibold hover:bg-grey-50 cursor-pointer">
                     <Edit size={16} /> Edit Event
@@ -94,9 +95,9 @@ export default function EventDetailClient({
           <div className="flex flex-col justify-between">
             <div className="grid grid-cols-3 bg-grey-100 p-1 text-center rounded-xl type-desc-small-semibold">
               {(["details", "price", "map"] as Tab[]).map((t) => (
-                <button 
-                  key={t} 
-                  onClick={() => setActiveTab(t)} 
+                <button
+                  key={t}
+                  onClick={() => setActiveTab(t)}
                   className={`py-2 rounded-md capitalize cursor-pointer ${activeTab === t ? "bg-primary text-primary-foreground" : "text-primary"}`}
                 >
                   {t}
@@ -104,7 +105,7 @@ export default function EventDetailClient({
               ))}
             </div>
 
-            <div className="grow pt-4  max-w-full items-stretch min-[1290px]:w-[768px]">
+            <div className="grow pt-4  max-w-full items-stretch min-[1290px]:w-3xl">
               {activeTab === "details" && <DetailContentComponent />}
               {activeTab === "price" && <PriceContentComponent />}
               {activeTab === "map" && <MapContentComponent />}
@@ -119,24 +120,26 @@ export default function EventDetailClient({
         </section>
 
         <section className="flex gap-x-6 py-2 border-b border-border text-grey-400 type-detail">
-          <button 
+          <button
             onClick={handleLikeToggle}
             className={`flex items-center gap-x-1 transition-colors cursor-pointer ${
-              detailData.isLikedByUser 
-                ? "text-blue-600 font-semibold" 
+              detailData.isLikedByUser
+                ? "text-blue-600 font-semibold"
                 : "hover:text-primary"
             }`}
           >
-            <ThumbsUp 
-              size={16} 
-              className={detailData.isLikedByUser ? "fill-blue-600 stroke-blue-600" : ""} 
+            <ThumbsUp
+              size={16}
+              className={
+                detailData.isLikedByUser ? "fill-blue-600 stroke-blue-600" : ""
+              }
             />{" "}
             {detailData.likesCount}
           </button>
           <span className="flex items-center gap-x-1">
             <MessageCircleMore size={16} /> {detailData.commentsCount}
           </span>
-          <button 
+          <button
             onClick={() => setIsShareOpen(true)}
             className="flex items-center gap-x-1 hover:text-primary cursor-pointer"
           >
@@ -146,14 +149,14 @@ export default function EventDetailClient({
         {isAdminOrOrganizer ? (
           <div className="space-y-6">
             <section className="flex gap-x-6 border-b border-border type-desc-semibold">
-              <button 
-                onClick={() => setActiveAdminTab("overview")} 
+              <button
+                onClick={() => setActiveAdminTab("overview")}
                 className={`pb-2 capitalize cursor-pointer ${activeAdminTab === "overview" ? "text-primary border-b-2 border-primary" : "text-grey-400"}`}
               >
                 Overview
               </button>
-              <button 
-                onClick={() => setActiveAdminTab("discussion")} 
+              <button
+                onClick={() => setActiveAdminTab("discussion")}
                 className={`pb-2 capitalize cursor-pointer ${activeAdminTab === "discussion" ? "text-primary border-b-2 border-primary" : "text-grey-400"}`}
               >
                 Discussion

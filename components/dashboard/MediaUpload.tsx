@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent } from "react";
 import { Delete, Plus } from "lucide-react";
 import Image from "next/image";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { Button } from "../ui/button";
 
 interface UploadedImage {
   id: string;
