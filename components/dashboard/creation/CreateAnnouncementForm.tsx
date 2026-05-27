@@ -15,7 +15,7 @@ import MediaUpload from "../MediaUpload";
 
 export default function CreateAnnouncementForm() {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col min-w-full">
       <Breadcrumb label="Announcement Creation" backHref="/group/${groupId}" />
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col flex-grow mb-4">
         <div className="p-5 md:px-1 lg:px-10 border-b border-slate-50">
