@@ -485,7 +485,7 @@ const sidebarMenuButtonVariants = cva(
 
     data-active:bg-[#1C4D8D]/10
     data-active:text-[#1C4D8D]
-
+    
     [&_svg]:size-[22px]
     [&_svg]:shrink-0
 
@@ -499,7 +499,7 @@ const sidebarMenuButtonVariants = cva(
   {
     variants: {
       variant: {
-        default: "hover:bg-[#1C4D8D]/10 hover:text-[#1C4D8D]",
+        default: "hover:bg-[#1C4D8D]/5 hover:text-secondary text-gray-500",
 
         outline:
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

@@ -1,7 +1,6 @@
 import { MOCK_EVENTS } from "../../../data/event-detail";
 
 export default function PriceContentCOmponent() {
-
   const event = MOCK_EVENTS[0];
 
   return (

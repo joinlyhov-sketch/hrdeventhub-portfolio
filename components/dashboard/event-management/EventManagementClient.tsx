@@ -2,22 +2,25 @@
 
 import { useState } from "react";
 
-import { Plus, CalendarDays } from "lucide-react";
+import { Calendar, CalendarDays, FileText, Megaphone } from "lucide-react";
 
 import { StatsCardsSection } from "../transaction-history/StatsCardsSection";
-
-import { Button } from "../../ui/button";
-
 import { EventManagementTable } from "./EventManagementTable";
 import { EventManagement } from "../../../types/event-management";
 import { StatCard } from "../../../types/transaction";
 import Search from "../../site/search/Search";
+import ContentTypePopover from "@/components/site/pop-up/contents/pop-over-content";
+import { PopoverItem } from "@/components/site/pop-up/contents/pop-over-content";
 
 interface EventManagementClientProps {
   events: EventManagement[];
   stats: StatCard[];
 }
-
+  const contentMenuOptions: PopoverItem[] = [
+  { label: "Announcement", icon: Megaphone, href: "/event-management/creation/announcement" },
+  { label: "Article", icon: FileText, href: "/event-management/creation/article" },
+  { label: "Event", icon: Calendar, href: "/event-management/creation/event "},
+];
 export function EventManagementClient({
   events,
   stats,
@@ -43,11 +46,7 @@ export function EventManagementClient({
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search for events..."
             />
-            <button className="bg-primary p-2 text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[40px] h-[40px] relative z-50">
-              <div className="transform transition-transform duration-300 flex items-center justify-center">
-                <Plus size={20} />
-              </div>
-            </button>
+            <ContentTypePopover items={contentMenuOptions}/>
           </div>
         </div>
 

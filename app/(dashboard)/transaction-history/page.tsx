@@ -9,13 +9,13 @@ import {
 
 export default function TransactionHistoryPage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen z-10">
       <Header
         titlePrimary="Transaction"
         titleSecondary="History"
         description="Monitor participant responses and review insights from completed community surveys."
       />
-      <div className="w-full min-w-0 max-w-7xl m-auto pr-8 lg:pr-12 lg:pl-12">
+      <div className="w-full max-w-420 min-w-0 mx-auto lg:pr-11.25 lg:pl-[47px]">
         <StatsCardsSection stats={statsData} />
 
         <TransactionTableSection

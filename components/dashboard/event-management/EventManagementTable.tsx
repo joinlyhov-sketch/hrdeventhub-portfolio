@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { MoreVertical, ListFilter } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { ListFilter, Pencil, Trash2,XCircle } from "lucide-react";
 
 import { EventManagement } from "../../../types/event-management";
 
@@ -15,6 +16,7 @@ import {
 } from "../../ui/table";
 import { PaginationDemo } from "../../feedback/Pagination";
 import Link from "next/link";
+import ActionDropdown, { DropdownAction } from "@/components/site/pop-up/action-button/ActionDropdown";
 
 interface EventManagementTableProps {
   events: EventManagement[];
@@ -38,6 +40,7 @@ export function EventManagementTable({
   events,
   searchTerm,
 }: EventManagementTableProps) {
+  const router = useRouter(); 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -53,6 +56,17 @@ export function EventManagementTable({
     startIndex,
     startIndex + itemsPerPage,
   );
+
+  const handleDeleteRequest = (id: string) => {
+    if (confirm("Are you sure you want to delete this event?")) {
+      console.log(`Deleting event with ID: ${id}`);
+    }
+  };
+  const handleCancelRequest = (id: string) => {
+    if (confirm("Are you sure you want to cancel this event?")) {
+      console.log(`Canceling event with ID: ${id}`);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -98,65 +112,84 @@ export function EventManagementTable({
 
           <TableBody>
             {paginatedEvents.length > 0 ? (
-              paginatedEvents.map((event) => (
-                <TableRow
-                  key={event.id}
-                  className="hover:bg-gray-50/80 border-b border-gray-100 h-14"
-                >
-                  <TableCell className="text-center text-secondary type-desc">
-                    {event.no}
-                  </TableCell>
+              paginatedEvents.map((event) => {
+                const currentItemActions: DropdownAction[] = [
+                  {
+                    label: "Update",
+                    icon: Pencil,
+                    onClick: () => router.push(`/event-management/edition/event`),
+                  },
+                  {
+                    label: "Delete",
+                    icon: Trash2,
+                    onClick: () => handleDeleteRequest(event.id),
+                  },
+                  {
+                    label: "Cancel",
+                    icon: XCircle,
+                    onClick: () => handleCancelRequest(event.id),
+                  },
+                ];
 
-                  <TableCell
-                    title={event.name}
-                    className="max-w-[140px] truncate text-left text-primary type-desc cursor-pointer"
+                return (
+                  <TableRow
+                    key={event.id}
+                    className="hover:bg-gray-50/80 border-b border-gray-100 h-14"
                   >
-                    <Link
-                      href={`/event-management/attendees-list/${event.id}`}
-                      className="hover:underline"
+                    <TableCell className="text-center text-secondary type-desc">
+                      {event.no}
+                    </TableCell>
+
+                    <TableCell
+                      title={event.name}
+                      className="max-w-[140px] truncate text-left text-primary type-desc cursor-pointer"
                     >
-                      {event.name}
-                    </Link>
-                  </TableCell>
+                      <Link
+                        href={`/event-management/attendees-list/${event.id}`}
+                        className="hover:underline"
+                      >
+                        {event.name}
+                      </Link>
+                    </TableCell>
 
-                  <TableCell
-                    title={event.date}
-                    className="max-w-[140px] truncate text-left text-gray-500 type-desc"
-                  >
-                    {event.date}
-                  </TableCell>
-
-                  <TableCell
-                    title={event.category}
-                    className="max-w-[120px] truncate text-left text-gray-500 type-desc"
-                  >
-                    {event.category || "-"}
-                  </TableCell>
-
-                  <TableCell className="text-left">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full type-desc-small-semibold font-bold whitespace-nowrap ${getStatusStyles(
-                        event.status,
-                      )}`}
+                    <TableCell
+                      title={event.date}
+                      className="max-w-[140px] truncate text-left text-gray-500 type-desc"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                      {event.status}
-                    </span>
-                  </TableCell>
+                      {event.date}
+                    </TableCell>
 
-                  <TableCell className="text-center text-secondary type-desc">
-                    {event.attendees !== null && event.attendees !== undefined
-                      ? event.attendees.toLocaleString()
-                      : "-"}
-                  </TableCell>
+                    <TableCell
+                      title={event.category}
+                      className="max-w-[120px] truncate text-left text-gray-500 type-desc"
+                    >
+                      {event.category || "-"}
+                    </TableCell>
 
-                  <TableCell className="text-center">
-                    <button className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-lg transition-colors inline-flex items-center justify-center cursor-pointer">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))
+                    <TableCell className="text-left">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full type-desc-small-semibold font-bold whitespace-nowrap ${getStatusStyles(
+                          event.status,
+                        )}`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                        {event.status}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="text-center text-secondary type-desc">
+                      {event.attendees !== null && event.attendees !== undefined
+                        ? event.attendees.toLocaleString()
+                        : "-"}
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      {/* Fed actions array dynamically inside map instance loop */}
+                      <ActionDropdown actions={currentItemActions} />
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

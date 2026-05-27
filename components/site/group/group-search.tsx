@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Settings2, Plus } from "lucide-react";
 import Search from "../search/Search";
-
+import CreateGroupModal from "@/components/site/pop-up/action-button/CreateGroupForm"; 
 interface GroupSearchProps {
   role: string;
   initialSearchValue: string;
@@ -17,6 +17,8 @@ export default function GroupSearch({
   const router = useRouter();
   const pathname = usePathname();
   const [search, setSearch] = useState(initialSearchValue);
+  
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   useEffect(() => {
     setSearch(initialSearchValue);
@@ -47,11 +49,19 @@ export default function GroupSearch({
       </button>
 
       {role === "admin" && (
-        <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0">
+        <button 
+          onClick={() => setIsCreateOpen(true)}
+          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer"
+        >
           Create
           <Plus size={20} strokeWidth={3} />
         </button>
       )}
+
+      <CreateGroupModal 
+        isOpen={isCreateOpen} 
+        onClose={() => setIsCreateOpen(false)} 
+      />
     </div>
   );
 }

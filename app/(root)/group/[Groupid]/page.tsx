@@ -10,15 +10,15 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="min-h-screen w-full">
-      <div className="mx-auto max-w-full">
-        <div className="flex flex-col gap-6 2xl:flex-row">
-          <section className="w-full 2xl:max-w-4xl flex-1">
+    <main className="min-h-screen w-full bg-background">
+      <div className="mx-auto w-full max-w-420">
+        <div className="flex flex-col gap-6 xl:flex-row">
+          <section className="w-full flex-1">
             <FilteredFeed role={MOCK_CURRENT_USER.role} />
           </section>
 
-          <aside className="hidden 2xl:block">
-            <div className="fixed right-6 top-24 w-80 space-y-4">
+          <aside className="w-full xl:sticky xl:right-10 xl:top-20 xl:w-85 xl:self-start">
+            <div className="space-y-4 fixed right-4">
               <UpComingEventCard />
               <GroupMemberCard />
             </div>

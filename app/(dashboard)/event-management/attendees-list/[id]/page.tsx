@@ -133,7 +133,7 @@ export default async function AttendeesManagementPage() {
   const initialAttendee = await fetchAttendee();
 
   return (
-    <>
+    <div className="w-full max-w-420 mx-auto">
       <Breadcrumb label="All attendees list" backHref="/event-management" />
       <div className="w-full max-w-full mx-auto my-auto p-5 bg-white rounded-3xl border border-gray-100 shadow-sm space-y-5">
         <div className="flex items-center gap-2.5 text-secondary border-b border-gray-50 pb-2">
@@ -144,6 +144,6 @@ export default async function AttendeesManagementPage() {
         </div>
         <AttendeeTableClient initialAttendees={initialAttendee} />
       </div>
-    </>
+    </div>
   );
 }

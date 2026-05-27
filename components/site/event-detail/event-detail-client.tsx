@@ -17,21 +17,28 @@ interface EventDetailClientProps {
   isAdminOrOrganizer: boolean;
 }
 
-export default function EventDetailClient({ event, isAdminOrOrganizer }: EventDetailClientProps) {
+export default function EventDetailClient({
+  event,
+  isAdminOrOrganizer,
+}: EventDetailClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [activeAdminTab, setActiveAdminTab] = useState<AdminSubTab>("overview");
 
   return (
-    <section className="border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
+    <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
       <section className="flex justify-between items-center">
         <div className="flex items-center gap-x-3">
-          <div 
-            className="w-10 h-10 rounded-full bg-cover bg-center" 
-            style={{ backgroundImage: `url(${event.creator.avatarUrl})` }} 
+          <div
+            className="w-10 h-10 rounded-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${event.creator.avatarUrl})` }}
           />
           <div>
-            <p className="type-desc-semibold text-secondary">{event.creator.name}</p>
-            <p className="type-detail-small-medium text-muted-foreground">01/05/2026 20:25</p>
+            <p className="type-desc-semibold text-secondary">
+              {event.creator.name}
+            </p>
+            <p className="type-detail-small-medium text-muted-foreground">
+              01/05/2026 20:25
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-x-2">
@@ -49,17 +56,17 @@ export default function EventDetailClient({ event, isAdminOrOrganizer }: EventDe
       </section>
 
       <h2 className="type-title text-grey-900">Calling for HRD Alumni !</h2>
-      
+
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Image 
-          unoptimized 
-          src={event.bannerUrl} 
-          alt="Banner" 
-          width={600} 
-          height={350} 
-          className="rounded-xl w-full object-cover" 
+        <Image
+          unoptimized
+          src={event.bannerUrl}
+          alt="Banner"
+          width={600}
+          height={350}
+          className="rounded-xl object-cover"
         />
-        
+
         <div className="flex flex-col justify-between">
           <div className="grid grid-cols-3 bg-grey-100 p-1 text-center rounded-xl type-desc-small-semibold">
             {(["details", "price", "map"] as Tab[]).map((t) => (
@@ -88,9 +95,15 @@ export default function EventDetailClient({ event, isAdminOrOrganizer }: EventDe
       </section>
 
       <section className="flex gap-x-6 py-2 border-b border-border text-grey-400 type-detail">
-        <span className="flex items-center gap-x-1"><ThumbsUp size={16} /> 124</span>
-        <span className="flex items-center gap-x-1"><MessageCircleMore size={16} /> 18</span>
-        <span className="flex items-center gap-x-1"><Share2 size={16} /> Share</span>
+        <span className="flex items-center gap-x-1">
+          <ThumbsUp size={16} /> 124
+        </span>
+        <span className="flex items-center gap-x-1">
+          <MessageCircleMore size={16} /> 18
+        </span>
+        <span className="flex items-center gap-x-1">
+          <Share2 size={16} /> Share
+        </span>
       </section>
       {isAdminOrOrganizer ? (
         <div className="space-y-6">
@@ -108,8 +121,12 @@ export default function EventDetailClient({ event, isAdminOrOrganizer }: EventDe
               Discussion
             </button>
           </section>
-          
-          {activeAdminTab === "overview" ? <AdminOverview /> : <DiscussionSection event={event} />}
+
+          {activeAdminTab === "overview" ? (
+            <AdminOverview />
+          ) : (
+            <DiscussionSection event={event} />
+          )}
         </div>
       ) : (
         <div className="space-y-4">

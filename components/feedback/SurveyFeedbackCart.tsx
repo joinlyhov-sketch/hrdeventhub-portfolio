@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import {
+  CheckCircle2,
+  
   ArrowRight,
   BarChart3,
   Circle,
@@ -10,14 +12,18 @@ import {
   FileExclamationPoint,
 } from "lucide-react";
 import Search from "../site/search/Search";
+import { PopoverItem } from "../site/pop-up/contents/pop-over-content";
 
 import { surveyFeedbacks } from "../../data/surveyFeedback";
 import Link from "next/link";
 import { PaginationDemo } from "./Pagination";
+import ContentTypePopover from "../site/pop-up/contents/pop-over-content";
 
 export default function SurveyFeedbackFeature() {
   const [search, setSearch] = useState("");
-
+const contentMenuOptions: PopoverItem[] = [
+  { label: "Survey", icon: CheckCircle2, href: "/event-management/creation/survey" },
+  { label: "Poll", icon: BarChart3, href: "/event-management/creation/poll" },];
   const filteredFeedbacks = surveyFeedbacks.filter((item) => {
     const searchLower = (search || "").toLowerCase().trim();
 
@@ -47,14 +53,11 @@ export default function SurveyFeedbackFeature() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search for feedback..."
           />
-          <button className="bg-primary p-2 text-white rounded-full hover:bg-primary-hover transition-all cursor-pointer shadow-sm flex items-center justify-center overflow-hidden w-[46px] h-[46px] shrink-0 relative z-45">
-            <div className="transform transition-transform duration-300 flex items-center justify-center">
-              <Plus size={30} />
-            </div>
-          </button>
+          <ContentTypePopover items={contentMenuOptions}/>
+          
         </div>
 
-        <div className="relative w-full block box-border min-h-[440px]">
+        <div className="relative w-full block box-border min-h-110">
           <div
             className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full auto-rows-fr box-border transition-opacity duration-150 ${
               hasResults ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -74,10 +77,10 @@ export default function SurveyFeedbackFeature() {
               </div>
               <div>
                 <p className="text-base font-bold text-slate-700">
-                  Feedback data doesn't exist
+                  Feedback data doesn&apos;t exist
                 </p>
                 <p className="text-sm text-slate-400 font-medium">
-                  We couldn't find any match for your current feedback.
+                  We couldn&apos;t find any match for your current feedback.
                 </p>
               </div>
             </div>
