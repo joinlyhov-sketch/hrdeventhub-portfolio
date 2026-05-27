@@ -124,7 +124,7 @@ export default function UserTableClient({
         <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <TableHeader>
             <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
-              <TableHead className="px-5 py-3 cursor-pointer text-desc-semibold tracking-wider text-center text-white w-[5%]">
+              <TableHead className="px-5 py-3 cursor-pointer text-desc-semibold tracking-wider text-center text-white w-[10%]">
                 No.
               </TableHead>
               <TableHead className="px-6 py-3 cursor-pointer text-desc-semibold tracking-wider text-white w-[18%]">

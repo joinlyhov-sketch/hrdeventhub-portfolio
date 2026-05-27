@@ -40,19 +40,110 @@ export function PaginationDemo({
 
   const renderPageNumbers = () => {
     const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
+
+    if (totalPages <= 4) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => handlePageClick(e, i)}
+              isActive={currentPage === i}
+              className="hover:bg-transparent hover:text-inherit"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>,
+        );
+      }
+      return pages;
+    }
+
+    pages.push(
+      <PaginationItem key={1}>
+        <PaginationLink
+          href="#"
+          onClick={(e) => handlePageClick(e, 1)}
+          isActive={currentPage === 1}
+          className="hover:bg-transparent hover:text-inherit"
+        >
+          1
+        </PaginationLink>
+      </PaginationItem>,
+    );
+
+    if (currentPage <= 2) {
       pages.push(
-        <PaginationItem key={i}>
+        <PaginationItem key={2}>
           <PaginationLink
             href="#"
-            onClick={(e) => handlePageClick(e, i)}
-            isActive={currentPage === i}
+            onClick={(e) => handlePageClick(e, 2)}
+            isActive={currentPage === 2}
+            className="hover:bg-transparent hover:text-inherit"
           >
-            {i}
+            2
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
+      );
+
+      pages.push(
+        <PaginationItem key="ellipsis">
+          <PaginationEllipsis />
+        </PaginationItem>,
+      );
+    } else if (currentPage >= totalPages - 1) {
+      pages.push(
+        <PaginationItem key="ellipsis">
+          <PaginationEllipsis />
+        </PaginationItem>,
+      );
+
+      pages.push(
+        <PaginationItem key={totalPages - 1}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => handlePageClick(e, totalPages - 1)}
+            isActive={currentPage === totalPages - 1}
+            className="hover:bg-transparent hover:text-inherit"
+          >
+            {totalPages - 1}
+          </PaginationLink>
+        </PaginationItem>,
+      );
+    } else {
+      pages.push(
+        <PaginationItem key={currentPage}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => handlePageClick(e, currentPage)}
+            isActive={true}
+            className="hover:bg-transparent hover:text-inherit"
+          >
+            {currentPage}
+          </PaginationLink>
+        </PaginationItem>,
+      );
+
+      pages.push(
+        <PaginationItem key="ellipsis">
+          <PaginationEllipsis />
+        </PaginationItem>,
       );
     }
+
+    pages.push(
+      <PaginationItem key={totalPages}>
+        <PaginationLink
+          href="#"
+          onClick={(e) => handlePageClick(e, totalPages)}
+          isActive={currentPage === totalPages}
+          className="hover:bg-transparent hover:text-inherit"
+        >
+          {totalPages}
+        </PaginationLink>
+      </PaginationItem>,
+    );
+
     return pages;
   };
 
@@ -64,9 +155,9 @@ export function PaginationDemo({
             <PaginationPrevious
               href="#"
               onClick={handlePrevious}
-              className={
+              className={`hover:bg-transparent hover:text-inherit ${
                 currentPage === 1 ? "pointer-events-none opacity-50" : ""
-              }
+              }`}
             />
           </PaginationItem>
 
@@ -76,9 +167,11 @@ export function PaginationDemo({
             <PaginationNext
               href="#"
               onClick={handleNext}
-              className={
-                currentPage === totalPages ? "pointer-events-none opacity-50" : ""
-              }
+              className={`hover:bg-transparent hover:text-inherit ${
+                currentPage === totalPages
+                  ? "pointer-events-none opacity-50"
+                  : ""
+              }`}
             />
           </PaginationItem>
         </PaginationContent>
