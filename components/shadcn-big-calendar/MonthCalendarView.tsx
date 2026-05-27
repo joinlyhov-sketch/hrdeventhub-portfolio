@@ -1,4 +1,4 @@
-import { monthDays, monthEvents, weekDays } from "../../../data/calendarData";
+import { monthDays, monthEvents, weekDays } from "@/data/calendarData";
 
 export default function MonthCalendarView() {
   return (
