@@ -1,5 +1,5 @@
 import { CalendarDays, Clock3, MapPin } from "lucide-react";
-import { upcomingEvents } from "../../../data/calendarData";
+import { upcomingEvents } from "@/data/calendarData";
 
 export default function UpcomingEventSection() {
   const groupedEvents = upcomingEvents.reduce<
@@ -69,7 +69,7 @@ export default function UpcomingEventSection() {
                     </div>
                   </div>
 
-                  <button className="type-detail-semibold rounded-lg bg-muted px-5 py-3 text-primary transition hover:bg-primary hover:text-primary-foreground">
+                  <button className="type-detail-semibold rounded-lg bg-muted px-5 py-3 text-primary transition hover:bg-primary hover:cursor-pointer hover:text-primary-foreground">
                     View Detail
                   </button>
                 </article>

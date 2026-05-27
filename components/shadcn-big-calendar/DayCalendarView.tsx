@@ -1,8 +1,8 @@
 "use client";
 
 import { Briefcase, MapPin, Utensils } from "lucide-react";
-import { EventTone } from "../../../types/calendar";
-import { weekDayTimeSlots } from "../../../data/calendarData";
+import { EventTone } from "@/types/calendar";
+import { weekDayTimeSlots } from "@/data/calendarData";
 
 const ROW_HEIGHT = 60;
 const TIME_COL_WIDTH = 70;
