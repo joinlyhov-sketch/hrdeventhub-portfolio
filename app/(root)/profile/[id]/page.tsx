@@ -1,11 +1,11 @@
 "use client";
-import ProfileHeader from "../../../components/site/profile/ProfileHeader";
-import BackgroundTab from "../../../components/site/profile/BackgroundTab";
-import EventTab from "../../../components/site/profile/EventTab";
+import ProfileHeader from "@/components/site/profile/ProfileHeader";
+import BackgroundTab from "@/components/site/profile/BackgroundTab";
+import EventTab from "@/components/site/profile/EventTab";
 import { useState } from "react";
-import ProfileCard from "../../../components/site/profile/ProfileCard";
-import EndorsementTabs from "../../../components/site/profile/EndorsementTabs";
-import HeaderNoProfile from "../../../components/dashboard/header/HeaderNoProfile";
+import ProfileCard from "@/components/site/profile/ProfileCard";
+import EndorsementTabs from "@/components/site/profile/EndorsementTabs";
+import HeaderNoProfile from "@/components/dashboard/header/HeaderNoProfile";
 
 export type UserViewMode = "ADMIN" | "STUDENT_SELF" | "ALUMNI_VIEWING_STUDENT";
 

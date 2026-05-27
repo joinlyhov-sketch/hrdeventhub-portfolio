@@ -2,12 +2,12 @@
 
 import { CheckCircle2, Plus, Search, ChartColumnBig, X } from "lucide-react";
 
-import { Button } from "../../../components/ui/button";
+import { Button } from "../../../ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "../../../components/ui/popover/popover";
+} from "../../../ui/popover/popover";
 
 export default function ActionButtons() {
   return (

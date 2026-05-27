@@ -368,7 +368,7 @@ export function AppSidebar() {
                 tooltip="Event Management"
                 className="h-11"
               >
-                <Link href="/profile">
+                <Link href="/profile/1">
                   <svg
                     width={18}
                     height={18}
@@ -414,12 +414,12 @@ export function AppSidebar() {
 
             <SidebarMenuItem>
               <SidebarMenuButton
-                isActive={pathname === "/profile/edit-profile"}
+                isActive={pathname === "/profile/1/edit-profile"}
                 asChild
                 tooltip="Edit-Profile"
                 className="h-11"
               >
-                <Link href={"/profile/edit-profile"}>
+                <Link href={"/profile/1/edit-profile"}>
                   <svg
                     width={18}
                     height={18}
@@ -483,12 +483,12 @@ export function AppSidebar() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
-                isActive={pathname === "/profile/setting"}
+                isActive={pathname === "/profile/1/setting"}
                 asChild
                 tooltip="Setting"
                 className="h-11"
               >
-                <Link href={"/profile/setting"}>
+                <Link href={"/profile/1/setting"}>
                   <svg
                     width={18}
                     height={18}
