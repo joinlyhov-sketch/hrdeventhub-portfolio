@@ -3,9 +3,9 @@
 import { StatCard } from "../../../types/transaction";
 import { StatsCard } from "./StatsCard";
 
-// interface StatsCardsSectionProps {
-//   stats: StatCard[];
-// }
+interface StatsCardsSectionProps {
+  stats: StatCard[];
+}
 
 export function StatsCardsSection() {
   return (
