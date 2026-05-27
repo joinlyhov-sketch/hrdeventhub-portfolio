@@ -141,7 +141,6 @@ export const transactionsData: Transaction[] = [
 ];
 
 export const eventsData: Event[] = [
-  // 2026 Events
   {
     id: "evt-001",
     date: "Oct 12, 2026",
@@ -178,7 +177,6 @@ export const eventsData: Event[] = [
     attendees: 52,
     year: 2026,
   },
-  // 2025 Events
   {
     id: "evt-005",
     date: "Dec 25, 2025",
@@ -233,7 +231,6 @@ export const eventsData: Event[] = [
     attendees: 95,
     year: 2025,
   },
-  // 2024 Events
   {
     id: "evt-011",
     date: "Dec 20, 2024",

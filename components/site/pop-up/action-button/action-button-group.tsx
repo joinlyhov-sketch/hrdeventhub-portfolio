@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/drop-down/dropdown-menu";
-import EditGroupModal from "@/components/site/pop-up/action-button/EditGroupForm"; 
+import EditGroupModal from "@/components/site/pop-up/action-button/EditGroupForm";
 import { DeleteModal } from "@/components/site/pop-up/commons/DeleteModal";
 import CreateInvitationLinkModal from "@/components/site/pop-up/action-button/CreateInvitationLinkModal";
 interface Group {
@@ -32,20 +32,19 @@ export default function GroupDropDown({ group }: GroupDropDownProps) {
   const handleEdit = () => {
     setIsEditOpen(true);
   };
-  
+
   const handleDeleteClick = () => {
     setIsDeleteOpen(true);
   };
 
   const handleConfirmDelete = () => {
     console.log("Proceeding to delete group ID:", group.id);
-    // Add your real API delete request layout function here
     setIsDeleteOpen(false);
   };
 
- const handleLink = () => {
-  setIsLinkOpen(true);
-};
+  const handleLink = () => {
+    setIsLinkOpen(true);
+  };
 
   return (
     <>
@@ -99,9 +98,9 @@ export default function GroupDropDown({ group }: GroupDropDownProps) {
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-      <EditGroupModal 
-        isOpen={isEditOpen} 
-        onClose={() => setIsEditOpen(false)} 
+      <EditGroupModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
       />
 
       <DeleteModal
@@ -110,10 +109,10 @@ export default function GroupDropDown({ group }: GroupDropDownProps) {
         group={group}
         onConfirm={handleConfirmDelete}
       />
-      <CreateInvitationLinkModal 
-  isOpen={isLinkOpen} 
-  onClose={() => setIsLinkOpen(false)} 
-/>
+      <CreateInvitationLinkModal
+        isOpen={isLinkOpen}
+        onClose={() => setIsLinkOpen(false)}
+      />
     </>
   );
 }

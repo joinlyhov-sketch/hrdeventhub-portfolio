@@ -51,7 +51,6 @@ export default function PollForm() {
       onSubmit={handleFormSubmission}
       className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-auto border-gray-100 w-full items-start"
     >
-      {/* Form section gets more space (9 columns out of 12) */}
       <div className="lg:col-span-9 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
