@@ -34,15 +34,16 @@ export default function EventDetailClient({ event, isAdminOrOrganizer }: EventDe
             <p className="type-detail-small-medium text-muted-foreground">01/05/2026 20:25</p>
           </div>
         </div>
-        
         <div className="flex items-center gap-x-2">
-          <span className="bg-primary/10 px-3 py-1 rounded text-primary type-desc-small-semibold">
-            Admin
-          </span>
           {isAdminOrOrganizer && (
-            <button className="flex items-center gap-x-1 border border-border rounded-md px-3 py-1 text-grey-900 type-desc-small-semibold hover:bg-grey-50">
-              <Edit size={12} /> Edit Event
-            </button>
+            <>
+              <span className="bg-primary/10 px-6 py-3 rounded-xl text-primary type-desc-small-semibold">
+                Admin
+              </span>  
+              <button className="flex items-center gap-x-1 border border-border px-6 py-3 rounded-xl text-grey-900 type-desc-small-semibold hover:bg-grey-50 cursor-pointer">
+                <Edit size={16} /> Edit Event
+              </button>
+            </>
           )}
         </div>
       </section>
@@ -65,21 +66,21 @@ export default function EventDetailClient({ event, isAdminOrOrganizer }: EventDe
               <button 
                 key={t} 
                 onClick={() => setActiveTab(t)} 
-                className={`py-2 rounded-md capitalize ${activeTab === t ? "bg-primary text-primary-foreground" : "text-primary"}`}
+                className={`py-2 rounded-md capitalize cursor-pointer ${activeTab === t ? "bg-primary text-primary-foreground" : "text-primary"}`}
               >
                 {t}
               </button>
             ))}
           </div>
 
-          <div className="grow py-4">
+          <div className="grow pt-4">
             {activeTab === "details" && <DetailContentComponent />}
             {activeTab === "price" && <PriceContentComponent />}
             {activeTab === "map" && <MapContentComponent />}
           </div>
 
           {!isAdminOrOrganizer && (
-            <button className="w-full rounded-md py-2.5 type-desc-semibold text-center text-primary-foreground bg-primary hover:opacity-95 transition-opacity">
+            <button className="w-full rounded-md py-2.5 type-desc-semibold text-center text-primary-foreground bg-primary hover:opacity-95 transition-opacity cursor-pointer">
               Register now
             </button>
           )}
@@ -91,19 +92,18 @@ export default function EventDetailClient({ event, isAdminOrOrganizer }: EventDe
         <span className="flex items-center gap-x-1"><MessageCircleMore size={16} /> 18</span>
         <span className="flex items-center gap-x-1"><Share2 size={16} /> Share</span>
       </section>
-
       {isAdminOrOrganizer ? (
         <div className="space-y-6">
           <section className="flex gap-x-6 border-b border-border type-desc-semibold">
             <button 
               onClick={() => setActiveAdminTab("overview")} 
-              className={`pb-2 capitalize ${activeAdminTab === "overview" ? "text-primary border-b-2 border-primary" : "text-grey-400"}`}
+              className={`pb-2 capitalize cursor-pointer ${activeAdminTab === "overview" ? "text-primary border-b-2 border-primary" : "text-grey-400"}`}
             >
               Overview
             </button>
             <button 
               onClick={() => setActiveAdminTab("discussion")} 
-              className={`pb-2 capitalize ${activeAdminTab === "discussion" ? "text-primary border-b-2 border-primary" : "text-grey-400"}`}
+              className={`pb-2 capitalize cursor-pointer ${activeAdminTab === "discussion" ? "text-primary border-b-2 border-primary" : "text-grey-400"}`}
             >
               Discussion
             </button>

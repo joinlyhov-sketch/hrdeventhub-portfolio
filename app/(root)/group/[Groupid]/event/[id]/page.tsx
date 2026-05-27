@@ -21,6 +21,9 @@ export default function EventDetailPage() {
         <span className="text-action type-detail-semibold">Sport Reunion Events</span>
       </section>
       <EventDetailClient event={event} isAdminOrOrganizer={isAdminOrOrganizer} />
+
+
+
     </section>
   );
 }
