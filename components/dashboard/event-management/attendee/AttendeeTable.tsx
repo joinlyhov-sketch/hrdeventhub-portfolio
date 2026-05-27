@@ -50,30 +50,30 @@ export default function AttendeeTableClient({
         <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <TableHeader>
             <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
-              <TableHead className="px-5 py-3  text-desc font-bold tracking-wider text-white text-center w-[5%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[5%]">
                 No.
               </TableHead>
-              <TableHead className="px-5 py-3  text-desc font-bold tracking-wider text-left text-white w-[18%]">
+              <TableHead className="text-white type-desc-semibold text-left w-[18%]">
                 Name
               </TableHead>
-              <TableHead className="px-5 py-3  text-desc font-bold tracking-wider text-white w-[10%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[10%]">
                 Gender
               </TableHead>
-              <TableHead className="px-3 py-3 text-desc font-bold tracking-wider text-white w-[12%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[12%]">
                 Timestamp
               </TableHead>
-              <TableHead className="px-8 py-3 text-desc font-bold tracking-wider text-white w-[22%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[22%]">
                 Remark
               </TableHead>
-              <TableHead className="px-5 py-3 text-desc font-bold tracking-wider text-white text-center w-[10%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[10%]">
                 Amount
               </TableHead>
-              <TableHead className="px-8 py-3  text-desc font-bold tracking-wider text-white w-[12%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[12%]">
                 <div className="flex items-center gap-1 cursor-pointer select-none">
                   Status <ListFilter size={16} />
                 </div>
               </TableHead>
-              <TableHead className="px-6 py-3  text-desc font-bold tracking-wider text-white w-[10%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[10%]">
                 Action
               </TableHead>
             </TableRow>

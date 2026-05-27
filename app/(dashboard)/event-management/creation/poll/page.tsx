@@ -10,9 +10,9 @@ export default function PollCreatePage() {
         <div className="flex-1 w-full">
           <PollForm />
         </div>
-        <aside className="w-30% lg:w-30% h-full sticky top-24">
+        {/* <aside className=" h-full sticky top-24">
           <PollSidebar />
-        </aside>
+        </aside> */}
       </div>
     </main>
   );

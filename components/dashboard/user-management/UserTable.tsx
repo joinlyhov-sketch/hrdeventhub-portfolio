@@ -76,34 +76,34 @@ export default function UserTableClient({
       <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-[580px] bg-white">
         <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <TableHeader>
-            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
-              <TableHead className="px-5 py-3 text-desc-semibold tracking-wider text-center text-white w-[5%]">
+            <TableRow className="bg-secondary hover:bg-secondary border-none">
+              <TableHead className="text-white type-desc-semibold text-center w-[6%]">
                 No.
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-white w-[18%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[18%]">
                 Username
               </TableHead>
-              <TableHead className="px-5 py-3 text-desc-semibold tracking-wider text-white w-[20%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[20%]">
                 Email
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-white w-[13%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[13%]">
                 Phone
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-white w-[10%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[10%]">
                 Gender
               </TableHead>
-              <TableHead className="px-5 py-3 text-desc-semibold tracking-wider text-center text-white w-[10%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[10%]">
                 <div className="flex items-center justify-center gap-1 cursor-pointer select-none">
                   Gen <ArrowUp size={16} />
                   <ListFilter size={16} />
                 </div>
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-center text-white w-[12%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[12%]">
                 <div className="flex items-center justify-center gap-1 cursor-pointer select-none">
                   Status <ListFilter size={16} />
                 </div>
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-white w-[10%]">
+              <TableHead className="text-white type-desc-semibold text-center w-[10%]">
                 Action
               </TableHead>
             </TableRow>
