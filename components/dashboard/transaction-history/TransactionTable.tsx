@@ -71,6 +71,8 @@ export function TransactionTable({
     startIndex + itemsPerPage,
   );
 
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
