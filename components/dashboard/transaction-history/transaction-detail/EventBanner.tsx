@@ -2,7 +2,6 @@
 
 import { Clock } from "lucide-react";
 import { EventDetail } from "../../../../types/transaction-detail";
-import { Button } from "../../../ui/button";
 import Link from "next/link";
 
 interface EventBannerProps {

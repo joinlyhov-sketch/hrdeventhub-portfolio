@@ -213,9 +213,9 @@ export default function ProfileCard({ viewMode }: ProfileCardProps) {
             </h2>
             <p className="type-detail text-muted-foreground mb-4">@kaknika</p>
             <p className="type-detail text-grey-500 mb-6 leading-relaxed">
-              "Dedicated Fullstack web Development student with a passion for
-              building scalable HR solutions and strategic talent acquisition
-              platforms"
+              {
+                "“Dedicated Fullstack web Development student with a passion for building scalable HR solutions and strategic talent acquisition platforms”"
+              }
             </p>
           </div>
 

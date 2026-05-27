@@ -28,9 +28,6 @@ export default function GroupSearch({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setSearch(initialSearchValue);
-  }, [initialSearchValue]);
-  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
         dropdownRef.current &&
@@ -80,7 +77,7 @@ export default function GroupSearch({
       <div className="relative shrink-0" ref={dropdownRef}>
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className={`p-2 border rounded-xl transition-all shrink-0 cursor-pointer h-[42px] w-[42px] flex items-center justify-center box-border ${
+          className={`p-2 border rounded-xl transition-all shrink-0 cursor-pointer h-10.5 w-10.5 flex items-center justify-center box-border ${
             isFilterOpen || currentType !== "All"
               ? "border-primary bg-primary/5 text-primary shadow-sm"
               : "border-gray-200 text-gray-600 hover:bg-white hover:shadow-md"
@@ -114,7 +111,7 @@ export default function GroupSearch({
       {role === "admin" && (
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer h-[42px] box-border"
+          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer h-10.5 box-border"
         >
           Create
           <Plus size={20} strokeWidth={3} />

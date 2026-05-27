@@ -1,7 +1,7 @@
 import Navbar from "../components/landing/Navbar";
 import Footer from "../components/landing/Footer";
 import HeroSession from "../components/landing/HeroSession";
-import MediaListSection, { ListCard } from "../components/landing/ListCard";
+import MediaListSection from "../components/landing/ListCard";
 import PlatformEssentials from "../components/landing/PlatFormEssential";
 import { FeatureCard } from "../components/landing/FeatureCard";
 import { MediaItem } from "../components/landing/types";
@@ -12,14 +12,14 @@ const featuredData: MediaItem = {
   category: "GATHERING",
   imageUrl: "/images/sport.png",
 };
-const listData: MediaItem[] = Array(3).fill({
-  id: "list-1",
-  title: "Gen 13 Graduate Secure Global Roles ",
-  description:
-    "Congratulations to our latest graduates! 95% employment rate within 2 months of completing the software engineering.",
-  category: "SUCCESS STORY",
-  imageUrl: "/images/songkran.png",
-});
+// const listData: MediaItem[] = Array(3).fill({
+//   id: "list-1",
+//   title: "Gen 13 Graduate Secure Global Roles ",
+//   description:
+//     "Congratulations to our latest graduates! 95% employment rate within 2 months of completing the software engineering.",
+//   category: "SUCCESS STORY",
+//   imageUrl: "/images/songkran.png",
+// });
 
 export default function LandingPage() {
   return (

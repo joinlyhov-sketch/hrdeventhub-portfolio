@@ -7,7 +7,6 @@ import {
   ClipboardCheck,
   Users,
   UserRoundCog,
-  DollarSign,
 } from "lucide-react";
 
 const cards = [

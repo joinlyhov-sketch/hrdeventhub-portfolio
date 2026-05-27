@@ -1,6 +1,4 @@
 "use client";
-
-import React from "react";
 import { SquarePen, UserX2, UserRoundCheck } from "lucide-react";
 import { UserData } from "../../../data/UserData";
 import { TableCell, TableRow } from "../../ui/table";

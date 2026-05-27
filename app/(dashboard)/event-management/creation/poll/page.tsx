@@ -1,7 +1,5 @@
 import React from "react";
-import { ChevronRight } from "lucide-react";
 import PollForm from "../../../../../components/feedback/poll/creation/PollForm";
-import PollSidebar from "../../../../../components/feedback/poll/creation/PollSidebar";
 
 export default function PollCreatePage() {
   return (

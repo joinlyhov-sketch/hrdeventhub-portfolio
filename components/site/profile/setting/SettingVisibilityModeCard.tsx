@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import React, { useState } from "react";
 
 interface SelectiveVisibility {

@@ -11,7 +11,7 @@ import {
   AlertDialogMedia, 
   AlertDialogTitle 
 } from "@/components/ui/alert-modal/alert-dialog";
-import { Button } from "@/components/ui/button"; // Using your custom UI Button layout presets
+import { Button } from "@/components/ui/button";
 import { TriangleAlert, X } from "lucide-react";
 
 interface DeleteModalProps {
@@ -25,7 +25,6 @@ export function DeleteModal({ isOpen, onClose, group, onConfirm }: DeleteModalPr
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent className="sm:max-w-[800px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden gap-0">
-        
         <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-6">
           <AlertDialogHeader className="flex flex-row items-center gap-4 space-y-0">
             <AlertDialogMedia className="flex items-center justify-center bg-destructive/10 text-destructive rounded-full w-12 h-12 shrink-0">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { UserRole } from "../../../data/mock-user";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
@@ -26,7 +26,7 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
     article: true,
   });
 
-  useEffect(() => {
+  const resetVisibleCards = () => {
     setVisibleCards({
       event: true,
       announcement: true,
@@ -34,7 +34,17 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
       survey: true,
       article: true,
     });
-  }, [searchQuery, activeFilter]);
+  };
+
+  const handleFilterChange = (nextFilter: string | null) => {
+    setActiveFilter(nextFilter);
+    resetVisibleCards();
+  };
+
+  const handleSearchChange = (nextQuery: string) => {
+    setSearchQuery(nextQuery);
+    resetVisibleCards();
+  };
 
   const handleCardVisibility = (type: string, hasResults: boolean) => {
     if (visibleCards[type] !== hasResults) {
@@ -57,9 +67,9 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
       <SearchEvent
         role={role}
         activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
+        onFilterChange={handleFilterChange}
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={handleSearchChange}
         isEmpty={isFeedEmpty}
       />
 

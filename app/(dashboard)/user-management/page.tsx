@@ -1,5 +1,4 @@
-import React from "react";
-import { User, User2 } from "lucide-react";
+import {  User2 } from "lucide-react";
 import UserTableClient from "../../../components/dashboard/user-management/UserTable";
 import { fetchUsers } from "@/data/fetchUsers";
 

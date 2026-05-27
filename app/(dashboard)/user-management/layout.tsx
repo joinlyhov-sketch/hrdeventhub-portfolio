@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { UserManagementNavbar } from "../../../components/dashboard/UserManagementNavbar";
 import Header from "../../../components/dashboard/header/Header";
 
 export const metadata: Metadata = {

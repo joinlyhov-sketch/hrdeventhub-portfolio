@@ -107,7 +107,7 @@ export function EventManagementTable({
     });
   }, [events, searchTerm, selectedStatus, selectedDateRange]);
 
-  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage) || 1;
+  // const totalPages = Math.ceil(filteredEvents.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedEvents = filteredEvents.slice(
     startIndex,

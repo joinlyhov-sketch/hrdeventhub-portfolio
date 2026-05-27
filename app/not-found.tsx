@@ -19,7 +19,7 @@ export default function NotFound() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 2 }}
-          className="absolute -top-20 -left-20 w-[400px] h-[400px]"
+          className="absolute -top-20 -left-20 w-100 h-100"
         >
           <Image
             src="/images/tlblur.svg"
@@ -29,7 +29,7 @@ export default function NotFound() {
           />
         </motion.div>
 
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
+        <div className="absolute top-0 right-0 w-125 h-125 lg:w-150 lg:h-150">
           <motion.div
             initial={{ opacity: 0, x: 30, y: -20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
@@ -41,7 +41,7 @@ export default function NotFound() {
               alt=""
               width={500}
               height={175.84}
-              className="object-right-top object-contain"
+              className="object-top-right object-contain"
             />
           </motion.div>
 
@@ -56,7 +56,7 @@ export default function NotFound() {
               alt=""
               width={300}
               height={290.84}
-              className="object-right-top object-contain"
+              className="object-top-right object-contain"
               priority
             />
           </motion.div>
@@ -66,7 +66,7 @@ export default function NotFound() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 2, delay: 0.5 }}
-          className="absolute -bottom-20 -right-20 w-[500px] h-[500px]"
+          className="absolute -bottom-20 -right-20 w-125 h-125"
         >
           <Image
             src="/images/btrgray.svg"
@@ -76,12 +76,12 @@ export default function NotFound() {
           />
         </motion.div>
 
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px]">
+        <div className="absolute bottom-0 left-0 w-150 h-150">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, delay: 0.2 }}
-            className="absolute bottom-[-50px] left-[-50px]"
+            className="absolute -bottom-12.5 -left-12.5"
           >
             <Image
               src="/images/orangeCircle.svg"
@@ -102,7 +102,7 @@ export default function NotFound() {
               alt=""
               width={220.205}
               height={271.545}
-              className="object-left-bottom object-contain"
+              className="object-bottom-left object-contain"
               priority
             />
           </motion.div>
@@ -115,7 +115,7 @@ export default function NotFound() {
           alt="HRD Event Hub Logo"
           width={180}
           height={50}
-          className="h-auto w-auto max-w-[140px] md:max-w-[180px] object-contain"
+          className="h-auto w-auto max-w-35 md:max-w-45 object-contain"
           priority
         />
       </div>
@@ -134,8 +134,8 @@ export default function NotFound() {
             Page not found
           </h1>
           <p className="text-secondary text-subtitle font-detail max-w-sm mx-auto lg:mx-0 leading-relaxed">
-            We can't seem to find the page you're looking for. It might have
-            been moved or deleted.
+            We can&apos;t seem to find the page you&apos;re looking for. It
+            might have been moved or deleted.
           </p>
 
           <div className="pt-2">
@@ -158,7 +158,7 @@ export default function NotFound() {
           variants={fadeUp}
           className="order-1 lg:order-2 lg:col-span-7 flex justify-center lg:justify-end items-center"
         >
-          <div className="w-full max-w-[480px] md:max-w-[580px] lg:max-w-[650px] aspect-square flex items-center justify-center relative">
+          <div className="w-full max-w-120 md:max-w-145 lg:max-w-162.5 aspect-square flex items-center justify-center relative">
             <motion.div
               animate={{
                 scale: [1, 1.03, 1],

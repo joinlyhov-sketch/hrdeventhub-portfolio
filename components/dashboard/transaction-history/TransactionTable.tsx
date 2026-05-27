@@ -64,7 +64,7 @@ export function TransactionTable({
     });
   }, [data, searchTerm, selectedStatus]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  // const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(
     startIndex,

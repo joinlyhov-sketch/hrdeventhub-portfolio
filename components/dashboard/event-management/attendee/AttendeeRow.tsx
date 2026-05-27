@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { AttendeeData } from "../../../../data/AttendeeData";
 import { TableCell, TableRow } from "../../../ui/table";
 import ActionDropdown from "@/components/site/pop-up/action-button/ActionDropdown";
@@ -16,7 +15,6 @@ interface AttendeeRowProps {
 
 export default function AttendeeRow({
   attendee,
-  onViewProfile,
   onDeleteAttendee,
 }: AttendeeRowProps) {
   const router = useRouter();
