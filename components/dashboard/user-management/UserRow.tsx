@@ -18,7 +18,7 @@ export default function UserRow({
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
-      <TableCell className="px-5 py-3 text-desc text-gray-500 text-center w-[5%] truncate">
+      <TableCell className="px-5 py-3 text-desc text-gray-500 text-center w-[10%] truncate">
         {user.no}
       </TableCell>
 
