@@ -24,10 +24,10 @@ export default function EventDetailPage() {
           Sport Reunion Events
         </span>
       </section>
-      <EventDetailClient
-        event={event}
-        isAdminOrOrganizer={isAdminOrOrganizer}
-      />
+      <EventDetailClient event={event} isAdminOrOrganizer={isAdminOrOrganizer} />
+
+
+
     </section>
   );
 }

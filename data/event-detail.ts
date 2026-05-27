@@ -128,3 +128,37 @@ export const MOCK_EVENTS: HRDEvent[] = [
     ],
   },
 ];
+
+export interface StatCard {
+  title: string;
+  value: string;
+  iconName: 'BadgeDollarSign' | 'UserRound' | 'UserRoundCheck';
+  colorKey: 'primary' | 'action' | 'subtle' | 'secondary';
+}
+
+export const mockStatsData: StatCard[] = [
+  {
+    title: "Total Payment",
+    value: "$124,50",
+    iconName: "BadgeDollarSign",
+    colorKey: "primary",
+  },
+  {
+    title: "Total Attendee",
+    value: "69",
+    iconName: "UserRound",
+    colorKey: "action",
+  },
+  {
+    title: "Today",
+    value: "+6",
+    iconName: "UserRoundCheck",
+    colorKey: "subtle",
+  },
+  {
+    title: "This week",
+    value: "+12",
+    iconName: "UserRoundCheck",
+    colorKey: "secondary",
+  }
+];
