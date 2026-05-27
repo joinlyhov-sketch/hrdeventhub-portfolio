@@ -4,9 +4,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import image from "../../../public/images/PinnedCardTest.jpg";
 import {
-  MapPin,
-  Calendar,
-  Target,
   ThumbsUp,
   MessageSquare,
   Share2,
@@ -142,21 +139,18 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
 
         <div className="bg-grey-50 rounded-[12px] p-3 space-y-3 mb-6">
           <div className="flex items-start gap-3">
-            <MapPin size={18} className="text-grey-400 mt-0.5 shrink-0" />
             <p className="text-sm text-grey-500">
               <span className="font-semibold text-grey-900">LOCATION:</span>{" "}
               {eventData.location}
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <Calendar size={18} className="text-grey-400 mt-0.5 shrink-0" />
             <p className="text-sm text-grey-500">
               <span className="font-semibold text-grey-900">DATE:</span>{" "}
               {eventData.dateString}
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <Target size={18} className="text-grey-400 mt-0.5 shrink-0" />
             <p className="text-sm text-grey-500">
               <span className="font-semibold text-grey-900">PURPOSE:</span>{" "}
               {eventData.purpose}

@@ -4,7 +4,7 @@ import GroupSearch from "../../../components/site/group/group-search";
 import { mockGroups } from "../../../data/groups";
 import { Metadata } from "next";
 import { UserX } from "lucide-react";
-import { MOCK_CURRENT_USER } from "../../../data/mock-user";
+import { MOCK_CURRENT_USER } from "@/data/mock-user";
 
 export const metadata: Metadata = {
   title: "Group",

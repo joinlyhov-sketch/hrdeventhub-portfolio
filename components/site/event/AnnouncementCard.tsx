@@ -13,6 +13,13 @@ import {
   Megaphone,
 } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
+const data = {
+  id: "1",
+  groupId: "1",
+  badge: "NEW EVENT",
+  title: "Songkran Festival Celebration",
+  schedule: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
+};
 
 const initialMockData = {
   id: "ann-7731",
@@ -165,7 +172,6 @@ export function AnnouncementCard({
 
         <div className="bg-grey-50 rounded-[12px] p-6 space-y-3 mb-2">
           <div className="flex items-start gap-3">
-            <MapPin size={18} className="text-grey-400 mt-1 shrink-0" />
             <p className="type-detail text-grey-500">
               <span className="type-detail-semibold text-foreground">
                 LOCATION:
@@ -174,14 +180,12 @@ export function AnnouncementCard({
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <Calendar size={18} className="text-grey-400 mt-1 shrink-0" />
             <p className="type-detail text-grey-500">
               <span className="type-detail-semibold text-foreground">DATE:</span>{" "}
               {announcementData.dateString}
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <Target size={18} className="text-grey-400 mt-1 shrink-0" />
             <p className="type-detail text-grey-500">
               <span className="type-detail-semibold text-foreground">
                 PURPOSE:
@@ -229,12 +233,14 @@ export function AnnouncementCard({
               +80
             </div>
           </div>
-          <button
+          <a href={`/group/${data.id}/event/${initialMockData.id}}`}>
+            <button
             onClick={onViewDetail}
             className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white text-xs font-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
           >
             View Detail
           </button>
+          </a>
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail text-grey-500">

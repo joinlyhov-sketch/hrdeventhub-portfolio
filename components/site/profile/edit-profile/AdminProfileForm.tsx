@@ -476,7 +476,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           <div>
             <div className="type-detail-semibold text-grey-900">
               Account Connected
-              <span className="type-detail text-grey-50 mt-0.5 leading-relaxed">
+              <span className="type-detail text-grey-500 flex mt-0.5 leading-relaxed">
                 Your account is successfully connected for payment. You can now
                 receive monthly payments from renters.
               </span>
