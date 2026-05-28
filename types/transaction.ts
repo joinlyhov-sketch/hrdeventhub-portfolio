@@ -29,5 +29,5 @@ export interface StatCard {
   icon?: string;
   customIcon?: React.ReactNode;
   color: string;
-  bgColor: string;
+  bgColor?: string;
 }
