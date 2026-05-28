@@ -18,11 +18,11 @@ export default function UserRow({
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
-      <TableCell className="px-5 py-3 text-desc text-gray-500 text-center w-[10%] truncate">
+      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] ">
         {user.no}
       </TableCell>
 
-      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[18%]">
+      <TableCell className="px-3 py-3 type-desc text-gray-500 w-[18%]">
         <div className="flex items-center gap-3 truncate">
           <img
             src={user.avatar}
@@ -33,23 +33,23 @@ export default function UserRow({
         </div>
       </TableCell>
 
-      <TableCell className="px-5 py-3 text-desc text-gray-500 w-[20%] truncate text-center">
+      <TableCell className="px-2 py-3 type-desc text-gray-500 w-[20%] truncate text-center">
         {user.email}
       </TableCell>
 
-      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[13%] truncate text-center">
+      <TableCell className="px-6 py-3 type-desc text-gray-500 w-[13%] truncate text-center">
         {user.phone}
       </TableCell>
 
-      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[10%] truncate text-center">
+      <TableCell className="px-6 py-3 type-desc text-gray-500 w-[10%] truncate text-center">
         {user.gender}
       </TableCell>
 
-      <TableCell className="px-1 py-3 text-desc text-gray-500 text-center w-[10%] truncate">
+      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] truncate">
         {user.gen}
       </TableCell>
 
-      <TableCell className="px-1 py-3 text-desc text-gray-500 text-center w-[15%]">
+      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[15%]">
         <div className="flex items-center justify-center w-full">
           <span
             className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium shrink-0 min-w-[90px] ${

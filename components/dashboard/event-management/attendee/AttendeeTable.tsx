@@ -89,7 +89,7 @@ export default function AttendeeTableClient({
         <Table className="w-full text-left border-collapse min-w-250 table-fixed">
           <TableHeader>
             <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
-              <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[5%]">
+              <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[5%] ">
                 No.
               </TableHead>
               <TableHead className="px-5 py-3 text-white type-desc-semibold text-left w-[18%]">
