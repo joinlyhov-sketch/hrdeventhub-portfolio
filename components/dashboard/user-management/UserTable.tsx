@@ -124,23 +124,23 @@ export default function UserTableClient({
         <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <TableHeader>
             <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
-              <TableHead className="px-5 py-3 cursor-pointer text-desc-semibold tracking-wider text-center text-white w-[10%]">
+              <TableHead className="px-1 py-3 cursor-pointer type-desc-semibold text-center text-white w-[10%]">
                 No.
               </TableHead>
-              <TableHead className="px-6 py-3 cursor-pointer text-desc-semibold tracking-wider text-white w-[18%]">
+              <TableHead className="px-6 py-3 cursor-pointer type-desc-semibold text-white w-[18%]">
                 Username
               </TableHead>
-              <TableHead className="px-5 py-3 cursor-pointer text-desc-semibold tracking-wider text-white w-[20%]">
+              <TableHead className="px-2 py-3 cursor-pointer type-desc-semibold text-white w-[20%]">
                 Email
               </TableHead>
-              <TableHead className="px-6 py-3 cursor-pointer text-desc-semibold tracking-wider text-white w-[13%]">
+              <TableHead className="px-6 py-3 cursor-pointer type-desc-semibold text-white w-[13%]">
                 Phone
               </TableHead>
-              <TableHead className="px-6 py-3 cursor-pointer text-desc-semibold tracking-wider text-white w-[10%]">
+              <TableHead className="px-6 py-3 cursor-pointer type-desc-semibold text-white w-[10%]">
                 Gender
               </TableHead>
 
-              <TableHead className="px-1 py-3 cursor-pointer text-desc-semibold tracking-wider text-center text-white w-[10%]">
+              <TableHead className="px-1 py-3 cursor-pointer type-desc-semibold text-center text-white w-[10%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center justify-center gap-1 select-none transition-colors duration-150 hover:text-blue-200">
@@ -176,7 +176,7 @@ export default function UserTableClient({
                 </DropdownMenu>
               </TableHead>
 
-              <TableHead className="px-1 py-3 text-desc-semibold tracking-wider text-center text-white w-[15%]">
+              <TableHead className="px-1 py-3 type-desc-semibold text-center text-white w-[15%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
@@ -215,7 +215,7 @@ export default function UserTableClient({
                 </DropdownMenu>
               </TableHead>
 
-              <TableHead className="px-1 py-3 text-desc-semibold tracking-wider text-white w-[10%]">
+              <TableHead className="px-1 py-3 type-desc-semibold text-white w-[10%]">
                 Action
               </TableHead>
             </TableRow>
