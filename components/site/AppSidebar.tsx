@@ -371,7 +371,7 @@ export function AppSidebar() {
 
             <SidebarMenuItem>
               <SidebarMenuButton
-                isActive={pathname === "/profile"}
+                isActive={pathname === "/profile/1"}
                 asChild
                 tooltip="Event Management"
                 className="h-11"
