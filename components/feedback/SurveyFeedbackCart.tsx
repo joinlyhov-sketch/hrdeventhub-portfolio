@@ -1,29 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   CheckCircle2,
-  
   ArrowRight,
   BarChart3,
   Circle,
   User,
-  Plus,
   FileExclamationPoint,
 } from "lucide-react";
 import Search from "../site/search/Search";
 import { PopoverItem } from "../site/pop-up/contents/pop-over-content";
-
 import { surveyFeedbacks } from "../../data/surveyFeedback";
 import Link from "next/link";
 import { PaginationDemo } from "./Pagination";
 import ContentTypePopover from "../site/pop-up/contents/pop-over-content";
+import Image from "next/image";
 
 export default function SurveyFeedbackFeature() {
   const [search, setSearch] = useState("");
-const contentMenuOptions: PopoverItem[] = [
-  { label: "Survey", icon: CheckCircle2, href: "/event-management/creation/survey" },
-  { label: "Poll", icon: BarChart3, href: "/event-management/creation/poll" },];
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const contentMenuOptions: PopoverItem[] = [
+    {
+      label: "Survey",
+      icon: CheckCircle2,
+      href: "/event-management/creation/survey",
+    },
+    { label: "Poll", icon: BarChart3, href: "/event-management/creation/poll" },
+  ];
+
   const filteredFeedbacks = surveyFeedbacks.filter((item) => {
     const searchLower = (search || "").toLowerCase().trim();
 
@@ -40,6 +47,18 @@ const contentMenuOptions: PopoverItem[] = [
     return titleMatch || statusMatch || dateMatch;
   });
 
+  const totalPages = Math.ceil(filteredFeedbacks.length / itemsPerPage);
+
+  const paginatedFeedbacks = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredFeedbacks.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredFeedbacks, currentPage]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
   const hasResults = filteredFeedbacks.length > 0;
 
   return (
@@ -50,11 +69,10 @@ const contentMenuOptions: PopoverItem[] = [
         <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
           <Search
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             placeholder="Search for feedback..."
           />
-          <ContentTypePopover items={contentMenuOptions}/>
-          
+          <ContentTypePopover items={contentMenuOptions} />
         </div>
 
         <div className="relative w-full block box-border min-h-110">
@@ -63,7 +81,7 @@ const contentMenuOptions: PopoverItem[] = [
               hasResults ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           >
-            {(hasResults ? filteredFeedbacks : surveyFeedbacks).map((item) => (
+            {paginatedFeedbacks.map((item) => (
               <div key={item.id} className="w-full block box-border min-w-0">
                 <FeedbackCard item={item} />
               </div>
@@ -89,7 +107,11 @@ const contentMenuOptions: PopoverItem[] = [
 
         {hasResults && (
           <div className="mt-6 w-full block box-border clear-both">
-            <PaginationDemo />
+            <PaginationDemo
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </section>
@@ -113,7 +135,8 @@ function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
         <div className="flex items-center justify-between w-full gap-2">
           <StatusBadge status={item.status} />
           <div className="inline-flex size-12 items-center justify-center rounded-lg bg-accent/20 text-accent shrink-0">
-            <BarChart3 size={22} />
+            {/* <BarChart3 size={22} /> */}
+            <Image src={"/chart.svg"} alt="chart" width={22} height={22} />
           </div>
         </div>
         <h3 className="type-subtitle text-primary mt-4 break-words line-clamp-2 w-full">
@@ -128,7 +151,7 @@ function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
           <p className="type-desc-semibold text-secondary">Total Response</p>
         </div>
 
-        <Link href={`/feedback/${item.id}`} className="w-full block">
+        <Link href={`https://docs.google.com/spreadsheets/d/1u77ifcH9aE0NkF4IUSilps8kai7hkImGpiOODLpgDoM/edit?gid=0#gid=0`} className="w-full block">
           <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm cursor-pointer">
             <span>Open Result</span>
             <ArrowRight size={20} strokeWidth={1.5} />

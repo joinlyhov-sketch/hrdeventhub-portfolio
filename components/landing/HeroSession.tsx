@@ -1,14 +1,14 @@
-import React from "react";
+
 import { Heart } from "lucide-react";
 
 export default function HeroSession() {
   return (
     <>
       <section className="relative w-screen h-full bg-white text-seconary flex flex-col justify-between select-none">
-        <div className="absolute top-[15%] -left-32 w-80 h-80 bg-[#7FAEF5]/20 rounded-full blur-[90px] pointer-events-none z-0 hidden md:block" />
-        <div className="absolute top-[10%] -right-40 w-[450] h-[450] bg-[#7FAEF5]/25 rounded-full blur-[110px] pointer-events-none z-0 hidden md:block" />
+        <div className="absolute top-[30%] -left-32 w-80 h-80 bg-[#7FAEF5]/35 rounded-full blur-[90px] pointer-events-none z-0 hidden md:block" />
+        <div className="absolute top-[10%] -right-40 w-[450] h-[450] bg-[#7FAEF5]/35 rounded-full blur-[110px] pointer-events-none z-0 hidden md:block" />
 
-        <div className="absolute inset-4 w-screen​​​​​​​​​​​​ ​pointer-events-none z-14 hidden md:block pt-8 top-[41%]">
+        <div className="absolute inset-4 w-screen​​​​​​​​​​​​ ​pointer-events-none z-14 hidden md:block pt-3 top-[35%]">
           <svg
             className="relative left-0"
             width="900"
@@ -113,7 +113,7 @@ export default function HeroSession() {
             </defs>
           </svg>
 
-          <div className="absolute bottom-6 top-[20%] text-primary/70 w-125 h-35 rounded-full flex items-center left-345">
+          <div className="absolute bottom-6 top-[15%] text-primary/70 w-125 h-35 rounded-full flex items-center left-345">
             <svg
               className="relative right-0"
               width="1500"
@@ -297,21 +297,19 @@ export default function HeroSession() {
               </span>
             </h2>
 
-            <h1 className="text-3xl sm:text-5xl md:text-[64px] text-secondary mt-3 mb-4 md:mb-6 max-w-4xl font-bold leading-tight md:leading-none">
+            <h1 className="sm:text-5xl md:text-[60px] text-secondary mt-3 mb-4 md:mb-6 max-w-5xl font-bold">
               Your Gateway{" "}
-              <span className="text-primary block sm:inline">
-                to Every HRD Event
-              </span>
+              <span className="text-primary inline">to Every HRD Event</span>
             </h1>
 
-            <p className="text-sm sm:text-lg md:text-[20px] text-secondary/90 text-center max-w-2xl lg:max-w-3xl px-2 mb-6 md:mb-8 w-full leading-relaxed">
+            <p className="text-sm sm:text-lg md:text-[20px] text-secondary/90 text-center max-w-4xl mx-auto w-full leading-relaxed">
               Your all-in-one platform for event registration, group
               collaboration, and career-ready growth. Discover the next big
               event and link up with the brightest minds at HRD.
             </p>
           </div>
 
-          <div className="relative w-full max-w-[1280px] mx-auto h-[240px] sm:h-[360px] md:h-[480px] flex items-center justify-center mt-6 px-4 md:px-0 overflow-hidden md:overflow-visible">
+          <div className="relative w-full top-[-100px] max-w-[1280px] h-full sm:h-[360px] md:h-[480px] flex items-center justify-center px-1 md:px-0 overflow-hidden md:overflow-visible">
             <div className="absolute left-[-2%] sm:left-[-1%] md:left-[-3%] w-[32%] md:w-[33%] rotate-[-12deg] md:rotate-[-15deg] translate-y-4 sm:translate-y-8 md:translate-y-16 box-border z-30">
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
                 <img
@@ -323,7 +321,7 @@ export default function HeroSession() {
             </div>
 
             <div className="absolute w-[48%] z-20">
-              <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:-top-3 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center">
+              <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:top-5 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center">
                 <Heart className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 fill-current text-destructive" />
               </div>
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
@@ -335,7 +333,7 @@ export default function HeroSession() {
               </div>
             </div>
 
-            <div className="absolute right-[-2%] sm:right-[-1%] md:right-[-3%] w-[34%] md:w-[35%] rotate-[10deg] md:rotate-[12deg] translate-y-4 sm:translate-y-8 md:translate-y-15 z-10">
+            <div className="absolute right-[-2%] sm:right-[-1%] md:right-[-3%] w-[34%] md:w-[35%] rotate-[10deg] md:rotate-[12deg] translate-y-4 sm:translate-y-8 md:translate-y-15">
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
                 <img
                   src="/images/HeroSession3.png"

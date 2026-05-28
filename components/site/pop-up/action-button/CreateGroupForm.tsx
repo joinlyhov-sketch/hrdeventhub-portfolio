@@ -53,7 +53,7 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
           
           <button
             onClick={onClose}
-            className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <X size={22} strokeWidth={2.5} />

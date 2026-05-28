@@ -27,7 +27,11 @@ export default function SurveyQuestionsList({
     setQuestions(questions.map((q) => (q.id === id ? { ...q, text } : q)));
   };
 
-  const updateQuestionState = (id: string, key: keyof Question, value: any) => {
+  const updateQuestionState = <K extends keyof Question>(
+    id: string,
+    key: K,
+    value: Question[K],
+  ) => {
     setQuestions(
       questions.map((q) => (q.id === id ? { ...q, [key]: value } : q)),
     );

@@ -11,7 +11,7 @@ export default function Loading() {
   ];
 
   return (
-    <main className="fixed inset-0 bg-background flex flex-col items-center justify-center px-4 w-screen h-screen z-[9999]">
+    <main className="fixed inset-0 bg-background flex flex-col items-center justify-center px-4 w-screen h-screen z-9999">
       <style>{`
         @keyframes lineBounce {
           0%, 100% { 
@@ -52,7 +52,7 @@ export default function Loading() {
             Loading...
           </p>
           <p className="type-detail text-muted-foreground">
-            Hang tight, we're getting things ready.
+            Hang tight, we&apos;re getting things ready.
           </p>
         </div>
       </div>

@@ -41,7 +41,7 @@ export default function ShareModal({
       >
         <DialogHeader className="mb-6">
           <DialogTitle className="text-[28px] font-bold text-[#0f172a]">
-            Share Modal
+            Share Event
           </DialogTitle>
           <DialogDescription className="sr-only">
             Share this link via social platforms or copy directly.

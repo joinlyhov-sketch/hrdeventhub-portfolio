@@ -4,72 +4,14 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import image from "../../../public/images/PinnedCardTest.jpg";
 import {
-  MapPin,
-  Calendar,
-  Target,
   ThumbsUp,
   MessageSquare,
   Share2,
   Send,
 } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-
-const initialMockData = {
-  id: "evt-9921",
-  badge: "NEW EVENT",
-  title: "Songkran Festival Celebration",
-  schedule: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
-  author: {
-    name: "Dita Rector",
-    avatar: "https://i.pravatar.cc/150?u=hr",
-    role: "Admin",
-    date: "Posted 2 hours ago",
-  },
-  description:
-    "Join us for our annual Songkran Festival Celebration! Enjoy traditional water festivities, delicious food, and cultural performances with your colleagues.",
-  location: "HRD Center",
-  dateString: "Tomorrow, 1:30 PM - 5:00 PM",
-  purpose: "Cultural Celebration & Team Bonding",
-  innerBannerTitle: "Songkran Festival Celebration",
-  innerBannerMeta: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
-  likesCount: 124,       
-  isLikedByUser: false, 
-};
-
-const mockComments = [
-  {
-    id: "c1",
-    author: {
-      name: "Lyhov",
-      avatar: "https://i.pravatar.cc/150?u=lyhov",
-      initials: "LY",
-    },
-    date: "2h ago",
-    text: "Really excited for this event. Is anyone else joining from 12th gen?",
-    replies: [
-      {
-        id: "r1",
-        author: {
-          name: "Dine",
-          avatar: "https://i.pravatar.cc/150?u=dine",
-        },
-        date: "1h ago",
-        text: "Is there a live stream link? @rectordita",
-        isOwn: true,
-      },
-      {
-        id: "r2",
-        author: {
-          name: "Dita Rector",
-          avatar: "https://i.pravatar.cc/150?u=dita",
-        },
-        date: "30min ago",
-        text: "@dinety I think there is",
-        isOwn: true,
-      },
-    ],
-  },
-];
+import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import { Event, Comment, Reaction, initialMockData, mockComments } from "@/data/event";
 
 interface EventCardProps {
   searchQuery: string;
@@ -79,16 +21,40 @@ interface EventCardProps {
 export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [eventData, setEventData] = useState(initialMockData);
+  const [eventData, setEventData] = useState<Event>(initialMockData);
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+
+  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
+
   const handleLikeToggle = () => {
     setEventData((prev) => {
-      const updatedIsLiked = !prev.isLikedByUser;
-      return {
-        ...prev,
-        isLikedByUser: updatedIsLiked,
-        likesCount: updatedIsLiked ? prev.likesCount + 1 : prev.likesCount - 1,
-      };
+      const isCurrentlyActive = !!selectedReaction;
+      if (isCurrentlyActive) {
+        setSelectedReaction(null);
+        return {
+          ...prev,
+          isLikedByUser: false,
+          likesCount: prev.likesCount - 1,
+        };
+      } else {
+        setSelectedReaction("like");
+        return {
+          ...prev,
+          isLikedByUser: true,
+          likesCount: prev.likesCount + 1,
+        };
+      }
     });
+  };
+
+  const handleReactionSelect = (reactionId: string) => {
+    const wasAlreadyActive = !!selectedReaction;
+    setSelectedReaction(reactionId);
+    setEventData((prev) => ({
+      ...prev,
+      isLikedByUser: true,
+      likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
+    }));
   };
 
   const isMatch = eventData.title
@@ -110,29 +76,31 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
               <img
-                src={eventData.author.avatar}
-                alt={eventData.author.name}
+                src={eventData.creator.avatarUrl}
+                alt={eventData.creator.name}
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-secondary">
-                {eventData.author.name}
+                {eventData.creator.name}
               </h3>
               <p className="text-xs font-medium text-grey-400">
-                {eventData.author.date}
+                {eventData.createdAt}
               </p>
             </div>
           </div>
-          <span
-            className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${
-              eventData.author.role.toLowerCase() === "admin"
-                ? "bg-[#EBF5FB] text-[#3FA6DC]"
-                : "bg-[#FFF7ED] text-[#F97316]"
-            }`}
-          >
-            {eventData.author.role}
-          </span>
+          {eventData.role && (
+            <span
+              className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${
+                eventData.role.toLowerCase() === "admin"
+                  ? "bg-[#EBF5FB] text-[#3FA6DC]"
+                  : "bg-[#FFF7ED] text-[#F97316]"
+              }`}
+            >
+              {eventData.role}
+            </span>
+          )}
         </div>
 
         <h2 className="text-xl font-bold text-primary mb-2">{eventData.title}</h2>
@@ -142,21 +110,18 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
 
         <div className="bg-grey-50 rounded-[12px] p-3 space-y-3 mb-6">
           <div className="flex items-start gap-3">
-            <MapPin size={18} className="text-grey-400 mt-0.5 shrink-0" />
             <p className="text-sm text-grey-500">
               <span className="font-semibold text-grey-900">LOCATION:</span>{" "}
               {eventData.location}
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <Calendar size={18} className="text-grey-400 mt-0.5 shrink-0" />
             <p className="text-sm text-grey-500">
               <span className="font-semibold text-grey-900">DATE:</span>{" "}
               {eventData.dateString}
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <Target size={18} className="text-grey-400 mt-0.5 shrink-0" />
             <p className="text-sm text-grey-500">
               <span className="font-semibold text-grey-900">PURPOSE:</span>{" "}
               {eventData.purpose}
@@ -180,23 +145,28 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border text-sm font-medium text-grey-500">
-          <button 
-            onClick={handleLikeToggle}
-            className={`flex items-center gap-2 transition-colors cursor-pointer ${
-              eventData.isLikedByUser 
-                ? "text-blue-600 font-semibold" 
-                : "hover:text-primary"
-            }`}
+          
+          <ReactionPopover 
+            selectedValue={selectedReaction} 
+            onReactionSelect={handleReactionSelect}
           >
-            <ThumbsUp size={18} className={eventData.isLikedByUser ? "fill-blue-600 stroke-blue-600" : ""} /> 
-            {eventData.likesCount}
-          </button>
+            <button 
+              onClick={handleLikeToggle}
+              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
+                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
+              }`}
+            >
+              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500" : ""} /> 
+              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span className="text-xs font-normal text-grey-400">({eventData.likesCount})</span>
+            </button>
+          </ReactionPopover>
 
           <button
             onClick={() => setShowComments(!showComments)}
             className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
           >
-            <MessageSquare size={18} /> 18
+            <MessageSquare size={18} /> {eventData.commentsCount}
           </button>
           
           <button 

@@ -21,7 +21,7 @@ export default function GroupMemberCard() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredMembers = ALL_MEMBERS.filter((member) =>
-    member.name.toLowerCase().includes(searchQuery.toLowerCase())
+    member.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const displayedMembers = showAll ? filteredMembers : ALL_MEMBERS.slice(0, 3);
@@ -64,7 +64,7 @@ export default function GroupMemberCard() {
 
       <div
         className={`space-y-4 mb-3 pr-2 pl-2 ${
-          showAll ? "max-h-[320px] overflow-y-auto pr-1" : ""
+          showAll ? "max-h-80 overflow-y-auto pr-1" : ""
         }`}
       >
         {displayedMembers.length > 0 ? (
@@ -82,7 +82,7 @@ export default function GroupMemberCard() {
           ))
         ) : (
           <p className="text-sm text-gray-400 text-center py-4">
-            No members found matching "{searchQuery}"
+            {`No members found matching “${searchQuery}”`}
           </p>
         )}
       </div>

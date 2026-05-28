@@ -3,26 +3,31 @@ import { ChevronRight } from "lucide-react";
 export default function EventTab() {
   const events = [
     {
+      id: 1,
       name: "Coding Challenge",
       date: "April 6, 2026",
       image: "/images/codingchallenge.png",
     },
     {
+      id: 2,
       name: "Khmer New Year",
       date: "April 14, 2026",
       image: "/images/khmernewyear.png",
     },
     {
+        id: 3,
       name: "Closing Day",
       date: "July 9, 2026",
       image: "/images/closingDay.png",
     },
     {
+        id: 4,
       name: "Montly Party",
       date: "May 22, 2026",
       image: "/images/monthlyparty.png",
     },
     {
+        id: 5,
       name: "Pchum Ben Day",
       date: "Oct 10, 2026",
       image: "/images/pchumben.png",
@@ -60,9 +65,11 @@ export default function EventTab() {
               </div>
             </div>
 
-            <button className="flex items-center gap-1 type-detail-small-medium text-muted-foreground border border-border bg-card px-3 py-1.5 rounded-md hover:border-primary transition-all duration-200">
+            <a href={`/group/${event.id}/event/${event.id}`} className="shrink-0">
+              <button className="flex items-center gap-1 type-detail-small-medium text-muted-foreground border border-border bg-card px-3 py-1.5 rounded-md hover:border-primary transition-all duration-200 cursor-pointer">
               View Detail <ChevronRight size={14} />
             </button>
+            </a>
           </div>
         ))}
       </div>

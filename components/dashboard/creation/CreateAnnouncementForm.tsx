@@ -4,11 +4,7 @@ import {
   Clock,
   MapPin,
   FileText,
-  Megaphone,
-  BookOpenTextIcon,
-  CalendarDays,
 } from "lucide-react";
-import Link from "next/link";
 import { Breadcrumb } from "../BreadCrumb";
 import { FormInput } from "../FormInput";
 import MediaUpload from "../MediaUpload";

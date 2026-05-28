@@ -1,5 +1,3 @@
-import { User } from "next-auth";
-
 export type UserRole = "Admin" | "Organizer" | "Student" | "Alumni";
 export type RegistrationStatus = "NOT_REGISTERED" | "REGISTERED" | "ADMIN_VIEW";
 
@@ -162,3 +160,21 @@ export const mockStatsData: StatCard[] = [
     colorKey: "secondary",
   }
 ];
+export interface Creator {
+  name: string;
+  avatarUrl: string;
+}
+
+export interface EventDetailState {
+  id: string;
+  likesCount: number;
+  commentsCount: number;
+  isLikedByUser: boolean;
+}
+
+export interface Reaction {
+  id: string;
+  label: string;
+  displayText: string;
+  color: string;
+}

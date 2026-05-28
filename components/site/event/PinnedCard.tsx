@@ -41,7 +41,7 @@ export function PinnedCard() {
 
         <div className="w-full md:w-auto 
         shrink-0">
-          <Link href={`/group/${data.groupId}/event/${data.id}}`} className="w-full">
+          <Link href={`/group/${data.groupId}/event/${data.id}`} className="w-full">
           <button
             type="button"
             className="w-full md:w-auto bg-white text-secondary hover:bg-grey-100 active:scale-[0.99] hover:cursor-pointer transition-all px-7 py-3.5 rounded-xl type-detail-semibold shadow-md whitespace-nowrap"

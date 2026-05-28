@@ -57,10 +57,11 @@ export default function UpcomingEventSection() {
                       </div>
                     </div>
                   </div>
-
-                  <button className="type-detail-semibold rounded-lg bg-muted px-5 py-3 text-primary transition hover:bg-primary hover:cursor-pointer hover:text-primary-foreground">
-                    View Detail
-                  </button>
+                  <a href="/group/${data.groupId}/event/${data.id}">
+                    <button className="type-detail-semibold rounded-lg bg-muted px-5 py-3 text-primary transition hover:bg-primary hover:cursor-pointer hover:text-primary-foreground">
+                      View Detail
+                    </button>
+                  </a>
                 </article>
               ))}
             </div>

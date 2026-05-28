@@ -63,7 +63,7 @@ export default function DonateAmountStep() {
           <span className="type-detail-medium text-foreground">
             Pay anonymously
             <p className="type-detail-small-medium text-muted-foreground">
-              Your name won't appear in the donation list
+              Your name won&apos;t appear in the donation list
             </p>
           </span>
 

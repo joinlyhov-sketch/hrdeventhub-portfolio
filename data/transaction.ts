@@ -6,32 +6,36 @@ export const statsData: StatCard[] = [
     value: "42",
     icon: "creditcard",
     color: "blue",
+    bgColor: "blue",
   },
   {
     title: "Total Revenue",
     value: "$124,50",
     icon: "dollar",
     color: "blue",
+    bgColor: "blue",
   },
   {
     title: "Total Attendee",
     value: "24, 512",
     icon: "users",
     color: "red",
+    bgColor: "red",
   },
   {
     title: "Active Events",
     value: "850",
     icon: "calendar",
     color: "teal",
+    bgColor: "teal",
   },
 ];
 
 export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
-    username: "Sok Sambalh",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sok",
+    username: "Som veasna",
+    avatar: "/images/veasna.jpg",
     amount: 323,
     payment: "WebPay",
     status: "Successful",
@@ -41,7 +45,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Chea Soksean",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Chea",
+    avatar: "/images/nika.png",
     amount: 214,
     payment: "WebPay",
     status: "Successful",
@@ -51,7 +55,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Suzy Sovichea",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Suzy",
+    avatar: "/images/vicheashi.jpg",
     amount: 20,
     payment: "WebPay",
     status: "Failed",
@@ -61,7 +65,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Chham kakhka",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Chham",
+    avatar: "/images/ka.jpg",
     amount: 12,
     payment: "WebPay",
     status: "Successful",
@@ -71,7 +75,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Chiv Lyhov",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Chiv",
+    avatar: "/images/vichea.png",
     amount: 15,
     payment: "WebPay",
     status: "Failed",
@@ -81,7 +85,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Hort Sokrika",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Hort",
+    avatar: "/images/nimol.png",
     amount: 45,
     payment: "WebPay",
     status: "Failed",
@@ -91,7 +95,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Nem Soghal",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Nem",
+    avatar: "/images/phal.jpg",
     amount: 50,
     payment: "WebPay",
     status: "Failed",
@@ -101,7 +105,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Ty Dine",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ty",
+    avatar: "/images/dine.jpg",
     amount: 42,
     payment: "WebPay",
     status: "Successful",
@@ -111,7 +115,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Dita Rector",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Dita",
+    avatar: "/images/rector.jpg",
     amount: 32,
     payment: "WebPay",
     status: "Successful",
@@ -121,7 +125,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Mork Sathim",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mork",
+    avatar: "/images/sathim.jpg",
     amount: 15,
     payment: "WebPay",
     status: "Successful",
@@ -131,7 +135,7 @@ export const transactionsData: Transaction[] = [
   {
     id: "#TX-94021",
     username: "Ong Endy",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ong",
+    avatar: "/images/endy.jpg",
     amount: 120,
     payment: "WebPay",
     status: "Failed",

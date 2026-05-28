@@ -67,6 +67,7 @@
 :root {
   /* 1. Brand palette — the ONLY place hex is allowed */
   --primary: #1c4d8d;
+  --WEGDRH: #dde6ff;
   --primary-hover: #4663ac;
   --secondary: #0f2854;
   --action: #ffa02e;

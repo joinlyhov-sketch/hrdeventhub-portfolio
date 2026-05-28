@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { AttendeeData } from "../../../../data/AttendeeData";
 import { TableCell, TableRow } from "../../../ui/table";
 import ActionDropdown from "@/components/site/pop-up/action-button/ActionDropdown";
@@ -16,7 +15,6 @@ interface AttendeeRowProps {
 
 export default function AttendeeRow({
   attendee,
-  onViewProfile,
   onDeleteAttendee,
 }: AttendeeRowProps) {
   const router = useRouter();
@@ -61,7 +59,7 @@ export default function AttendeeRow({
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[64px]">
-      <TableCell className="px-5 py-3 text-desc text-slate-500 font-bold text-center w-[5%] truncate">
+      <TableCell className="px-1 py-3 type-desc text-slate-500 font-bold text-center w-[5%] truncate">
         {attendee.no}
       </TableCell>
 
@@ -76,25 +74,25 @@ export default function AttendeeRow({
         </div>
       </TableCell>
 
-      <TableCell className="px-5 py-3 text-sm text-slate-500 font-medium w-[10%] truncate">
+      <TableCell className="px-5 py-3 type-desc text-slate-500 font-medium w-[10%] truncate">
         {attendee.gender}
       </TableCell>
 
-      <TableCell className="px-3 py-3 text-sm text-slate-400 font-normal w-[12%] truncate">
+      <TableCell className="px-3 py-3 type-desc text-slate-400 font-normal w-[12%] truncate">
         {attendee.timestamp}
       </TableCell>
 
-      <TableCell className="px-8 py-3 text-sm text-desc w-[22%] text-primary truncate">
+      <TableCell className="px-1 py-3 type-desc text-desc w-[22%] text-primary truncate">
         {attendee.remark}
       </TableCell>
 
-      <TableCell className="px-5 py-3 text-sm text-slate-500 font-medium text-center w-[10%] truncate">
+      <TableCell className="px-5 py-3 type-desc text-slate-500 font-medium text-center w-[10%] truncate">
         {attendee.amount.toString().startsWith("$")
           ? attendee.amount
           : `$${attendee.amount}`}
       </TableCell>
 
-      <TableCell className="px-8 py-3 text-sm w-[12%]">
+      <TableCell className="px-2 py-3 type-desc w-[12%]">
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium capitalize shrink-0 ${badgeStyle.bg}`}
         >
@@ -103,7 +101,7 @@ export default function AttendeeRow({
         </span>
       </TableCell>
 
-      <TableCell className="px-6 py-3 text-sm text-center w-[10%]">
+      <TableCell className="px-6 py-3 type-desc text-center w-[10%]">
         <ActionDropdown actions={rowActions}/>
       </TableCell>
     </TableRow>

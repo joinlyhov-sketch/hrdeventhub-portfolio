@@ -1,7 +1,17 @@
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogMedia, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-modal/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-modal/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { TriangleAlert } from "lucide-react";
-
 
 export function AlertDialogDestructive() {
   return (
@@ -16,8 +26,8 @@ export function AlertDialogDestructive() {
           </AlertDialogMedia>
           <AlertDialogTitle>Delete Group</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete '14th Generation Group'? This action
-            cannot be undone.
+            Are you sure you want to delete &ldquo;14th Generation Group&rdquo;?
+            This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

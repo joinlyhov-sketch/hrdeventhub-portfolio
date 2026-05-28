@@ -4,19 +4,13 @@ import {
   Clock,
   MapPin,
   FileText,
-  Megaphone,
-  BookOpenTextIcon,
   BadgeDollarSign,
-  CalendarDays,
 } from "lucide-react";
-import Link from "next/link";
 import { Breadcrumb } from "../BreadCrumb";
 import { FormInput } from "../FormInput";
 import MediaUpload from "../MediaUpload";
 import { Button } from "../../ui/button";
 import { CreationTabs } from "../CreationTab";
-import { Textarea } from "../../ui/textarea";
-import { Label } from "../../ui/label";
 import { FormTextarea } from "../FormTextarea";
 
 export default function CreateEventForm() {
@@ -34,7 +28,7 @@ export default function CreateEventForm() {
           </p>
           <CreationTabs />
         </div>
-        <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 flex-grow">
+        <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 grow">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-12 gap-y-5 md:gap-y-6">
             <FormInput
               label="Event title"

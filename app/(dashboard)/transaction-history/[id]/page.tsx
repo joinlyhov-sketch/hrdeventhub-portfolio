@@ -5,15 +5,11 @@ import { PayerCard } from "../../../../components/dashboard/transaction-history/
 
 import { transactionDetailsData } from "../../../../data/transaction-detail";
 
-export default function TransactionDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function TransactionDetailPage() {
   const detail = transactionDetailsData[0];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen z-10">
       <Header
         titlePrimary="Transaction"
         titleSecondary="Details"

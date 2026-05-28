@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Settings2, Plus, Check } from "lucide-react";
+import { Settings2, CirclePlus, Check } from "lucide-react";
 import Search from "../search/Search";
 import CreateGroupModal from "@/components/site/pop-up/action-button/CreateGroupForm";
 
@@ -18,18 +18,12 @@ export default function GroupSearch({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
   const [search, setSearch] = useState(initialSearchValue);
   const currentType = searchParams.get("type") || "All";
-
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setSearch(initialSearchValue);
-  }, [initialSearchValue]);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -70,7 +64,7 @@ export default function GroupSearch({
   };
 
   return (
-    <div className="flex items-center gap-2 mb-6 w-full relative">
+    <div className="flex items-center gap-x-4 mb-6 w-90% relative">
       <Search
         value={search}
         onChange={(e) => handleSearchChange(e.target.value)}
@@ -80,7 +74,7 @@ export default function GroupSearch({
       <div className="relative shrink-0" ref={dropdownRef}>
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className={`p-2 border rounded-xl transition-all shrink-0 cursor-pointer h-[42px] w-[42px] flex items-center justify-center box-border ${
+          className={`p-2 border rounded-xl transition-all shrink-0 cursor-pointer h-10.5 w-10.5 flex items-center justify-center box-border rotate-90 ${
             isFilterOpen || currentType !== "All"
               ? "border-primary bg-primary/5 text-primary shadow-sm"
               : "border-gray-200 text-gray-600 hover:bg-white hover:shadow-md"
@@ -99,7 +93,7 @@ export default function GroupSearch({
               <button
                 key={option.value}
                 onClick={() => handleFilterSelect(option.value)}
-                className="w-full text-left px-4 py-2 text-sm font-medium text-gray-700 hover:bg-slate-50 flex items-center justify-between transition-colors cursor-pointer"
+                className="w-full text-left px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-slate-50 flex items-center justify-between transition-colors cursor-pointer tracking-tight"
               >
                 {option.label}
                 {currentType === option.value && (
@@ -114,10 +108,10 @@ export default function GroupSearch({
       {role === "admin" && (
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer h-[42px] box-border"
+          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-medium hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer h-10.5 box-border"
         >
           Create
-          <Plus size={20} strokeWidth={3} />
+          <CirclePlus size={20} strokeWidth={2} />
         </button>
       )}
 
