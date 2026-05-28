@@ -369,10 +369,10 @@ export function EventManagementTable({
                     </div>
                     <div>
                       <p className="text-base font-bold text-secondary">
-                        Event doesn't exist
+                        Event doesn&apos;t exist
                       </p>
                       <p className="text-sm text-gray-400 font-medium">
-                        We couldn't find any events match for your search.
+                        We couldn&apos;t find any events match for your search.
                       </p>
                     </div>
                   </div>

@@ -66,9 +66,7 @@ export default function StudentProfileForm() {
         </div>
 
         <div className="flex flex-col gap-1.5 w-full">
-          <label className="type-desc text-secondary">
-            Profile Bio
-          </label>
+          <label className="type-desc text-secondary">Profile Bio</label>
           <textarea
             rows={3}
             className="w-full p-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary resize-none"

@@ -26,8 +26,6 @@ export default function EventDetailPage() {
       </section>
       <EventDetailClient event={event} isAdminOrOrganizer={isAdminOrOrganizer} />
 
-
-
     </section>
   );
 }
