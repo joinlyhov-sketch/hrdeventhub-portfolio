@@ -9,8 +9,11 @@ import DetailContentComponent from "../../../components/site/event-detail//detai
 import { AdminOverview } from "../../../components/site/event-detail//register-table";
 import { DiscussionSection } from "../../../components/site/event-detail//discussion-section";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
+import PaymentModal from "@/components/site/pop-up/payment/PaymentModal";
 import Link from "next/link";
-import type { HRDEvent } from "../../../data/event-detail";
+import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import { usePaymentModalStore } from "@/store/usePaymentModalStore";
+import type { HRDEvent, EventDetailState, Reaction as ReactionType } from "@/data/event-detail";
 
 type Tab = "details" | "price" | "map";
 type AdminSubTab = "overview" | "discussion";
@@ -27,23 +30,48 @@ export default function EventDetailClient({
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [activeAdminTab, setActiveAdminTab] = useState<AdminSubTab>("overview");
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
 
-  const [detailData, setDetailData] = useState({
+  const openPaymentModal = usePaymentModalStore((state) => state.openPaymentModal);
+
+  const [detailData, setDetailData] = useState<EventDetailState>({
     id: event?.id || "det-4401",
     likesCount: 124,
     commentsCount: 18,
     isLikedByUser: false,
   });
 
+  const activeReaction = REACTIONS.find((r: ReactionType) => r.id === selectedReaction);
+
   const handleLikeToggle = () => {
     setDetailData((prev) => {
-      const updatedIsLiked = !prev.isLikedByUser;
-      return {
-        ...prev,
-        isLikedByUser: updatedIsLiked,
-        likesCount: updatedIsLiked ? prev.likesCount + 1 : prev.likesCount - 1,
-      };
+      const isCurrentlyActive = !!selectedReaction;
+      if (isCurrentlyActive) {
+        setSelectedReaction(null);
+        return {
+          ...prev,
+          isLikedByUser: false,
+          likesCount: prev.likesCount - 1,
+        };
+      } else {
+        setSelectedReaction("like");
+        return {
+          ...prev,
+          isLikedByUser: true,
+          likesCount: prev.likesCount + 1,
+        };
+      }
     });
+  };
+
+  const handleReactionSelect = (reactionId: string) => {
+    const wasAlreadyActive = !!selectedReaction;
+    setSelectedReaction(reactionId);
+    setDetailData((prev) => ({
+      ...prev,
+      isLikedByUser: true,
+      likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
+    }));
   };
 
   return (
@@ -70,10 +98,10 @@ export default function EventDetailClient({
                 <span className="bg-primary/10 px-6 py-3 rounded-xl text-primary type-desc-small-semibold">
                   Admin
                 </span>
-                <Link href={`/event-management/edition/event `}>
-                  <button className="flex items-center gap-x-1 border border-border px-6 py-3 rounded-xl text-grey-900 type-desc-small-semibold hover:bg-grey-50 cursor-pointer">
+                <Link href={`/event-management/edition/event`}>
+                  <span className="flex items-center gap-x-1 border border-border px-6 py-3 rounded-xl text-grey-900 type-desc-small-semibold hover:bg-grey-50 cursor-pointer">
                     <Edit size={16} /> Edit Event
-                  </button>
+                  </span>
                 </Link>
               </>
             )}
@@ -105,14 +133,17 @@ export default function EventDetailClient({
               ))}
             </div>
 
-            <div className="grow pt-4  max-w-full items-stretch min-[1290px]:w-3xl">
+            <div className="grow pt-4 max-w-full items-stretch min-[1290px]:w-3xl">
               {activeTab === "details" && <DetailContentComponent />}
               {activeTab === "price" && <PriceContentComponent />}
               {activeTab === "map" && <MapContentComponent />}
             </div>
 
             {!isAdminOrOrganizer && (
-              <button className="w-full rounded-md py-2.5 type-desc-semibold text-center text-primary-foreground bg-primary hover:opacity-95 transition-opacity cursor-pointer">
+              <button 
+                onClick={() => openPaymentModal("register")}
+                className="w-full rounded-md py-2.5 type-desc-semibold text-center text-primary-foreground bg-primary hover:opacity-95 transition-opacity cursor-pointer"
+              >
                 Register now
               </button>
             )}
@@ -120,22 +151,25 @@ export default function EventDetailClient({
         </section>
 
         <section className="flex gap-x-6 py-2 border-b border-border text-grey-400 type-detail">
-          <button
-            onClick={handleLikeToggle}
-            className={`flex items-center gap-x-1 transition-colors cursor-pointer ${
-              detailData.isLikedByUser
-                ? "text-blue-600 font-semibold"
-                : "hover:text-primary"
-            }`}
+          <ReactionPopover 
+            selectedValue={selectedReaction} 
+            onReactionSelect={handleReactionSelect}
           >
-            <ThumbsUp
-              size={16}
-              className={
-                detailData.isLikedByUser ? "fill-blue-600 stroke-blue-600" : ""
-              }
-            />{" "}
-            {detailData.likesCount}
-          </button>
+            <button
+              onClick={handleLikeToggle}
+              className={`flex items-center gap-x-1 transition-colors cursor-pointer select-none ${
+                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
+              }`}
+            >
+              <ThumbsUp
+                size={16}
+                className={activeReaction?.id === "like" ? "fill-primary stroke-primary" : ""}
+              />{" "}
+              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span className="text-xs font-normal text-grey-400">({detailData.likesCount})</span>
+            </button>
+          </ReactionPopover>
+
           <span className="flex items-center gap-x-1">
             <MessageCircleMore size={16} /> {detailData.commentsCount}
           </span>
@@ -146,6 +180,7 @@ export default function EventDetailClient({
             <Share2 size={16} /> Share
           </button>
         </section>
+        
         {isAdminOrOrganizer ? (
           <div className="space-y-6">
             <section className="flex gap-x-6 border-b border-border type-desc-semibold">
@@ -181,6 +216,8 @@ export default function EventDetailClient({
         onClose={() => setIsShareOpen(false)}
         shareUrl={`hrdeventhub.app/events/${detailData.id}`}
       />
+
+      <PaymentModal />
     </>
   );
 }

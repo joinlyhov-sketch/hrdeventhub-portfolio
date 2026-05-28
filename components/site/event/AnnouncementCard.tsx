@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  MapPin,
-  Calendar,
-  Target,
   ThumbsUp,
   MessageSquare,
   Share2,
@@ -12,75 +9,16 @@ import {
   MoreVertical,
   Megaphone,
 } from "lucide-react";
+import Link from "next/link";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-const data = {
-  id: "1",
-  groupId: "1",
-  badge: "NEW EVENT",
-  title: "Songkran Festival Celebration",
-  schedule: "Tomorrow, 1:30 PM - 5:00 PM • HRD Center",
-};
-
-const initialMockData = {
-  id: "ann-7731",
-  announcementLabel: "Main Stage Announcement",
-  postedTimeText: "Posted 45 mins ago",
-  author: {
-    name: "Dita Rector",
-    avatar: "https://i.pravatar.cc/150?u=dita",
-    role: "Organizer",
-    date: "01/05/2026 20:25",
-  },
-  title: "Upcoming Special Lecture !",
-  description:
-    "Join us to explore the fundamentals of Zero Trust Security and how organizations protect digital systems in today's evolving threat landscape. Learn key principles, modern security strategies, and real-world applications for building safer and smarter networks.",
-  location: "Royal University of Phnom Penh",
-  dateString: "26th May 2026, 2pm–5pm",
-  purpose:
-    "Enhance student's Knowledge in the field of Artificial Intelligence",
-  bannerImage:
-    "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1200",
-  innerBannerTitle: "AI Evolution in Modern Technology Era",
-  innerBannerMeta: "CKCC Seminar Room B • Sept 15, 2026",
-  likesCount: 124,
-  commentsCount: 18,
-  isLikedByUser: false,
-};
-
-const mockComments = [
-  {
-    id: "c1",
-    author: {
-      name: "Lyhov",
-      avatar: "https://i.pravatar.cc/150?u=lyhov",
-      initials: "LY",
-    },
-    date: "2h ago",
-    text: "Really excited for this event. Is anyone else joining from 12th gen?",
-    replies: [
-      {
-        id: "r1",
-        author: {
-          name: "Dine",
-          avatar: "https://i.pravatar.cc/150?u=dine",
-        },
-        date: "1h ago",
-        text: "Is there a live stream link? @rectordita",
-        isOwn: true,
-      },
-      {
-        id: "r2",
-        author: {
-          name: "Dita Rector",
-          avatar: "https://i.pravatar.cc/150?u=dita",
-        },
-        date: "30min ago",
-        text: "@dinety I think there is",
-        isOwn: true,
-      },
-    ],
-  },
-];
+import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import {
+  AnnouncementData,
+  Reaction,
+  groupData,
+  initialAnnouncementMockData,
+  mockComments,
+} from "@/data/announcementData";
 
 interface AnnouncementCardProps {
   searchQuery: string;
@@ -95,17 +33,40 @@ export function AnnouncementCard({
 }: AnnouncementCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [announcementData, setAnnouncementData] = useState(initialMockData);
+  const [announcementData, setAnnouncementData] = useState<AnnouncementData>(initialAnnouncementMockData);
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+
+  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
 
   const handleLikeToggle = () => {
     setAnnouncementData((prev) => {
-      const updatedIsLiked = !prev.isLikedByUser;
-      return {
-        ...prev,
-        isLikedByUser: updatedIsLiked,
-        likesCount: updatedIsLiked ? prev.likesCount + 1 : prev.likesCount - 1,
-      };
+      const isCurrentlyActive = !!selectedReaction;
+      if (isCurrentlyActive) {
+        setSelectedReaction(null);
+        return {
+          ...prev,
+          isLikedByUser: false,
+          likesCount: prev.likesCount - 1,
+        };
+      } else {
+        setSelectedReaction("like");
+        return {
+          ...prev,
+          isLikedByUser: true,
+          likesCount: prev.likesCount + 1,
+        };
+      }
     });
+  };
+
+  const handleReactionSelect = (reactionId: string) => {
+    const wasAlreadyActive = !!selectedReaction;
+    setSelectedReaction(reactionId);
+    setAnnouncementData((prev) => ({
+      ...prev,
+      isLikedByUser: true,
+      likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
+    }));
   };
 
   const isMatch = announcementData.title
@@ -160,9 +121,11 @@ export function AnnouncementCard({
               </p>
             </div>
           </div>
-          <span className="bg-[#FFF7ED] text-[#F97316] type-desc-small-semibold px-3 py-1 rounded-full uppercase">
-            {announcementData.author.role}
-          </span>
+          {announcementData.author.role && (
+            <span className="bg-[#FFF7ED] text-[#F97316] type-desc-small-semibold px-3 py-1 rounded-full uppercase">
+              {announcementData.author.role}
+            </span>
+          )}
         </div>
 
         <h2 className="type-title text-primary mb-2">{announcementData.title}</h2>
@@ -233,35 +196,36 @@ export function AnnouncementCard({
               +80
             </div>
           </div>
-          <a href={`/group/${data.id}/event/${initialMockData.id}}`}>
-            <button
+          <Link
+            href={`/group/${groupData.id}/event/${announcementData.id}`}
             onClick={onViewDetail}
-            className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white text-xs font-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
+            className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white text-xs font-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer inline-block text-center"
           >
             View Detail
-          </button>
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail text-grey-500">
-          <button
-            onClick={handleLikeToggle}
-            className={`flex items-center gap-2 transition-colors cursor-pointer ${
-              announcementData.isLikedByUser
-                ? "text-blue-600 font-semibold"
-                : "hover:text-primary"
-            }`}
+          
+          <ReactionPopover 
+            selectedValue={selectedReaction} 
+            onReactionSelect={handleReactionSelect}
           >
-            <ThumbsUp
-              size={18}
-              className={
-                announcementData.isLikedByUser
-                  ? "fill-blue-600 stroke-blue-600"
-                  : ""
-              }
-            />{" "}
-            {announcementData.likesCount}
-          </button>
+            <button
+              onClick={handleLikeToggle}
+              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
+                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
+              }`}
+            >
+              <ThumbsUp
+                size={18}
+                className={activeReaction?.id === "like" ? "fill-blue-500 stroke-blue-500" : ""}
+              />
+              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span className="text-xs font-normal text-grey-400">({announcementData.likesCount})</span>
+            </button>
+          </ReactionPopover>
+
           <button
             onClick={() => setShowComments(!showComments)}
             className="flex items-center gap-2 hover:text-primary cursor-pointer"

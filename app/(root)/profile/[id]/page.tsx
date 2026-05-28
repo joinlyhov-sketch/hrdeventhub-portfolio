@@ -1,5 +1,4 @@
 "use client";
-import ProfileHeader from "@/components/site/profile/ProfileHeader";
 import BackgroundTab from "@/components/site/profile/BackgroundTab";
 import EventTab from "@/components/site/profile/EventTab";
 import { useState } from "react";
@@ -8,36 +7,30 @@ import EndorsementTabs from "@/components/site/profile/EndorsementTabs";
 import HeaderNoProfile from "@/components/dashboard/header/HeaderNoProfile";
 import { MOCK_CURRENT_USER } from "@/data/mock-user";
 
-export type UserViewMode = "ADMIN" | "STUDENT_SELF" | "ALUMNI_VIEWING_STUDENT";
-
 export default function ProfilePage() {
-
-
-  const viewMode = "STUDENT_SELF" as UserViewMode;
+  const role = MOCK_CURRENT_USER.role;
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
-  const showStudentTabs =
-    viewMode === "STUDENT_SELF" || viewMode === "ALUMNI_VIEWING_STUDENT";
+  const showStudentTabs = role === "student" || role === "alumni";
 
   return (
-    <div className=" w-full bg-background z-30">
+    <div className="w-full bg-background z-30">
       <HeaderNoProfile
         titlePrimary="My"
         titleSecondary="Profile"
         description="View your profile information, background details, and endorsements from participated events."
       />
       <div className="lg:pr-12 lg:pl-12 max-w-420 m-auto">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-          <div className="xl:col-span-4">
-            <ProfileCard viewMode="ALUMNI_VIEWING_STUDENT" userRole="ALUMNI" />
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch">
+          <div className="xl:col-span-4 h-full">
+            <ProfileCard userRole={role} />
           </div>
-          <div className="xl:col-span-8 bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
+          <div className="xl:col-span-8 h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
             <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1">
               <Tabnav
                 active={activeTab === "BG"}
                 label="Background"
                 onClick={() => setActiveTab("BG")}
               />
-
               {showStudentTabs && (
                 <>
                   <Tabnav
@@ -64,6 +57,7 @@ export default function ProfilePage() {
     </div>
   );
 }
+
 const Tabnav = ({
   label,
   active,
