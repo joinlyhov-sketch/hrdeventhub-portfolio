@@ -8,6 +8,7 @@ import {
   Cake,
   Users,
 } from "lucide-react";
+import Image from "next/image";
 
 interface SelectiveVisibilityConfig {
   profile: boolean;
@@ -69,138 +70,22 @@ export default function ProfilePrivacy({
     {
       name: "Facebook",
       svg: (
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 30 30"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <rect width="30" height="30" fill="url(#pattern0_55249_171323)" />
-          <defs>
-            <pattern
-              id="pattern0_55249_171323"
-              patternContentUnits="objectBoundingBox"
-              width="1"
-              height="1"
-            >
-              <use
-                xlinkHref="#image0_55249_171323"
-                transform="scale(0.0018797)"
-              />
-            </pattern>
-            <image
-              id="image0_55249_171323"
-              width="532"
-              height="532"
-              preserveAspectRatio="none"
-            />
-          </defs>
-        </svg>
+        <Image src={"/facebook.svg"} alt="facebook" width={30} height={30} />
       ),
     },
     {
       name: "Telegram",
       svg: (
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 31 31"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <rect width="30" height="30" fill="url(#pattern0_55249_171325)" />
-          <defs>
-            <pattern
-              id="pattern0_55249_171325"
-              patternContentUnits="objectBoundingBox"
-              width="1"
-              height="1"
-            >
-              <use
-                xlinkHref="#image0_55249_171325"
-                transform="scale(0.0018797)"
-              />
-            </pattern>
-            <image
-              id="image0_55249_171325"
-              width="532"
-              height="532"
-              preserveAspectRatio="none"
-            />
-          </defs>
-        </svg>
+        <Image src={"/telegram.svg"} alt="telegram" width={30} height={30} />
       ),
     },
     {
       name: "GitHub",
-      svg: (
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 30 30"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <rect width="30" height="30" fill="url(#pattern0_55249_171327)" />
-          <defs>
-            <pattern
-              id="pattern0_55249_171327"
-              patternContentUnits="objectBoundingBox"
-              width="1"
-              height="1"
-            >
-              <use
-                xlinkHref="#image0_55249_171327"
-                transform="scale(0.0018797)"
-              />
-            </pattern>
-            <image
-              id="image0_55249_171327"
-              width="532"
-              height="532"
-              preserveAspectRatio="none"
-            />
-          </defs>
-        </svg>
-      ),
+      svg: <Image src={"/github.svg"} alt="github" width={30} height={30} />,
     },
     {
       name: "LinkedIn",
-      svg: (
-        <svg
-          width="35"
-          height="36"
-          viewBox="0 0 35 36"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <rect width="35" height="36" fill="url(#pattern0_55249_171329)" />
-          <defs>
-            <pattern
-              id="pattern0_55249_171329"
-              patternContentUnits="objectBoundingBox"
-              width="1"
-              height="1"
-            >
-              <use
-                xlinkHref="#image0_55249_171329"
-                transform="matrix(0.0019334 0 0 0.0018797 -0.0142857 0)"
-              />
-            </pattern>
-            <image
-              id="image0_55249_171329"
-              width="532"
-              height="532"
-              preserveAspectRatio="none"
-            />
-          </defs>
-        </svg>
-      ),
+      svg: <Image src={"/linkin.svg"} alt="linkin" width={30} height={30} />,
     },
   ];
   if (visibilityMode === "private") {
@@ -256,7 +141,7 @@ export default function ProfilePrivacy({
   return (
     <>
       <div
-        className={`xl:col-span-8 w-full h-full bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-6 min-h-[800px]`}
+        className={`xl:col-span-8 w-full h-full bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-6 min-h-[00px]`}
       >
         <div
           className={`w-full border-slate-100 type-subtitle-24 font-bold text-[#0f2d59]`}
@@ -324,6 +209,17 @@ export default function ProfilePrivacy({
               )}
             </div>
           )}
+          {/* <div className="mt-6 flex gap-3 w-full">
+            {socials.map((social, i) => (
+              <button
+                key={i}
+                aria-label={social.name}
+                className="text-primary-foreground rounded-full transition-colors duration-150 cursor-pointer"
+              >
+                {social.svg}
+              </button>
+            ))}
+          </div> */}
         </div>
       </div>
       <div className="p-3 type-detail flex items-center justify-center gap-1.5 text-[10px] text-[0F2854]">

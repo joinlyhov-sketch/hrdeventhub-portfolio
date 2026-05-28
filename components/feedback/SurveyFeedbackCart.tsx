@@ -15,6 +15,7 @@ import { surveyFeedbacks } from "../../data/surveyFeedback";
 import Link from "next/link";
 import { PaginationDemo } from "./Pagination";
 import ContentTypePopover from "../site/pop-up/contents/pop-over-content";
+import Image from "next/image";
 
 export default function SurveyFeedbackFeature() {
   const [search, setSearch] = useState("");
@@ -22,7 +23,11 @@ export default function SurveyFeedbackFeature() {
   const itemsPerPage = 6;
 
   const contentMenuOptions: PopoverItem[] = [
-    { label: "Survey", icon: CheckCircle2, href: "/event-management/creation/survey" },
+    {
+      label: "Survey",
+      icon: CheckCircle2,
+      href: "/event-management/creation/survey",
+    },
     { label: "Poll", icon: BarChart3, href: "/event-management/creation/poll" },
   ];
 
@@ -130,7 +135,8 @@ function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
         <div className="flex items-center justify-between w-full gap-2">
           <StatusBadge status={item.status} />
           <div className="inline-flex size-12 items-center justify-center rounded-lg bg-accent/20 text-accent shrink-0">
-            <BarChart3 size={22} />
+            {/* <BarChart3 size={22} /> */}
+            <Image src={"/chart.svg"} alt="chart" width={22} height={22} />
           </div>
         </div>
         <h3 className="type-subtitle text-primary mt-4 break-words line-clamp-2 w-full">

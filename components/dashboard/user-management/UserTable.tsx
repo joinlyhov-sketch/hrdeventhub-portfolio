@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/drop-down/dropdown-menu";
 import { PaginationDemo } from "@/components/feedback/Pagination";
+import Image from "next/image";
 
 interface UserTableClientProps {
   initialUsers: UserData[];

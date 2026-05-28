@@ -2,6 +2,7 @@
 import { SquarePen, UserX2, UserRoundCheck } from "lucide-react";
 import { UserData } from "../../../data/UserData";
 import { TableCell, TableRow } from "../../ui/table";
+import Image from "next/image";
 
 interface UserRowProps {
   user: UserData;
@@ -73,7 +74,7 @@ export default function UserRow({
             onClick={() => onEditRole(user)}
             className="text-slate-600 hover:text-blue-900 transition-colors cursor-pointer shrink-0"
           >
-            <SquarePen size={18} />
+            <Image src={"edit.svg"} alt="edit" width={18} height={18} />
           </button>
           <button
             type="button"
@@ -84,7 +85,16 @@ export default function UserRow({
                 : "text-accent hover:text-green-700"
             }`}
           >
-            {isActive ? <UserX2 size={18} /> : <UserRoundCheck size={18} />}
+            {isActive ? (
+              <Image
+                src={"user-minus.svg"}
+                alt="user-minus"
+                width={18}
+                height={18}
+              />
+            ) : (
+              <UserRoundCheck size={18} />
+            )}
           </button>
         </div>
       </TableCell>
