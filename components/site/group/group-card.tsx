@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Lock, Globe, Link2 } from "lucide-react";
+import { Globe, Link2 } from "lucide-react";
 import { Group } from "../../../data/groups";
 import GroupDropDown from "../pop-up/action-button/action-button-group";
+import { LockKeyhole } from "lucide-react";
 
 interface GroupCardProps {
   group: Group;
@@ -12,18 +13,18 @@ export default function GroupCard({ group, role }: GroupCardProps) {
   const isInternal = group.type === "Internal";
 
   return (
-    <div className="bg-card p-5 rounded-2xl border border-border flex flex-col shadow-sm hover:shadow-xl transition-all relative group overflow-hidden">
+    <div className="w-full bg-card p-6 rounded-3xl border border-border flex flex-col hover:shadow-sm transition-all relative group overflow-hidden">
       <div 
         className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
           isInternal 
-            ? "bg-[linear-gradient(225deg,#F6F0EC_17%,#FDFDFD_42%)]" 
-            : "bg-[linear-gradient(225deg,#FDFDFD_42%)]"
+            ? "bg-[linear-gradient(225deg,#F6F0EC_25%,#FDFDFD_42%)]" 
+            : "bg-[linear-gradient(225deg,#DDE6FF_10%,#FDFDFD_42%)]"
         } opacity-90`} 
       />
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center justify-between mb-6">
-          <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted type-detail-small-medium text-primary">
-            {isInternal ? <Lock size={14}  /> : <Globe size={14} />}
+          <span className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 type-detail-small-medium text-primary">
+            {isInternal ? <LockKeyhole size={14}  /> : <Globe size={14} />}
             {group.type}
           </span>
 
@@ -36,11 +37,11 @@ export default function GroupCard({ group, role }: GroupCardProps) {
           )}
         </div>
 
-        <h2 className="type-subtitle-24 font-extrabold bg-gradient-to-r from-primary to-[#B38B4D] bg-clip-text text-transparent mb-3 uppercase tracking-wide">
+        <h2 className="text-subtitle font-black bg-linear-to-r from-primary to-[#efa537] bg-clip-text text-transparent mb-3 uppercase tracking-wide">
           {group.title}
         </h2>
 
-        <p className="text-secondary type-detail leading-relaxed mb-10">
+        <p className="text-secondary type-detail-medium leading-relaxed mb-10 w-[70%]">
           {group.description}
         </p>
 
@@ -57,7 +58,7 @@ export default function GroupCard({ group, role }: GroupCardProps) {
           </div>
 
           <Link href={`/group/${group.id}`}>
-            <button className="bg-primary text-primary-foreground px-7 py-3 rounded-md type-detail-semibold hover:bg-action hover:text-action-foreground transition-all shadow-sm cursor-pointer">
+            <button className="bg-primary text-primary-foreground px-7 py-3 rounded-xl type-detail-semibold hover:bg-action hover:text-action-foreground transition-all shadow-sm cursor-pointer">
               View Group
             </button>
           </Link>

@@ -45,7 +45,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
         <GroupSearch role={userRole} initialSearchValue={searchQuery} />
 
         <div className="relative w-full flex box-border min-h-110">
-          <div className="invisible grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 w-full auto-rows-fr box-border pointer-events-none">
+          <div className="invisible grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-4 auto-rows-fr box-border pointer-events-none">
             {mockGroups.map((group) => (
               <div
                 key={`spacer-${group.id}`}
@@ -56,7 +56,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
             ))}
           </div>
           {hasResults ? (
-            <div className="absolute inset-0 w-full h-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 auto-rows-fr box-border left-0 top-0">
+            <div className="absolute inset-0 w-full h-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr box-border left-0 top-0">
               {filteredGroups.map((group) => (
                 <div key={group.id} className="w-full block box-border min-w-0">
                   <GroupCard group={group} role={userRole} />
