@@ -18,7 +18,7 @@ export default function Search({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full pl-6 pr-14 py-2 border border-gray-200 rounded-full text-base focus:ring-2 focus:ring-blue-100 outline-none placeholder:text-gray-400 shadow-sm"
+        className="w-full pl-6 pr-14 py-2 border border-gray-200 rounded-full text-base focus:ring-2 focus:ring-blue-100 outline-none placeholder:text-gray-400"
       />
       <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-3 pointer-events-none">
         <button

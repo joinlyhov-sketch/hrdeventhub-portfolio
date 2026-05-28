@@ -2,6 +2,7 @@
 import { SquarePen, UserX2, UserRoundCheck } from "lucide-react";
 import { UserData } from "../../../data/UserData";
 import { TableCell, TableRow } from "../../ui/table";
+import Image from "next/image";
 
 interface UserRowProps {
   user: UserData;
@@ -18,11 +19,11 @@ export default function UserRow({
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
-      <TableCell className="px-5 py-3 text-desc text-gray-500 text-center w-[10%] truncate">
+      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] ">
         {user.no}
       </TableCell>
 
-      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[18%]">
+      <TableCell className="px-3 py-3 type-desc text-gray-500 w-[18%]">
         <div className="flex items-center gap-3 truncate">
           <img
             src={user.avatar}
@@ -33,23 +34,23 @@ export default function UserRow({
         </div>
       </TableCell>
 
-      <TableCell className="px-5 py-3 text-desc text-gray-500 w-[20%] truncate text-center">
+      <TableCell className="px-2 py-3 type-desc text-gray-500 w-[20%] truncate text-center">
         {user.email}
       </TableCell>
 
-      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[13%] truncate text-center">
+      <TableCell className="px-6 py-3 type-desc text-gray-500 w-[13%] truncate text-center">
         {user.phone}
       </TableCell>
 
-      <TableCell className="px-6 py-3 text-desc text-gray-500 w-[10%] truncate text-center">
+      <TableCell className="px-6 py-3 type-desc text-gray-500 w-[10%] truncate text-center">
         {user.gender}
       </TableCell>
 
-      <TableCell className="px-1 py-3 text-desc text-gray-500 text-center w-[10%] truncate">
+      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] truncate">
         {user.gen}
       </TableCell>
 
-      <TableCell className="px-1 py-3 text-desc text-gray-500 text-center w-[15%]">
+      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[15%]">
         <div className="flex items-center justify-center w-full">
           <span
             className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium shrink-0 min-w-[90px] ${
@@ -73,7 +74,7 @@ export default function UserRow({
             onClick={() => onEditRole(user)}
             className="text-slate-600 hover:text-blue-900 transition-colors cursor-pointer shrink-0"
           >
-            <SquarePen size={18} />
+            <Image src={"edit.svg"} alt="edit" width={18} height={18} />
           </button>
           <button
             type="button"
@@ -84,7 +85,16 @@ export default function UserRow({
                 : "text-accent hover:text-green-700"
             }`}
           >
-            {isActive ? <UserX2 size={18} /> : <UserRoundCheck size={18} />}
+            {isActive ? (
+              <Image
+                src={"user-minus.svg"}
+                alt="user-minus"
+                width={18}
+                height={18}
+              />
+            ) : (
+              <UserRoundCheck size={18} />
+            )}
           </button>
         </div>
       </TableCell>

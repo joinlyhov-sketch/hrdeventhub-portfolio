@@ -103,7 +103,10 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
             <InfoRow icon={<Mail size={16} />} text="kaknika@gmail.com" />
             <InfoRow icon={<Calendar size={16} />} text="12 July 2007" />
             <InfoRow icon={<Users size={16} />} text="14th Generation" />
-            <InfoRow icon={<Code size={16} />} text="Fullstack web development" />
+            <InfoRow
+              icon={<Code size={16} />}
+              text="Fullstack web development"
+            />
             <InfoRow icon={<Phone size={16} />} text="015849376" />
             <InfoRow icon={<GraduationCap size={16} />} text="Studying" />
             <InfoRow icon={<FemaleIcon />} text="Female" />

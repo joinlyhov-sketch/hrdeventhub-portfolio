@@ -25,7 +25,7 @@ export function EventBanner({ event }: EventBannerProps) {
             <h2 className="type-subtitle-24 font-bold mb-2">{event.title}</h2>
             <p className="type-desc-semibold text-gray-200 flex items-center gap-2">
               <span>
-                <Clock />
+                <Clock width={18} height={18} />
               </span>
               {event.date}, {event.time} - {event.location}
             </p>
