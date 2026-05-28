@@ -151,7 +151,7 @@ function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
           <p className="type-desc-semibold text-secondary">Total Response</p>
         </div>
 
-        <Link href={`/feedback/${item.id}`} className="w-full block">
+        <Link href={`https://docs.google.com/spreadsheets/d/1u77ifcH9aE0NkF4IUSilps8kai7hkImGpiOODLpgDoM/edit?gid=0#gid=0`} className="w-full block">
           <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm cursor-pointer">
             <span>Open Result</span>
             <ArrowRight size={20} strokeWidth={1.5} />

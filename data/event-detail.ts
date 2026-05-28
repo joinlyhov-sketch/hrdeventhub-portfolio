@@ -160,3 +160,21 @@ export const mockStatsData: StatCard[] = [
     colorKey: "secondary",
   }
 ];
+export interface Creator {
+  name: string;
+  avatarUrl: string;
+}
+
+export interface EventDetailState {
+  id: string;
+  likesCount: number;
+  commentsCount: number;
+  isLikedByUser: boolean;
+}
+
+export interface Reaction {
+  id: string;
+  label: string;
+  displayText: string;
+  color: string;
+}

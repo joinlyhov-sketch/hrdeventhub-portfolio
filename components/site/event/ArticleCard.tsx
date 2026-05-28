@@ -9,82 +9,56 @@ import {
   MoreVertical,
 } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-
-const initialMockData = {
-  id: "art-1102",
-  author: {
-    name: "Dita Rector",
-    avatar: "https://i.pravatar.cc/150?u=dita",
-    role: "Organizer",
-    date: "01/05/2026 20:25",
-  },
-  title: "Khmer Food Competition & Sangkran",
-  bodyText:
-    "Dear everyone, You can find your photo of the event today here. Thank you.",
-  attachmentLink:
-    "https://drive.google.com/drive/folders/1U12M0y6B9uH_cWObkR_zpgm5iopHLYX6",
-  likesCount: 124,
-  commentsCount: 18,
-  isLikedByUser: false,
-};
-
-const mockComments = [
-  {
-    id: "c1",
-    author: {
-      name: "Lyhov",
-      avatar: "https://i.pravatar.cc/150?u=lyhov",
-      initials: "LY",
-    },
-    date: "2h ago",
-    text: "Really excited for this event. Is anyone else joining from 12th gen?",
-    replies: [
-      {
-        id: "r1",
-        author: {
-          name: "Dine",
-          avatar: "https://i.pravatar.cc/150?u=dine",
-        },
-        date: "1h ago",
-        text: "Is there a live stream link? @rectordita",
-        isOwn: true,
-      },
-      {
-        id: "r2",
-        author: {
-          name: "Dita Rector",
-          avatar: "https://i.pravatar.cc/150?u=dita",
-        },
-        date: "30min ago",
-        text: "@dinety I think there is",
-        isOwn: true,
-      },
-    ],
-  },
-];
+import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import { 
+  ArticleData, 
+  Reaction, 
+  initialArticleMockData, 
+  mockComments 
+} from "@/data/articleData";
 
 interface ArticleCardProps {
   searchQuery: string;
   onVisibilityChange: (hasItems: boolean) => void;
 }
 
-export function ArticleCard({
-  searchQuery,
-  onVisibilityChange,
-}: ArticleCardProps) {
+export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [articleData, setArticleData] = useState(initialMockData);
+  const [articleData, setArticleData] = useState<ArticleData>(initialArticleMockData);
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+
+  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
 
   const handleLikeToggle = () => {
     setArticleData((prev) => {
-      const updatedIsLiked = !prev.isLikedByUser;
-      return {
-        ...prev,
-        isLikedByUser: updatedIsLiked,
-        likesCount: updatedIsLiked ? prev.likesCount + 1 : prev.likesCount - 1,
-      };
+      const isCurrentlyActive = !!selectedReaction;
+      if (isCurrentlyActive) {
+        setSelectedReaction(null);
+        return {
+          ...prev,
+          isLikedByUser: false,
+          likesCount: prev.likesCount - 1,
+        };
+      } else {
+        setSelectedReaction("like");
+        return {
+          ...prev,
+          isLikedByUser: true,
+          likesCount: prev.likesCount + 1,
+        };
+      }
     });
+  };
+
+  const handleReactionSelect = (reactionId: string) => {
+    const wasAlreadyActive = !!selectedReaction;
+    setSelectedReaction(reactionId);
+    setArticleData((prev) => ({
+      ...prev,
+      isLikedByUser: true,
+      likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
+    }));
   };
 
   const isMatch =
@@ -128,9 +102,11 @@ export function ArticleCard({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="bg-[#FFF7ED] text-[#F97316] type-desc-small-semibold px-3 py-1 rounded-full uppercase">
-              {articleData.author.role}
-            </span>
+            {articleData.author.role && (
+              <span className="bg-[#FFF7ED] text-[#F97316] type-desc-small-semibold px-3 py-1 rounded-full uppercase">
+                {articleData.author.role}
+              </span>
+            )}
             <button className="text-grey-400 hover:text-grey-500 cursor-pointer">
               <MoreVertical size={20} />
             </button>
@@ -156,28 +132,33 @@ export function ArticleCard({
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail text-grey-500">
-          <button
-            onClick={handleLikeToggle}
-            className={`flex items-center gap-2 transition-colors cursor-pointer ${
-              articleData.isLikedByUser
-                ? "text-blue-600 font-semibold"
-                : "hover:text-primary"
-            }`}
+          
+          <ReactionPopover 
+            selectedValue={selectedReaction} 
+            onReactionSelect={handleReactionSelect}
           >
-            <ThumbsUp
-              size={18}
-              className={
-                articleData.isLikedByUser ? "fill-blue-600 stroke-blue-600" : ""
-              }
-            />{" "}
-            {articleData.likesCount}
-          </button>
+            <button
+              onClick={handleLikeToggle}
+              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
+                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
+              }`}
+            >
+              <ThumbsUp
+                size={18}
+                className={activeReaction?.id === "like" ? "fill-blue-500 stroke-blue-500" : ""}
+              />
+              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span className="text-xs font-normal text-grey-400">({articleData.likesCount})</span>
+            </button>
+          </ReactionPopover>
+
           <button
             onClick={() => setShowComments(!showComments)}
             className="flex items-center gap-2 hover:text-primary cursor-pointer"
           >
             <MessageSquare size={18} /> {articleData.commentsCount}
           </button>
+          
           <button
             onClick={() => setIsShareOpen(true)}
             className="flex items-center gap-2 hover:text-primary cursor-pointer"
@@ -200,7 +181,7 @@ export function ArticleCard({
             <input
               type="text"
               placeholder="Add a comment..."
-              className="w-full bg-grey-50 border-none rounded-full py-3 px-6 type-detail focus:ring-1 focus:ring-blue-100 outline-none text-grey-900"
+              className="w-full bg-grey-50 border-none rounded-full py-3 px-12 type-detail focus:ring-1 focus:ring-blue-100 outline-none text-grey-900"
             />
             <button className="absolute right-4 top-1/2 -translate-y-1/2 text-primary p-1 cursor-pointer">
               <Send size={18} />
@@ -229,12 +210,8 @@ export function ArticleCard({
                       {comment.text}
                     </p>
                     <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
-                      <button className="hover:underline cursor-pointer">
-                        Reply
-                      </button>
-                      <button className="hover:underline cursor-pointer">
-                        Like
-                      </button>
+                      <button className="hover:underline cursor-pointer">Reply</button>
+                      <button className="hover:underline cursor-pointer">Like</button>
                     </div>
                   </div>
                 </div>
@@ -247,10 +224,7 @@ export function ArticleCard({
                     />
 
                     {comment.replies.map((reply, index) => (
-                      <div
-                        key={reply.id}
-                        className="relative flex items-start gap-3"
-                      >
+                      <div key={reply.id} className="relative flex items-start gap-3">
                         {index > 0 && (
                           <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
                         )}
@@ -275,29 +249,20 @@ export function ArticleCard({
                           <p className="text-sm text-grey-900 leading-normal">
                             {reply.text.split(" ").map((word, i) =>
                               word.startsWith("@") ? (
-                                <span
-                                  key={i}
-                                  className="text-blue-600 font-medium"
-                                >
+                                <span key={i} className="text-blue-600 font-medium">
                                   {word}{" "}
-                                </span>
+                                Ready</span>
                               ) : (
                                 word + " "
-                              ),
+                              )
                             )}
                           </p>
                           <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
-                            <button className="hover:underline cursor-pointer">
-                              Reply
-                            </button>
+                            <button className="hover:underline cursor-pointer">Reply</button>
                             {reply.isOwn && (
                               <>
-                                <button className="hover:underline cursor-pointer">
-                                  Edit
-                                </button>
-                                <button className="hover:underline cursor-pointer">
-                                  Delete
-                                </button>
+                                <button className="hover:underline cursor-pointer">Edit</button>
+                                <button className="hover:underline cursor-pointer">Delete</button>
                               </>
                             )}
                           </div>
