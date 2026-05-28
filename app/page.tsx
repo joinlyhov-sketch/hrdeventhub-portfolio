@@ -25,7 +25,7 @@ export default function LandingPage() {
   return (
     <>
       <Navbar />
-      <div className="relative min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden py-20 px-6 md:px-12 select-none">
+      <div className="relative min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden py-36 px-6 md:px-12 select-none">
         <HeroSession />
       </div>
       <div className="min-h-screen bg-background pr-32 pl-32">
@@ -48,8 +48,8 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        <PlatformEssentials />
       </div>
-      <PlatformEssentials/>
       <Footer />
     </>
   );
