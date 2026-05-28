@@ -12,12 +12,12 @@ export const transactionDetailsData: TransactionDetail[] = [
     transactionId: "#TXN-8842",
     payer: {
       id: "user-001",
-      name: "Sarah Conner",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+      name: "Som Veasna",
+      avatar: "/images/veasna.jpg",
       badge: "ALUMNI",
       generation: "Generation 14th",
-      skill: "Cyber Security",
-      email: "l.connor@sky-alumni.edu",
+      skill: "Spring Microservice",
+      email: "Veasna82@gmail.com",
       phone: "+855 12 345 678",
     },
     event: {

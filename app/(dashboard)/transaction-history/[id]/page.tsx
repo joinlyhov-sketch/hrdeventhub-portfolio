@@ -9,7 +9,7 @@ export default function TransactionDetailPage() {
   const detail = transactionDetailsData[0];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen z-10">
       <Header
         titlePrimary="Transaction"
         titleSecondary="Details"

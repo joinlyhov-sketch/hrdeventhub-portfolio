@@ -8,6 +8,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <div className="flex items-center gap-3 w-full">
@@ -18,182 +19,37 @@ const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
 
 interface ProfileCardProps {
   viewMode?: "ALUMNI_VIEWING_STUDENT" | "STUDENT_SELF" | "ADMIN_VIEWING";
-  userRole: "STUDENT" | "ADMIN" | "ALUMNI"; 
+  userRole: "STUDENT" | "ADMIN" | "ALUMNI";
 }
 
 const FemaleIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 18 18"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M7.6875 16.125C10.8977 16.125 13.5 13.5227 13.5 10.3125C13.5 7.10234 10.8977 4.5 7.6875 4.5C4.47734 4.5 1.875 7.10234 1.875 10.3125C1.875 13.5227 4.47734 16.125 7.6875 16.125Z"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M16.125 1.875L12 6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M11.25 1.875H16.125V6.75"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  <Image src={"/man.svg"} alt="man" width={18} height={18} />
 );
 
 export default function ProfileCard({ viewMode, userRole }: ProfileCardProps) {
   const handleAdminActionClick = () => {
-
     console.log("Admin modal triggered");
   };
   const socials = [
     {
       name: "Facebook",
       svg: (
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 30 30"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <rect width="30" height="30" fill="url(#pattern0_55249_171323)" />
-          <defs>
-            <pattern
-              id="pattern0_55249_171323"
-              patternContentUnits="objectBoundingBox"
-              width="1"
-              height="1"
-            >
-              <use
-                xlinkHref="#image0_55249_171323"
-                transform="scale(0.0018797)"
-              />
-            </pattern>
-            <image
-              id="image0_55249_171323"
-              width="532"
-              height="532"
-              preserveAspectRatio="none"
-            />
-          </defs>
-        </svg>
+        <Image src={"/facebook.svg"} alt="facebook" width={30} height={30} />
       ),
     },
     {
       name: "Telegram",
       svg: (
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 31 31"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <rect width="30" height="30" fill="url(#pattern0_55249_171325)" />
-          <defs>
-            <pattern
-              id="pattern0_55249_171325"
-              patternContentUnits="objectBoundingBox"
-              width="1"
-              height="1"
-            >
-              <use
-                xlinkHref="#image0_55249_171325"
-                transform="scale(0.0018797)"
-              />
-            </pattern>
-            <image
-              id="image0_55249_171325"
-              width="532"
-              height="532"
-              preserveAspectRatio="none"
-            />
-          </defs>
-        </svg>
+        <Image src={"/telegram.svg"} alt="telegram" width={30} height={30} />
       ),
     },
     {
       name: "GitHub",
-      svg: (
-        <svg
-          width="30"
-          height="30"
-          viewBox="0 0 30 30"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <rect width="30" height="30" fill="url(#pattern0_55249_171327)" />
-          <defs>
-            <pattern
-              id="pattern0_55249_171327"
-              patternContentUnits="objectBoundingBox"
-              width="1"
-              height="1"
-            >
-              <use
-                xlinkHref="#image0_55249_171327"
-                transform="scale(0.0018797)"
-              />
-            </pattern>
-            <image
-              id="image0_55249_171327"
-              width="532"
-              height="532"
-              preserveAspectRatio="none"
-            />
-          </defs>
-        </svg>
-      ),
+      svg: <Image src={"/github.svg"} alt="github" width={30} height={30} />,
     },
     {
       name: "LinkedIn",
-      svg: (
-        <svg
-          width="35"
-          height="36"
-          viewBox="0 0 35 36"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-        >
-          <rect width="35" height="36" fill="url(#pattern0_55249_171329)" />
-          <defs>
-            <pattern
-              id="pattern0_55249_171329"
-              patternContentUnits="objectBoundingBox"
-              width="1"
-              height="1"
-            >
-              <use
-                xlinkHref="#image0_55249_171329"
-                transform="matrix(0.0019334 0 0 0.0018797 -0.0142857 0)"
-              />
-            </pattern>
-            <image
-              id="image0_55249_171329"
-              width="532"
-              height="532"
-              preserveAspectRatio="none"
-            />
-          </defs>
-        </svg>
-      ),
+      svg: <Image src={"/linkin.svg"} alt="linkin" width={30} height={30} />,
     },
   ];
 
@@ -230,13 +86,16 @@ export default function ProfileCard({ viewMode, userRole }: ProfileCardProps) {
             <InfoRow icon={<Mail size={16} />} text="kaknika@gmail.com" />
             <InfoRow icon={<Calendar size={16} />} text="12 July 2007" />
             <InfoRow icon={<Users size={16} />} text="14th Generation" />
-            <InfoRow icon={<Code size={16} />} text="Fullstack web development" />
+            <InfoRow
+              icon={<Code size={16} />}
+              text="Fullstack web development"
+            />
             <InfoRow icon={<Phone size={16} />} text="015849376" />
             <InfoRow icon={<GraduationCap size={16} />} text="Studying" />
             <InfoRow icon={<FemaleIcon />} text="Female" />
           </div>
         </div>
-        
+
         <div className="w-full">
           <div className="mt-6 flex gap-3 w-full">
             {socials.map((social, i) => (
@@ -252,14 +111,13 @@ export default function ProfileCard({ viewMode, userRole }: ProfileCardProps) {
 
           <div className="mt-6 w-full">
             {userRole === "ADMIN" ? (
-              <button 
+              <button
                 onClick={handleAdminActionClick}
                 className="w-full bg-destructive text-destructive-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer"
               >
-                 Endorse as admin
+                Endorse as admin
               </button>
             ) : userRole === "STUDENT" ? (
-              // Student View: Wrapped in a Link so you can direct them to an edit route
               <Link href="/profile/edit" className="block w-full">
                 <button className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
                   Edit Profile
@@ -275,4 +133,4 @@ export default function ProfileCard({ viewMode, userRole }: ProfileCardProps) {
       </div>
     </div>
   );
-};
+}
