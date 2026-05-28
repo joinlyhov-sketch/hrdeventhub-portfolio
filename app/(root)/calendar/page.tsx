@@ -1,10 +1,9 @@
 "use client";
 import { useState } from "react";
 import { View, SlotInfo } from "react-big-calendar";
-import CalendarToolbar from "@/components/shadcn-big-calendartwo/calendar/CalendarToolbar";
-import FullBigCalendar from "@/components/shadcn-big-calendartwo/calendar/FullBigCalendar";
-import TopBar from "@/components/shadcn-big-calendartwo/calendar/TopBar";
-import UpcomingEventSection from "@/components/shadcn-big-calendartwo/calendar/UpcomingEventSelection";
+import FullBigCalendar from "@/components/shadcn-big-calendar/calendar/FullBigCalendar";
+import TopBar from "@/components/shadcn-big-calendar/calendar/TopBar";
+import UpcomingEventSection from "@/components/shadcn-big-calendar/calendar/UpcomingEventSelection";
 
 export default function CalendarPage() {
   const [view, setView] = useState<View>("month");
