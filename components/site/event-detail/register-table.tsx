@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ArrowUp,
   BadgeDollarSign,
@@ -9,7 +9,6 @@ import {
   UserRound,
   UserRoundCheck,
 } from "lucide-react";
-import Link from "next/link";
 import { StatsCard } from "./../../dashboard/transaction-history/StatsCard";
 import { mockStatsData } from "../../../data/event-detail";
 import {
@@ -19,47 +18,21 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "../../ui/drop-down/dropdown-menu";
+import { PaginationDemo } from "@/components/feedback/Pagination";
+import { initialRegistrations } from "../../../data/registrations";
+
+const ITEMS_PER_PAGE = 5;
 
 export function AdminOverview() {
-  const initialRegistrations = [
-    {
-      name: "Sok Sambath",
-      email: "sambathsok@gmail.com",
-      phone: "012 921 999",
-      gender: "Female",
-      gen: "11",
-      status: "Paid",
-      time: "2 min ago",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-    },
-    {
-      name: "Chan Nika",
-      email: "nikachan.dev@gmail.com",
-      phone: "097 23 34 56",
-      gender: "Male",
-      gen: "12",
-      status: "Paid",
-      time: "2 min ago",
-      avatar:
-        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-    },
-    {
-      name: "Keo Rotha",
-      email: "rothakeo99@gmail.com",
-      phone: "010 345 231",
-      gender: "Female",
-      gen: "11",
-      status: "Paid",
-      time: "2 min ago",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-    },
-  ];
-
   const [registrations] = useState(initialRegistrations);
   const [selectedGen, setSelectedGen] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [showAll, setShowAll] = useState<boolean>(false);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedGen, selectedStatus, showAll]);
 
   const uniqueGenerations = useMemo(() => {
     const generations = registrations.map((user) => user.gen);
@@ -67,6 +40,7 @@ export function AdminOverview() {
       (a, b) => Number(a) - Number(b),
     );
   }, [registrations]);
+
   const filteredRegistrations = useMemo(() => {
     return registrations.filter((user) => {
       const matchesGen = selectedGen === "all" || user.gen === selectedGen;
@@ -76,6 +50,20 @@ export function AdminOverview() {
       return matchesGen && matchesStatus;
     });
   }, [registrations, selectedGen, selectedStatus]);
+
+  const totalPages = useMemo(() => {
+    if (showAll) return 1;
+    return Math.max(
+      1,
+      Math.ceil(filteredRegistrations.length / ITEMS_PER_PAGE),
+    );
+  }, [filteredRegistrations, showAll]);
+
+  const paginatedRegistrations = useMemo(() => {
+    if (showAll) return filteredRegistrations;
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredRegistrations.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredRegistrations, currentPage, showAll]);
 
   const iconRegistry = {
     BadgeDollarSign: BadgeDollarSign,
@@ -97,8 +85,12 @@ export function AdminOverview() {
       <div className="space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {fetchedData.map((stat, index) => {
-            const SelectedIcon = iconRegistry[stat.iconName];
-            const styles = styleRegistry[stat.colorKey];
+            const SelectedIcon =
+              iconRegistry[stat.iconName as keyof typeof iconRegistry];
+            const styles =
+              styleRegistry[stat.colorKey as keyof typeof styleRegistry];
+
+            if (!SelectedIcon || !styles) return null;
 
             const generatedCustomIcon = (
               <div className={`${styles.bg} p-3 rounded-full shrink-0 w-fit`}>
@@ -123,23 +115,34 @@ export function AdminOverview() {
             <h3 className="type-detail-semibold text-grey-900 font-semibold text-base">
               Recent registrations
             </h3>
-            <Link
-              href="#"
-              className="bg-[#EBF5FF] text-secondary hover:bg-blue-100 transition-colors flex items-center gap-x-1.5 px-4 py-1.5 rounded-full text-xs font-semibold"
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className={`${
+                showAll
+                  ? "bg-secondary text-white hover:bg-opacity-90"
+                  : "bg-[#EBF5FF] text-secondary hover:bg-blue-100"
+              } transition-colors flex items-center justify-center gap-x-1.5 py-1.5 rounded-full text-xs font-semibold w-28`}
             >
-              see all <ArrowUp size={12} strokeWidth={2.5} />
-            </Link>
+              <span>{showAll ? "see less" : "see all"}</span>
+              <ArrowUp
+                size={12}
+                strokeWidth={2.5}
+                className={`transition-transform duration-200 shrink-0 ${
+                  showAll ? "rotate-180" : ""
+                }`}
+              />
+            </button>
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
               <thead>
                 <tr className="bg-secondary text-grey-100 text-sm font-medium">
-                  <th className="p-3.5 pl-5">Username & Email</th>
-                  <th className="p-3.5 text-center">Phone</th>
-                  <th className="p-3.5 text-center">Gender</th>
+                  <th className="p-3.5 pl-5 w-[30%]">Username & Email</th>
+                  <th className="p-3.5 text-center w-[15%]">Phone</th>
+                  <th className="p-3.5 text-center w-[12%]">Gender</th>
 
-                  <th className="p-3.5 text-center">
+                  <th className="p-3.5 text-center w-[13%]">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <div className="flex items-center justify-center gap-x-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
@@ -176,7 +179,7 @@ export function AdminOverview() {
                     </DropdownMenu>
                   </th>
 
-                  <th className="p-3.5 text-center">
+                  <th className="p-3.5 text-center w-[15%]">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <div className="flex items-center justify-center gap-x-2 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
@@ -206,12 +209,18 @@ export function AdminOverview() {
                           >
                             Paid
                           </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem
+                            value="Unpaid"
+                            className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                          >
+                            Unpaid
+                          </DropdownMenuRadioItem>
                         </DropdownMenuRadioGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </th>
 
-                  <th className="p-3.5 pr-5 text-center">
+                  <th className="p-3.5 pr-5 text-center w-[15%]">
                     <div className="flex items-center justify-center gap-x-2">
                       <span>Registered</span>
                       <ListFilter size={16} />
@@ -220,28 +229,28 @@ export function AdminOverview() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border bg-white text-[#4A5568] text-sm">
-                {filteredRegistrations.length > 0 ? (
-                  filteredRegistrations.map((user, i) => (
+                {paginatedRegistrations.length > 0 ? (
+                  paginatedRegistrations.map((user, i) => (
                     <tr
                       key={i}
                       className="hover:bg-gray-50/70 transition-colors"
                     >
-                      <td className="p-3.5 pl-5 flex items-center gap-x-3">
+                      <td className="p-3.5 pl-5 flex items-center gap-x-3 overflow-hidden">
                         <img
                           src={user.avatar}
                           alt={user.name}
                           className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-gray-100"
                         />
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-[#1A202C]">
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-semibold text-[#1A202C] truncate">
                             {user.name}
                           </span>
-                          <span className="text-gray-400 text-xs font-normal">
+                          <span className="text-gray-400 text-xs font-normal truncate">
                             {user.email}
                           </span>
                         </div>
                       </td>
-                      <td className="p-3.5 text-center text-gray-600 font-normal">
+                      <td className="p-3.5 text-center text-gray-600 font-normal truncate">
                         {user.phone}
                       </td>
                       <td className="p-3.5 text-center text-gray-500 font-normal">
@@ -251,7 +260,13 @@ export function AdminOverview() {
                         {user.gen}
                       </td>
                       <td className="p-3.5 text-center">
-                        <span className="bg-[#E6F9F5] text-[#00A878] px-2.5 py-0.5 rounded-full text-xs font-semibold border border-[#CCEFE7]">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border inline-block text-center min-w-[70px] ${
+                            user.status === "Paid"
+                              ? "bg-[#E6F9F5] text-[#00A878] border-[#CCEFE7]"
+                              : "bg-[#FEE2E2] text-[#EF4444] border-[#FCA5A5]"
+                          }`}
+                        >
                           {user.status}
                         </span>
                       </td>
@@ -273,6 +288,14 @@ export function AdminOverview() {
               </tbody>
             </table>
           </div>
+
+          {!showAll && filteredRegistrations.length > 0 && (
+            <PaginationDemo
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </div>
     </>
