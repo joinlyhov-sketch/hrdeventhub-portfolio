@@ -1,19 +1,8 @@
-import { CalendarDays, Clock3, MapPin } from "lucide-react";
-import { upcomingEvents } from "@/data/calendarData";
+import { CalendarDays, ChevronRight, Clock3, MapPin } from "lucide-react";
+
+import { upcomingEventGroups } from "@/data/UpcomingEvents";
 
 export default function UpcomingEventSection() {
-  const groupedEvents = upcomingEvents.reduce<
-    Record<string, typeof upcomingEvents>
-  >((acc, event) => {
-    if (!acc[event.month]) {
-      acc[event.month] = [];
-    }
-
-    acc[event.month].push(event);
-
-    return acc;
-  }, {});
-
   return (
     <section className="mt-10">
       <div className="mb-8 flex items-center gap-3">
@@ -27,16 +16,16 @@ export default function UpcomingEventSection() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {Object.entries(groupedEvents).map(([month, events]) => (
-          <div key={month}>
+        {upcomingEventGroups.map((group) => (
+          <div key={group.monthTitle}>
             <div className="mb-5 flex items-center gap-3">
               <div className="h-8 w-1 rounded-full bg-action" />
 
-              <h3 className="type-subtitle text-primary">{month}</h3>
+              <h3 className="type-subtitle text-primary">{group.monthTitle}</h3>
             </div>
 
             <div className="space-y-4">
-              {events.map((event) => (
+              {group.events.map((event) => (
                 <article
                   key={event.id}
                   className="flex items-center rounded-xl border border-border bg-card p-5"
@@ -45,7 +34,7 @@ export default function UpcomingEventSection() {
                     <h3 className="type-title text-primary">{event.day}</h3>
 
                     <p className="type-detail-small-medium text-action">
-                      {event.date}
+                      {event.month}
                     </p>
                   </div>
 
