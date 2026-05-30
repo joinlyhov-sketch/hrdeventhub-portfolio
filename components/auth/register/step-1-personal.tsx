@@ -15,7 +15,19 @@ const step1Schema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   gender: z.string().min(1, "Gender is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  dateOfBirth: z
+    .string()
+    .min(1, "Date of birth is required")
+    .refine((val) => {
+      const dob = new Date(val);
+      if (isNaN(dob.getTime())) return false;
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      const notYetHadBirthdayThisYear =
+        today.getMonth() < dob.getMonth() ||
+        (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate());
+      return age - (notYetHadBirthdayThisYear ? 1 : 0) >= 18;
+    }, "You must be at least 18 years old to register"),
   phoneNumber: z
     .string()
     .min(1, "Phone number is required")
@@ -53,10 +65,17 @@ export default function Step1Personal() {
     setErrors({});
     setStep(2);
   };
+
   const handleChange = (field: keyof Step1Errors, value: string) => {
     updateField(field, value);
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
+
+  const maxDate = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toISOString().split("T")[0];
+  })();
 
   return (
     <motion.div
@@ -108,6 +127,7 @@ export default function Step1Personal() {
             {errors.lastName && <FieldError message={errors.lastName} />}
           </div>
         </div>
+
         <div className="flex flex-col gap-1 pt-4">
           <div
             className={`relative flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
@@ -130,6 +150,7 @@ export default function Step1Personal() {
           </div>
           {errors.gender && <FieldError message={errors.gender} />}
         </div>
+
         <div className="flex flex-col gap-1 pt-4">
           <div
             className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
@@ -139,6 +160,7 @@ export default function Step1Personal() {
             <Calendar size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               type="date"
+              max={maxDate}
               value={form.dateOfBirth}
               onChange={(e) => handleChange("dateOfBirth", e.target.value)}
               className={`w-full bg-transparent text-sm outline-none ${
@@ -158,7 +180,7 @@ export default function Step1Personal() {
           >
             <Phone size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
-              placeholder="+855  Phone number "
+              placeholder="+855  Phone number"
               value={form.phoneNumber}
               onChange={(e) => {
                 const digits = e.target.value.replace(/\D/g, "");

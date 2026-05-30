@@ -24,6 +24,7 @@ const loginSchema = z.object({
 type LoginErrors = Partial<Record<"email" | "password", string>>;
 
 export default function LoginComponent() {
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

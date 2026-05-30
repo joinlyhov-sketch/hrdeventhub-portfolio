@@ -81,13 +81,6 @@ export default function VerifyStep() {
     [email, reset, startTransition, storeToken],
   );
 
-  useEffect(() => {
-    const isFilled = otp.every((d) => d !== "");
-    if (isFilled && autoSubmitEnabled && !isPending) {
-      submitOtp(otp.join(""));
-    }
-  }, [otp, autoSubmitEnabled, isPending, submitOtp]);
-
   const handleVerify = () => submitOtp(otp.join(""));
 
   const handleChange = (value: string, index: number) => {
@@ -95,6 +88,10 @@ export default function VerifyStep() {
     const next = [...otp];
     next[index] = value.slice(-1);
     setOtp(next);
+    const isFilled = next.every((digit) => digit !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) {
+      submitOtp(next.join(""));
+    }
     if (value && index < 5) inputs.current[index + 1]?.focus();
   };
 
