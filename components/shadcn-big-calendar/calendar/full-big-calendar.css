@@ -1,19 +1,8 @@
-/* .calendar-page-shell {
-  width: 100%;
-} */
-
 .calendar-page-shell {
   width: 100%;
   max-width: none;
   margin: 0;
 }
-
-/* .calendar-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-} */
 
 .calendar-toolbar {
   width: 100%;
