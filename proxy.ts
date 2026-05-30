@@ -10,6 +10,7 @@ const authRoutes = [
   "/forget-Password",
   "/reset-password",
   "/verify-otp",
+  "/group-preview",
 ];
 import { env } from "./libs/env";
 

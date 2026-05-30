@@ -54,7 +54,12 @@ export async function registerAction(payload: RegisterRequest) {
     }
     return { ok: true, payload: response.payload };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Registration failed.";
+    const message =
+      error instanceof Error && /409|conflict|already/i.test(error.message)
+        ? "This email is already taken. Please use a different one."
+        : error instanceof Error
+          ? error.message
+          : "Registration failed.";
     return { error: message };
   }
 }

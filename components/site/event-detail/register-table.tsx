@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   ArrowUp,
   BadgeDollarSign,
@@ -30,9 +30,20 @@ export function AdminOverview() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [showAll, setShowAll] = useState<boolean>(false);
 
-  useEffect(() => {
+  const handleToggleShowAll = () => {
+    setShowAll((prev) => !prev);
     setCurrentPage(1);
-  }, [selectedGen, selectedStatus, showAll]);
+  };
+
+  const handleGenChange = (value: string) => {
+    setSelectedGen(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
+    setCurrentPage(1);
+  };
 
   const uniqueGenerations = useMemo(() => {
     const generations = registrations.map((user) => user.gen);
@@ -116,7 +127,7 @@ export function AdminOverview() {
               Recent registrations
             </h3>
             <button
-              onClick={() => setShowAll(!showAll)}
+              onClick={handleToggleShowAll}
               className={`${
                 showAll
                   ? "bg-secondary text-white hover:bg-opacity-90"
@@ -135,7 +146,7 @@ export function AdminOverview() {
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
+            <table className="w-full text-left border-collapse table-fixed min-w-175">
               <thead>
                 <tr className="bg-secondary text-grey-100 text-sm font-medium">
                   <th className="p-3.5 pl-5 w-[30%]">Username & Email</th>
@@ -154,10 +165,10 @@ export function AdminOverview() {
                           <ListFilter size={16} className="shrink-0" />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[135px]">
+                      <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-33.75">
                         <DropdownMenuRadioGroup
                           value={selectedGen}
-                          onValueChange={setSelectedGen}
+                          onValueChange={handleGenChange}
                         >
                           <DropdownMenuRadioItem
                             value="all"
@@ -192,10 +203,10 @@ export function AdminOverview() {
                           <ListFilter size={16} className="shrink-0" />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[125px]">
+                      <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-31.25">
                         <DropdownMenuRadioGroup
                           value={selectedStatus}
-                          onValueChange={setSelectedStatus}
+                          onValueChange={handleStatusChange}
                         >
                           <DropdownMenuRadioItem
                             value="all"
@@ -261,7 +272,7 @@ export function AdminOverview() {
                       </td>
                       <td className="p-3.5 text-center">
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border inline-block text-center min-w-[70px] ${
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border inline-block text-center min-w-17.5 ${
                             user.status === "Paid"
                               ? "bg-[#E6F9F5] text-[#00A878] border-[#CCEFE7]"
                               : "bg-[#FEE2E2] text-[#EF4444] border-[#FCA5A5]"

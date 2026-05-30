@@ -63,7 +63,7 @@ export default function EndorsementTabs() {
               {endorsement.tag}
             </span>
           </div>
-          <p className="type-detail text-grey-500">"{endorsement.text}"</p>
+          <p className="type-detail text-grey-500">{`“${endorsement.text}”`}</p>
         </div>
       ))}
     </div>
