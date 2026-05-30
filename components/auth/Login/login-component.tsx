@@ -64,6 +64,7 @@ export default function LoginComponent() {
     const formData = new FormData();
     formData.append("email", email.trim());
     formData.append("password", password);
+    formData.append("rememberMe", String(rememberMe));
 
     startTransition(async () => {
       const res = await loginAction(formData);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";  // ← add useSession
 import {
   Sidebar,
   SidebarContent,
@@ -21,11 +21,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutModal } from "./pop-up/commons/LogoutModal";
 import { useCurrentUser } from "@/context/user-context";
+import { logoutAction } from "@/actions/auth.action"; 
 
 const ADMIN_ROLES = ["admin", "organizer"] as const;
 
 export function AppSidebar() {
   const { currentUser } = useCurrentUser();
+  const { data: session } = useSession();            
   const { state } = useSidebar();
   const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
@@ -34,8 +36,11 @@ export function AppSidebar() {
     currentUser !== null &&
     ADMIN_ROLES.includes(currentUser?.role as typeof ADMIN_ROLES[number]);
 
-  const handleConfirmLogout = () => {
+  const handleConfirmLogout = async () => {
     setIsLogoutOpen(false);
+    if (session?.refreshToken) {
+      await logoutAction(session.refreshToken);        
+    }
     signOut({ callbackUrl: "/" });
   };
   return (

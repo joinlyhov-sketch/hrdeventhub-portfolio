@@ -4,7 +4,6 @@ import GroupSearch from "../../../components/site/group/group-search";
 import { mockGroups } from "../../../data/groups";
 import { Metadata } from "next";
 import { UserX } from "lucide-react";
-import { MOCK_CURRENT_USER } from "@/data/mock-user";
 
 export const metadata: Metadata = {
   title: "Group",
@@ -20,7 +19,6 @@ export default async function GroupPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
   const searchQuery = resolvedParams?.search || "";
   const typeFilter = resolvedParams?.type || "All";
-  const userRole = MOCK_CURRENT_USER.role;
   const filteredGroups = mockGroups.filter((group) => {
     const searchLower = searchQuery.toLowerCase().trim();
 
@@ -39,10 +37,10 @@ export default async function GroupPage({ searchParams }: PageProps) {
 
   return (
     <div className="container mx-auto min-h-full flex mt-6 flex-col max-w-full pr-8 lg:pr-12 lg:pl-12 w-full box-border">
-      <GroupHeader userRole={userRole} />
+      <GroupHeader />
 
       <div className="max-w-420 mx-auto w-full">
-        <GroupSearch role={userRole} initialSearchValue={searchQuery} />
+        <GroupSearch  initialSearchValue={searchQuery} />
 
         <div className="relative w-full flex box-border min-h-110">
           <div className="invisible grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-4 auto-rows-fr box-border pointer-events-none">
@@ -51,7 +49,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
                 key={`spacer-${group.id}`}
                 className="w-full block box-border min-w-0"
               >
-                <GroupCard group={group} role={userRole} />
+                <GroupCard group={group}/>
               </div>
             ))}
           </div>
@@ -59,7 +57,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
             <div className="absolute inset-0 w-full h-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr box-border left-0 top-0">
               {filteredGroups.map((group) => (
                 <div key={group.id} className="w-full block box-border min-w-0">
-                  <GroupCard group={group} role={userRole} />
+                  <GroupCard group={group} />
                 </div>
               ))}
             </div>

@@ -1,3 +1,5 @@
+"use client";
+import { useCurrentUser } from "@/context/user-context";
 import Link from "next/link";
 import { Globe, Link2 } from "lucide-react";
 import { Group } from "../../../data/groups";
@@ -6,10 +8,10 @@ import { LockKeyhole } from "lucide-react";
 
 interface GroupCardProps {
   group: Group;
-  role: string;
 }
 
-export default function GroupCard({ group, role }: GroupCardProps) {
+export default function GroupCard({ group }: GroupCardProps) {
+  const { currentUser } = useCurrentUser();
   const isInternal = group.type === "Internal";
 
   return (
@@ -28,7 +30,7 @@ export default function GroupCard({ group, role }: GroupCardProps) {
             {group.type}
           </span>
 
-          {role === "admin" ? (
+          {currentUser?.role === "admin" ? (
             <GroupDropDown group={group} />
           ) : (
             <div className="p-2 rounded-full border border-[#FFD7A1] text-[#EFCF8B] hover:scale-110 transition-transform cursor-pointer">
