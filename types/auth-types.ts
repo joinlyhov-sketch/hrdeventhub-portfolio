@@ -82,6 +82,46 @@ export interface ResendOtpResponse {
   timestamp: string;
 }
 
+export interface AppUserPayload {
+  appUserId: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+  active: boolean;
+  verified: boolean;
+  telegramSubscribed: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AppUserResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: AppUserPayload;
+  timestamp: string;
+}
+
+export type ProfileRole = "ADMIN" | "ORGANIZER" | "STUDENT" | "ALUMNI";
+
+export interface ProfilePayload {
+  profileId: string;
+  profileSharingMode: string;
+  roles: ProfileRole;
+  appUser: AppUserPayload;
+}
+
+export interface ProfileResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: ProfilePayload;
+  timestamp: string;
+}
+
 declare module "next-auth" {
   interface Session {
     accessToken: string;
