@@ -9,12 +9,15 @@ import { AnnouncementCard } from "./AnnouncementCard";
 import { PollCard } from "./PollCard";
 import { SurveyCard } from "./SurveyCard";
 import { ArticleCard } from "./ArticleCard";
+import { useCurrentUser } from "@/context/user-context";
 
 interface FilteredFeedProps {
   role: UserRole;
 }
 
-export default function FilteredFeed({ role }: FilteredFeedProps) {
+export default function FilteredFeed() {
+  const { currentUser } = useCurrentUser();
+  const role = currentUser?.role ?? "student";
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -78,6 +81,7 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
       <div className="space-y-4">
         {isCategoryActive("event") && (
           <EventCard
+            role={role}
             searchQuery={searchQuery}
             onVisibilityChange={(hasItems) =>
               handleCardVisibility("event", hasItems)
@@ -86,6 +90,7 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
         )}
         {isCategoryActive("announcement") && (
           <AnnouncementCard
+            role={role}
             searchQuery={searchQuery}
             onVisibilityChange={(hasItems) =>
               handleCardVisibility("announcement", hasItems)
@@ -94,6 +99,7 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
         )}
         {isCategoryActive("poll") && (
           <PollCard
+            role={role}
             searchQuery={searchQuery}
             onVisibilityChange={(hasItems) =>
               handleCardVisibility("poll", hasItems)
@@ -102,6 +108,7 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
         )}
         {isCategoryActive("survey") && (
           <SurveyCard
+            role={role}
             searchQuery={searchQuery}
             onVisibilityChange={(hasItems) =>
               handleCardVisibility("survey", hasItems)
@@ -110,6 +117,7 @@ export default function FilteredFeed({ role }: FilteredFeedProps) {
         )}
         {isCategoryActive("article") && (
           <ArticleCard
+            role={role}
             searchQuery={searchQuery}
             onVisibilityChange={(hasItems) =>
               handleCardVisibility("article", hasItems)

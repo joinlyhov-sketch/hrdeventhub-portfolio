@@ -97,14 +97,6 @@ export interface AppUserPayload {
   updatedAt: string;
 }
 
-export interface AppUserResponse {
-  success: boolean;
-  message: string;
-  status: string;
-  payload: AppUserPayload;
-  timestamp: string;
-}
-
 export type ProfileRole = "ADMIN" | "ORGANIZER" | "STUDENT" | "ALUMNI";
 
 export interface ProfilePayload {
@@ -131,7 +123,6 @@ declare module "next-auth" {
       role: string;
     } & DefaultSession["user"];
   }
-
   interface User {
     accessToken: string;
     refreshToken?: string;

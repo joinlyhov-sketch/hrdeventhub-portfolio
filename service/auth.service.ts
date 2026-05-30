@@ -1,5 +1,4 @@
 import {
-  AppUserResponse,
   AuthResponse,
   ForgotPasswordResponse,
   LoginRequest,
@@ -39,7 +38,7 @@ export const authService = {
 
   verifyForgotPassword: async (
     email: string,
-    otp: string
+    otp: string,
   ): Promise<VerifyForgotPasswordResponse> => {
     return apiPost<VerifyForgotPasswordResponse, { email: string; otp: string }>(
       "/auths/verify-forgot-password",
@@ -49,21 +48,18 @@ export const authService = {
 
   resetPassword: async (
     resetToken: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<ResetPasswordResponse> => {
-    return apiPost<
-      ResetPasswordResponse,
-      { resetToken: string; newPassword: string }
-    >("/auths/reset-password", { resetToken, newPassword });
+    return apiPost<ResetPasswordResponse, { resetToken: string; newPassword: string }>(
+      "/auths/reset-password",
+      { resetToken, newPassword },
+    );
   },
 
   resendOtp: async (email: string): Promise<ResendOtpResponse> => {
     const params = new URLSearchParams({ email });
     return apiPost<ResendOtpResponse>(`/auths/resend?${params.toString()}`);
   },
-
-  getCurrentUser: async (authToken: string): Promise<AppUserResponse> =>
-    apiGet<AppUserResponse>("/auths/me", { authToken, accept: "*/*" }),
 
   getProfileMe: async (authToken: string): Promise<ProfileResponse> =>
     apiGet<ProfileResponse>("/profile/me", { authToken, accept: "*/*" }),

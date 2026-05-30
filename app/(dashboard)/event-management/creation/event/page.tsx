@@ -1,4 +1,4 @@
-import CreateEventForm from "../../../../../components/dashboard/creation/CreateEventForm";
+import CreateEventForm from "@/components/dashboard/creation/CreateEventForm";
 
 export default function EventCreationPage() {
   return (

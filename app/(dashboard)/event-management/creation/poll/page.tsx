@@ -1,5 +1,5 @@
 import React from "react";
-import PollForm from "../../../../../components/feedback/poll/creation/PollForm";
+import PollForm from "@/components/feedback/poll/creation/PollForm";
 import { FeedbackBreadcrumb } from "@/components/dashboard/FeedbackBreadcrumb";
 
 export default function PollCreatePage() {

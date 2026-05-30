@@ -14,19 +14,20 @@ import Link from "next/link";
 import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
 import { usePaymentModalStore } from "@/store/usePaymentModalStore";
 import type { HRDEvent, EventDetailState, Reaction as ReactionType } from "@/data/event-detail";
+import { useCurrentUser } from "@/context/user-context";
+
 
 type Tab = "details" | "price" | "map";
 type AdminSubTab = "overview" | "discussion";
 
 interface EventDetailClientProps {
   event: HRDEvent;
-  isAdminOrOrganizer: boolean;
 }
 
-export default function EventDetailClient({
-  event,
-  isAdminOrOrganizer,
-}: EventDetailClientProps) {
+export default function EventDetailClient({ event }: EventDetailClientProps) {
+  const { currentUser } = useCurrentUser();
+  const isAdminOrOrganizer =
+    currentUser?.role === "admin" || currentUser?.role === "organizer";
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [activeAdminTab, setActiveAdminTab] = useState<AdminSubTab>("overview");
   const [isShareOpen, setIsShareOpen] = useState(false);
