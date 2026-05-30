@@ -30,8 +30,8 @@ export function TransactionTableSection({
   }, [events, selectedEventId]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="xl:col-span-2">
         <TransactionTable
           data={filteredTransactions}
           selectedEvent={selectedEvent}

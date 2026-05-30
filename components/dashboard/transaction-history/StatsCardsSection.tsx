@@ -14,7 +14,8 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
         key={1}
         title="Pending Payment"
         value="42"
-        color="action"
+        color="text-action"
+        bgColor={"bg-action/10"}
         customIcon={
           <svg
             width="26"
@@ -66,7 +67,7 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
       />
       <StatsCard
         key={2}
-        title={"Total Revenue"}
+        title={"Total Donations"}
         value={"124,50"}
         customIcon={
           <svg
@@ -92,7 +93,8 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
             </defs>
           </svg>
         }
-        color={"primary"}
+        color={"text-primary"}
+        bgColor={"bg-primary/10"}
       />
       <StatsCard
         key={3}
@@ -122,7 +124,8 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
             />
           </svg>
         }
-        color={"red-500"}
+        color={"text-red-500"}
+        bgColor={"bg-red-500/10"}
       />
       <StatsCard
         key={4}
@@ -212,7 +215,8 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
             />
           </svg>
         }
-        color={"teal"}
+        color={"text-teal-500"}
+        bgColor={"bg-teal-500/10"}
       />
     </div>
   );

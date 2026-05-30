@@ -4,7 +4,11 @@ export default function MapContentComponent() {
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3908.9!2d104.9282!3d11.5799!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sToul+Kork%2C+Phnom+Penh!5e0!3m2!1sen!2skh!4v1"
           width="100%"
+<<<<<<< HEAD
           height="200"
+=======
+          height="100%"
+>>>>>>> e7ad944b3fc1720aa2f2cb4d81c0d857c08db4fa
           style={{ border: 0 }}
           allowFullScreen
           loading="lazy"
@@ -12,7 +16,13 @@ export default function MapContentComponent() {
           className="rounded-xl"
         >
         </iframe>
+<<<<<<< HEAD
         <a href="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3908.9!2d104.9282!3d11.5799!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sToul+Kork%2C+Phnom+Penh!5e0!3m2!1sen!2skh!4v1">
+=======
+        <a href="https://maps.google.com/?q=toul+kork+phnom+penh"
+         className="mt-4 underline underline-blue-500 offset-1 decoration-1 text-blue-400"
+        >
+>>>>>>> e7ad944b3fc1720aa2f2cb4d81c0d857c08db4fa
           https://www.google.com/maps
         </a>
     </section>

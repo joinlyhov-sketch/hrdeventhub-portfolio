@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Menu } from "lucide-react";
 
 export const UserManagementNavbar = () => (
-  <nav className="h-20 z-50 stricky top-0">
+  <nav className="h-20 z-50 sticky top-0">
     <div className="flex items-center justify-between h-full">
       <div className="flex items-center gap-3 sm:gap-4">
         <button className="lg:hidden p-2 hover:bg-slate-50 rounded-lg text-slate-600">
@@ -11,10 +11,10 @@ export const UserManagementNavbar = () => (
         </button>
         <div className="flex flex-col">
           <div className="flex items-center gap-1">
-            <span className="text-primary font-bold text-base sm:text-lg">User</span>
-            <span className="text-action font-bold text-base sm:text-lg">Management</span>
+            <span className="text-primary font-bold text-title sm:text-lg">User</span>
+            <span className="text-action font-bold text-t sm:text-lg">Management</span>
           </div>
-          <p className="hidden md:block text-gray-500 text-xs">
+          <p className="hidden md:block text-gray-500 text">
             Manage and organize system users and their access
           </p>
         </div>

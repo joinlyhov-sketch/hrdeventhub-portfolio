@@ -12,45 +12,40 @@ import {
 import { env } from "../libs/env";
 
 const apiBaseUrl = env?.NEXT_PUBLIC_API_BASE_URL;
-
 if (!apiBaseUrl) {
   throw new Error("API base URL is not configured.");
 }
 
-const handleResponseError = async (res: Response, defaultMessage: string): Promise<never> => {
+const handleResponseError = async (
+  res: Response,
+  defaultMessage: string
+): Promise<never> => {
   let errorMessage = defaultMessage;
+
   try {
-    const errorJson = (await res.json()) as { message?: string };
-    if (errorJson?.message) {
-      errorMessage = errorJson.message;
+    const bodyText = await res.text();
+    if (bodyText) {
+      try {
+        const errorJson = JSON.parse(bodyText) as { detail?: string; message?: string };
+        errorMessage = errorJson?.detail || errorJson?.message || defaultMessage;
+      } catch {
+        errorMessage = bodyText;
+      }
     }
   } catch {
-    const errorBody = await res.text();
-    if (errorBody) {
-      errorMessage = errorBody;
-    }
   }
+
   throw new Error(errorMessage);
 };
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    const loginPayload = {
-      identifier: credentials.email,
-      password: credentials.password,
-    };
     const res = await fetch(`${apiBaseUrl}/auths/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(loginPayload),
+      body: JSON.stringify({ identifier: credentials.email, password: credentials.password }),
     });
-
-    if (!res.ok) {
-      const errorBody = await res.text();
-      const details = errorBody ? ` - ${errorBody}` : "";
-      throw new Error(`Login failed (${res.status})${details}`);
-    }
-
+    if (!res.ok) await handleResponseError(res, "Login failed.");
     return res.json();
   },
 
@@ -60,8 +55,10 @@ export const authService = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-
-    if (!res.ok) await handleResponseError(res, "Registration failed");
+    if (res.status === 409) {
+      throw new Error("This email is already taken. Please use a different one.");
+    }
+    if (!res.ok) await handleResponseError(res, "Registration failed.");
     return res.json();
   },
 
@@ -69,13 +66,11 @@ export const authService = {
     const url = new URL(`${apiBaseUrl}/auths/verify-otp`);
     url.searchParams.set("email", email);
     url.searchParams.set("otp", otp);
-
     const res = await fetch(url.toString(), {
       method: "POST",
       headers: { accept: "*/*" },
     });
-
-    if (!res.ok) await handleResponseError(res, "OTP verification failed");
+    if (!res.ok) await handleResponseError(res, "OTP verification failed.");
     return res.json();
   },
 
@@ -85,7 +80,6 @@ export const authService = {
       headers: { "Content-Type": "application/json", accept: "*/*" },
       body: JSON.stringify({ email }),
     });
-
     if (!res.ok) await handleResponseError(res, "Email not found.");
     return res.json();
   },
@@ -99,8 +93,7 @@ export const authService = {
       headers: { "Content-Type": "application/json", accept: "*/*" },
       body: JSON.stringify({ email, otp }),
     });
-
-    if (!res.ok) await handleResponseError(res, "OTP verification failed");
+    if (!res.ok) await handleResponseError(res, "OTP verification failed.");
     return res.json();
   },
 
@@ -113,21 +106,18 @@ export const authService = {
       headers: { "Content-Type": "application/json", accept: "*/*" },
       body: JSON.stringify({ resetToken, newPassword }),
     });
-
-    if (!res.ok) await handleResponseError(res, "Reset password failed");
+    if (!res.ok) await handleResponseError(res, "Reset password failed.");
     return res.json();
   },
 
   resendOtp: async (email: string): Promise<ResendOtpResponse> => {
     const url = new URL(`${apiBaseUrl}/auths/resend`);
     url.searchParams.set("email", email);
-
     const res = await fetch(url.toString(), {
       method: "POST",
       headers: { accept: "*/*" },
     });
-
-    if (!res.ok) await handleResponseError(res, "Resend OTP failed");
+    if (!res.ok) await handleResponseError(res, "Resend OTP failed.");
     return res.json();
   },
 };

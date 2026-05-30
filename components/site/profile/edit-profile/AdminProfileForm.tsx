@@ -1,398 +1,488 @@
 "use client";
 
-import React, { useState } from "react";
-import { Camera, Trash2, X } from "lucide-react";
-import InputField from "./InputField";
+import React from "react";
+import {
+  User,
+  Code,
+  Phone,
+  MapPin,
+  Mails,
+  Cake,
+  Link2,
+} from "lucide-react";
 
-export default function StudentProfileForm() {
-  const [skills, setSkills] = useState([
-    "React.js",
-    "TailwindCSS",
-    "Next.js",
-    "Laravel",
-    "MySQL",
-  ]);
+interface CurrentUser {
+  name: string;
+  email: string;
+  avatarInitials: string;
+}
 
+export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   return (
-    <div className="bg-white rounded-lg border border-border shadow-xs p-6 space-y-8">
-      <div className="space-y-6">
+    <div className="space-y-6 w-full text-left">
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex items-center justify-between w-full">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center border border-border text-primary-foreground type-subtitle-24 uppercase">
+            {user.avatarInitials || "A"}
+          </div>
+          <div>
+            <h3 className="type-title text-secondary">Admin</h3>
+          </div>
+        </div>
+        <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity">
+          Change Password
+        </button>
+      </div>
+
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-6 w-full">
         <h2 className="type-subtitle text-secondary border-b border-border pb-2">
-          Edit Information
+          Personal Information
         </h2>
 
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
-          <div className="relative group w-24 h-24 bg-grey-900 rounded-full flex flex-col items-center justify-center cursor-pointer overflow-hidden border border-border shrink-0">
-            <Camera className="w-6 h-6 text-white mb-1" />
-            <span className="text-[10px] text-grey-300 font-medium text-center px-1">
-              Upload Profile
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 w-full">
-            <InputField label="First Name" defaultValue="Kaknika" />
-            <InputField label="Last Name" defaultValue="Chham" />
-            <InputField label="Username" defaultValue="Kaknika" />
-            <InputField label="Date of Birth" defaultValue="2007/07/12" />
-
-            <div className="flex flex-col gap-1.5">
-              <label className="type-detail-semibold text-grey-900">
-                Current Status
+        <div className="space-y-4 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="type-detail-semibold text-seconary">
+                Full Name
               </label>
-              <select className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-grey-900 focus:outline-hidden focus:border-primary">
-                <option>Studying</option>
-                <option>Graduated</option>
-              </select>
+              <div className="relative flex items-center w-full">
+                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                  <User className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  defaultValue="Admin"
+                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-[#93A3CA] focus:outline-hidden focus:border-primary transition-colors"
+                />
+                <div className="absolute right-3.5 text-[#93A3CA] pointer-events-none">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="type-detail-semibold text-grey-900">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="type-detail-semibold text-secondary">
                 Gender
               </label>
-              <select className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-grey-900 focus:outline-hidden focus:border-primary">
-                <option>Female</option>
-                <option>Male</option>
-              </select>
+              <div className="relative flex items-center w-full">
+                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                  <User className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  defaultValue="Female"
+                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-[#93A3CA] focus:outline-hidden focus:border-primary transition-colors"
+                />
+                <div className="absolute right-3.5 text-[#93A3CA] pointer-events-none">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="type-detail-semibold text-secondary">
+                Date of Birth
+              </label>
+              <div className="relative flex items-center w-full">
+                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                  <Cake className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  defaultValue="2005-05-15"
+                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-[#93A3CA]focus:outline-hidden focus:border-primary transition-colors"
+                />
+                <div className="absolute right-3.5 text-[#93A3CA] pointer-events-none">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="type-detail-semibold text-secondary">
+                Skills
+              </label>
+              <div className="relative flex items-center w-full">
+                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                  <Code className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  defaultValue="Admin"
+                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-[#93A3CA] focus:outline-hidden focus:border-primary transition-colors"
+                />
+                <div className="absolute right-3.5 text-[#93A3CA] pointer-events-none">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="type-detail-semibold text-secondary">
+                Phone Number
+              </label>
+              <div className="relative flex items-center w-full">
+                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  defaultValue="012345678"
+                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-[#93A3CA] focus:outline-hidden focus:border-primary transition-colors"
+                />
+                <div className="absolute right-3.5 text-[#93A3CA] pointer-events-none">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="type-detail-semibold text-secondary">
+                Email
+              </label>
+              <div className="relative flex items-center w-full">
+                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                  <Mails className="w-4 h-4" />
+                </div>
+                <input
+                  type="email"
+                  defaultValue="admin@gmail.com"
+                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-[#93A3CA] focus:outline-hidden focus:border-primary transition-colors"
+                />
+                <div className="absolute right-3.5 text-[#93A3CA] pointer-events-none">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
+                      stroke="#93A3CA"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField label="Phone Number" defaultValue="+(855) 15 849 678" />
-          <InputField
-            label="Email"
-            type="email"
-            defaultValue="kaknika@gmail.com"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="type-detail-semibold text-grey-900">
-            Profile Bio
-          </label>
-          <textarea
-            rows={3}
-            className="w-full p-3 bg-white border border-border rounded-lg type-detail text-grey-900 focus:outline-hidden focus:border-primary resize-none"
-            defaultValue="Dedicated Computer Science student at RUPP with a focus on building web structures using Next.js and secure APIs."
-          />
-        </div>
-      </div>
-
-      <section>
-        <h2>Social Account</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm">
-            <div className="flex-shrink-0">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                <path
-                  d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M16 20H24"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-
-            <div className="w-full">
-              <label className="block type-detail-small-medium text-accent uppercase tracking-wider mb-0.5">
-                LinkedIn
-              </label>
+          <div className="flex flex-col gap-1.5 w-full pt-1">
+            <label className="type-detail-semibold text-secondary">
+              Address
+            </label>
+            <div className="relative flex items-center w-full">
+              <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                <MapPin className="w-4 h-4" />
+              </div>
               <input
                 type="text"
-                className="type-detail w-full outline-none text-foreground bg-transparent font-medium"
-                defaultValue="linkedin.com/in/alexrichardson"
+                defaultValue="Phnom Penh, Cambodia"
+                className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-[#93A3CA] focus:outline-hidden focus:border-primary transition-colors"
               />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm">
-            <div className="flex-shrink-0">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="var(--primary)" />
-                <path
-                  d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="w-full">
-              <label className="block type-detail-small-medium text-accent uppercase tracking-wider mb-0.5">
-                GitHub
-              </label>
-              <input
-                type="text"
-                className="type-detail w-full outline-none text-foreground bg-transparent font-medium"
-                defaultValue="github.com/richardson"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm">
-            <div className="flex-shrink-0">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="var(--primary)" />
-                <path
-                  d="M22.5 14H20.5C18.57 14 17 15.57 17 17.5V20H15V22.5H17V28H20.5V22.5H23L23.5 20H20.5V17.5C20.5 17.22 20.72 17 21 17H23.5V14Z"
-                  fill="white"
-                />
-              </svg>
-            </div>
-            <div className="w-full">
-              <label className="block type-detail-small-medium text-accent uppercase tracking-wider mb-0.5">
-                Facebook
-              </label>
-              <input
-                type="text"
-                className="type-detail w-full outline-none text-foreground bg-transparent font-medium"
-                defaultValue="Sophal Boy Loy"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-2 border border-border rounded-xl bg-card shadow-sm">
-            <div className="flex-shrink-0">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="var(--primary)" />
-                <path
-                  d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M18.1094 21.6525L21.6894 18.0625"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="w-full">
-              <label className="block type-detail-small-medium text-accent uppercase tracking-wider mb-0.5">
-                Telegram
-              </label>
-              <input
-                type="text"
-                className="type-detail w-full outline-none text-foreground bg-transparent font-medium"
-                defaultValue="@SophalZin2"
-              />
+              <div className="absolute right-3.5 text-[#93A3CA] pointer-events-none">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V9.75"
+                    stroke="#93A3CA"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12.0284 2.26592L6.11844 8.17592C5.89344 8.40092 5.66844 8.84342 5.62344 9.16592L5.30094 11.4234C5.18094 12.2409 5.75844 12.8109 6.57594 12.6984L8.83344 12.3759C9.14844 12.3309 9.59094 12.1059 9.82344 11.8809L15.7334 5.97092C16.7534 4.95092 17.2334 3.76592 15.7334 2.26592C14.2334 0.765922 13.0484 1.24592 12.0284 2.26592Z"
+                    stroke="#93A3CA"
+                    strokeWidth="1.5"
+                    strokeMiterlimit="10"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M11.1836 3.10938C11.6861 4.90188 13.0886 6.30438 14.8886 6.81438"
+                    stroke="#93A3CA"
+                    strokeWidth="1.5"
+                    strokeMiterlimit="10"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
 
-        <button
-          type="button"
-          className="w-full mt-4 py-3 border border-dashed border-border rounded-xl flex items-center justify-center gap-2 text-muted-foreground type-detail-semibold hover:bg-muted/50 transition-colors"
-        >
-          <span>+ Add your social media</span>
-        </button>
-      </section>
-
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="type-subtitle text-secondary">Education</h2>
-          <button className="text-subtle type-detail-semibold flex items-center gap-1 hover:underline bg-transparent border-0 cursor-pointer">
-            + add
-          </button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <InputField
-            label="University/Institute/Center"
-            defaultValue="The Royal University of Phnom Penh"
-          />
-          <InputField label="Major/Course" defaultValue="Computer Science" />
-          <InputField label="Start year" defaultValue="2023" />
-          <InputField label="End year" defaultValue="2026" />
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <label className="type-detail-semibold text-grey-900 block">
-          Skills & Expertise
-        </label>
-        <div className="flex flex-wrap gap-2 items-center">
-          {skills.map((skill, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-1.5 bg-grey-100 text-primary px-3 py-1 rounded-full type-detail-medium border border-border"
-            >
-              {skill}
-              <X
-                className="w-3 h-3 text-grey-500 cursor-pointer hover:text-destructive transition-colors"
-                onClick={() => setSkills(skills.filter((_, i) => i !== index))}
-              />
-            </div>
-          ))}
-          <button className="flex items-center gap-1 px-3 py-1 border border-dashed border-border rounded-full text-grey-500 type-detail-medium bg-white hover:bg-grey-50 cursor-pointer">
-            + Add Skill
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <label className="type-detail-semibold text-grey-900 block">
-          Resume
-        </label>
-        <div className="border border-dashed border-border rounded-lg p-6 bg-grey-50 flex flex-col items-center justify-center text-center">
-          <svg
-            width="48"
-            height="48"
-            viewBox="0 0 48 48"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect width="48" height="48" rx="24" fill="#E5EEFF" />
-            <path
-              d="M21 29V23L19 25"
-              stroke="#292D32"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M21 23L23 25"
-              stroke="#292D32"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M34 22V27C34 32 32 34 27 34H21C16 34 14 32 14 27V21C14 16 16 14 21 14H26"
-              stroke="#292D32"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M34 22H30C27 22 26 21 26 18V14L34 22Z"
-              stroke="#292D32"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-
-          <span className="type-detail-semibold text-grey-900">
-            Upload New CV
-          </span>
-          <span className="type-detail-small-medium text-grey-400 mt-0.5 mb-3">
-            PDF, DOCX up to 10MB
-          </span>
+        <div className="flex justify-end pt-2">
           <button
             type="button"
-            className="bg-primary text-white px-4 py-1.5 rounded-lg type-detail-medium hover:bg-primary-hover transition-colors border-0 cursor-pointer"
+            className="px-5 py-2 bg-primary text-primary-foreground rounded-md type-detail-semibold hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
           >
-            Select file
+            Save Change
           </button>
         </div>
+      </div>
 
-        <div className="flex items-center justify-between p-3 border border-border rounded-lg bg-white">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-grey-100 rounded text-grey-500 flex items-center justify-center">
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-4 w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+          <div>
+            <h3 className="type-subtitle text-secondary flex items-center gap-2">
               <svg
-                width="36"
-                height="36"
-                viewBox="0 0 36 36"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z"
-                  stroke="#292D32"
+                  d="M18.04 13.55C17.62 13.96 17.38 14.55 17.44 15.18C17.53 16.26 18.52 17.05 19.6 17.05H21.5V18.24C21.5 20.31 19.81 22 17.74 22H6.26C4.19 22 2.5 20.31 2.5 18.24V11.51C2.5 9.44001 4.19 7.75 6.26 7.75H17.74C19.81 7.75 21.5 9.44001 21.5 11.51V12.95H19.48C18.92 12.95 18.41 13.17 18.04 13.55Z"
+                  stroke="#0F2854"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
-                  d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z"
-                  stroke="#292D32"
+                  d="M2.5 12.4113V7.84132C2.5 6.65132 3.23 5.59128 4.34 5.17128L12.28 2.17128C13.52 1.70128 14.85 2.62131 14.85 3.95131V7.7513"
+                  stroke="#0F2854"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
-                  d="M12 19.5H18"
-                  stroke="#292D32"
+                  d="M22.5588 13.9731V16.0331C22.5588 16.5831 22.1188 17.0331 21.5588 17.0531H19.5988C18.5188 17.0531 17.5288 16.2631 17.4388 15.1831C17.3788 14.5531 17.6188 13.9631 18.0388 13.5531C18.4088 13.1731 18.9188 12.9531 19.4788 12.9531H21.5588C22.1188 12.9731 22.5588 13.4231 22.5588 13.9731Z"
+                  stroke="#0F2854"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
-                  d="M12 25.5H24"
-                  stroke="#292D32"
+                  d="M7 12H14"
+                  stroke="#0F2854"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
-            </div>
-            <span className="type-detail-medium text-grey-900">
-              CV_Chham_Kaknika.pdf
-            </span>
+              WeBill365 Information
+            </h3>
+            <p className="type-detail text-muted-foreground mt-0.5">
+              Manage WeBill Information for room payment
+            </p>
           </div>
-          <button className="p-2 hover:bg-grey-100 rounded text-destructive transition-colors border-0 bg-transparent cursor-pointer">
-            <Trash2 className="w-4 h-4" />
+          <button className="bg-action text-white px-4 py-2 rounded-md type-detail-semiboldpx-4 type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity">
+            <Link2 className="w-4 h-4" />
+            Disconnect WeBill365
           </button>
         </div>
-      </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-border">
-        <button
-          type="button"
-          className="px-5 py-2 border border-border rounded-lg type-detail-semibold text-grey-900 hover:bg-grey-50 bg-white cursor-pointer"
-        >
-          Discard Changes
-        </button>
-        <button
-          type="button"
-          className="px-5 py-2 bg-primary text-white rounded-lg type-detail-semibold hover:bg-primary-hover shadow-xs border-0 cursor-pointer"
-        >
-          Save changes
-        </button>
+        <div className="flex items-start gap-3 p-4 bg-grey-50 border border-border rounded-2xl w-full">
+          <div className="rounded-full bg-subtle/10 flex items-center justify-center text-subtle shrink-0 mt-0.5">
+            <svg
+              width="45"
+              height="45"
+              viewBox="0 0 45 45"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M22.5 41.25C32.8125 41.25 41.25 32.8125 41.25 22.5C41.25 12.1875 32.8125 3.75 22.5 3.75C12.1875 3.75 3.75 12.1875 3.75 22.5C3.75 32.8125 12.1875 41.25 22.5 41.25Z"
+                stroke="#2A9D8F"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14.5312 22.5016L19.8375 27.8078L30.4688 17.1953"
+                stroke="#2A9D8F"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <div>
+            <div className="type-detail-semibold text-grey-900">
+              Account Connected
+              <span className="type-detail text-grey-500 flex mt-0.5 leading-relaxed">
+                Your account is successfully connected for payment. You can now
+                receive monthly payments from renters.
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

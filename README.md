@@ -1,38 +1,97 @@
-# HRD EventHub — Technology Overview
+# HRD EventHub — UI
 
-This document summarizes the key technologies used in the HRD EventHub UI project and how they fit together.
+> Next.js frontend for the HRD EventHub platform, covering authentication, event management, community updates, feedback, and user/group experiences.
 
-## Core Framework
-- **Next.js 16 (App Router)** — Server‑rendered React framework used for routing, layouts, API routes, and build tooling. The app is organized under `app/` with nested route groups such as `(auth)` and `(root)`.
-- **React 19** — Core UI library powering all components and state management.
-- **TypeScript** — Static typing across the codebase for safer refactors and better IDE support.
+## Tech Stack
 
-## Authentication
-- **NextAuth.js v4** — Authentication framework for Next.js. The custom credentials provider is wired in `libs/auth.ts`, and API routes are served from `app/api/auth/[...nextauth]/route.ts`.
+- **Next.js** 16+ (App Router)
+- **React** 19+
+- **TypeScript**
+- **Tailwind CSS** — styling
+- **Fetch** — API communication
+- **Zustand** — state management for auth flows
+- **NextAuth.js** — authentication
+- **Radix UI / shadcn** — UI primitives
+- **Framer Motion** — animations
+- **Zod** — runtime validation
 
-## Styling & UI
-- **Tailwind CSS v4** — Utility‑first CSS framework used for layout and design.
-- **Shadcn UI / Radix UI** — Component primitives and design system utilities for consistent UI.
-- **Class Variance Authority + Tailwind Merge** — Class composition helpers for reusable component variants.
+## Prerequisites
 
-## State Management
-- **Zustand** — Lightweight state container used for auth flows (registration and reset password states).
+- [Node.js 21+](https://nodejs.org/)
+- [npm](https://www.npmjs.com/) / [yarn](https://yarnpkg.com/) / [pnpm](https://pnpm.io/)
 
-## Animations & Icons
-- **Framer Motion** — Animation library used for motion and layout transitions.
-- **Lucide React / Font Awesome** — Icon sets for UI consistency.
+## Getting Started
 
-## Tooling & Quality
-- **ESLint (eslint-config-next)** — Linting and Next.js best practices.
-- **Husky** — Git hooks to enforce checks before commits/pushes.
+### 1. Clone the repository
 
-## Project Structure Highlights
-- `app/` — Routes, layouts, metadata, and page components.
-- `components/` — Reusable UI and feature components.
-- `actions/`, `service/`, `libs/` — Data fetching, auth services, and helpers.
-- `types/` — Shared TypeScript types and NextAuth module augmentation.
+```bash
+git clone https://github.com/14th-Gen-Basic-Course-Final-Project/HRD-EventHub-UI.git
+cd HRD-EventHub-UI
+```
 
-## Build & Runtime
-- **Build**: `next build` for production bundles.
-- **Dev**: `next dev` for local development.
-- **Deployment**: Works on any platform that supports Next.js (Vercel recommended).
+### 2. Install dependencies
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+### 3. Configure environment variables
+
+Create a local env file and fill in your values:
+
+```bash
+touch .env.local
+```
+
+Example:
+
+```bash
+NEXTAUTH_SECRET=your-secret
+NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+```
+
+### 4. Run the development server
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+```
+
+The app will start at `http://localhost:3000`.
+
+### 5. Verify
+
+Open [http://localhost:3000](http://localhost:3000) in your browser. Make sure the backend API is running for full functionality.
+
+## Available Scripts
+
+| Command         | Description                              |
+| --------------- | ---------------------------------------- |
+| `npm run dev`   | Start development server with hot reload |
+| `npm run build` | Create optimized production build        |
+| `npm run start` | Start production server                  |
+| `npm run lint`  | Run ESLint                               |
+
+## Connecting to the API
+
+The UI expects the API to be running at the URL specified in `NEXT_PUBLIC_API_BASE_URL`. Make sure to:
+
+1. Start the API server first (see your backend README).
+2. Ensure CORS allows `http://localhost:3000`.
+
+## Production Build
+
+```bash
+npm run build
+npm run start
+```
+
+For deployment, set all environment variables on your hosting platform (Vercel, Docker, etc.) and ensure `NEXT_PUBLIC_API_BASE_URL` points to your production API.

@@ -1,16 +1,24 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   resendOtpAction,
   verifyForgotPasswordAction,
 } from "../../../actions/auth.action";
 import { useResetPasswordStore } from "../../../store/useResetPasswordStore";
 
+function secondsFromExpiry(expiresAt: number | null): number {
+  if (!expiresAt) return 300;
+  return Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+}
+
 export default function VerifyStep() {
   const email = useResetPasswordStore((s) => s.email);
   const storeToken = useResetPasswordStore((s) => s.storeToken);
+  const otpExpiresAt = useResetPasswordStore((s) => s.otpExpiresAt);
+  const storeEmail = useResetPasswordStore((s) => s.storeEmail);
+  const reset = useResetPasswordStore((s) => s.reset);
 
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -18,51 +26,67 @@ export default function VerifyStep() {
   const [success, setSuccess] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [secondsLeft, setSecondsLeft] = useState(300);
-  const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true); 
-
+  const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
+  const [secondsLeft, setSecondsLeft] = useState(() =>
+    secondsFromExpiry(otpExpiresAt),
+  );
 
   useEffect(() => {
-    if (secondsLeft <= 0) return;
     const timer = window.setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      const remaining = secondsFromExpiry(otpExpiresAt);
+      setSecondsLeft(remaining);
+      if (remaining <= 0) window.clearInterval(timer);
     }, 1000);
+
     return () => window.clearInterval(timer);
-  }, [secondsLeft]);
+  }, [otpExpiresAt]);
+
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const submitOtp = useCallback(
+    (code: string) => {
+      setError(null);
+      setSuccess(null);
+      setResendMessage(null);
+
+      if (!email) {
+        setError("Email is missing. Please go back.");
+        return;
+      }
+      if (code.length !== 6) {
+        setError("Please enter the 6-digit OTP.");
+        return;
+      }
+
+      startTransition(async () => {
+        const result = await verifyForgotPasswordAction(email, code);
+        if (result?.error) {
+          setError(result.error);
+          setAutoSubmitEnabled(false);
+          return;
+        }
+        if (result?.ok && result.token) {
+          reset();
+          storeToken(result.token);
+        }
+      });
+    },
+    [email, reset, startTransition, storeToken],
+  );
 
   useEffect(() => {
     const isFilled = otp.every((d) => d !== "");
     if (isFilled && autoSubmitEnabled && !isPending) {
       submitOtp(otp.join(""));
     }
-  }, [otp]);
-
-  const submitOtp = (code: string) => {
-    setError(null);
-    setSuccess(null);
-    setResendMessage(null);
-
-    if (!email) {
-      setError("Email is missing. Please go back.");
-      return;
-    }
-    if (code.length !== 6) {
-      setError("Please enter the 6-digit OTP.");
-      return;
-    }
-
-    startTransition(async () => {
-      const result = await verifyForgotPasswordAction(email, code);
-      if (result?.error) {
-        setError(result.error);
-        setAutoSubmitEnabled(false); 
-        return;
-      }
-      if (result?.ok && result.token) {
-        storeToken(result.token);
-      }
-    });
-  };
+  }, [otp, autoSubmitEnabled, isPending, submitOtp]);
 
   const handleVerify = () => submitOtp(otp.join(""));
 
@@ -95,8 +119,10 @@ export default function VerifyStep() {
         setError(result.error);
         return;
       }
-      setResendMessage(result.message ?? "Verification OTP successfully resent.");
-      setSecondsLeft(300);
+      setResendMessage(
+        result.message ?? "Verification OTP successfully resent.",
+      );
+      storeEmail(email);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
       inputs.current[0]?.focus();
@@ -124,13 +150,15 @@ export default function VerifyStep() {
         {[...Array(6)].map((_, i) => (
           <input
             key={i}
-            ref={(el) => { inputs.current[i] = el; }}
+            ref={(el) => {
+              inputs.current[i] = el;
+            }}
             type="text"
             maxLength={1}
             value={otp[i]}
             onChange={(e) => handleChange(e.target.value, i)}
             onKeyDown={(e) => handleKeyDown(e, i)}
-            className="h-[58px] w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
+            className="h-14.5 w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
           />
         ))}
       </div>
@@ -167,7 +195,7 @@ export default function VerifyStep() {
       <button
         onClick={handleVerify}
         disabled={isPending}
-        className="mt-3 h-[58px] w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+        className="mt-3 h-14.5 w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
       >
         {isPending ? "Verifying..." : "Submit"}
       </button>

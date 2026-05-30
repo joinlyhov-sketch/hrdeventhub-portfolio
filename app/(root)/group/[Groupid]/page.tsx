@@ -1,63 +1,29 @@
-import { Search, Filter, Folder } from "lucide-react";
 import { Metadata } from "next";
-import { AnnouncementCard } from "../../../../components/site/event/AnnouncementCard";
-import { ArticleCard } from "../../../../components/site/event/ArticleCard";
-import { EventCard } from "../../../../components/site/event/EventCard";
-import { PollCard } from "../../../../components/site/event/PollCard";
-import { SurveyCard } from "../../../../components/site/event/SurveyCard";
-import { PinnedCard } from "../../../../components/site/event/PinnedCard";
 import GroupMemberCard from "../../../../components/site/event/GroupMemberCard";
 import UpComingEventCard from "../../../../components/site/event/UpComingEventCard";
+import FilteredFeed from "../../../../components/site/event/FilteredFeed";
+import { MOCK_CURRENT_USER } from "../../../../data/mock-user";
 
 export const metadata: Metadata = {
-  title: "Event Hub Platform",
+  title: "Event Feed",
 };
 
 export default function Page() {
   return (
-    <main className=" min-h-screen">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-primary p-2 rounded-lg text-white">
-          <Folder className="w-5 h-5" />
-        </div>
-        <div>
-          <span className="type-desc-small-semibold text-primary bg-muted px-2 py-0.5 rounded uppercase">
-            Internal
-          </span>
-          <h1 className="type-subtitle text-primary">14th Generation Group</h1>
-        </div>
-      </div>
+    <main className="min-h-screen w-full bg-background">
+      <div className="mx-auto w-full max-w-420">
+        <div className="flex flex-col gap-6 xl:flex-row">
+          <section className="w-full flex-1">
+            <FilteredFeed role={MOCK_CURRENT_USER.role} />
+          </section>
 
-      <div className="grid grid-cols-11 gap-5">
-        <section className="col-span-8 space-y-4">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="relative grow">
-              <input
-                type="text"
-                placeholder="Search for events..."
-                className="w-full pl-6 pr-12 py-3 border border-grey-100 rounded-full type-detail outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
-              />
-              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-primary">
-                <Search size={18} />
-              </button>
+          <aside className="w-full xl:sticky xl:right-10 xl:top-20 xl:w-85 xl:self-start">
+            <div className="space-y-4 fixed right-4">
+              <UpComingEventCard />
+              <GroupMemberCard />
             </div>
-            <button className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full type-detail-semibold hover:bg-primary-hover transition-all cursor-pointer shadow-sm">
-              <Filter size={18} />
-              Filter by category
-            </button>
-          </div>
-          <p>Pinned</p>
-          <PinnedCard />
-          <EventCard />
-          <AnnouncementCard />
-          <PollCard />
-          <SurveyCard />
-          <ArticleCard />
-        </section>
-        <aside className="col-span-3 space-y-2">
-          <UpComingEventCard />
-          <GroupMemberCard />
-        </aside>
+          </aside>
+        </div>
       </div>
     </main>
   );

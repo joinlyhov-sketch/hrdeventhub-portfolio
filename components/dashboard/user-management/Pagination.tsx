@@ -1,30 +1,43 @@
-import React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../../ui/pagination/pagination";
 
-export default function Pagination() {
+export function PaginationDemo() {
   return (
-    <div className="flex items-center justify-end gap-1 mt-4">
-      <button className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 disabled:opacity-50">
-        <ChevronLeft size={18} />
-      </button>
-      
-      <button className="px-3 py-1 text-sm font-bold rounded-lg bg-blue-50 text-blue-900">
-        1
-      </button>
-      <button className="px-3 py-1 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50">
-        2
-      </button>
-      <button className="px-3 py-1 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50">
-        3
-      </button>
-      <span className="px-2 text-sm text-slate-400 font-medium">...</span>
-      <button className="px-3 py-1 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50">
-        13
-      </button>
-
-      <button className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-50">
-        <ChevronRight size={18} />
-      </button>
+    <div className="flex w-full justify-end mt-6">
+      <Pagination className="mx-0 justify-end w-auto">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious href="#" />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#" isActive>
+              1
+            </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#">2</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#">3</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#">10</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext href="#" />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 }

@@ -1,16 +1,26 @@
-import { Metadata } from "next";
-import CalendarFeature from "../../../components/calendarEvents/calendar/CalendarFeature";
-import UpcomingEventSection from "../../../components/calendarEvents/calendar/UpcomingEventSelection";
-import TopBarCalendar from "../../../components/calendarEvents/calendar/Top-Bar";
+"use client";
+import { useState } from "react";
+import { View, SlotInfo } from "react-big-calendar";
+import FullBigCalendar from "@/components/shadcn-big-calendar/calendar/FullBigCalendar";
+import TopBar from "@/components/shadcn-big-calendar/calendar/TopBar";
+import UpcomingEventSection from "@/components/shadcn-big-calendar/calendar/UpcomingEventSelection";
 
-export const metadata: Metadata = {
-  title: "Calendar",
-};
-export default function Page() {
+export default function CalendarPage() {
+  const [view, setView] = useState<View>("month");
+  const [date, setDate] = useState(new Date());
+
+  const handleViewChange = (newView: View) => {
+    setView(newView);
+  };
+
+  const handleNavigate = (newDate: Date) => {
+    setDate(newDate);
+  };
+
   return (
-    <main className="w-full bg-background">
-      <TopBarCalendar />
-      <CalendarFeature />
+    <main className="w-full space-y-6 p-6">
+      <TopBar />
+      <FullBigCalendar />
       <UpcomingEventSection />
     </main>
   );
