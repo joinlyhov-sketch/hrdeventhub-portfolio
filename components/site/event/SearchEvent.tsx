@@ -9,12 +9,11 @@ import {
   BarChart3,
   CalendarX,
 } from "lucide-react";
-import type { UserRole } from "../../../data/mock-user";
+import type { UserRole } from "@/context/user-context";
 import Search from "../../site/search/Search";
 import ContentTypePopover from "../pop-up/contents/pop-over-content";
 import { PopoverItem } from "../pop-up/contents/pop-over-content";
 import CategoryFilterPopover, { FilterOption } from "@/components/site/pop-up/contents/CategoryFilterPopover";
-
 interface SearchEventProps {
   role: UserRole;
   onFilterChange: (category: string | null) => void;
