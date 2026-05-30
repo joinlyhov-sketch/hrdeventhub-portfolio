@@ -9,22 +9,39 @@ import {
   Share2,
   Send,
 } from "lucide-react";
+import type { UserRole } from "@/context/user-context";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
-import { Event, Comment, Reaction, initialMockData, mockComments } from "@/data/event";
+import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
+import {
+  ReactionPopover,
+  REACTIONS,
+} from "@/components/site/pop-up/comment/reaction";
+import {
+  Event,
+  Reaction,
+  initialMockData,
+  mockComments,
+} from "@/data/event";
 
 interface EventCardProps {
+  role: UserRole;
   searchQuery: string;
   onVisibilityChange: (hasItems: boolean) => void;
 }
 
-export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
+export function EventCard({
+  role,
+  searchQuery,
+  onVisibilityChange,
+}: EventCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [eventData, setEventData] = useState<Event>(initialMockData);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
 
-  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
+  const activeReaction = REACTIONS.find(
+    (r: Reaction) => r.id === selectedReaction,
+  );
 
   const handleLikeToggle = () => {
     setEventData((prev) => {
@@ -55,6 +72,10 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
       isLikedByUser: true,
       likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
     }));
+  };
+
+  const handleExecuteDelete = () => {
+    console.log("Deleting event from DB:", eventData.id);
   };
 
   const isMatch = eventData.title
@@ -90,20 +111,32 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
               </p>
             </div>
           </div>
-          {eventData.role && (
-            <span
-              className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${
-                eventData.role.toLowerCase() === "admin"
-                  ? "bg-[#EBF5FB] text-[#3FA6DC]"
-                  : "bg-[#FFF7ED] text-[#F97316]"
-              }`}
-            >
-              {eventData.role}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {eventData.role && (
+              <span
+                className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${
+                  eventData.role.toLowerCase() === "admin"
+                    ? "bg-[#EBF5FB] text-[#3FA6DC]"
+                    : "bg-[#FFF7ED] text-[#F97316]"
+                }`}
+              >
+                {eventData.role}
+              </span>
+            )}
+            {(role === "admin" || role === "organizer") && (
+              <EditPostDropDown
+                id={eventData.id}
+                title={eventData.title}
+                editUrl={`/event-management/edition/event`}
+                onDelete={handleExecuteDelete}
+              />
+            )}
+          </div>
         </div>
 
-        <h2 className="text-xl font-bold text-primary mb-2">{eventData.title}</h2>
+        <h2 className="text-xl font-bold text-primary mb-2">
+          {eventData.title}
+        </h2>
         <p className="text-sm text-grey-500 leading-relaxed mb-2">
           {eventData.description}
         </p>
@@ -139,26 +172,36 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
             <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide mb-2">
               {eventData.badge}
             </span>
-            <h4 className="text-base font-semibold">{eventData.innerBannerTitle}</h4>
+            <h4 className="text-base font-semibold">
+              {eventData.innerBannerTitle}
+            </h4>
             <p className="text-xs opacity-80">{eventData.innerBannerMeta}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border text-sm font-medium text-grey-500">
-          
-          <ReactionPopover 
-            selectedValue={selectedReaction} 
+          <ReactionPopover
+            selectedValue={selectedReaction}
             onReactionSelect={handleReactionSelect}
           >
-            <button 
+            <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
+                activeReaction
+                  ? `${activeReaction.color} font-semibold`
+                  : "hover:text-primary"
               }`}
             >
-              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500" : ""} /> 
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="text-xs font-normal text-grey-400">({eventData.likesCount})</span>
+              <ThumbsUp
+                size={18}
+                className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
+              />
+              <span>
+                {activeReaction ? activeReaction.displayText : "Like"}
+              </span>
+              <span className="text-xs font-normal text-grey-400">
+                ({eventData.likesCount})
+              </span>
             </button>
           </ReactionPopover>
 
@@ -168,8 +211,8 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
           >
             <MessageSquare size={18} /> {eventData.commentsCount}
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setIsShareOpen(true)}
             className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
           >
@@ -303,10 +346,10 @@ export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
         )}
       </div>
 
-      <ShareModal 
-        isOpen={isShareOpen} 
-        onClose={() => setIsShareOpen(false)} 
-        shareUrl={`hrdeventhub.app/events/${eventData.id}`}
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        shareUrl={`hrdeventhub.app/event-management/events/${eventData.id}`}
       />
     </>
   );

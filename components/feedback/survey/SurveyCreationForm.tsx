@@ -1,12 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { Loader2, Plus, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import SurveyHeader from "./SurveyHeader";
 import SurveyQuestionsList from "./SurveyQuestionsList";
 import QuestionTypeSidebar from "./QuestionTypeSidebar";
+import WorkspaceSelector from "./WorkspaceSelector";
 import { Button } from "../../ui/button";
 import { Question } from "../../../data/Question";
+import { useSurveyFormStore } from "../../../store/useSurveyFormStore";
+import { surveyService } from "../../../service/survey.service";
+import { SurveyContent, SurveyElement, SurveyPage } from "../../../types/survey";
 
 export type QuestionType =
   | "short-text"
@@ -18,10 +23,16 @@ export type QuestionType =
   | "matrix"
   | "yes-no";
 
-export default function SurveyCreationForm() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+interface SurveyCreationFormProps {
+  workspaceId?: string;
+  onSuccess?: () => void;
+}
+
+export default function SurveyCreationForm({ workspaceId, onSuccess }: SurveyCreationFormProps) {
+  const router = useRouter();
+  const formStore = useSurveyFormStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [questions, setQuestions] = useState<Question[]>([
     {
@@ -77,12 +88,99 @@ export default function SurveyCreationForm() {
     ]);
   };
 
+  const convertQuestionsToBEFormat = useCallback((): SurveyContent => {
+    const elements: SurveyElement[] = questions.map((q) => {
+      const element: SurveyElement = {
+        name: `question_${q.id}`,
+        type: q.type,
+        title: q.text,
+      };
+
+      if (q.options) {
+        element.choices = q.options;
+      }
+      if (q.matrixRows) {
+        element.rows = q.matrixRows;
+      }
+      if (q.matrixCols) {
+        element.columns = q.matrixCols;
+      }
+      if (q.minLabel) {
+        element.minRateLabel = q.minLabel;
+      }
+      if (q.maxLabel) {
+        element.maxRateLabel = q.maxLabel;
+      }
+      if (q.maxScale) {
+        element.maxRateDescription = q.maxScale;
+      }
+
+      return element;
+    });
+
+    return {
+      title: formStore.title || "Untitled Survey",
+      pages: [
+        {
+          name: "page1",
+          title: "Survey Page",
+          elements,
+        },
+      ],
+    };
+  }, [questions, formStore.title]);
+
   const handleFormSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    alert("Survey Created Successfully!");
+
+    try {
+      if (!formStore.title.trim()) {
+        throw new Error("Survey title is required");
+      }
+
+      if (questions.length === 0) {
+        throw new Error("At least one question is required");
+      }
+
+      if (!formStore.closingTime) {
+        throw new Error("Closing time is required");
+      }
+
+      if (!formStore.selectedWorkspaceId) {
+        throw new Error("Please select a workspace");
+      }
+
+      const content = convertQuestionsToBEFormat();
+
+      const surveyData = {
+        title: formStore.title,
+        description: formStore.description,
+        content,
+        isActive: formStore.isActive,
+        closingTime: new Date(formStore.closingTime).toISOString(),
+        workspaceId: formStore.selectedWorkspaceId,
+      };
+
+      await surveyService.createSurvey(surveyData);
+      
+      // Reset form
+      formStore.reset();
+      setQuestions([]);
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push(`/dashboard/feedback/survey-feedback`);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to create survey";
+      setError(errorMessage);
+      console.error("Survey creation error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -92,6 +190,13 @@ export default function SurveyCreationForm() {
     >
       <div className="lg:col-span-3 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
+          {error && (
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle size={20} className="text-red-600" />
+              <span className="text-sm text-red-700">{error}</span>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
             <div />
             <Button
@@ -105,10 +210,20 @@ export default function SurveyCreationForm() {
           </div>
 
           <SurveyHeader
-            title={title}
-            setTitle={setTitle}
-            description={description}
-            setDescription={setDescription}
+            title={formStore.title}
+            setTitle={formStore.setTitle}
+            description={formStore.description}
+            setDescription={formStore.setDescription}
+            closingTime={formStore.closingTime}
+            setClosingTime={formStore.setClosingTime}
+            isActive={formStore.isActive}
+            setIsActive={formStore.setIsActive}
+          />
+
+          <WorkspaceSelector
+            selectedWorkspaceId={formStore.selectedWorkspaceId}
+            onSelectWorkspace={formStore.setSelectedWorkspaceId}
+            required={true}
           />
 
           <div className="w-full max-w-full overflow-hidden">

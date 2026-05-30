@@ -5,10 +5,11 @@ import { useState } from "react";
 import ProfileCard from "@/components/site/profile/ProfileCard";
 import EndorsementTabs from "@/components/site/profile/EndorsementTabs";
 import HeaderNoProfile from "@/components/dashboard/header/HeaderNoProfile";
-import { MOCK_CURRENT_USER } from "@/data/mock-user";
+import { useCurrentUser } from "@/context/user-context";
 
 export default function ProfilePage() {
-  const role = MOCK_CURRENT_USER.role;
+  const { currentUser } = useCurrentUser();
+  const role = currentUser?.role ?? "student";
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
   const showStudentTabs = role === "student" || role === "alumni";
 

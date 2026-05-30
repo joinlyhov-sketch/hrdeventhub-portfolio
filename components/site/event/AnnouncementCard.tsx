@@ -1,42 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  ThumbsUp,
-  MessageSquare,
-  Share2,
-  Send,
-  MoreVertical,
-  Megaphone,
-} from "lucide-react";
+import { ThumbsUp, MessageSquare, Share2, Send, Megaphone } from "lucide-react";
 import Link from "next/link";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
+import {
+  ReactionPopover,
+  REACTIONS,
+} from "@/components/site/pop-up/comment/reaction";
 import {
   AnnouncementData,
   Reaction,
-  groupData,
   initialAnnouncementMockData,
   mockComments,
 } from "@/data/announcementData";
+import { UserRole } from "@/context/user-context";
 
 interface AnnouncementCardProps {
+  role: UserRole;
   searchQuery: string;
   onVisibilityChange: (hasItems: boolean) => void;
   onViewDetail?: () => void;
 }
 
 export function AnnouncementCard({
+  role,
   searchQuery,
   onVisibilityChange,
   onViewDetail,
 }: AnnouncementCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [announcementData, setAnnouncementData] = useState<AnnouncementData>(initialAnnouncementMockData);
+  const [announcementData, setAnnouncementData] = useState<AnnouncementData>(
+    initialAnnouncementMockData,
+  );
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
 
-  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
+  const activeReaction = REACTIONS.find(
+    (r: Reaction) => r.id === selectedReaction,
+  );
 
   const handleLikeToggle = () => {
     setAnnouncementData((prev) => {
@@ -69,6 +72,10 @@ export function AnnouncementCard({
     }));
   };
 
+  const handleExecuteDelete = () => {
+    console.log("Deleting announcement ID:", announcementData.id);
+  };
+
   const isMatch = announcementData.title
     .toLowerCase()
     .includes((searchQuery || "").toLowerCase().trim());
@@ -98,9 +105,14 @@ export function AnnouncementCard({
               </p>
             </div>
           </div>
-          <button className="text-grey-400 hover:text-grey-500 cursor-pointer">
-            <MoreVertical size={20} />
-          </button>
+          {(role === "admin" || role === "organizer") && (
+            <EditPostDropDown
+              id={announcementData.id}
+              title={announcementData.title}
+              editUrl={`/event-management/edition/announcement`}
+              onDelete={handleExecuteDelete}
+            />
+          )}
         </div>
 
         <div className="flex items-center justify-between mb-4">
@@ -127,8 +139,9 @@ export function AnnouncementCard({
             </span>
           )}
         </div>
-
-        <h2 className="type-title text-primary mb-2">{announcementData.title}</h2>
+        <h2 className="type-title text-primary mb-2">
+          {announcementData.title}
+        </h2>
         <p className="type-desc text-muted-foreground leading-relaxed mb-2">
           {announcementData.description}
         </p>
@@ -144,7 +157,9 @@ export function AnnouncementCard({
           </div>
           <div className="flex items-start gap-3">
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">DATE:</span>{" "}
+              <span className="type-detail-semibold text-foreground">
+                DATE:
+              </span>{" "}
               {announcementData.dateString}
             </p>
           </div>
@@ -168,7 +183,9 @@ export function AnnouncementCard({
             <span className="bg-action text-foreground type-detail-small-medium font-black px-2 py-0.5 rounded mb-2 inline-block uppercase">
               New Event
             </span>
-            <h4 className="type-desc-semibold">{announcementData.innerBannerTitle}</h4>
+            <h4 className="type-desc-semibold">
+              {announcementData.innerBannerTitle}
+            </h4>
             <p className="type-detail-small-medium opacity-80">
               {announcementData.innerBannerMeta}
             </p>
@@ -177,27 +194,15 @@ export function AnnouncementCard({
 
         <div className="flex items-center justify-between pb-4 border-b border-border">
           <div className="flex items-center -space-x-2">
-            <img
-              src="https://i.pravatar.cc/100?u=a"
-              className="w-6 h-6 rounded-full border border-white"
-              alt="v1"
-            />
-            <img
-              src="https://i.pravatar.cc/100?u=b"
-              className="w-6 h-6 rounded-full border border-white"
-              alt="v2"
-            />
-            <img
-              src="https://i.pravatar.cc/100?u=c"
-              className="w-6 h-6 rounded-full border border-white"
-              alt="v3"
-            />
+            <img src="https://i.pravatar.cc/100?u=a" className="w-6 h-6 rounded-full border border-white" alt="v1" />
+            <img src="https://i.pravatar.cc/100?u=b" className="w-6 h-6 rounded-full border border-white" alt="v2" />
+            <img src="https://i.pravatar.cc/100?u=c" className="w-6 h-6 rounded-full border border-white" alt="v3" />
             <div className="w-6 h-6 rounded-full border border-white bg-secondary text-[9px] font-bold text-white flex items-center justify-center">
               +80
             </div>
           </div>
           <Link
-            href={`/group/${groupData.id}/event/${announcementData.id}`}
+            href={`/event-management/announcements/view/${announcementData.id}`}
             onClick={onViewDetail}
             className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white text-xs font-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer inline-block text-center"
           >
@@ -206,23 +211,32 @@ export function AnnouncementCard({
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail text-grey-500">
-          
-          <ReactionPopover 
-            selectedValue={selectedReaction} 
+          <ReactionPopover
+            selectedValue={selectedReaction}
             onReactionSelect={handleReactionSelect}
           >
             <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
+                activeReaction
+                  ? `${activeReaction.color} font-semibold`
+                  : "hover:text-primary"
               }`}
             >
               <ThumbsUp
                 size={18}
-                className={activeReaction?.id === "like" ? "fill-blue-500 stroke-blue-500" : ""}
+                className={
+                  activeReaction?.id === "like"
+                    ? "fill-blue-500 stroke-blue-500"
+                    : ""
+                }
               />
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="text-xs font-normal text-grey-400">({announcementData.likesCount})</span>
+              <span>
+                {activeReaction ? activeReaction.displayText : "Like"}
+              </span>
+              <span className="text-xs font-normal text-grey-400">
+                ({announcementData.likesCount})
+              </span>
             </button>
           </ReactionPopover>
 
@@ -261,7 +275,6 @@ export function AnnouncementCard({
             </button>
           </div>
         </div>
-
         {showComments && (
           <div className="space-y-6 pt-2">
             {mockComments.map((comment) => (
@@ -369,7 +382,7 @@ export function AnnouncementCard({
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/announcements/${announcementData.id}`}
+        shareUrl={`hrdeventhub.app/event-management/announcements/${announcementData.id}`}
       />
     </>
   );
