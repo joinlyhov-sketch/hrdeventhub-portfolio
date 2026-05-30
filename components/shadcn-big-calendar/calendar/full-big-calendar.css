@@ -1,12 +1,27 @@
+/* .calendar-page-shell {
+  width: 100%;
+} */
+
 .calendar-page-shell {
   width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
-.calendar-toolbar {
+/* .calendar-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 2rem;
+} */
+
+.calendar-toolbar {
+  width: 100%;
+  max-width: none;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .calendar-toolbar-left {
@@ -55,11 +70,8 @@
 .calendar-view-tabs button {
   min-width: 6.25rem;
   border: 0;
-  border-right: 1px solid var(--border);
-  background: inherit;
+  background: transparent;
   color: var(--foreground);
-  font-size: var(--fs-desc);
-  font-weight: var(--fw-desc-medium);
   cursor: pointer;
 }
 
@@ -68,12 +80,12 @@
 }
 
 .calendar-view-tabs button.active {
-  margin: -1px;
+  position: relative;
   background: var(--background);
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-lg);
   font-weight: var(--fw-desc-semibold);
-  text-shadow: 0 0 0.5px var(--primary-foreground);
 }
 
 .calendar-card,
@@ -137,7 +149,7 @@
 }
 
 .month-day-name {
-  font-size: var(--fs-subtitle);
+  font-size: var(--fs-desc);
   color: var(--primary-foreground);
 }
 
@@ -208,7 +220,7 @@
 }
 
 .calendar-card-timeGridWeek .fc-col-header-cell {
-  height: 4.5rem !important;
+  height: 3rem !important;
   background: var(--primary) !important;
   border-color: color-mix(
     in srgb,
@@ -269,7 +281,7 @@
 }
 
 .calendar-card-timeGridDay .fc-col-header-cell {
-  height: 4.75rem !important;
+  height: 3rem !important;
   background: transparent !important;
   border: 1px solid var(--border) !important;
   text-align: left !important;

@@ -11,11 +11,18 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
 } from "lucide-react";
 import { format } from "date-fns";
 
 import { calendarEvents } from "@/data/calendarData";
 import type { CalendarView } from "@/types/calendar";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover/popover";
 
 import "./full-big-calendar.css";
 
@@ -40,7 +47,8 @@ function renderEventContent(info: EventContentArg) {
 
 export default function FullBigCalendar() {
   const calendarRef = useRef<FullCalendar | null>(null);
-
+  const calendarShellRef = useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = useState(false);
   const [view, setView] = useState<CalendarView>("dayGridMonth");
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -102,6 +110,18 @@ export default function FullBigCalendar() {
     resizeCalendar();
   };
 
+  useEffect(() => {
+    if (!calendarShellRef.current) return;
+
+    const observer = new ResizeObserver(() => {
+      calendarRef.current?.getApi().updateSize();
+    });
+
+    observer.observe(calendarShellRef.current);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="calendar-page-shell">
       <div className="calendar-toolbar">
@@ -114,11 +134,32 @@ export default function FullBigCalendar() {
             <ChevronLeft size={22} />
           </button>
 
-          <button type="button" className="calendar-date-btn">
-            <CalendarDays size={17} />
-            <span>{title}</span>
-            <ChevronDown size={18} />
-          </button>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button type="button" className="calendar-date-btn">
+                <CalendarDays size={18} />
+                <span>{title}</span>
+                {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              </button>
+            </PopoverTrigger>
+
+            <PopoverContent align="start" className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={currentDate}
+                onSelect={(selectedDate) => {
+                  if (!selectedDate) return;
+
+                  const api = getApi();
+                  if (!api) return;
+
+                  api.gotoDate(selectedDate);
+                  setCurrentDate(selectedDate);
+                  resizeCalendar();
+                }}
+              />
+            </PopoverContent>
+          </Popover>
 
           <button
             type="button"
@@ -143,7 +184,10 @@ export default function FullBigCalendar() {
         </div>
       </div>
 
-      <div className={`calendar-card calendar-card-${view}`}>
+      <div
+        ref={calendarShellRef}
+        className={`calendar-card calendar-card-${view}`}
+      >
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -155,7 +199,7 @@ export default function FullBigCalendar() {
           height={view === "dayGridMonth" ? "auto" : "720px"}
           contentHeight={view === "dayGridMonth" ? "auto" : "620px"}
           expandRows={false}
-          handleWindowResize
+          handleWindowResize={true}
           windowResizeDelay={100}
           nowIndicator
           allDaySlot={false}
@@ -164,10 +208,17 @@ export default function FullBigCalendar() {
           scrollTime={new Date().toTimeString().slice(0, 8)}
           slotMinTime={view === "dayGridMonth" ? "00:00:00" : "00:00:00"}
           slotMaxTime={view === "dayGridMonth" ? "24:00:00" : "12:00:00"}
-          slotLabelFormat={{
-            hour: "numeric",
-            minute: "2-digit",
-            meridiem: "short",
+          // slotLabelFormat={{
+          //   hour: "2-digit",
+          //   minute: "2-digit",
+          //   meridiem: "short",
+          // }}
+          slotLabelContent={(arg) => {
+            const hour = arg.date.getHours();
+            const period = hour >= 12 ? "PM" : "AM";
+            const displayHour = String(hour % 12 || 12).padStart(2, "0");
+
+            return `${displayHour} ${period}`;
           }}
           dayHeaderContent={(args) => {
             const weekday = args.date
