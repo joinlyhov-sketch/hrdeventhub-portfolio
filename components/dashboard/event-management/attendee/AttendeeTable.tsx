@@ -88,7 +88,7 @@ export default function AttendeeTableClient({
       <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-145 bg-white">
         <Table className="w-full text-left border-collapse min-w-250 table-fixed">
           <TableHeader>
-            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
+            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-13">
               <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[5%] ">
                 No.
               </TableHead>
@@ -115,16 +115,14 @@ export default function AttendeeTableClient({
                       <ListFilter
                         size={16}
                         className={
-                          statusFilter !== "All"
-                            ? "text-white fill-white"
-                            : ""
+                          statusFilter !== "All" ? "text-white fill-white" : ""
                         }
                       />
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="center"
-                    className="bg-white border rounded-md shadow-md py-1 min-w-[120px]"
+                    className="bg-white border rounded-md shadow-md py-1 min-w-30"
                   >
                     {uniqueStatuses.map((status) => (
                       <DropdownMenuItem
@@ -183,8 +181,8 @@ export default function AttendeeTableClient({
                         Attendee doesn&apos;t exist
                       </p>
                       <p className="text-sm text-gray-400 font-medium">
-                        We couldn't find any attendees match for your search
-                        parameters.
+                        We couldn&apos;t find any attendees match for your
+                        search parameters.
                       </p>
                     </div>
                   </div>

@@ -81,13 +81,6 @@ export default function Step3OTP() {
     [otpEmail, reset, router, startTransition],
   );
 
-  useEffect(() => {
-    const isFilled = otp.every((d) => d !== "");
-    if (isFilled && autoSubmitEnabled && !isPending) {
-      submitOtp(otp.join(""));
-    }
-  }, [otp, autoSubmitEnabled, isPending, submitOtp]);
-
   const handleVerify = () => submitOtp(otp.join(""));
 
   const handleChange = (value: string, index: number) => {
@@ -95,6 +88,10 @@ export default function Step3OTP() {
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
+    const isFilled = newOtp.every((digit) => digit !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) {
+      submitOtp(newOtp.join(""));
+    }
     if (value && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
