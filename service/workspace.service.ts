@@ -36,7 +36,7 @@ const handleResponseError = async (
 
 const getAuthHeaders = async () => {
   const session = await getSession();
-  const token = session?.user?.token || session?.accessToken;
+  const token = session?.accessToken || (session?.user as any)?.token;
 
   return {
     "Content-Type": "application/json",
