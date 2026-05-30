@@ -18,20 +18,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, PenLine, Users2 } from "lucide-react";
+import { X, PenLine, Users2, Link, Link2 } from "lucide-react";
 
 interface CreateGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
+export default function CreateGroupModal({
+  isOpen,
+  onClose,
+}: CreateGroupModalProps) {
   const [groupName, setGroupName] = React.useState("");
   const [generation, setGeneration] = React.useState("");
   const [description, setDescription] = React.useState("");
 
   const handleCreate = () => {
-    console.log("Initializing new group payload:", { groupName, generation, description });
+    console.log("Initializing new group payload:", {
+      groupName,
+      generation,
+      description,
+    });
     setGroupName("");
     setGeneration("");
     setDescription("");
@@ -50,7 +57,7 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
               Fill in details below to initialize a new group.
             </DialogDescription>
           </DialogHeader>
-          
+
           <button
             onClick={onClose}
             className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
@@ -65,7 +72,10 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
               Group Name
             </label>
             <div className="relative flex items-center">
-              <PenLine className="absolute left-4 text-gray-400 pointer-events-none" size={18} />
+              <PenLine
+                className="absolute left-4 text-gray-400 pointer-events-none"
+                size={18}
+              />
               <Input
                 type="text"
                 placeholder="Enter Group Name"
@@ -81,18 +91,56 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
             </label>
             <Select value={generation} onValueChange={setGeneration}>
               <div className="relative flex items-center">
-                <Users2 className="absolute left-4 text-gray-400 pointer-events-none z-10" size={18} />
+                <Users2
+                  className="absolute left-4 text-gray-400 pointer-events-none z-10"
+                  size={18}
+                />
                 <SelectTrigger className="w-full h-[52px] pl-11 pr-4 rounded-xl border border-blue-100 bg-white text-[15px] text-left placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 text-gray-500 transition-all">
                   <SelectValue placeholder="Select generation" />
                 </SelectTrigger>
               </div>
               <SelectContent className="rounded-xl border border-blue-100 bg-white shadow-lg">
-                <SelectItem value="gen-1" className="text-[15px] text-gray-700 focus:bg-blue-50">Generation 1</SelectItem>
-                <SelectItem value="gen-2" className="text-[15px] text-gray-700 focus:bg-blue-50">Generation 2</SelectItem>
-                <SelectItem value="gen-3" className="text-[15px] text-gray-700 focus:bg-blue-50">Generation 3</SelectItem>
+                <SelectItem
+                  value="gen-1"
+                  className="text-[15px] text-gray-700 focus:bg-blue-50"
+                >
+                  Generation 1
+                </SelectItem>
+                <SelectItem
+                  value="gen-2"
+                  className="text-[15px] text-gray-700 focus:bg-blue-50"
+                >
+                  Generation 2
+                </SelectItem>
+                <SelectItem
+                  value="gen-3"
+                  className="text-[15px] text-gray-700 focus:bg-blue-50"
+                >
+                  Generation 3
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2.5">
+            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+              Telegram Channel
+            </label>
+            <div className="relative flex items-center">
+              <Link2
+                className="absolute left-4 text-gray-400 pointer-events-none"
+                size={18}
+              />
+              <Input
+                type="text"
+                placeholder="http://96.9.81.187:3001/join/Y9xjMfJLoqty6DJVm3tLw7vdWTwogb8N"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                className="h-[52px] pl-11 pr-4 rounded-xl border border-blue-100 bg-white text-[15px] placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent transition-all"
+              />
+            </div>
+          </div>
+          
           <div className="space-y-2.5">
             <label className="text-[17px] font-bold text-[#1e3a8a] block">
               Description
