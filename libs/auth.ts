@@ -20,7 +20,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.identifier || !credentials?.password) return null;
         try {
           const authData = await authService.login({
-            email:      credentials.identifier as string,
+            identifier:      credentials.identifier as string,
             password:   credentials.password   as string,
             rememberMe: credentials.rememberMe === "true",
           });

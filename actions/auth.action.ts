@@ -13,7 +13,7 @@ export async function logoutAction(refreshToken: string) {
 
 export async function loginAction(formData: FormData) {
   const result = await signIn("credentials", {
-    identifier: formData.get("email"),
+    identifier: formData.get("identifier"),
     password:   formData.get("password"),
     rememberMe: formData.get("rememberMe"), 
     redirect:   false,
