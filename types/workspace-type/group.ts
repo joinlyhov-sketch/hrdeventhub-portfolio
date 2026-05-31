@@ -5,15 +5,17 @@ export interface Group {
   description: string;
   memberCount: number;
 }
+
 export interface Workspace {
   workspaceId: string;
   name: string;
   description: string;
   isPublic: boolean;
+  generationId?: string;
+  generationName?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
-  generationName?: string;
   telegramChannelUrl?: string;
 }
 
@@ -41,6 +43,28 @@ export interface CreateWorkspaceRequest {
 }
 
 export interface CreateWorkspaceResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  timestamp: string;
+}
+
+export interface UpdateWorkspaceRequest {
+  name: string;
+  description: string;
+  isPublic: boolean;
+  generationId: string;
+  telegramChannelUrl: string;
+}
+
+export interface UpdateWorkspaceResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  timestamp: string;
+}
+
+export interface DeleteWorkspaceResponse {
   success: boolean;
   message: string;
   status: string;

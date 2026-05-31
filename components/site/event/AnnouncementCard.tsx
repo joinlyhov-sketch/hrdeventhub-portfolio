@@ -5,16 +5,8 @@ import { ThumbsUp, MessageSquare, Share2, Send, Megaphone } from "lucide-react";
 import Link from "next/link";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
-import {
-  ReactionPopover,
-  REACTIONS,
-} from "@/components/site/pop-up/comment/reaction";
-import {
-  AnnouncementData,
-  Reaction,
-  initialAnnouncementMockData,
-  mockComments,
-} from "@/data/announcementData";
+import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import { AnnouncementData, Reaction, initialAnnouncementMockData, mockComments } from "@/data/announcementData";
 import { UserRole } from "@/context/user-context";
 
 interface AnnouncementCardProps {
@@ -24,40 +16,23 @@ interface AnnouncementCardProps {
   onViewDetail?: () => void;
 }
 
-export function AnnouncementCard({
-  role,
-  searchQuery,
-  onVisibilityChange,
-  onViewDetail,
-}: AnnouncementCardProps) {
+export function AnnouncementCard({ role, searchQuery, onVisibilityChange, onViewDetail }: AnnouncementCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [announcementData, setAnnouncementData] = useState<AnnouncementData>(
-    initialAnnouncementMockData,
-  );
+  const [announcementData, setAnnouncementData] = useState<AnnouncementData>(initialAnnouncementMockData);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
 
-  const activeReaction = REACTIONS.find(
-    (r: Reaction) => r.id === selectedReaction,
-  );
+  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
 
   const handleLikeToggle = () => {
     setAnnouncementData((prev) => {
       const isCurrentlyActive = !!selectedReaction;
       if (isCurrentlyActive) {
         setSelectedReaction(null);
-        return {
-          ...prev,
-          isLikedByUser: false,
-          likesCount: prev.likesCount - 1,
-        };
+        return { ...prev, isLikedByUser: false, likesCount: prev.likesCount - 1 };
       } else {
         setSelectedReaction("like");
-        return {
-          ...prev,
-          isLikedByUser: true,
-          likesCount: prev.likesCount + 1,
-        };
+        return { ...prev, isLikedByUser: true, likesCount: prev.likesCount + 1 };
       }
     });
   };
@@ -76,17 +51,13 @@ export function AnnouncementCard({
     console.log("Deleting announcement ID:", announcementData.id);
   };
 
-  const isMatch = announcementData.title
-    .toLowerCase()
-    .includes((searchQuery || "").toLowerCase().trim());
+  const isMatch = announcementData.title.toLowerCase().includes((searchQuery || "").toLowerCase().trim());
 
   useEffect(() => {
     onVisibilityChange(isMatch);
   }, [isMatch, onVisibilityChange]);
 
-  if (!isMatch) {
-    return null;
-  }
+  if (!isMatch) return null;
 
   return (
     <>
@@ -97,17 +68,12 @@ export function AnnouncementCard({
               <Megaphone size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-grey-900 leading-tight">
-                {announcementData.announcementLabel}
-              </h4>
-              <p className="text-xs font-medium text-grey-400">
-                {announcementData.postedTimeText}
-              </p>
+              <h4 className="text-sm font-bold text-grey-900 leading-tight">{announcementData.announcementLabel}</h4>
+              <p className="text-xs font-medium text-grey-400">{announcementData.postedTimeText}</p>
             </div>
           </div>
           {(role === "admin" || role === "organizer") && (
             <EditPostDropDown
-              id={announcementData.id}
               title={announcementData.title}
               editUrl={`/event-management/edition/announcement`}
               onDelete={handleExecuteDelete}
@@ -118,19 +84,11 @@ export function AnnouncementCard({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
-              <img
-                src={announcementData.author.avatar}
-                alt={announcementData.author.name}
-                className="w-full h-full object-cover"
-              />
+              <img src={announcementData.author.avatar} alt={announcementData.author.name} className="w-full h-full object-cover" />
             </div>
             <div>
-              <h3 className="type-desc-semibold text-secondary">
-                {announcementData.author.name}
-              </h3>
-              <p className="type-detail-small-medium text-grey-400">
-                {announcementData.author.date}
-              </p>
+              <h3 className="type-desc-semibold text-secondary">{announcementData.author.name}</h3>
+              <p className="type-detail-small-medium text-grey-400">{announcementData.author.date}</p>
             </div>
           </div>
           {announcementData.author.role && (
@@ -139,56 +97,36 @@ export function AnnouncementCard({
             </span>
           )}
         </div>
-        <h2 className="type-title text-primary mb-2">
-          {announcementData.title}
-        </h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-2">
-          {announcementData.description}
-        </p>
+
+        <h2 className="type-title text-primary mb-2">{announcementData.title}</h2>
+        <p className="type-desc text-muted-foreground leading-relaxed mb-2">{announcementData.description}</p>
 
         <div className="bg-grey-50 rounded-[12px] p-6 space-y-3 mb-2">
           <div className="flex items-start gap-3">
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">
-                LOCATION:
-              </span>{" "}
-              {announcementData.location}
+              <span className="type-detail-semibold text-foreground">LOCATION:</span> {announcementData.location}
             </p>
           </div>
           <div className="flex items-start gap-3">
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">
-                DATE:
-              </span>{" "}
-              {announcementData.dateString}
+              <span className="type-detail-semibold text-foreground">DATE:</span> {announcementData.dateString}
             </p>
           </div>
           <div className="flex items-start gap-3">
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">
-                PURPOSE:
-              </span>{" "}
-              {announcementData.purpose}
+              <span className="type-detail-semibold text-foreground">PURPOSE:</span> {announcementData.purpose}
             </p>
           </div>
         </div>
 
         <div className="relative rounded-[12px] overflow-hidden mb-6 h-64">
-          <img
-            src={announcementData.bannerImage}
-            alt={announcementData.title}
-            className="w-full h-full object-cover"
-          />
+          <img src={announcementData.bannerImage} alt={announcementData.title} className="w-full h-full object-cover" />
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
             <span className="bg-action text-foreground type-detail-small-medium font-black px-2 py-0.5 rounded mb-2 inline-block uppercase">
               New Event
             </span>
-            <h4 className="type-desc-semibold">
-              {announcementData.innerBannerTitle}
-            </h4>
-            <p className="type-detail-small-medium opacity-80">
-              {announcementData.innerBannerMeta}
-            </p>
+            <h4 className="type-desc-semibold">{announcementData.innerBannerTitle}</h4>
+            <p className="type-detail-small-medium opacity-80">{announcementData.innerBannerMeta}</p>
           </div>
         </div>
 
@@ -197,9 +135,7 @@ export function AnnouncementCard({
             <img src="https://i.pravatar.cc/100?u=a" className="w-6 h-6 rounded-full border border-white" alt="v1" />
             <img src="https://i.pravatar.cc/100?u=b" className="w-6 h-6 rounded-full border border-white" alt="v2" />
             <img src="https://i.pravatar.cc/100?u=c" className="w-6 h-6 rounded-full border border-white" alt="v3" />
-            <div className="w-6 h-6 rounded-full border border-white bg-secondary text-[9px] font-bold text-white flex items-center justify-center">
-              +80
-            </div>
+            <div className="w-6 h-6 rounded-full border border-white bg-secondary text-[9px] font-bold text-white flex items-center justify-center">+80</div>
           </div>
           <Link
             href={`/event-management/announcements/view/${announcementData.id}`}
@@ -211,58 +147,31 @@ export function AnnouncementCard({
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail text-grey-500">
-          <ReactionPopover
-            selectedValue={selectedReaction}
-            onReactionSelect={handleReactionSelect}
-          >
+          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
             <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                activeReaction
-                  ? `${activeReaction.color} font-semibold`
-                  : "hover:text-primary"
+                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
               }`}
             >
-              <ThumbsUp
-                size={18}
-                className={
-                  activeReaction?.id === "like"
-                    ? "fill-blue-500 stroke-blue-500"
-                    : ""
-                }
-              />
-              <span>
-                {activeReaction ? activeReaction.displayText : "Like"}
-              </span>
-              <span className="text-xs font-normal text-grey-400">
-                ({announcementData.likesCount})
-              </span>
+              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500 stroke-blue-500" : ""} />
+              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span className="text-xs font-normal text-grey-400">({announcementData.likesCount})</span>
             </button>
           </ReactionPopover>
 
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 hover:text-primary cursor-pointer"
-          >
+          <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 hover:text-primary cursor-pointer">
             <MessageSquare size={18} /> {announcementData.commentsCount}
           </button>
-          <button
-            onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-2 hover:text-primary cursor-pointer"
-          >
+
+          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-2 hover:text-primary cursor-pointer">
             <Share2 size={18} /> Share
           </button>
         </div>
 
-        <div
-          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
-        >
+        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0">
-            <img
-              src="https://i.pravatar.cc/150?u=user"
-              alt="Me"
-              className="w-full h-full object-cover"
-            />
+            <img src="https://i.pravatar.cc/150?u=user" alt="Me" className="w-full h-full object-cover" />
           </div>
           <div className="relative grow">
             <input
@@ -275,6 +184,7 @@ export function AnnouncementCard({
             </button>
           </div>
         </div>
+
         {showComments && (
           <div className="space-y-6 pt-2">
             {mockComments.map((comment) => (
@@ -285,86 +195,47 @@ export function AnnouncementCard({
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-1.5 text-sm">
-                      <span className="font-bold text-grey-900">
-                        {comment.author.name}
-                      </span>
-                      <span className="text-grey-400 text-xs font-normal">
-                        · {comment.date}
-                      </span>
+                      <span className="font-bold text-grey-900">{comment.author.name}</span>
+                      <span className="text-grey-400 text-xs font-normal">· {comment.date}</span>
                     </div>
-                    <p className="text-sm text-grey-900 leading-normal">
-                      {comment.text}
-                    </p>
+                    <p className="text-sm text-grey-900 leading-normal">{comment.text}</p>
                     <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
-                      <button className="hover:underline cursor-pointer">
-                        Reply
-                      </button>
-                      <button className="hover:underline cursor-pointer">
-                        Like
-                      </button>
+                      <button className="hover:underline cursor-pointer">Reply</button>
+                      <button className="hover:underline cursor-pointer">Like</button>
                     </div>
                   </div>
                 </div>
 
                 {comment.replies && comment.replies.length > 0 && (
                   <div className="relative pl-10 mt-4 space-y-5">
-                    <div
-                      className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]"
-                      style={{ bottom: "24px" }}
-                    />
-
+                    <div className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]" style={{ bottom: "24px" }} />
                     {comment.replies.map((reply, index) => (
-                      <div
-                        key={reply.id}
-                        className="relative flex items-start gap-3"
-                      >
-                        {index > 0 && (
-                          <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
-                        )}
+                      <div key={reply.id} className="relative flex items-start gap-3">
+                        {index > 0 && <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />}
                         <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
-
                         <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
-                          <img
-                            src={reply.author.avatar}
-                            alt={reply.author.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={reply.author.avatar} alt={reply.author.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-1.5 text-sm">
-                            <span className="font-bold text-grey-900">
-                              {reply.author.name}
-                            </span>
-                            <span className="text-grey-400 text-xs font-normal">
-                              · {reply.date}
-                            </span>
+                            <span className="font-bold text-grey-900">{reply.author.name}</span>
+                            <span className="text-grey-400 text-xs font-normal">· {reply.date}</span>
                           </div>
                           <p className="text-sm text-grey-900 leading-normal">
                             {reply.text.split(" ").map((word, i) =>
                               word.startsWith("@") ? (
-                                <span
-                                  key={i}
-                                  className="text-blue-600 font-medium"
-                                >
-                                  {word}{" "}
-                                </span>
+                                <span key={i} className="text-blue-600 font-medium">{word} </span>
                               ) : (
                                 word + " "
-                              ),
+                              )
                             )}
                           </p>
                           <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
-                            <button className="hover:underline cursor-pointer">
-                              Reply
-                            </button>
+                            <button className="hover:underline cursor-pointer">Reply</button>
                             {reply.isOwn && (
                               <>
-                                <button className="hover:underline cursor-pointer">
-                                  Edit
-                                </button>
-                                <button className="hover:underline cursor-pointer">
-                                  Delete
-                                </button>
+                                <button className="hover:underline cursor-pointer">Edit</button>
+                                <button className="hover:underline cursor-pointer">Delete</button>
                               </>
                             )}
                           </div>
@@ -379,11 +250,7 @@ export function AnnouncementCard({
         )}
       </div>
 
-      <ShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/announcements/${announcementData.id}`}
-      />
+      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} shareUrl={`hrdeventhub.app/event-management/announcements/${announcementData.id}`} />
     </>
   );
 }

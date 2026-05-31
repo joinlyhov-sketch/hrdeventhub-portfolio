@@ -1,6 +1,6 @@
 import { getSession } from "next-auth/react";
 import { apiGet } from "@/libs/api";
-import { GenerationResponse } from "@/types/generation-type";
+import { GenerationResponse } from "@/types/workspace-type/generation-type";
 
 const getToken = async () => {
   const session = await getSession();

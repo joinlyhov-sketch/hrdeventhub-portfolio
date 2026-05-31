@@ -4,16 +4,8 @@ import React, { useState, useEffect } from "react";
 import { ThumbsUp, MessageSquare, Share2, Send } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
-import {
-  ReactionPopover,
-  REACTIONS,
-} from "@/components/site/pop-up/comment/reaction";
-import {
-  ArticleData,
-  Reaction,
-  initialArticleMockData,
-  mockComments,
-} from "@/data/articleData";
+import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import { ArticleData, Reaction, initialArticleMockData, mockComments } from "@/data/articleData";
 import { UserRole } from "@/context/user-context";
 
 interface ArticleCardProps {
@@ -22,39 +14,23 @@ interface ArticleCardProps {
   onVisibilityChange: (hasItems: boolean) => void;
 }
 
-export function ArticleCard({
-  role,
-  searchQuery,
-  onVisibilityChange,
-}: ArticleCardProps) {
+export function ArticleCard({ role, searchQuery, onVisibilityChange }: ArticleCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [articleData, setArticleData] = useState<ArticleData>(
-    initialArticleMockData,
-  );
+  const [articleData, setArticleData] = useState<ArticleData>(initialArticleMockData);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
 
-  const activeReaction = REACTIONS.find(
-    (r: Reaction) => r.id === selectedReaction,
-  );
+  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
 
   const handleLikeToggle = () => {
     setArticleData((prev) => {
       const isCurrentlyActive = !!selectedReaction;
       if (isCurrentlyActive) {
         setSelectedReaction(null);
-        return {
-          ...prev,
-          isLikedByUser: false,
-          likesCount: prev.likesCount - 1,
-        };
+        return { ...prev, isLikedByUser: false, likesCount: prev.likesCount - 1 };
       } else {
         setSelectedReaction("like");
-        return {
-          ...prev,
-          isLikedByUser: true,
-          likesCount: prev.likesCount + 1,
-        };
+        return { ...prev, isLikedByUser: true, likesCount: prev.likesCount + 1 };
       }
     });
   };
@@ -74,23 +50,15 @@ export function ArticleCard({
   };
 
   const isMatch =
-    articleData.title
-      .toLowerCase()
-      .includes((searchQuery || "").toLowerCase().trim()) ||
-    articleData.bodyText
-      .toLowerCase()
-      .includes((searchQuery || "").toLowerCase().trim()) ||
-    articleData.author.name
-      .toLowerCase()
-      .includes((searchQuery || "").toLowerCase().trim());
+    articleData.title.toLowerCase().includes((searchQuery || "").toLowerCase().trim()) ||
+    articleData.bodyText.toLowerCase().includes((searchQuery || "").toLowerCase().trim()) ||
+    articleData.author.name.toLowerCase().includes((searchQuery || "").toLowerCase().trim());
 
   useEffect(() => {
     onVisibilityChange(isMatch);
   }, [isMatch, onVisibilityChange]);
 
-  if (!isMatch) {
-    return null;
-  }
+  if (!isMatch) return null;
 
   return (
     <>
@@ -98,19 +66,11 @@ export function ArticleCard({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
-              <img
-                src={articleData.author.avatar}
-                alt={articleData.author.name}
-                className="w-full h-full object-cover"
-              />
+              <img src={articleData.author.avatar} alt={articleData.author.name} className="w-full h-full object-cover" />
             </div>
             <div>
-              <h3 className="type-desc-semibold text-secondary">
-                {articleData.author.name}
-              </h3>
-              <p className="type-detail-small-medium text-grey-400">
-                {articleData.author.date}
-              </p>
+              <h3 className="type-desc-semibold text-secondary">{articleData.author.name}</h3>
+              <p className="type-detail-small-medium text-grey-400">{articleData.author.date}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -121,7 +81,6 @@ export function ArticleCard({
             )}
             {(role === "admin" || role === "organizer") && (
               <EditPostDropDown
-                id={articleData.id}
                 title={articleData.title}
                 editUrl={`/event-management/edition/article`}
                 onDelete={handleExecuteDelete}
@@ -130,13 +89,8 @@ export function ArticleCard({
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-grey-900 mb-2 tracking-tight leading-tight">
-          {articleData.title}
-        </h2>
-        <p className="type-desc text-grey-500 leading-relaxed mb-2">
-          {articleData.bodyText}
-        </p>
-
+        <h2 className="text-2xl font-bold text-grey-900 mb-2 tracking-tight leading-tight">{articleData.title}</h2>
+        <p className="type-desc text-grey-500 leading-relaxed mb-2">{articleData.bodyText}</p>
         <div className="mb-6">
           <a
             href={articleData.attachmentLink}
@@ -149,59 +103,31 @@ export function ArticleCard({
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail text-grey-500">
-          <ReactionPopover
-            selectedValue={selectedReaction}
-            onReactionSelect={handleReactionSelect}
-          >
+          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
             <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                activeReaction
-                  ? `${activeReaction.color} font-semibold`
-                  : "hover:text-primary"
+                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
               }`}
             >
-              <ThumbsUp
-                size={18}
-                className={
-                  activeReaction?.id === "like"
-                    ? "fill-blue-500 stroke-blue-500"
-                    : ""
-                }
-              />
-              <span>
-                {activeReaction ? activeReaction.displayText : "Like"}
-              </span>
-              <span className="text-xs font-normal text-grey-400">
-                ({articleData.likesCount})
-              </span>
+              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500 stroke-blue-500" : ""} />
+              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span className="text-xs font-normal text-grey-400">({articleData.likesCount})</span>
             </button>
           </ReactionPopover>
 
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 hover:text-primary cursor-pointer"
-          >
+          <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 hover:text-primary cursor-pointer">
             <MessageSquare size={18} /> {articleData.commentsCount}
           </button>
 
-          <button
-            onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-2 hover:text-primary cursor-pointer"
-          >
+          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-2 hover:text-primary cursor-pointer">
             <Share2 size={18} /> Share
           </button>
         </div>
 
-        <div
-          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
-        >
+        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0">
-            <img
-              src="https://i.pravatar.cc/150?u=user"
-              alt="Me"
-              className="w-full h-full object-cover"
-            />
+            <img src="https://i.pravatar.cc/150?u=user" alt="Me" className="w-full h-full object-cover" />
           </div>
           <div className="relative grow">
             <input
@@ -225,86 +151,47 @@ export function ArticleCard({
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-1.5 text-sm">
-                      <span className="font-bold text-grey-900">
-                        {comment.author.name}
-                      </span>
-                      <span className="text-grey-400 text-xs font-normal">
-                        · {comment.date}
-                      </span>
+                      <span className="font-bold text-grey-900">{comment.author.name}</span>
+                      <span className="text-grey-400 text-xs font-normal">· {comment.date}</span>
                     </div>
-                    <p className="text-sm text-grey-900 leading-normal">
-                      {comment.text}
-                    </p>
+                    <p className="text-sm text-grey-900 leading-normal">{comment.text}</p>
                     <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
-                      <button className="hover:underline cursor-pointer">
-                        Reply
-                      </button>
-                      <button className="hover:underline cursor-pointer">
-                        Like
-                      </button>
+                      <button className="hover:underline cursor-pointer">Reply</button>
+                      <button className="hover:underline cursor-pointer">Like</button>
                     </div>
                   </div>
                 </div>
 
                 {comment.replies && comment.replies.length > 0 && (
                   <div className="relative pl-10 mt-4 space-y-5">
-                    <div
-                      className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]"
-                      style={{ bottom: "24px" }}
-                    />
-
+                    <div className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]" style={{ bottom: "24px" }} />
                     {comment.replies.map((reply, index) => (
-                      <div
-                        key={reply.id}
-                        className="relative flex items-start gap-3"
-                      >
-                        {index > 0 && (
-                          <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
-                        )}
+                      <div key={reply.id} className="relative flex items-start gap-3">
+                        {index > 0 && <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />}
                         <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
-
                         <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
-                          <img
-                            src={reply.author.avatar}
-                            alt={reply.author.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={reply.author.avatar} alt={reply.author.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-1.5 text-sm">
-                            <span className="font-bold text-grey-900">
-                              {reply.author.name}
-                            </span>
-                            <span className="text-grey-400 text-xs font-normal">
-                              · {reply.date}
-                            </span>
+                            <span className="font-bold text-grey-900">{reply.author.name}</span>
+                            <span className="text-grey-400 text-xs font-normal">· {reply.date}</span>
                           </div>
                           <p className="text-sm text-grey-900 leading-normal">
                             {reply.text.split(" ").map((word, i) =>
                               word.startsWith("@") ? (
-                                <span
-                                  key={i}
-                                  className="text-blue-600 font-medium"
-                                >
-                                  {word}{" "}
-                                </span>
+                                <span key={i} className="text-blue-600 font-medium">{word} </span>
                               ) : (
                                 word + " "
-                              ),
+                              )
                             )}
                           </p>
                           <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
-                            <button className="hover:underline cursor-pointer">
-                              Reply
-                            </button>
+                            <button className="hover:underline cursor-pointer">Reply</button>
                             {reply.isOwn && (
                               <>
-                                <button className="hover:underline cursor-pointer">
-                                  Edit
-                                </button>
-                                <button className="hover:underline cursor-pointer">
-                                  Delete
-                                </button>
+                                <button className="hover:underline cursor-pointer">Edit</button>
+                                <button className="hover:underline cursor-pointer">Delete</button>
                               </>
                             )}
                           </div>
@@ -318,12 +205,7 @@ export function ArticleCard({
           </div>
         )}
       </div>
-
-      <ShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/articles/${articleData.id}`}
-      />
+      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} shareUrl={`hrdeventhub.app/event-management/articles/${articleData.id}`} />
     </>
   );
 }
