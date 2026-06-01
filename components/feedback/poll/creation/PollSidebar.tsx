@@ -123,7 +123,7 @@ export default function PollSidebar({
         </Select>
       </div>
 
-      <div className="space-y-3 pt-5 border-t border-slate-100 w-full">
+      {/* <div className="space-y-3 pt-5 border-t border-slate-100 w-full">
         <label className="text-[11px] font-extrabold text-slate-400 tracking-widest uppercase block pl-0.5">
           Closing Time *
         </label>
@@ -153,7 +153,7 @@ export default function PollSidebar({
             </p>
           )}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

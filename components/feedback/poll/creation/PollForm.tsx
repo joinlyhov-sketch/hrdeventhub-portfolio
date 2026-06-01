@@ -10,7 +10,6 @@ import PollSidebar, { PollSettings } from "./PollSidebar";
 import WorkspaceSelector from "../../survey/WorkspaceSelector";
 import { pollService } from "@/service/poll.service";
 
-
 export default function PollForm() {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -53,6 +52,26 @@ export default function PollForm() {
     setSettings(newSettings);
     setError(null);
   };
+
+  const handleClosingDateTimeChange = (dateTimeString: string) => {
+    if (!dateTimeString) {
+      setSettings((prev) => ({ ...prev, closingDate: "", closingTime: "" }));
+      return;
+    }
+
+    const [date, time] = dateTimeString.split("T");
+    setSettings((prev) => ({
+      ...prev,
+      closingDate: date || "",
+      closingTime: time || "",
+    }));
+    setError(null);
+  };
+
+  const combinedClosingDateTime =
+    settings.closingDate && settings.closingTime
+      ? `${settings.closingDate}T${settings.closingTime}`
+      : "";
 
   const validateForm = (): boolean => {
     if (!title || !title.trim()) {
@@ -180,17 +199,19 @@ export default function PollForm() {
             </div>
           )}
 
-          <WorkspaceSelector
-            selectedWorkspaceId={workspaceId}
-            onSelectWorkspace={setWorkspaceId}
-            required={true}
-          />
-
           <PollHeader
             title={title}
             setTitle={setTitle}
             description={description}
             setDescription={setDescription}
+            closingTime={combinedClosingDateTime}
+            setClosingTime={handleClosingDateTimeChange}
+          />
+
+          <WorkspaceSelector
+            selectedWorkspaceId={workspaceId}
+            onSelectWorkspace={setWorkspaceId}
+            required={true}
           />
 
           <PollOptionsList
