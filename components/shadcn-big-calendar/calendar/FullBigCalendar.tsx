@@ -182,7 +182,6 @@ export default function FullBigCalendar() {
             </button>
           ))}
         </div>
-        <ChevronUp/>
       </div>
 
       <div
