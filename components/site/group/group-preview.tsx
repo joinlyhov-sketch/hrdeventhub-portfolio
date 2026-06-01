@@ -1,4 +1,3 @@
-import React from "react";
 import { LockKeyhole } from "lucide-react";
 
 export default function GroupPreview() {

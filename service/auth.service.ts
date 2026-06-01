@@ -17,7 +17,7 @@ export const authService = {
     return apiPost<AuthResponse, { identifier: string; password: string; rememberMe: boolean }>(
       "/auths/login",
       {
-        identifier: credentials.email,
+        identifier: credentials.identifier,
         password: credentials.password,
         rememberMe: credentials.rememberMe ?? false,
       },

@@ -1,14 +1,18 @@
-import EventNavbar from "../../../../components/site/Navbar/EventNavbar";
+import EventNavbarClient from "@/components/site/Navbar/EventNavbarClient";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
+  params,
+}: {
   children: React.ReactNode;
-}>) {
+  params: Promise<{ groupId: string }>;
+}) {
+  const { groupId } = await params;
+
   return (
     <div className="flex flex-col flex-1 min-w-0">
       <div className="w-full sticky top-0 z-20">
-        <EventNavbar />
+        <EventNavbarClient groupId={groupId} />
       </div>
       <main className="min-h-full flex mt-6 flex-col max-w-full pr-8 lg:pr-12 lg:pl-12 z-10">
         {children}

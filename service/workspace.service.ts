@@ -1,100 +1,86 @@
-import { env } from "../libs/env";
-import { Workspace } from "../types/survey";
-import { getSession } from "next-auth/react";
-
-const apiBaseUrl = env?.NEXT_PUBLIC_API_BASE_URL;
-
-if (!apiBaseUrl) {
-  throw new Error("API base URL is not configured.");
-}
-
-const handleResponseError = async (
-  res: Response,
-  defaultMessage: string
-): Promise<never> => {
-  let errorMessage = defaultMessage;
-
-  try {
-    const bodyText = await res.text();
-    if (bodyText) {
-      try {
-        const errorJson = JSON.parse(bodyText) as {
-          detail?: string;
-          message?: string;
-          data?: any;
-        };
-        errorMessage =
-          errorJson?.detail || errorJson?.message || defaultMessage;
-      } catch {
-        errorMessage = bodyText;
-      }
-    }
-  } catch {}
-
-  throw new Error(errorMessage);
-};
-
-const getAuthHeaders = async () => {
-  const session = await getSession();
-  const token = session?.accessToken || (session?.user as any)?.token;
-
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-};
-
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  payload?: T;
-  data?: T;
-  error?: string;
-}
+import { apiGet, apiPost, apiPut, apiDelete } from "@/libs/api";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/auth";
+import {
+  Workspace,
+  WorkspaceResponse,
+  GetWorkspacesParams,
+  CreateWorkspaceRequest,
+  CreateWorkspaceResponse,
+  UpdateWorkspaceRequest,
+  UpdateWorkspaceResponse,
+  DeleteWorkspaceResponse,
+} from "@/types/workspace-type/group";
+import { WorkspaceMember, WorkspaceMemberResponse } from "@/types/workspace-type/workspace-members";
 
 export const workspaceService = {
-  // Get all workspaces with pagination
-  getAll: async (page: number = 1, size: number = 100): Promise<Workspace[]> => {
-    const headers = await getAuthHeaders();
-    const url = new URL(`${apiBaseUrl}/workspaces`);
-    url.searchParams.set("page", page.toString());
-    url.searchParams.set("size", size.toString());
 
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers,
-    });
-    if (!res.ok) await handleResponseError(res, "Failed to fetch workspaces.");
-    const response = (await res.json()) as ApiResponse<Workspace[]>;
-    return response.payload || response.data || [];
+
+  getAll: async (token: string, page: number = 1, size: number = 100): Promise<Workspace[]> => {
+    const response = await apiGet<WorkspaceResponse>(
+      `/workspaces?page=${page}&size=${size}`,
+      { authToken: token }
+    );
+    return response.payload;
   },
 
-  // Get workspace by ID
-  getById: async (workspaceId: string): Promise<Workspace> => {
-    const headers = await getAuthHeaders();
-    const url = `${apiBaseUrl}/workspaces/${workspaceId}`;
+  getAllWithFilters: async (
+    token: string,
+    { page = 1, size = 10, name, generationId }: GetWorkspacesParams
+  ): Promise<Workspace[]> => {
+    const params = new URLSearchParams();
+    params.set("page", page.toString());
+    params.set("size", size.toString());
+    if (name?.trim()) params.set("name", name.trim());
+    if (generationId) params.set("generationId", generationId);
 
-    const res = await fetch(url, {
-      method: "GET",
-      headers,
-    });
-    if (!res.ok) await handleResponseError(res, "Failed to fetch workspace.");
-    const response = (await res.json()) as ApiResponse<Workspace>;
-    return (response.payload || response.data)!;
+    const response = await apiGet<WorkspaceResponse>(
+      `/workspaces?${params.toString()}`,
+      { authToken: token }
+    );
+    return response.payload;
   },
 
-  // Get workspaces by generation
-  getByGeneration: async (generationId: string): Promise<Workspace[]> => {
-    const headers = await getAuthHeaders();
-    const url = `${apiBaseUrl}/workspaces/generation/${generationId}`;
+  getById: async (workspaceId: string, token: string): Promise<Workspace> => {
+    const response = await apiGet<{ success: boolean; message: string; payload: Workspace }>(
+      `/workspaces/${workspaceId}`,
+      { authToken: token }
+    );
+    return response.payload;
+  },
 
-    const res = await fetch(url, {
-      method: "GET",
-      headers,
-    });
-    if (!res.ok)
-      await handleResponseError(res, "Failed to fetch generation workspaces.");
-    const response = (await res.json()) as ApiResponse<Workspace[]>;
-    return response.payload || response.data || [];
+  getByGeneration: async (generationId: string, token: string): Promise<Workspace[]> => {
+    const response = await apiGet<{ success: boolean; message: string; payload: Workspace[] }>(
+      `/workspaces/generation/${generationId}`,
+      { authToken: token }
+    );
+    return response.payload;
+  },
+
+  getMembers: async (workspaceId: string, token: string): Promise<WorkspaceMember[]> => {
+    const response = await apiGet<WorkspaceMemberResponse>(
+      `/workspaces/${workspaceId}/members`,
+      { authToken: token }
+    );
+    return response.payload;
+  },
+
+
+  create: async (payload: CreateWorkspaceRequest) => {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken;
+    return apiPost<CreateWorkspaceResponse>("/workspaces", payload, { authToken: token });
+  },
+
+  update: async (workspaceId: string, payload: UpdateWorkspaceRequest) => {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken;
+    return apiPut<UpdateWorkspaceResponse>(`/workspaces/${workspaceId}`, payload, { authToken: token });
+  },
+
+  remove: async (workspaceId: string) => {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken;
+    return apiDelete<DeleteWorkspaceResponse>(`/workspaces/${workspaceId}`, { authToken: token });
   },
 };

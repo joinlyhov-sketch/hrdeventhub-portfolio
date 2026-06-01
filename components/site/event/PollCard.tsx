@@ -66,7 +66,6 @@ export function PollCard({ role, searchQuery, onVisibilityChange }: PollCardProp
         </div>
         {(role === "admin" || role === "organizer") && (
           <EditPostDropDown
-            id={data.id}
             title={data.title}
             editUrl={`/event-management/edition/poll`}
             onDelete={handleExecuteDelete}

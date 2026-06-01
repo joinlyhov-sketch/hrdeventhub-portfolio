@@ -11,13 +11,6 @@ import {
 } from "@/components/ui/dialog-payments/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { X, CalendarIcon, ChevronUp, ChevronDown } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -25,7 +18,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/reaction/popover";
-import { Label } from "@radix-ui/react-label";
 
 interface CreateInvitationLinkModalProps {
   isOpen: boolean;
