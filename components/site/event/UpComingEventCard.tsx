@@ -1,36 +1,106 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { Calendar, Clock } from "lucide-react";
+import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
 
-const events = [
-  {
-    id: "1",
-    month: "OCT",
-    day: "24",
-    title: "Stakeholder Quarterly Review",
-    time: "09:00 AM - 11:30 AM",
-    variant: "blue",
-  },
-  {
-    id: "2",
-    month: "OCT",
-    day: "26",
-    title: "UX Research Synthesis",
-    time: "02:00 PM - 04:00 PM",
-    variant: "green",
-  },
-  {
-    id: "3",
-    month: "OCT",
-    day: "26",
-    title: "UX Research Synthesis",
-    time: "02:00 PM - 04:00 PM",
-    variant: "green",
-  },
-];
+interface UpComingEventCardProps {
+  groupid: string;
+}
 
-export default function UpComingEventCard() {
+// Custom parser to handle format: "Tuesday, June 02, 2026, 11:47 AM"
+function parseCustomEventDate(dateStr: string): Date | null {
+  try {
+    const parts = dateStr.split(", ");
+    if (parts.length < 4) return null;
+
+    const monthDayStr = parts[1]; // "June 02"
+    const yearStr = parts[2];     // "2026"
+    const timeStr = parts[3];     // "11:47 AM"
+
+    // Construct a standard string format that JavaScript loves: "June 02, 2026 11:47 AM"
+    const cleanStandardString = `${monthDayStr}, ${yearStr} ${timeStr}`;
+    const parsedDate = new Date(cleanStandardString);
+
+    return isNaN(parsedDate.getTime()) ? null : parsedDate;
+  } catch (error) {
+    return null;
+  }
+}
+
+export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
+  const { posts, isLoading } = useWorkspacePosts(groupid);
+
+  const upcomingEvents = useMemo(() => {
+    if (!posts || posts.length === 0) return [];
+
+    const now = new Date().getTime();
+
+    return posts
+      .filter((post) => {
+        // Explicitly map event category types containing an eventStart string
+        if (post.category !== "event" || !post.eventStart) return false;
+
+        const eventDateObj = parseCustomEventDate(post.eventStart);
+        if (!eventDateObj) return false;
+
+        // Check if the event date is set in the future relative to right now
+        return eventDateObj.getTime() >= now;
+      })
+      .sort((a, b) => {
+        const dateA = parseCustomEventDate(a.eventStart!)?.getTime() ?? 0;
+        const dateB = parseCustomEventDate(b.eventStart!)?.getTime() ?? 0;
+        return dateA - dateB; // Nearest upcoming event first
+      })
+      .map((post, index) => {
+        // Parse custom text structure fields safely for the display UI badges
+        const parts = post.eventStart!.split(", ");
+        let monthStr = "EVENT";
+        let dayStr = "??";
+
+        if (parts[1]) {
+          const monthAndDay = parts[1].split(" "); // ["June", "02"]
+          if (monthAndDay[0]) monthStr = monthAndDay[0].substring(0, 3).toUpperCase();
+          if (monthAndDay[1]) dayStr = monthAndDay[1];
+        }
+
+        // Clean time layout combination using backend eventEnd property details
+        const startTimeStr = parts[3] ?? "TBD";
+        const displayTime = post.eventEnd 
+          ? `${startTimeStr} - ${post.eventEnd}`
+          : startTimeStr;
+
+        return {
+          id: post.postId,
+          month: monthStr,
+          day: dayStr,
+          title: post.title,
+          time: displayTime,
+          variant: index % 2 === 0 ? "blue" : "green",
+        };
+      });
+  }, [posts]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-md bg-background rounded-[12px] border border-border p-5 shadow-sm animate-pulse">
+        <div className="h-6 bg-muted rounded w-1/3 mb-10" />
+        <div className="space-y-6">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-muted rounded-xl shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-muted rounded w-3/4" />
+                <div className="h-3 bg-muted rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-background rounded-[12px] border border-border p-5 shadow-sm">
       <div className="flex items-center justify-between gap-4 mb-10">
@@ -44,7 +114,7 @@ export default function UpComingEventCard() {
         </Link>
       </div>
 
-      {events.length === 0 ? (
+      {upcomingEvents.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 opacity-40 w-full">
           <div className="p-4 bg-grey-100 rounded-2xl mb-4 shrink-0">
             <Calendar size={48} className="text-grey-400" />
@@ -55,7 +125,7 @@ export default function UpComingEventCard() {
         </div>
       ) : (
         <div className="flex flex-col gap-6 w-full">
-          {events.map((event) => (
+          {upcomingEvents.map((event) => (
             <div
               key={event.id}
               className="flex items-center gap-4 min-w-0 w-full"

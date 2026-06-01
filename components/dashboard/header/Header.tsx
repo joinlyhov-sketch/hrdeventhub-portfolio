@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useCurrentUser } from "../../../context/user-context";
 import { HeaderProps } from "@/types/HeaderProps";
 
@@ -25,10 +26,20 @@ export default function Header({ titlePrimary, titleSecondary, description }: He
                 {currentUser?.email ?? ""}
               </p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-violet-400 to-purple-600">
-              <span className="type-desc-semibold text-white">
-                {currentUser?.avatarInitials ?? "?"}
-              </span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-grey-200 overflow-hidden shrink-0">
+              {!isLoading && currentUser?.profilePicture ? (
+                <Image
+                  src={currentUser.profilePicture}
+                  alt={currentUser.name ?? "User"}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <span className="type-desc-semibold text-primary uppercase">
+                  {isLoading ? "..." : currentUser?.avatarInitials ?? "?"}
+                </span>
+              )}
             </div>
           </div>
         </div>

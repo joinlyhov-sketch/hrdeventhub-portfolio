@@ -13,27 +13,37 @@ import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
 import { Post } from "@/types/posts";
 
 interface FilteredFeedProps {
-  groupId: string;
+  groupid: string;
 }
 
-export default function FilteredFeed({ groupId }: FilteredFeedProps) {
+export default function FilteredFeed({ groupid }: FilteredFeedProps) {
   const { currentUser } = useCurrentUser();
   const role = currentUser?.role ?? "student";
 
-  const { posts, isLoading } = useWorkspacePosts(groupId);
+  const { posts, isLoading } = useWorkspacePosts(groupid);
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+const chronologicalPosts = useMemo(() => {
+    return [...posts].sort((a, b) => {
+      const timeStringA = a.createdAt || a.createdAt || "";
+      const timeStringB = b.createdAt || b.createdAt || "";
+      const timeA = timeStringA ? new Date(timeStringA).getTime() : 0;
+      const timeB = timeStringB ? new Date(timeStringB).getTime() : 0;
+      return timeB - timeA;
+    });
+  }, [posts]);
+
   const postsByCategory = useMemo(() => {
     return {
-      event: posts.filter((p) => p.category === "event"),
-      announcement: posts.filter((p) => p.category === "announcement"),
-      poll: posts.filter((p) => p.category === "poll"),
-      survey: posts.filter((p) => p.category === "survey"),
-      article: posts.filter((p) => p.category === "article"),
+      event: chronologicalPosts.filter((p) => p.category === "event"),
+      announcement: chronologicalPosts.filter((p) => p.category === "announcement"),
+      poll: chronologicalPosts.filter((p) => p.category === "poll"),
+      survey: chronologicalPosts.filter((p) => p.category === "survey"),
+      article: chronologicalPosts.filter((p) => p.category === "article"),
     };
-  }, [posts]);
+  }, [chronologicalPosts]);
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -63,7 +73,7 @@ export default function FilteredFeed({ groupId }: FilteredFeedProps) {
     (!isCategoryActive("survey") || filtered.survey.length === 0) &&
     (!isCategoryActive("article") || filtered.article.length === 0);
 
-  const pinnedPosts = useMemo(() => posts.filter((p) => p.pinned), [posts]);
+  const pinnedPosts = useMemo(() => chronologicalPosts.filter((p) => p.pinned), [chronologicalPosts]);
 
   if (isLoading) {
     return (
@@ -104,7 +114,9 @@ export default function FilteredFeed({ groupId }: FilteredFeedProps) {
             role={role}
             posts={filtered.announcement}
             searchQuery={searchQuery}
-          />
+             onDeletePost={function (postId: string): Promise<void> | void {
+              throw new Error("Function not implemented.");
+            } }          />
         )}
         {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
           <PollCard
@@ -124,8 +136,9 @@ export default function FilteredFeed({ groupId }: FilteredFeedProps) {
           <ArticleCard
             role={role}
             posts={filtered.article}
-            searchQuery={searchQuery}
-          />
+            searchQuery={searchQuery} onDeletePost={function (postId: string): Promise<void> | void {
+              throw new Error("Function not implemented.");
+            } }          />
         )}
       </div>
     </div>
