@@ -14,9 +14,8 @@ export default function Page() {
       <div className="mx-auto w-full max-w-420">
         <div className="flex flex-col gap-6 xl:flex-row">
           <section className="w-full flex-1">
-            <FilteredFeed role={MOCK_CURRENT_USER.role} />
+            <FilteredFeed/>
           </section>
-
           <aside className="w-full xl:sticky xl:right-10 xl:top-20 xl:w-85 xl:self-start">
             <div className="space-y-4 fixed right-4">
               <UpComingEventCard />

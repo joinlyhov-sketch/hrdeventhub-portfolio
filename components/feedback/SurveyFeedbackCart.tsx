@@ -1,24 +1,31 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   CheckCircle2,
   ArrowRight,
   BarChart3,
   Circle,
   User,
-  FileExclamationPoint,
+  FileText,
 } from "lucide-react";
 import Search from "../site/search/Search";
 import { PopoverItem } from "../site/pop-up/contents/pop-over-content";
-import { surveyFeedbacks } from "../../data/surveyFeedback";
 import Link from "next/link";
 import { PaginationDemo } from "./Pagination";
 import ContentTypePopover from "../site/pop-up/contents/pop-over-content";
 import Image from "next/image";
+import { Survey } from "../../types/survey";
+import { surveyService } from "../../service/survey.service";
+import { format, isAfter } from "date-fns";
 
 export default function SurveyFeedbackFeature() {
+  const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [responseCounts, setResponseCounts] = useState<Record<string, number>>({});
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -31,21 +38,54 @@ export default function SurveyFeedbackFeature() {
     { label: "Poll", icon: BarChart3, href: "/event-management/creation/poll" },
   ];
 
-  const filteredFeedbacks = surveyFeedbacks.filter((item) => {
-    const searchLower = (search || "").toLowerCase().trim();
+  // Fetch real surveys from backend
+  useEffect(() => {
+    const fetchLiveFeedbackData = async () => {
+      setLoading(true);
+      try {
+        const data = await surveyService.getAllSurveys(1, 100); 
+        setSurveys(data);
 
-    const titleMatch = item.title
-      ? item.title.toLowerCase().includes(searchLower)
-      : false;
-    const statusMatch = item.status
-      ? item.status.toLowerCase().includes(searchLower)
-      : false;
-    const dateMatch = item.date
-      ? item.date.toLowerCase().includes(searchLower)
-      : false;
+        const counts: Record<string, number> = {};
+        await Promise.all(
+          data.map(async (survey) => {
+            try {
+              counts[survey.surveyId] = await surveyService.countResponses(survey.surveyId);
+            } catch {
+              counts[survey.surveyId] = 0;
+            }
+          })
+        );
+        setResponseCounts(counts);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load surveys from server.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return titleMatch || statusMatch || dateMatch;
-  });
+    fetchLiveFeedbackData();
+  }, []);
+
+  // Filter dynamic live items based on search query and actual runtime status
+  const filteredFeedbacks = useMemo(() => {
+    return surveys.filter((item) => {
+      const searchLower = (search || "").toLowerCase().trim();
+      const titleMatch = item.title ? item.title.toLowerCase().includes(searchLower) : false;
+      
+      // Real-time status calculation (Matches backend SurveyServiceImpl check)
+      const hasExpired = item.closingTime ? isAfter(new Date(), new Date(item.closingTime)) : false;
+      // Safeguard: Read both backend variations of the active flag property
+      const dbIsActive = (item as any).active ?? item.isActive ?? false;
+      const trulyActive = dbIsActive && !hasExpired;
+      
+      const statusText = trulyActive ? "active" : "closed";
+      const statusMatch = statusText.includes(searchLower);
+
+      return titleMatch || statusMatch;
+    });
+  }, [surveys, search]);
 
   const totalPages = Math.ceil(filteredFeedbacks.length / itemsPerPage);
 
@@ -58,6 +98,23 @@ export default function SurveyFeedbackFeature() {
     setSearch(e.target.value);
     setCurrentPage(1);
   };
+
+  if (loading) {
+    return (
+      <div className="w-full p-8 text-center flex flex-col items-center justify-center min-h-[300px]">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-sm text-muted-foreground font-medium animate-pulse">Fetching latest surveys...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full p-6 border border-red-200 bg-red-50 rounded-2xl text-center text-red-700 font-medium">
+        {error}
+      </div>
+    );
+  }
 
   const hasResults = filteredFeedbacks.length > 0;
 
@@ -82,16 +139,16 @@ export default function SurveyFeedbackFeature() {
             }`}
           >
             {paginatedFeedbacks.map((item) => (
-              <div key={item.id} className="w-full block box-border min-w-0">
-                <FeedbackCard item={item} />
+              <div key={item.surveyId} className="w-full block box-border min-w-0">
+                <FeedbackCard item={item} totalResponses={responseCounts[item.surveyId] || 0} />
               </div>
             ))}
           </div>
 
           {!hasResults && (
-            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-2xl border border-gray-100 box-border p-6 left-0 top-0">
+            <div className="w-full min-h-[300px] flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-2xl border border-gray-100 box-border p-6">
               <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                <FileExclamationPoint size={30} className="text-red-500" />
+                <FileText size={30} className="text-red-500" />
               </div>
               <div>
                 <p className="text-base font-bold text-slate-700">
@@ -128,30 +185,40 @@ function SectionTitle() {
   );
 }
 
-function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
+function FeedbackCard({ item, totalResponses }: { item: Survey; totalResponses: number }) {
+  const formattedDate = item.closingTime 
+    ? format(new Date(item.closingTime), "MMM dd, yyyy") 
+    : "No Deadline";
+
+  // Real-time status logic evaluation
+  const hasExpired = item.closingTime ? isAfter(new Date(), new Date(item.closingTime)) : false;
+  const dbIsActive = (item as any).active ?? item.isActive ?? false;
+  const trulyActive = dbIsActive && !hasExpired;
+
   return (
     <article className="rounded-2xl border border-accent/30 bg-card p-6 h-full w-full box-border flex flex-col justify-between min-w-0 overflow-hidden">
       <div className="w-full block">
         <div className="flex items-center justify-between w-full gap-2">
-          <StatusBadge status={item.status} />
+          <StatusBadge isActive={trulyActive} />
           <div className="inline-flex size-12 items-center justify-center rounded-lg bg-accent/20 text-accent shrink-0">
-            {/* <BarChart3 size={22} /> */}
-            <Image src={"/chart.svg"} alt="chart" width={22} height={22} />
+            <Image src="/chart.svg" alt="chart" width={22} height={22} />
           </div>
         </div>
-        <h3 className="type-subtitle text-primary mt-4 break-words line-clamp-2 w-full">
-          {item.title}
+        <h3 className="type-subtitle text-primary mt-4 break-words line-clamp-2 w-full font-semibold text-lg">
+          {item.title || "Untitled Survey"}
         </h3>
-        <p className="type-desc mt-2 mb-4 text-muted-foreground">{item.date}</p>
+        <p className="type-desc mt-2 mb-4 text-sm text-muted-foreground">
+          Closes: {formattedDate}
+        </p>
       </div>
 
       <div className="w-full block mt-auto">
         <div className="text-center mb-4 w-full">
-          <h1 className="type-h1 text-primary">{item.totalResponse}</h1>
-          <p className="type-desc-semibold text-secondary">Total Response</p>
+          <h1 className="text-3xl font-bold text-primary">{totalResponses}</h1>
+          <p className="type-desc-semibold text-secondary text-sm">Total Response</p>
         </div>
 
-        <Link href={`https://docs.google.com/spreadsheets/d/1u77ifcH9aE0NkF4IUSilps8kai7hkImGpiOODLpgDoM/edit?gid=0#gid=0`} className="w-full block">
+        <Link href={`/dashboard/feedback/survey/${item.surveyId}/responses`} className="w-full block">
           <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm cursor-pointer">
             <span>Open Result</span>
             <ArrowRight size={20} strokeWidth={1.5} />
@@ -162,18 +229,17 @@ function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const isActive = status === "Active";
+function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <div
-      className={`type-desc-semibold inline-flex items-center rounded-full px-4 py-2 shrink-0 ${
+      className={`type-desc-semibold inline-flex items-center rounded-full px-4 py-2 shrink-0 text-xs font-semibold ${
         isActive
-          ? "bg-accent/10 text-accent"
-          : "bg-destructive/10 text-destructive"
+          ? "bg-green-50 text-green-600 border border-green-200"
+          : "bg-red-50 text-red-600 border border-red-200"
       }`}
     >
-      <Circle size={10} className="mr-1 fill-current" />
-      {status}
+      <Circle size={8} className="mr-1.5 fill-current" />
+      {isActive ? "Active" : "Closed"}
     </div>
   );
 }

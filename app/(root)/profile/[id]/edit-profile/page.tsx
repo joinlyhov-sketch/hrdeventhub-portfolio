@@ -1,13 +1,19 @@
+"use client";
+
 import AdminProfileForm from "@/components/site/profile/edit-profile/AdminProfileForm";
 import StudentProfileForm from "@/components/site/profile/edit-profile/StudentProfileForm";
 import HeaderNoProfile from "@/components/dashboard/header/HeaderNoProfile";
-import {
-  MOCK_CURRENT_USER,
-  type CurrentUser,
-} from "@/data/mock-user";
+import { useCurrentUser } from "@/context/user-context";
 
-export default async function ProfilePage() {
-  const currentUser: CurrentUser | null = MOCK_CURRENT_USER;
+export default function ProfilePage() {
+  const { currentUser } = useCurrentUser();
+  if (!currentUser) {
+    return (
+      <div className="w-full text-center py-12 text-sm text-grey-400">
+        Loading profile data...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-w-0 transition-all duration-300 z-20">

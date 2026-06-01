@@ -1,5 +1,4 @@
 import {
-  AppUserResponse,
   AuthResponse,
   ForgotPasswordResponse,
   LoginRequest,
@@ -15,9 +14,20 @@ import { apiGet, apiPost } from "../libs/api";
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    return apiPost<AuthResponse, { identifier: string; password: string }>(
+    return apiPost<AuthResponse, { identifier: string; password: string; rememberMe: boolean }>(
       "/auths/login",
-      { identifier: credentials.email, password: credentials.password },
+      {
+        identifier: credentials.identifier,
+        password: credentials.password,
+        rememberMe: credentials.rememberMe ?? false,
+      },
+    );
+  },
+
+  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+    return apiPost<AuthResponse, { refreshToken: string }>(
+      "/auths/refresh",
+      { refreshToken },
     );
   },
 
@@ -39,7 +49,7 @@ export const authService = {
 
   verifyForgotPassword: async (
     email: string,
-    otp: string
+    otp: string,
   ): Promise<VerifyForgotPasswordResponse> => {
     return apiPost<VerifyForgotPasswordResponse, { email: string; otp: string }>(
       "/auths/verify-forgot-password",
@@ -49,21 +59,24 @@ export const authService = {
 
   resetPassword: async (
     resetToken: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<ResetPasswordResponse> => {
-    return apiPost<
-      ResetPasswordResponse,
-      { resetToken: string; newPassword: string }
-    >("/auths/reset-password", { resetToken, newPassword });
+    return apiPost<ResetPasswordResponse, { resetToken: string; newPassword: string }>(
+      "/auths/reset-password",
+      { resetToken, newPassword },
+    );
   },
+  logout: async (refreshToken: string): Promise<void> => {
+  await apiPost<void, { refreshToken: string }>(
+    "/auths/logout",
+    { refreshToken },
+  );
+},
 
   resendOtp: async (email: string): Promise<ResendOtpResponse> => {
     const params = new URLSearchParams({ email });
     return apiPost<ResendOtpResponse>(`/auths/resend?${params.toString()}`);
   },
-
-  getCurrentUser: async (authToken: string): Promise<AppUserResponse> =>
-    apiGet<AppUserResponse>("/auths/me", { authToken, accept: "*/*" }),
 
   getProfileMe: async (authToken: string): Promise<ProfileResponse> =>
     apiGet<ProfileResponse>("/profile/me", { authToken, accept: "*/*" }),

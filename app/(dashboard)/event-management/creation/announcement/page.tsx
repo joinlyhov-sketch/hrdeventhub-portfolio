@@ -1,4 +1,4 @@
-import CreateAnnounmentForm from "../../../../../components/dashboard/creation/CreateAnnouncementForm";
+import CreateAnnounmentForm from "@/components/dashboard/creation/CreateAnnouncementForm";
 
 export default function AnnounmentCreationPage() {
   return (

@@ -11,18 +11,20 @@ export interface RegisterRequest {
 }
 
 export interface LoginRequest {
-  email: string;
+  identifier: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken?: string;
-  user: {
-    id: string;
-    email: string;
-    role: string;
+  success: boolean;
+  message: string;
+  status: string;
+  payload: {
+    token: string;
+    refreshToken: string;
   };
+  timestamp: string;
 }
 
 export interface RegisterResponse {
@@ -97,14 +99,6 @@ export interface AppUserPayload {
   updatedAt: string;
 }
 
-export interface AppUserResponse {
-  success: boolean;
-  message: string;
-  status: string;
-  payload: AppUserPayload;
-  timestamp: string;
-}
-
 export type ProfileRole = "ADMIN" | "ORGANIZER" | "STUDENT" | "ALUMNI";
 
 export interface ProfilePayload {
@@ -124,17 +118,19 @@ export interface ProfileResponse {
 
 declare module "next-auth" {
   interface Session {
-    accessToken: string;
-    user: {
-      id: string;
-      email: string;
-      role: string;
-    } & DefaultSession["user"];
-  }
-
+  accessToken:  string;
+  refreshToken: string;    
+  error?: "RefreshTokenExpired" | "RefreshTokenError";
+  user: {
+    id: string;
+    email: string;
+    role: string;
+  } & DefaultSession["user"];
+}
   interface User {
     accessToken: string;
-    refreshToken?: string;
+    refreshToken: string;
+    rememberMe: boolean;
     user: {
       id: string;
       email: string;
@@ -146,8 +142,11 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     accessToken: string;
-    refreshToken?: string;
+    refreshToken: string;
+    accessTokenExpiry: number;
+    rememberMe: boolean;
     id: string;
     role: string;
+    error?: "RefreshTokenExpired" | "RefreshTokenError";
   }
 }

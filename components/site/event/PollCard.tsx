@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MoreVertical, BarChart3 } from "lucide-react";
+import { BarChart3 } from "lucide-react";
+import type { UserRole } from "@/context/user-context";
+import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 
 const data = {
   id: "poll-123",
@@ -17,18 +19,18 @@ const data = {
 };
 
 interface PollCardProps {
+  role: UserRole;
   searchQuery: string;
   onVisibilityChange: (hasItems: boolean) => void;
 }
 
-export function PollCard({ searchQuery, onVisibilityChange }: PollCardProps) {
+export function PollCard({ role, searchQuery, onVisibilityChange }: PollCardProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
 
   const isMatch = data.question
     .toLowerCase()
     .includes((searchQuery || "").toLowerCase().trim());
-
 
   useEffect(() => {
     onVisibilityChange(isMatch);
@@ -39,6 +41,10 @@ export function PollCard({ searchQuery, onVisibilityChange }: PollCardProps) {
   }
 
   const totalVotes = data.options.reduce((acc, curr) => acc + curr.votes, 0);
+
+  const handleExecuteDelete = () => {
+    console.log("Deleting poll ID:", data.id);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,13 +64,13 @@ export function PollCard({ searchQuery, onVisibilityChange }: PollCardProps) {
             {data.title}
           </h2>
         </div>
-        <button
-          type="button"
-          className="text-grey-400 hover:text-grey-500 p-1 rounded transition-colors cursor-pointer"
-          aria-label="Poll options"
-        >
-          <MoreVertical size={20} />
-        </button>
+        {(role === "admin" || role === "organizer") && (
+          <EditPostDropDown
+            title={data.title}
+            editUrl={`/event-management/edition/poll`}
+            onDelete={handleExecuteDelete}
+          />
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>

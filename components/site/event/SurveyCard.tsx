@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star, ChevronLeft, MoreVertical } from "lucide-react";
+import { Star, ChevronLeft } from "lucide-react";
+import type { UserRole } from "@/context/user-context";
+import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 
 const steps = 5;
 
@@ -12,11 +14,13 @@ interface SurveyData {
 }
 
 interface SurveyCardProps {
+  role: UserRole; 
   searchQuery: string;
   onVisibilityChange: (hasItems: boolean) => void;
 }
 
 export function SurveyCard({
+  role,
   searchQuery,
   onVisibilityChange,
 }: SurveyCardProps) {
@@ -27,6 +31,7 @@ export function SurveyCard({
     suggestions: "",
   });
 
+  const surveyId = "survey-789";
   const title = "Event Feedback: Tech Innovation Summit";
   const description = "Help us improve the summit experience";
 
@@ -49,6 +54,10 @@ export function SurveyCard({
     "Cloud Infrastructure 2025",
     "Quantum Computing Deep Dive",
   ];
+
+  const handleExecuteDelete = () => {
+    console.log("Deleting survey ID:", surveyId);
+  };
 
   const handleNext = () => {
     if (currentStep < steps) {
@@ -76,9 +85,13 @@ export function SurveyCard({
             Survey
           </span>
         </div>
-        <button className="text-grey-400 hover:text-grey-900 transition-colors cursor-pointer">
-          <MoreVertical size={20} />
-        </button>
+        {(role === "admin" || role === "organizer") && (
+          <EditPostDropDown
+            title={title}
+            editUrl={`/event-management/edition/survey`}
+            onDelete={handleExecuteDelete}
+          />
+        )}
       </div>
 
       <p className="text-sm text-grey-500 mb-8">{description}</p>

@@ -3,8 +3,8 @@ import React from "react";
 import { useState } from "react";
 import { Mail, Calendar, Users, Code, Phone, GraduationCap } from "lucide-react";
 import Link from "next/link";
-import { UserRole } from "@/data/mock-user";
-import { MOCK_CURRENT_USER } from "@/data/mock-user";
+import { useCurrentUser } from "@/context/user-context";
+import type { UserRole } from "@/context/user-context";
 import EndorseStudentModal from "../pop-up/EndorseStep";
 
 const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
@@ -82,6 +82,8 @@ const socials = [
 ];
 
 export default function ProfileCard({ userRole }: { userRole: UserRole }) {
+  const { currentUser } = useCurrentUser();
+  const profileId = currentUser?.id ?? "";
   const [isEndorseOpen, setIsEndorseOpen] = useState(false);
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full w-full overflow-hidden">
@@ -121,15 +123,8 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
             ))}
           </div>
           <div className="mt-6 w-full">
-            {userRole === "admin" && (
-               <Link href={`/profile/${MOCK_CURRENT_USER.id}/edit-profile`} className="block w-full">
-                <button className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
-                  Edit Profile
-                </button>
-              </Link>
-            )}
-            {userRole === "student" && (
-              <Link href={`/profile/${MOCK_CURRENT_USER.id}/edit-profile`} className="block w-full">
+            {(userRole === "admin" || userRole === "student") && (
+              <Link href={`/profile/${profileId}/edit-profile`} className="block w-full">
                 <button className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
                   Edit Profile
                 </button>
@@ -137,12 +132,13 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
             )}
             {userRole === "alumni" && (
               <button
-              onClick={() => setIsEndorseOpen(true)}
-               className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer">
+                onClick={() => setIsEndorseOpen(true)}
+                className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer"
+              >
                 Endorse
               </button>
             )}
-          </div>
+          </div> 
         </div>
       </div>
       <EndorseStudentModal

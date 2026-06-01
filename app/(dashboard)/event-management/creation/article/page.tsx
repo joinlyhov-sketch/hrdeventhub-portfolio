@@ -1,4 +1,4 @@
-import CreateArticleForm from "../../../../../components/dashboard/creation/CreateArticleForm";
+import CreateArticleForm from "@/components/dashboard/creation/CreateArticleForm";
 
 export default function ArticleCreationPage() {
   return (

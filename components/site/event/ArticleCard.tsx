@@ -1,84 +1,49 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ThumbsUp,
   MessageSquare,
   Share2,
   Send,
-  MoreVertical,
 } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
+import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
-import { 
-  ArticleData, 
-  Reaction, 
-  initialArticleMockData, 
-  mockComments 
-} from "@/data/articleData";
+import { mockComments } from "@/data/articleData";
+import { UserRole } from "@/context/user-context";
+import { Post } from "@/types/posts";
 
 interface ArticleCardProps {
+  role: UserRole;
+  posts: Post[];
   searchQuery: string;
-  onVisibilityChange: (hasItems: boolean) => void;
 }
 
-export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProps) {
+function ArticleItem({ post, role }: { post: Post; role: UserRole }) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [articleData, setArticleData] = useState<ArticleData>(initialArticleMockData);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+  const [likesCount, setLikesCount] = useState(0);
 
-  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
+  const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
+  const coverImage = post.media?.find((m) => m.isCover) ?? post.media?.[0];
+  const documents = post.media?.filter((m) => m.fileType === "document") ?? [];
 
   const handleLikeToggle = () => {
-    setArticleData((prev) => {
-      const isCurrentlyActive = !!selectedReaction;
-      if (isCurrentlyActive) {
-        setSelectedReaction(null);
-        return {
-          ...prev,
-          isLikedByUser: false,
-          likesCount: prev.likesCount - 1,
-        };
-      } else {
-        setSelectedReaction("like");
-        return {
-          ...prev,
-          isLikedByUser: true,
-          likesCount: prev.likesCount + 1,
-        };
-      }
-    });
+    if (selectedReaction) {
+      setSelectedReaction(null);
+      setLikesCount((prev) => prev - 1);
+    } else {
+      setSelectedReaction("like");
+      setLikesCount((prev) => prev + 1);
+    }
   };
 
   const handleReactionSelect = (reactionId: string) => {
-    const wasAlreadyActive = !!selectedReaction;
+    if (!selectedReaction) setLikesCount((prev) => prev + 1);
     setSelectedReaction(reactionId);
-    setArticleData((prev) => ({
-      ...prev,
-      isLikedByUser: true,
-      likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
-    }));
   };
-
-  const isMatch =
-    articleData.title
-      .toLowerCase()
-      .includes((searchQuery || "").toLowerCase().trim()) ||
-    articleData.bodyText
-      .toLowerCase()
-      .includes((searchQuery || "").toLowerCase().trim()) ||
-    articleData.author.name
-      .toLowerCase()
-      .includes((searchQuery || "").toLowerCase().trim());
-
-  useEffect(() => {
-    onVisibilityChange(isMatch);
-  }, [isMatch, onVisibilityChange]);
-
-  if (!isMatch) {
-    return null;
-  }
 
   return (
     <>
@@ -87,56 +52,75 @@ export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProp
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
               <img
-                src={articleData.author.avatar}
-                alt={articleData.author.name}
+                src="https://i.pravatar.cc/150?u=user"
+                alt="Author"
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
-              <h3 className="type-desc-semibold text-secondary">
-                {articleData.author.name}
-              </h3>
-              <p className="type-detail-small-medium text-grey-400">
-                {articleData.author.date}
-              </p>
+              <h3 className="type-desc-semibold text-secondary">{post.appUserId}</h3>
+              <p className="type-detail-small-medium text-grey-400">{post.createdAt}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {articleData.author.role && (
-              <span className="bg-[#FFF7ED] text-[#F97316] type-desc-small-semibold px-3 py-1 rounded-full uppercase">
-                {articleData.author.role}
-              </span>
+            <span className="bg-[#FFF7ED] text-[#F97316] type-desc-small-semibold px-3 py-1 rounded-full uppercase">
+              Admin
+            </span>
+            {(role === "admin" || role === "organizer") && (
+              <EditPostDropDown
+                title={post.title}
+                editUrl={`/event-management/edition/article`}
+                onDelete={() => console.log("Delete", post.postId)}
+              />
             )}
-            <button className="text-grey-400 hover:text-grey-500 cursor-pointer">
-              <MoreVertical size={20} />
-            </button>
           </div>
         </div>
 
         <h2 className="text-2xl font-bold text-grey-900 mb-2 tracking-tight leading-tight">
-          {articleData.title}
+          {post.title}
         </h2>
-        <p className="type-desc text-grey-500 leading-relaxed mb-2">
-          {articleData.bodyText}
-        </p>
+        <p className="type-desc text-grey-500 leading-relaxed mb-4">{post.content}</p>
 
-        <div className="mb-6">
-          <a
-            href={articleData.attachmentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-blue-600 hover:underline break-all block leading-normal"
-          >
-            {articleData.attachmentLink}
-          </a>
-        </div>
+        {documents.length > 0 && (
+          <div className="mb-6 space-y-1">
+            {documents.map((doc) => (
+              <a
+                key={doc.mediaId}
+                href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/${doc.filePath}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-blue-600 hover:underline break-all block leading-normal"
+              >
+                📄 {doc.fileName}
+              </a>
+            ))}
+          </div>
+        )}
+
+        {coverImage && coverImage.fileType === "image" ? (
+          <div className="relative rounded-[12px] overflow-hidden mb-6 h-64">
+            <img
+              src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/${coverImage.filePath}`}
+              alt={post.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          </div>
+        ) : (
+          <div className="relative rounded-[12px] overflow-hidden mb-6 h-40 bg-grey-100 flex flex-col items-center justify-center gap-2 text-grey-400">
+            <div className="w-12 h-12 rounded-full bg-grey-200 flex items-center justify-center">
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+            </div>
+            <span className="text-xs font-medium">No image available</span>
+          </div>
+        )}
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail text-grey-500">
-          
-          <ReactionPopover 
-            selectedValue={selectedReaction} 
-            onReactionSelect={handleReactionSelect}
-          >
+          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
             <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
@@ -148,7 +132,7 @@ export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProp
                 className={activeReaction?.id === "like" ? "fill-blue-500 stroke-blue-500" : ""}
               />
               <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="text-xs font-normal text-grey-400">({articleData.likesCount})</span>
+              <span className="text-xs font-normal text-grey-400">({likesCount})</span>
             </button>
           </ReactionPopover>
 
@@ -156,9 +140,9 @@ export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProp
             onClick={() => setShowComments(!showComments)}
             className="flex items-center gap-2 hover:text-primary cursor-pointer"
           >
-            <MessageSquare size={18} /> {articleData.commentsCount}
+            <MessageSquare size={18} /> {post.comments.length}
           </button>
-          
+
           <button
             onClick={() => setIsShareOpen(true)}
             className="flex items-center gap-2 hover:text-primary cursor-pointer"
@@ -167,9 +151,7 @@ export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProp
           </button>
         </div>
 
-        <div
-          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
-        >
+        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0">
             <img
               src="https://i.pravatar.cc/150?u=user"
@@ -199,16 +181,10 @@ export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProp
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-1.5 text-sm">
-                      <span className="font-bold text-grey-900">
-                        {comment.author.name}
-                      </span>
-                      <span className="text-grey-400 text-xs font-normal">
-                        · {comment.date}
-                      </span>
+                      <span className="font-bold text-grey-900">{comment.author.name}</span>
+                      <span className="text-grey-400 text-xs font-normal">· {comment.date}</span>
                     </div>
-                    <p className="text-sm text-grey-900 leading-normal">
-                      {comment.text}
-                    </p>
+                    <p className="text-sm text-grey-900 leading-normal">{comment.text}</p>
                     <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
                       <button className="hover:underline cursor-pointer">Reply</button>
                       <button className="hover:underline cursor-pointer">Like</button>
@@ -222,14 +198,12 @@ export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProp
                       className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]"
                       style={{ bottom: "24px" }}
                     />
-
                     {comment.replies.map((reply, index) => (
                       <div key={reply.id} className="relative flex items-start gap-3">
                         {index > 0 && (
                           <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
                         )}
                         <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
-
                         <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
                           <img
                             src={reply.author.avatar}
@@ -239,19 +213,13 @@ export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProp
                         </div>
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-1.5 text-sm">
-                            <span className="font-bold text-grey-900">
-                              {reply.author.name}
-                            </span>
-                            <span className="text-grey-400 text-xs font-normal">
-                              · {reply.date}
-                            </span>
+                            <span className="font-bold text-grey-900">{reply.author.name}</span>
+                            <span className="text-grey-400 text-xs font-normal">· {reply.date}</span>
                           </div>
                           <p className="text-sm text-grey-900 leading-normal">
                             {reply.text.split(" ").map((word, i) =>
                               word.startsWith("@") ? (
-                                <span key={i} className="text-blue-600 font-medium">
-                                  {word}{" "}
-                                Ready</span>
+                                <span key={i} className="text-blue-600 font-medium">{word} </span>
                               ) : (
                                 word + " "
                               )
@@ -280,8 +248,18 @@ export function ArticleCard({ searchQuery, onVisibilityChange }: ArticleCardProp
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/articles/${articleData.id}`}
+        shareUrl={`hrdeventhub.app/event-management/articles/${post.postId}`}
       />
+    </>
+  );
+}
+
+export function ArticleCard({ role, posts }: ArticleCardProps) {
+  return (
+    <>
+      {posts.map((post) => (
+        <ArticleItem key={post.postId} post={post} role={role} />
+      ))}
     </>
   );
 }

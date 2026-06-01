@@ -160,7 +160,7 @@ export default function FullBigCalendar() {
               />
             </PopoverContent>
           </Popover>
-
+          
           <button
             type="button"
             className="calendar-icon-btn"
@@ -182,6 +182,7 @@ export default function FullBigCalendar() {
             </button>
           ))}
         </div>
+        <ChevronUp/>
       </div>
 
       <div
@@ -217,7 +218,6 @@ export default function FullBigCalendar() {
             const hour = arg.date.getHours();
             const period = hour >= 12 ? "PM" : "AM";
             const displayHour = String(hour % 12 || 12).padStart(2, "0");
-
             return `${displayHour} ${period}`;
           }}
           dayHeaderContent={(args) => {
