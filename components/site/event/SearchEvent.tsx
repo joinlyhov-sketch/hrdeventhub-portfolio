@@ -84,7 +84,7 @@ export default function SearchEvent({
             No matching items found
           </h3>
           <p className="text-sm text-gray-400 max-w-sm mx-auto leading-relaxed">
-            We couldn&apos;t find any results matching &ldquo;
+            We couldn&apos;t find any results matching
             <span className="font-medium text-gray-700">{searchQuery}</span>
             &rdquo;
             {activeFilter && (
