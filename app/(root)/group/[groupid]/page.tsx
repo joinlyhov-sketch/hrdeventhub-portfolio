@@ -10,16 +10,16 @@ export const metadata: Metadata = {
 export default async function Page({
   params,
 }: {
-  params: Promise<{ groupId: string }>;
+  params: Promise<{ groupid: string }>;
 }) {
-  const { groupId } = await params;
+  const { groupid } = await params;
 
   return (
     <main className="min-h-screen w-full bg-background">
       <div className="mx-auto w-full max-w-420">
         <div className="flex flex-col gap-6 xl:flex-row">
           <section className="w-full flex-1">
-            <FilteredFeed groupId={groupId} />
+            <FilteredFeed groupId={groupid} />
           </section>
           <aside className="w-full xl:sticky xl:right-10 xl:top-20 xl:w-85 xl:self-start">
             <div className="space-y-4 fixed right-4">
