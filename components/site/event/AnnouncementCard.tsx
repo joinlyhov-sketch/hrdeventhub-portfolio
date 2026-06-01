@@ -1,63 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ThumbsUp, MessageSquare, Share2, Send, Megaphone } from "lucide-react";
 import Link from "next/link";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
-import { AnnouncementData, Reaction, initialAnnouncementMockData, mockComments } from "@/data/announcementData";
+import { mockComments } from "@/data/announcementData";
 import { UserRole } from "@/context/user-context";
+import { Post } from "@/types/posts";
 
 interface AnnouncementCardProps {
   role: UserRole;
+  posts: Post[];
   searchQuery: string;
-  onVisibilityChange: (hasItems: boolean) => void;
-  onViewDetail?: () => void;
 }
 
-export function AnnouncementCard({ role, searchQuery, onVisibilityChange, onViewDetail }: AnnouncementCardProps) {
+function AnnouncementItem({ post, role }: { post: Post; role: UserRole }) {
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [announcementData, setAnnouncementData] = useState<AnnouncementData>(initialAnnouncementMockData);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+  const [likesCount, setLikesCount] = useState(0);
 
-  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
+  const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
+  const coverImage = post.media?.find((m) => m.isCover) ?? post.media?.[0];
+  const hasImage = coverImage?.fileType === "image";
 
   const handleLikeToggle = () => {
-    setAnnouncementData((prev) => {
-      const isCurrentlyActive = !!selectedReaction;
-      if (isCurrentlyActive) {
-        setSelectedReaction(null);
-        return { ...prev, isLikedByUser: false, likesCount: prev.likesCount - 1 };
-      } else {
-        setSelectedReaction("like");
-        return { ...prev, isLikedByUser: true, likesCount: prev.likesCount + 1 };
-      }
-    });
+    if (selectedReaction) {
+      setSelectedReaction(null);
+      setLikesCount((prev) => prev - 1);
+    } else {
+      setSelectedReaction("like");
+      setLikesCount((prev) => prev + 1);
+    }
   };
 
   const handleReactionSelect = (reactionId: string) => {
-    const wasAlreadyActive = !!selectedReaction;
+    if (!selectedReaction) setLikesCount((prev) => prev + 1);
     setSelectedReaction(reactionId);
-    setAnnouncementData((prev) => ({
-      ...prev,
-      isLikedByUser: true,
-      likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
-    }));
   };
-
-  const handleExecuteDelete = () => {
-    console.log("Deleting announcement ID:", announcementData.id);
-  };
-
-  const isMatch = announcementData.title.toLowerCase().includes((searchQuery || "").toLowerCase().trim());
-
-  useEffect(() => {
-    onVisibilityChange(isMatch);
-  }, [isMatch, onVisibilityChange]);
-
-  if (!isMatch) return null;
 
   return (
     <>
@@ -68,15 +50,19 @@ export function AnnouncementCard({ role, searchQuery, onVisibilityChange, onView
               <Megaphone size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-grey-900 leading-tight">{announcementData.announcementLabel}</h4>
-              <p className="text-xs font-medium text-grey-400">{announcementData.postedTimeText}</p>
+              <h4 className="text-sm font-bold text-grey-900 leading-tight">
+                Announcement
+              </h4>
+              <p className="text-xs font-medium text-grey-400">
+                {post.scheduledAt}
+              </p>
             </div>
           </div>
           {(role === "admin" || role === "organizer") && (
             <EditPostDropDown
-              title={announcementData.title}
+              title={post.title}
               editUrl={`/event-management/edition/announcement`}
-              onDelete={handleExecuteDelete}
+              onDelete={() => console.log("Deleting announcement ID:", post.postId)}
             />
           )}
         </div>
@@ -84,49 +70,101 @@ export function AnnouncementCard({ role, searchQuery, onVisibilityChange, onView
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
-              <img src={announcementData.author.avatar} alt={announcementData.author.name} className="w-full h-full object-cover" />
+              <img
+                src="https://i.pravatar.cc/150?u=user"
+                alt="Author"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
-              <h3 className="type-desc-semibold text-secondary">{announcementData.author.name}</h3>
-              <p className="type-detail-small-medium text-grey-400">{announcementData.author.date}</p>
+              <h3 className="type-desc-semibold text-secondary">
+                {post.appUserId}
+              </h3>
+              <p className="type-detail-small-medium text-grey-400">
+                {post.createdAt}
+              </p>
             </div>
           </div>
-          {announcementData.author.role && (
-            <span className="bg-[#FFF7ED] text-[#F97316] type-desc-small-semibold px-3 py-1 rounded-full uppercase">
-              {announcementData.author.role}
-            </span>
-          )}
+          <span className="bg-[#FFF7ED] text-[#F97316] type-desc-small-semibold px-3 py-1 rounded-full uppercase">
+            Admin
+          </span>
         </div>
 
-        <h2 className="type-title text-primary mb-2">{announcementData.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-2">{announcementData.description}</p>
+        <h2 className="type-title text-primary mb-2">{post.title}</h2>
+        <p className="type-desc text-muted-foreground leading-relaxed mb-2">
+          {post.content}
+        </p>
 
         <div className="bg-grey-50 rounded-[12px] p-6 space-y-3 mb-2">
           <div className="flex items-start gap-3">
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">LOCATION:</span> {announcementData.location}
+              <span className="type-detail-semibold text-foreground">LOCATION: </span>
+              {post.location ? (
+                <a
+                  href={post.location.googleMapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline text-primary"
+                >
+                  View on map
+                </a>
+              ) : (
+                "—"
+              )}
             </p>
           </div>
           <div className="flex items-start gap-3">
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">DATE:</span> {announcementData.dateString}
+              <span className="type-detail-semibold text-foreground">DATE: </span>
+              {post.eventStart || "—"}
             </p>
           </div>
           <div className="flex items-start gap-3">
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">PURPOSE:</span> {announcementData.purpose}
+              <span className="type-detail-semibold text-foreground">PURPOSE: </span>—
             </p>
           </div>
         </div>
 
-        <div className="relative rounded-[12px] overflow-hidden mb-6 h-64">
-          <img src={announcementData.bannerImage} alt={announcementData.title} className="w-full h-full object-cover" />
+        <div className="relative rounded-[12px] overflow-hidden mb-6 h-64 bg-grey-100">
+          {hasImage ? (
+            <img
+              src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/${coverImage!.filePath}`}
+              alt={post.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-grey-400">
+              <div className="w-12 h-12 rounded-full bg-grey-200 flex items-center justify-center">
+                <svg
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 19.5h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z"
+                  />
+                </svg>
+              </div>
+              <span className="text-xs font-medium">No image available</span>
+            </div>
+          )}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
             <span className="bg-action text-foreground type-detail-small-medium font-black px-2 py-0.5 rounded mb-2 inline-block uppercase">
               New Event
             </span>
-            <h4 className="type-desc-semibold">{announcementData.innerBannerTitle}</h4>
-            <p className="type-detail-small-medium opacity-80">{announcementData.innerBannerMeta}</p>
+            <h4 className="type-desc-semibold">{post.title}</h4>
+            <p className="type-detail-small-medium opacity-80">
+              {post.eventStart || "—"}
+            </p>
           </div>
         </div>
 
@@ -135,11 +173,12 @@ export function AnnouncementCard({ role, searchQuery, onVisibilityChange, onView
             <img src="https://i.pravatar.cc/100?u=a" className="w-6 h-6 rounded-full border border-white" alt="v1" />
             <img src="https://i.pravatar.cc/100?u=b" className="w-6 h-6 rounded-full border border-white" alt="v2" />
             <img src="https://i.pravatar.cc/100?u=c" className="w-6 h-6 rounded-full border border-white" alt="v3" />
-            <div className="w-6 h-6 rounded-full border border-white bg-secondary text-[9px] font-bold text-white flex items-center justify-center">+80</div>
+            <div className="w-6 h-6 rounded-full border border-white bg-secondary text-[9px] font-bold text-white flex items-center justify-center">
+              +80
+            </div>
           </div>
           <Link
-            href={`/event-management/announcements/view/${announcementData.id}`}
-            onClick={onViewDetail}
+            href={`/event-management/announcements/view/${post.postId}`}
             className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white text-xs font-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer inline-block text-center"
           >
             View Detail
@@ -151,27 +190,44 @@ export function AnnouncementCard({ role, searchQuery, onVisibilityChange, onView
             <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
+                activeReaction
+                  ? `${activeReaction.color} font-semibold`
+                  : "hover:text-primary"
               }`}
             >
-              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500 stroke-blue-500" : ""} />
+              <ThumbsUp
+                size={18}
+                className={activeReaction?.id === "like" ? "fill-blue-500 stroke-blue-500" : ""}
+              />
               <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="text-xs font-normal text-grey-400">({announcementData.likesCount})</span>
+              <span className="text-xs font-normal text-grey-400">
+                ({likesCount})
+              </span>
             </button>
           </ReactionPopover>
 
-          <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 hover:text-primary cursor-pointer">
-            <MessageSquare size={18} /> {announcementData.commentsCount}
+          <button
+            onClick={() => setShowComments(!showComments)}
+            className="flex items-center gap-2 hover:text-primary cursor-pointer"
+          >
+            <MessageSquare size={18} /> {post.comments.length}
           </button>
 
-          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-2 hover:text-primary cursor-pointer">
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="flex items-center gap-2 hover:text-primary cursor-pointer"
+          >
             <Share2 size={18} /> Share
           </button>
         </div>
 
         <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0">
-            <img src="https://i.pravatar.cc/150?u=user" alt="Me" className="w-full h-full object-cover" />
+            <img
+              src="https://i.pravatar.cc/150?u=user"
+              alt="Me"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="relative grow">
             <input
@@ -208,13 +264,22 @@ export function AnnouncementCard({ role, searchQuery, onVisibilityChange, onView
 
                 {comment.replies && comment.replies.length > 0 && (
                   <div className="relative pl-10 mt-4 space-y-5">
-                    <div className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]" style={{ bottom: "24px" }} />
+                    <div
+                      className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]"
+                      style={{ bottom: "24px" }}
+                    />
                     {comment.replies.map((reply, index) => (
                       <div key={reply.id} className="relative flex items-start gap-3">
-                        {index > 0 && <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />}
+                        {index > 0 && (
+                          <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
+                        )}
                         <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
                         <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
-                          <img src={reply.author.avatar} alt={reply.author.name} className="w-full h-full object-cover" />
+                          <img
+                            src={reply.author.avatar}
+                            alt={reply.author.name}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-1.5 text-sm">
@@ -250,7 +315,21 @@ export function AnnouncementCard({ role, searchQuery, onVisibilityChange, onView
         )}
       </div>
 
-      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} shareUrl={`hrdeventhub.app/event-management/announcements/${announcementData.id}`} />
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        shareUrl={`hrdeventhub.app/event-management/announcements/${post.postId}`}
+      />
+    </>
+  );
+}
+
+export function AnnouncementCard({ role, posts }: AnnouncementCardProps) {
+  return (
+    <>
+      {posts.map((post) => (
+        <AnnouncementItem key={post.postId} post={post} role={role} />
+      ))}
     </>
   );
 }
