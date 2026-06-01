@@ -1,7 +1,6 @@
-import { getSession } from "next-auth/react";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/libs/api";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
-import { apiGet, apiPost, apiPut, apiDelete } from "@/libs/api";
 import {
   Workspace,
   WorkspaceResponse,
@@ -14,19 +13,10 @@ import {
 } from "@/types/workspace-type/group";
 import { WorkspaceMember, WorkspaceMemberResponse } from "@/types/workspace-type/workspace-members";
 
-const getToken = async () => {
-  const session = await getSession();
-  return session?.accessToken;
-};
-
-const getTokenServer = async () => {
-  const session = await getServerSession(authOptions);
-  return session?.accessToken;
-};
-
 export const workspaceService = {
-  getAll: async (page: number = 1, size: number = 100): Promise<Workspace[]> => {
-    const token = await getToken();
+
+
+  getAll: async (token: string, page: number = 1, size: number = 100): Promise<Workspace[]> => {
     const response = await apiGet<WorkspaceResponse>(
       `/workspaces?page=${page}&size=${size}`,
       { authToken: token }
@@ -34,18 +24,16 @@ export const workspaceService = {
     return response.payload;
   },
 
-  getAllWithFilters: async ({
-    page = 1,
-    size = 10,
-    name,
-    generationId,
-  }: GetWorkspacesParams): Promise<Workspace[]> => {
-    const token = await getToken();
+  getAllWithFilters: async (
+    token: string,
+    { page = 1, size = 10, name, generationId }: GetWorkspacesParams
+  ): Promise<Workspace[]> => {
     const params = new URLSearchParams();
     params.set("page", page.toString());
     params.set("size", size.toString());
     if (name?.trim()) params.set("name", name.trim());
     if (generationId) params.set("generationId", generationId);
+
     const response = await apiGet<WorkspaceResponse>(
       `/workspaces?${params.toString()}`,
       { authToken: token }
@@ -53,8 +41,7 @@ export const workspaceService = {
     return response.payload;
   },
 
-  getById: async (workspaceId: string): Promise<Workspace> => {
-    const token = await getToken();
+  getById: async (workspaceId: string, token: string): Promise<Workspace> => {
     const response = await apiGet<{ success: boolean; message: string; payload: Workspace }>(
       `/workspaces/${workspaceId}`,
       { authToken: token }
@@ -62,8 +49,7 @@ export const workspaceService = {
     return response.payload;
   },
 
-  getByGeneration: async (generationId: string): Promise<Workspace[]> => {
-    const token = await getToken();
+  getByGeneration: async (generationId: string, token: string): Promise<Workspace[]> => {
     const response = await apiGet<{ success: boolean; message: string; payload: Workspace[] }>(
       `/workspaces/generation/${generationId}`,
       { authToken: token }
@@ -71,8 +57,7 @@ export const workspaceService = {
     return response.payload;
   },
 
-  getMembers: async (workspaceId: string): Promise<WorkspaceMember[]> => {
-    const token = await getToken();
+  getMembers: async (workspaceId: string, token: string): Promise<WorkspaceMember[]> => {
     const response = await apiGet<WorkspaceMemberResponse>(
       `/workspaces/${workspaceId}/members`,
       { authToken: token }
@@ -80,18 +65,22 @@ export const workspaceService = {
     return response.payload;
   },
 
-  async create(payload: CreateWorkspaceRequest) {
-    const token = await getTokenServer();
+
+  create: async (payload: CreateWorkspaceRequest) => {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken;
     return apiPost<CreateWorkspaceResponse>("/workspaces", payload, { authToken: token });
   },
 
-  async update(workspaceId: string, payload: UpdateWorkspaceRequest) {
-    const token = await getTokenServer();
+  update: async (workspaceId: string, payload: UpdateWorkspaceRequest) => {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken;
     return apiPut<UpdateWorkspaceResponse>(`/workspaces/${workspaceId}`, payload, { authToken: token });
   },
 
-  async remove(workspaceId: string) {
-    const token = await getTokenServer();
+  remove: async (workspaceId: string) => {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken;
     return apiDelete<DeleteWorkspaceResponse>(`/workspaces/${workspaceId}`, { authToken: token });
   },
 };
