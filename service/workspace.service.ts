@@ -24,22 +24,29 @@ export const workspaceService = {
     return response.payload;
   },
 
-  getAllWithFilters: async (
-    token: string,
-    { page = 1, size = 10, name, generationId }: GetWorkspacesParams
-  ): Promise<Workspace[]> => {
-    const params = new URLSearchParams();
-    params.set("page", page.toString());
-    params.set("size", size.toString());
-    if (name?.trim()) params.set("name", name.trim());
-    if (generationId) params.set("generationId", generationId);
+ getAllWithFilters: async (
+  token: string,
+  { page = 1, size = 10, name, generationId }: GetWorkspacesParams
+): Promise<{ workspaces: Workspace[]; totalPages: number }> => {
+  const params = new URLSearchParams();
+  params.set("page", page.toString());
+  params.set("size", size.toString());
+  if (name?.trim()) params.set("name", name.trim());
+  if (generationId) params.set("generationId", generationId);
 
-    const response = await apiGet<WorkspaceResponse>(
-      `/workspaces?${params.toString()}`,
-      { authToken: token }
-    );
-    return response.payload;
-  },
+  const response = await apiGet<WorkspaceResponse>(
+    `/workspaces?${params.toString()}`,
+    { authToken: token }
+  );
+
+  const hasMore = response.payload.length === size;
+  const totalPages = hasMore ? page + 1 : page;
+
+  return {
+    workspaces: response.payload,
+    totalPages,
+  };
+},
 
   getById: async (workspaceId: string, token: string): Promise<Workspace> => {
     const response = await apiGet<{ success: boolean; message: string; payload: Workspace }>(
