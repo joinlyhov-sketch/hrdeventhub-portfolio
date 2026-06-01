@@ -6,9 +6,9 @@ import UpcomingEventSection from "@/components/shadcn-big-calendar/calendar/Upco
 
 export default function CalendarPage() {
   return (
-    <main className="min-h-screen w-full min-w-0 px-4 py-6">
+    <main className="min-h-screen w-full min-w-0 px-10 py-6">
       <TopBar />
-      <div className="mx-auto w-full max-w-[1440px] space-y-6">
+      <div className="mx-auto w-full max-w-[1440px] m-3 space-y-6">
         <FullBigCalendar />
         <UpcomingEventSection />
       </div>
