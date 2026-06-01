@@ -1,12 +1,18 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import EventNavbar from "./EventNavbar";
 
-export default function EventNavbarClient() {
-  const params = useParams();
-  const groupId = params.groupId as string;
+interface EventNavbarClientProps {
+  groupId: string;
+}
+
+export default function EventNavbarClient({ groupId }: EventNavbarClientProps) {
+  const { data: session } = useSession();
   const { workspace, isLoading } = useWorkspace(groupId);
+
+  console.log("groupId:", groupId);
+  console.log("token:", session?.accessToken);
 
   return <EventNavbar workspace={workspace} isLoading={isLoading} />;
 }
