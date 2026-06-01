@@ -11,9 +11,13 @@ const buildHeaders = (options: ApiRequestOptions): HeadersInit => {
     Accept: options.accept ?? "application/json",
   };
 
-  if (options.body !== undefined) {
+  if (options.body !== undefined && !(options.body instanceof FormData)) {
     baseHeaders["Content-Type"] = "application/json";
   }
+
+  // if (options.body !== undefined) {
+  //   baseHeaders["Content-Type"] = "application/json";
+  // }
 
   if (options.authToken) {
     baseHeaders.Authorization = `Bearer ${options.authToken}`;
@@ -36,7 +40,10 @@ const parseErrorMessage = async (
     const text = await response.text();
     if (text) {
       try {
-        const parsed = JSON.parse(text) as { detail?: string; message?: string };
+        const parsed = JSON.parse(text) as {
+          detail?: string;
+          message?: string;
+        };
         message = parsed.detail || parsed.message || fallbackMessage;
         details = parsed;
       } catch {
@@ -51,9 +58,7 @@ const parseErrorMessage = async (
   return { message, status: response.status, details };
 };
 
-export const apiRequest = async <T>(
-  options: ApiRequestOptions,
-): Promise<T> => {
+export const apiRequest = async <T>(options: ApiRequestOptions): Promise<T> => {
   const url = `${apiBaseUrl}${options.path}`;
   const headers = buildHeaders(options);
   const requestInit: RequestInit = {
@@ -62,9 +67,18 @@ export const apiRequest = async <T>(
     ...options.fetchOptions,
   };
 
+  // 🔴 FIX: Handle FormData objects natively without stringifying them
   if (options.body !== undefined) {
-    requestInit.body = JSON.stringify(options.body);
+    if (options.body instanceof FormData) {
+      requestInit.body = options.body;
+    } else {
+      requestInit.body = JSON.stringify(options.body);
+    }
   }
+
+  // if (options.body !== undefined) {
+  //   requestInit.body = JSON.stringify(options.body);
+  // }
 
   if (options.revalidate !== undefined || options.tags) {
     requestInit.next = {

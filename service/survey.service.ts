@@ -16,7 +16,7 @@ if (!apiBaseUrl) {
 
 const handleResponseError = async (
   res: Response,
-  defaultMessage: string
+  defaultMessage: string,
 ): Promise<never> => {
   let errorMessage = defaultMessage;
 
@@ -65,7 +65,10 @@ export const surveyService = {
   },
 
   // Get all surveys with pagination
-  getAllSurveys: async (page: number = 1, size: number = 10): Promise<Survey[]> => {
+  getAllSurveys: async (
+    page: number = 1,
+    size: number = 10,
+  ): Promise<Survey[]> => {
     const headers = await getAuthHeaders();
     const url = new URL(`${apiBaseUrl}/survey`);
     url.searchParams.set("page", page.toString());
@@ -96,12 +99,10 @@ export const surveyService = {
   getSurveysByWorkspace: async (
     workspaceId: string,
     page: number = 1,
-    size: number = 10
+    size: number = 10,
   ): Promise<Survey[]> => {
     const headers = await getAuthHeaders();
-    const url = new URL(
-      `${apiBaseUrl}/survey/workspace/${workspaceId}`
-    );
+    const url = new URL(`${apiBaseUrl}/survey/workspace/${workspaceId}`);
     url.searchParams.set("page", page.toString());
     url.searchParams.set("size", size.toString());
 
@@ -118,7 +119,7 @@ export const surveyService = {
   // Update survey
   updateSurvey: async (
     surveyId: string,
-    data: Partial<SurveyRequest>
+    data: Partial<SurveyRequest>,
   ): Promise<Survey> => {
     const headers = await getAuthHeaders();
     const res = await fetch(`${apiBaseUrl}/survey/${surveyId}`, {
@@ -144,7 +145,7 @@ export const surveyService = {
   // Submit survey response
   submitSurveyResponse: async (
     surveyId: string,
-    data: SurveyResponseRequest
+    data: SurveyResponseRequest,
   ): Promise<SurveySubmission> => {
     const headers = await getAuthHeaders();
     const res = await fetch(`${apiBaseUrl}/survey/${surveyId}/submit`, {
@@ -162,12 +163,10 @@ export const surveyService = {
   getResponses: async (
     surveyId: string,
     page: number = 1,
-    size: number = 10
+    size: number = 10,
   ): Promise<SurveySubmission[]> => {
     const headers = await getAuthHeaders();
-    const url = new URL(
-      `${apiBaseUrl}/survey/${surveyId}/responses`
-    );
+    const url = new URL(`${apiBaseUrl}/survey/${surveyId}/responses`);
     url.searchParams.set("page", page.toString());
     url.searchParams.set("size", size.toString());
 
@@ -189,7 +188,7 @@ export const surveyService = {
       {
         method: "GET",
         headers,
-      }
+      },
     );
     if (!res.ok)
       await handleResponseError(res, "Failed to count survey responses.");
@@ -200,13 +199,10 @@ export const surveyService = {
   // Get my response for a survey
   getMyResponse: async (surveyId: string): Promise<SurveySubmission | null> => {
     const headers = await getAuthHeaders();
-    const res = await fetch(
-      `${apiBaseUrl}/survey/${surveyId}/responses/me`,
-      {
-        method: "GET",
-        headers,
-      }
-    );
+    const res = await fetch(`${apiBaseUrl}/survey/${surveyId}/responses/me`, {
+      method: "GET",
+      headers,
+    });
     if (res.status === 404) return null;
     if (!res.ok)
       await handleResponseError(res, "Failed to fetch your response.");
@@ -217,7 +213,7 @@ export const surveyService = {
   // Get response by ID
   getResponseById: async (
     surveyId: string,
-    responseId: string
+    responseId: string,
   ): Promise<SurveySubmission> => {
     const headers = await getAuthHeaders();
     const res = await fetch(
@@ -225,10 +221,9 @@ export const surveyService = {
       {
         method: "GET",
         headers,
-      }
+      },
     );
-    if (!res.ok)
-      await handleResponseError(res, "Failed to fetch response.");
+    if (!res.ok) await handleResponseError(res, "Failed to fetch response.");
     const response = (await res.json()) as any;
     return response.payload!; // Fixed mapping
   },
@@ -236,13 +231,10 @@ export const surveyService = {
   // Check if user has submitted
   hasSubmitted: async (surveyId: string): Promise<boolean> => {
     const headers = await getAuthHeaders();
-    const res = await fetch(
-      `${apiBaseUrl}/survey/${surveyId}/submitted`,
-      {
-        method: "GET",
-        headers,
-      }
-    );
+    const res = await fetch(`${apiBaseUrl}/survey/${surveyId}/submitted`, {
+      method: "GET",
+      headers,
+    });
     if (!res.ok) await handleResponseError(res, "Failed to check submission.");
     const response = (await res.json()) as any;
     return response.payload || false; // Fixed mapping
