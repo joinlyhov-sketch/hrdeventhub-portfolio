@@ -14,7 +14,9 @@ export default function EventDetailPage() {
       <section className="flex gap-x-1 items-center text-grey-400 type-detail">
         <Link href="/group/1">Events</Link>
         <ChevronRight size={14} />
-        <span className="text-action type-detail-semibold">Sport Reunion Events</span>
+        <span className="text-action type-detail-semibold">
+          Sport Reunion Events
+        </span>
       </section>
       <EventDetailClient event={event} />
     </section>

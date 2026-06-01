@@ -1,27 +1,41 @@
 "use client";
-
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogMedia, 
-  AlertDialogTitle 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
 } from "@/components/ui/alert-modal/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { TriangleAlert, X } from "lucide-react";
+import { useState } from "react";
 
 interface DeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  group: { title: string; id: string | number };
-  onConfirm: () => void;
+  title: string;
+  description?: string;
+  onConfirm: () => Promise<void> | void;
 }
 
-export function DeleteModal({ isOpen, onClose, group, onConfirm }: DeleteModalProps) {
+export function DeleteModal({ isOpen, onClose, title, description, onConfirm }: DeleteModalProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirm = async () => {
+    try {
+      setIsDeleting(true);
+      await onConfirm();
+      onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent className="sm:max-w-[800px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden gap-0">
@@ -30,10 +44,9 @@ export function DeleteModal({ isOpen, onClose, group, onConfirm }: DeleteModalPr
             <AlertDialogMedia className="flex items-center justify-center bg-destructive/10 text-destructive rounded-full w-12 h-12 shrink-0">
               <TriangleAlert size={24} />
             </AlertDialogMedia>
-            
             <div className="space-y-1">
               <AlertDialogTitle className="text-[26px] font-bold text-[#1e3a8a]">
-                Delete Group
+                Delete {title}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-[15px] text-gray-500 font-normal">
                 This action is permanent and cannot be reversed.
@@ -48,10 +61,16 @@ export function DeleteModal({ isOpen, onClose, group, onConfirm }: DeleteModalPr
             <X size={22} strokeWidth={2.5} />
           </button>
         </div>
+
         <div className="px-8 py-8 bg-white">
           <p className="text-[16px] text-gray-700 leading-relaxed font-medium">
-            Are you sure you want to delete <span className="font-bold text-gray-900">&apos;{group?.title || "this group"}&apos;</span>? 
-            All data linked to this group will be permanently scrubbed from the network.
+            {description ?? (
+              <>
+                Are you sure you want to delete{" "}
+                <span className="font-bold text-gray-900">&apos;{title}&apos;</span>?
+                All data linked to this will be permanently removed.
+              </>
+            )}
           </p>
         </div>
 
@@ -65,17 +84,16 @@ export function DeleteModal({ isOpen, onClose, group, onConfirm }: DeleteModalPr
               Cancel
             </Button>
           </AlertDialogCancel>
-          
           <AlertDialogAction asChild>
             <Button
-              onClick={onConfirm}
-              className="h-[46px] px-7 bg-destructive hover:bg-destructive/90 text-white font-semibold rounded-lg text-[15px] shadow-sm transition-colors"
+              onClick={handleConfirm}
+              disabled={isDeleting}
+              className="h-[46px] px-7 bg-destructive hover:bg-destructive/90 text-white font-semibold rounded-lg text-[15px] shadow-sm transition-colors disabled:opacity-50"
             >
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </AlertDialogAction>
         </div>
-
       </AlertDialogContent>
     </AlertDialog>
   );

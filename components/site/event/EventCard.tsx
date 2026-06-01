@@ -125,7 +125,6 @@ export function EventCard({
             )}
             {(role === "admin" || role === "organizer") && (
               <EditPostDropDown
-                id={eventData.id}
                 title={eventData.title}
                 editUrl={`/event-management/edition/event`}
                 onDelete={handleExecuteDelete}

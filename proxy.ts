@@ -1,6 +1,7 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { env } from "./libs/env";
 
 const landingRoute = "/";
 const authRoutes = [
@@ -12,22 +13,25 @@ const authRoutes = [
   "/verify-otp",
   "/group-preview",
 ];
-import { env } from "./libs/env";
 
 export async function proxy(req: NextRequest) {
   const { nextUrl } = req;
   const token = await getToken({ req, secret: env?.NEXTAUTH_SECRET });
-  const isLoggedIn = Boolean(token);
-  const isAuthRoute = authRoutes.some((route) =>
-    nextUrl.pathname.startsWith(route)
-  );
+
+  const isLoggedIn    = Boolean(token);
+  const isExpired     = token?.error === "RefreshTokenExpired";
+  const isAuthRoute   = authRoutes.some((route) => nextUrl.pathname.startsWith(route));
   const isLandingRoute = nextUrl.pathname === landingRoute;
+
+  if (isExpired && !isAuthRoute) {
+    return NextResponse.redirect(new URL("/login", nextUrl.origin));
+  }
 
   if (!isLoggedIn && !isAuthRoute && !isLandingRoute) {
     return NextResponse.redirect(new URL("/login", nextUrl.origin));
   }
 
-  if (isLoggedIn && (isAuthRoute || isLandingRoute)) {
+  if (isLoggedIn && !isExpired && (isAuthRoute || isLandingRoute)) {
     return NextResponse.redirect(new URL("/group", nextUrl.origin));
   }
 

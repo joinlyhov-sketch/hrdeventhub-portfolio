@@ -87,7 +87,6 @@ export function SurveyCard({
         </div>
         {(role === "admin" || role === "organizer") && (
           <EditPostDropDown
-            id={surveyId}
             title={title}
             editUrl={`/event-management/edition/survey`}
             onDelete={handleExecuteDelete}

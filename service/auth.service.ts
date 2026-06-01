@@ -14,9 +14,20 @@ import { apiGet, apiPost } from "../libs/api";
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    return apiPost<AuthResponse, { identifier: string; password: string }>(
+    return apiPost<AuthResponse, { identifier: string; password: string; rememberMe: boolean }>(
       "/auths/login",
-      { identifier: credentials.email, password: credentials.password },
+      {
+        identifier: credentials.identifier,
+        password: credentials.password,
+        rememberMe: credentials.rememberMe ?? false,
+      },
+    );
+  },
+
+  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+    return apiPost<AuthResponse, { refreshToken: string }>(
+      "/auths/refresh",
+      { refreshToken },
     );
   },
 
@@ -55,6 +66,12 @@ export const authService = {
       { resetToken, newPassword },
     );
   },
+  logout: async (refreshToken: string): Promise<void> => {
+  await apiPost<void, { refreshToken: string }>(
+    "/auths/logout",
+    { refreshToken },
+  );
+},
 
   resendOtp: async (email: string): Promise<ResendOtpResponse> => {
     const params = new URLSearchParams({ email });

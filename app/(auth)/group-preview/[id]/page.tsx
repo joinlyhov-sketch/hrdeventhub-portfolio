@@ -1,9 +1,12 @@
-import React from 'react'
 
-export default function page() {
+import GroupPreview from '@/components/site/group/group-preview'
+
+
+
+export default function Page() {
   return (
     <div>
-      hello
+      <GroupPreview />
     </div>
   )
 }

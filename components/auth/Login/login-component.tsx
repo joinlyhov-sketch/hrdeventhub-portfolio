@@ -17,15 +17,15 @@ const itemVars: Variants = {
 };
 
 const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Email is invalid"),
+  identifier: z.string().min(1, "Email or Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
-type LoginErrors = Partial<Record<"email" | "password", string>>;
+type LoginErrors = Partial<Record<"identifier" | "password", string>>;
 
 export default function LoginComponent() {
   
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -47,7 +47,7 @@ export default function LoginComponent() {
     e.preventDefault();
     setServerError(null);
 
-    const result = loginSchema.safeParse({ email: email.trim(), password });
+    const result = loginSchema.safeParse({ identifier: identifier.trim(), password });
 
     if (!result.success) {
       const fieldErrors: LoginErrors = {};
@@ -62,8 +62,9 @@ export default function LoginComponent() {
     setErrors({});
 
     const formData = new FormData();
-    formData.append("email", email.trim());
+    formData.append("identifier", identifier.trim());
     formData.append("password", password);
+    formData.append("rememberMe", String(rememberMe));
 
     startTransition(async () => {
       const res = await loginAction(formData);
@@ -108,7 +109,7 @@ export default function LoginComponent() {
           <div className="flex flex-col gap-1">
             <div
               className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
-                errors.email ? "border-red-400" : "border-[#dce6f0]"
+                errors.identifier ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
               <Mail
@@ -118,16 +119,16 @@ export default function LoginComponent() {
                 className="shrink-0"
               />
               <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
+                type="text"
+                placeholder="Email or Username"
+                value={identifier}
                 onChange={(e) =>
-                  handleChange("email", e.target.value, setEmail)
+                  handleChange("identifier", e.target.value, setIdentifier)
                 }
                 className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
               />
             </div>
-            {errors.email && <FieldError message={errors.email} />}
+            {errors.identifier && <FieldError message={errors.identifier} />}
           </div>
 
           <div className="flex flex-col gap-1 pt-4">
