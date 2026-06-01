@@ -209,11 +209,6 @@ export default function FullBigCalendar() {
           scrollTime={new Date().toTimeString().slice(0, 8)}
           slotMinTime={view === "dayGridMonth" ? "00:00:00" : "00:00:00"}
           slotMaxTime={view === "dayGridMonth" ? "24:00:00" : "12:00:00"}
-          // slotLabelFormat={{
-          //   hour: "2-digit",
-          //   minute: "2-digit",
-          //   meridiem: "short",
-          // }}
           slotLabelContent={(arg) => {
             const hour = arg.date.getHours();
             const period = hour >= 12 ? "PM" : "AM";
