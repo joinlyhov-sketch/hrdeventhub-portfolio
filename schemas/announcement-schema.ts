@@ -23,4 +23,6 @@ export const announcementPostSchema = z.object({
     .default([]),
 });
 
-export type AnnouncementPostFormValues = z.infer<typeof announcementPostSchema>;
+export type AnnouncementPostFormValues = z.output<
+  typeof announcementPostSchema
+>;

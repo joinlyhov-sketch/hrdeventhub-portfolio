@@ -30,7 +30,7 @@ export interface CreatePostPayload {
   eventStart: string;
   eventEnd: string;
   location: PostLocation;
-  media: PostMediaItem[];
+  media?: PostMediaItem[];
   payment: PostPayment;
 }
 

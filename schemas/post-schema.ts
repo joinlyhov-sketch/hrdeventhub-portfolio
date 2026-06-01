@@ -28,7 +28,8 @@ export const eventPostSchema = z.object({
         isCover: z.boolean().default(false),
       }),
     )
-    .default([]),
+    .optional(),
+  // .default([]),
 });
 
 export type EventPostFormValues = z.infer<typeof eventPostSchema>;
