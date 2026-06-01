@@ -33,7 +33,7 @@ export default function CreateAnnouncementForm() {
   const { data: session } = useSession();
 
   const workspaceId =
-    (params?.groupId as string) || "c2b71064-bb4d-409d-a94b-0fc731067426";
+    (params?.groupId as string) || "ce54713a-cb06-4efb-aa1a-3e583791fc7b";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   let computedCategory: "event" | "announcement" | "article" = "announcement";

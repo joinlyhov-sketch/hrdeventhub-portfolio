@@ -14,11 +14,6 @@ const buildHeaders = (options: ApiRequestOptions): HeadersInit => {
   if (options.body !== undefined && !(options.body instanceof FormData)) {
     baseHeaders["Content-Type"] = "application/json";
   }
-
-  // if (options.body !== undefined) {
-  //   baseHeaders["Content-Type"] = "application/json";
-  // }
-
   if (options.authToken) {
     baseHeaders.Authorization = `Bearer ${options.authToken}`;
   }
@@ -66,8 +61,6 @@ export const apiRequest = async <T>(options: ApiRequestOptions): Promise<T> => {
     headers,
     ...options.fetchOptions,
   };
-
-  // 🔴 FIX: Handle FormData objects natively without stringifying them
   if (options.body !== undefined) {
     if (options.body instanceof FormData) {
       requestInit.body = options.body;
@@ -75,10 +68,6 @@ export const apiRequest = async <T>(options: ApiRequestOptions): Promise<T> => {
       requestInit.body = JSON.stringify(options.body);
     }
   }
-
-  // if (options.body !== undefined) {
-  //   requestInit.body = JSON.stringify(options.body);
-  // }
 
   if (options.revalidate !== undefined || options.tags) {
     requestInit.next = {

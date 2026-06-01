@@ -30,7 +30,7 @@ export default function CreateEventForm() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const workspaceId = "c2b71064-bb4d-409d-a94b-0fc731067426";
+  const workspaceId = "ce54713a-cb06-4efb-aa1a-3e583791fc7b";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   let computedCategory: "event" | "announcement" | "article" = "event";
