@@ -25,7 +25,7 @@ export default function WorkspaceSelector({
     const fetchWorkspaces = async () => {
       setLoading(true);
       try {
-        const data = await workspaceService.getAll(1, 100);
+        const data = await workspaceService.getAll("1", 100);
         setWorkspaces(data);
         setError(null);
       } catch (err) {
