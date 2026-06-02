@@ -42,8 +42,6 @@ export function PollComponent({
       setMessage(`Error: ${error.message}`);
     },
   });
-
-  // Update time remaining every second
   useEffect(() => {
     const interval = setInterval(() => {
       const remaining = getTimeRemaining();
@@ -138,15 +136,11 @@ export function PollComponent({
           </div>
         )}
       </div>
-
-      {/* Status Message */}
       {message && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
           {message}
         </div>
       )}
-
-      {/* Voting Section */}
       {isPollOpen ? (
         <div className="space-y-3">
           {poll.options.map((option) => {
@@ -177,8 +171,6 @@ export function PollComponent({
                     {percentage}%)
                   </span>
                 </div>
-
-                {/* Progress Bar */}
                 <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-blue-500 h-full transition-all duration-300"
