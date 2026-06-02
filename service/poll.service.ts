@@ -1,184 +1,447 @@
-import { env } from "@/libs/env";
-import { Poll, PollVoteRequest, PollCreateRequest } from "@/types/poll";
-import { 
-  getPollAction, 
-  votePollAction, 
-  getPollOptionsAction, 
-  createPollAction, 
-  updatePollAction 
-} from "../actions/poll.action";
+import { apiGet, apiPost, apiPatch } from "@/libs/api";
+import { getSession } from "next-auth/react";
+import {
+  Poll,
+  PollCreateRequest,
+  PollResponse,
+  PollsResponse,
+  PollVoteRequest,
+} from "@/types/poll";
 
-const apiBaseUrl = env?.NEXT_PUBLIC_API_BASE_URL;
-const wsBaseUrl = apiBaseUrl?.replace(/^http/, "ws") || "";
+interface PollsResponseLegacy {
+  success: boolean;
+  message?: string;
+  payload: Poll[];
+}
 
-interface PollServiceConfig {
+type PollWebSocketHandlers = {
   onVoteUpdate?: (poll: Poll) => void;
-  onPollClosed?: (pollId: string) => void;
+  onPollClosed?: () => void;
   onError?: (error: Error) => void;
+};
+
+const pollSockets = new Map<string, WebSocket>();
+
+function formatShowResult(value: string | undefined): string {
+  if (!value) return "always";
+
+  const cleanValue = value.toLowerCase().trim();
+
+  if (cleanValue.includes("always")) return "always";
+  if (cleanValue.includes("voting") || cleanValue.includes("aftervote")) {
+    return "after_vote";
+  }
+  if (cleanValue.includes("expire") || cleanValue.includes("close")) {
+    return "after_close";
+  }
+
+  return "always";
 }
 
-class PollService {
-  private wsConnections: Map<string, WebSocket> = new Map();
-  private pollTimers: Map<string, NodeJS.Timeout> = new Map();
-  private reconnectAttempts: Map<string, number> = new Map();
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 3000;
+async function getLiveToken(): Promise<string | undefined> {
+  try {
+    const session = await getSession();
+    return (
+      (session as any)?.accessToken ||
+      (session as any)?.user?.token ||
+      undefined
+    );
+  } catch {
+    return undefined;
+  }
+}
 
-  async getPoll(pollId: string): Promise<Poll> {
-    return await getPollAction(pollId);
+function unwrapPoll(response: Poll | PollResponse): Poll {
+  if (response && typeof response === "object" && "payload" in response) {
+    return response.payload;
   }
 
-  async votePoll(pollId: string, voteRequest: PollVoteRequest): Promise<Poll> {
-    return await votePollAction(pollId, voteRequest);
+  return response as Poll;
+}
+
+function unwrapPolls(response: PollsResponse | PollsResponseLegacy | Poll[]): Poll[] {
+  if (Array.isArray(response)) {
+    return response;
   }
 
-  async getPollOptions(pollId: string): Promise<any> {
-    return await getPollOptionsAction(pollId);
+  if (response && typeof response === "object" && "payload" in response) {
+    return response.payload ?? [];
   }
 
-  async createPoll(request: PollCreateRequest): Promise<Poll> {
-    return await createPollAction(request);
+  return [];
+}
+
+function getPollWebSocketUrl(pollId: string, token?: string): string {
+  const directWsUrl =
+    process.env.NEXT_PUBLIC_POLL_WS_URL ||
+    process.env.NEXT_PUBLIC_WS_URL;
+
+  if (directWsUrl) {
+    const base = directWsUrl.replace(/\/$/, "");
+    const url = `${base}/polls/${pollId}`;
+    return token ? `${url}?token=${encodeURIComponent(token)}` : url;
   }
 
-  async updatePoll(pollId: string, request: Partial<PollCreateRequest>): Promise<Poll> {
-    return await updatePollAction(pollId, request);
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    "";
+
+  if (!apiBaseUrl) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_POLL_WS_URL or NEXT_PUBLIC_API_BASE_URL for poll WebSocket."
+    );
   }
 
-  async setupWebSocket(
-    pollId: string,
-    config: PollServiceConfig = {},
-  ): Promise<WebSocket> {
-    const poll = await this.getPoll(pollId);
-    const closingTime = new Date(poll.closingTime).getTime();
-    const now = Date.now();
+  const wsBase = apiBaseUrl
+    .replace(/^https:\/\//, "wss://")
+    .replace(/^http:\/\//, "ws://")
+    .replace(/\/api\/v\d+\/?$/, "")
+    .replace(/\/$/, "");
 
-    if (now >= closingTime) {
-      const error = new Error("Poll has already closed");
-      config.onError?.(error);
-      throw error;
+  const url = `${wsBase}/ws/polls/${pollId}`;
+  return token ? `${url}?token=${encodeURIComponent(token)}` : url;
+}
+
+export const pollService = {
+  getByWorkspace: async (
+    workspaceId: string,
+    token?: string
+  ): Promise<Poll[]> => {
+    if (!workspaceId) {
+      throw new Error("Workspace ID is required");
     }
 
-    if (this.wsConnections.has(pollId)) {
-      return this.wsConnections.get(pollId)!;
-    }
+    const authToken = token ?? (await getLiveToken());
 
-    return new Promise((resolve, reject) => {
-      try {
-        const wsUrl = `${wsBaseUrl}/polls/${pollId}/subscribe`;
-        const ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-          console.log(`WebSocket connected for poll ${pollId}`);
-          this.wsConnections.set(pollId, ws);
-          this.reconnectAttempts.delete(pollId);
-          this.setupPollClosingTimer(pollId, closingTime, config);
-          resolve(ws);
-        };
-
-        ws.onmessage = (event) => {
-          try {
-            const update = JSON.parse(event.data);
-            if (update.type === "vote") {
-              config.onVoteUpdate?.(update.data.poll);
-            } else if (update.type === "poll_closed") {
-              config.onPollClosed?.(pollId);
-              this.closePollConnection(pollId);
-            }
-          } catch (error) {
-            console.error("Error parsing WebSocket message:", error);
-          }
-        };
-
-        ws.onerror = (error) => {
-          const wsError = new Error(`WebSocket error for poll ${pollId}`);
-          console.error(wsError, error);
-          config.onError?.(wsError);
-          reject(wsError);
-        };
-
-        ws.onclose = () => {
-          console.log(`WebSocket closed for poll ${pollId}`);
-          this.wsConnections.delete(pollId);
-          this.attemptReconnect(pollId, config);
-        };
-      } catch (error) {
-        const setupError = new Error(`Failed to setup WebSocket: ${error}`);
-        config.onError?.(setupError);
-        reject(setupError);
-      }
-    });
-  }
-
-  private setupPollClosingTimer(
-    pollId: string,
-    closingTime: number,
-    config: PollServiceConfig,
-  ): void {
-    if (this.pollTimers.has(pollId)) {
-      clearTimeout(this.pollTimers.get(pollId));
-    }
-
-    const timeUntilClosing = closingTime - Date.now();
-
-    if (timeUntilClosing > 0) {
-      const timer = setTimeout(() => {
-        console.log(`Poll ${pollId} closing time reached`);
-        config.onPollClosed?.(pollId);
-        this.closePollConnection(pollId);
-      }, timeUntilClosing);
-
-      this.pollTimers.set(pollId, timer);
-    }
-  }
-
-  private attemptReconnect(pollId: string, config: PollServiceConfig): void {
-    const attempts = this.reconnectAttempts.get(pollId) || 0;
-
-    if (attempts < this.maxReconnectAttempts) {
-      console.log(
-        `Attempting to reconnect to poll ${pollId} (attempt ${attempts + 1}/${this.maxReconnectAttempts})`,
-      );
-      this.reconnectAttempts.set(pollId, attempts + 1);
-
-      setTimeout(
-        () => {
-          this.setupWebSocket(pollId, config).catch((error) => {
-            console.error(`Reconnection failed for poll ${pollId}:`, error);
-          });
+    const response = await apiGet<PollsResponse | PollsResponseLegacy | Poll[]>(
+      `/polls/workspace/${workspaceId}`,
+      {
+        authToken,
+        next: {
+          tags: ["polls", `workspace-polls-${workspaceId}`],
         },
-        this.reconnectDelay * (attempts + 1),
-      );
-    } else {
-      const error = new Error(`Max reconnection attempts reached for poll ${pollId}`);
-      config.onError?.(error);
+      } as any
+    );
+
+    return unwrapPolls(response);
+  },
+
+  getAll: async (page: number = 1, size: number = 100): Promise<Poll[]> => {
+    const token = await getLiveToken();
+
+    const response = await apiGet<PollsResponseLegacy | Poll[]>(
+      `/polls?page=${page}&size=${size}`,
+      {
+        authToken: token,
+        next: {
+          tags: ["polls"],
+        },
+      } as any
+    );
+
+    return unwrapPolls(response);
+  },
+
+  getById: async (pollId: string): Promise<Poll> => {
+    if (!pollId) {
+      throw new Error("Poll ID is required");
     }
-  }
 
-  closePollConnection(pollId: string): void {
-    const ws = this.wsConnections.get(pollId);
-    if (ws) {
-      ws.close();
-      this.wsConnections.delete(pollId);
+    const token = await getLiveToken();
+
+    const response = await apiGet<Poll | PollResponse>(`/polls/${pollId}`, {
+      authToken: token,
+      next: {
+        tags: ["polls", `poll-${pollId}`],
+      },
+    } as any);
+
+    return unwrapPoll(response);
+  },
+
+  vote: async (
+    pollId: string,
+    voteRequest: PollVoteRequest,
+    token?: string
+  ): Promise<Poll> => {
+    if (!pollId) {
+      throw new Error("Poll ID is required");
     }
 
-    if (this.pollTimers.has(pollId)) {
-      clearTimeout(this.pollTimers.get(pollId));
-      this.pollTimers.delete(pollId);
+    if (!voteRequest.optionIds || voteRequest.optionIds.length === 0) {
+      throw new Error("At least one option ID is required");
     }
 
-    this.reconnectAttempts.delete(pollId);
-  }
+    const authToken = token ?? (await getLiveToken());
 
-  closeAllConnections(): void {
-    this.wsConnections.forEach((ws, pollId) => {
-      this.closePollConnection(pollId);
+    const response = await apiPost<Poll | PollResponse, PollVoteRequest>(
+      `/polls/${pollId}/vote`,
+      voteRequest,
+      {
+        authToken,
+      }
+    );
+
+    return unwrapPoll(response);
+  },
+
+  getOptions: async (pollId: string): Promise<any> => {
+    if (!pollId) {
+      throw new Error("Poll ID is required");
+    }
+
+    const token = await getLiveToken();
+
+    return apiGet<any>(`/polls/${pollId}/options`, {
+      authToken: token,
     });
-  }
+  },
 
-  isConnected(pollId: string): boolean {
-    const ws = this.wsConnections.get(pollId);
-    return ws !== undefined && ws.readyState === WebSocket.OPEN;
-  }
-}
+  create: async (request: PollCreateRequest): Promise<Poll> => {
+    if (!request.title || !request.title.trim()) {
+      throw new Error("Poll title is required");
+    }
 
-export const pollService = new PollService();
+    if (!request.options || request.options.length < 2) {
+      throw new Error("Poll must have at least 2 options");
+    }
+
+    if (!request.closingTime) {
+      throw new Error("Closing time is required");
+    }
+
+    const closingTime = new Date(request.closingTime).getTime();
+
+    if (Number.isNaN(closingTime)) {
+      throw new Error("Invalid closing time");
+    }
+
+    if (closingTime <= Date.now()) {
+      throw new Error("Closing time must be in the future");
+    }
+
+    if (!request.workspaceId) {
+      throw new Error("Workspace ID is required");
+    }
+
+    const token = await getLiveToken();
+
+    const optionsArray = request.options.map((option) =>
+      typeof option === "string" ? option : option.text
+    );
+
+    const payload = {
+      workspaceId: request.workspaceId,
+      title: request.title.trim(),
+      description: request.description?.trim() || "",
+      type: request.type || "text",
+      options: optionsArray,
+      closingTime: request.closingTime,
+      multiSelect: request.multiSelect ?? false,
+      anonymousVoting: request.anonymousVoting ?? false,
+      allowAddOptions: request.allowAddOptions ?? false,
+      hiddenPoll: request.hiddenPoll ?? false,
+      showResult: formatShowResult(request.showResult),
+    };
+
+    const response = await apiPost<Poll | PollResponse, typeof payload>(
+      "/polls",
+      payload,
+      {
+        authToken: token,
+      }
+    );
+
+    return unwrapPoll(response);
+  },
+
+  update: async (
+    pollId: string,
+    request: Partial<PollCreateRequest>
+  ): Promise<Poll> => {
+    if (!pollId) {
+      throw new Error("Poll ID is required");
+    }
+
+    if (request.closingTime) {
+      const closingTime = new Date(request.closingTime).getTime();
+
+      if (Number.isNaN(closingTime)) {
+        throw new Error("Invalid closing time");
+      }
+
+      if (closingTime <= Date.now()) {
+        throw new Error("Closing time must be in the future");
+      }
+    }
+
+    const token = await getLiveToken();
+
+    const payload: Record<string, unknown> = {};
+
+    if (request.title !== undefined) {
+      payload.title = request.title.trim();
+    }
+
+    if (request.description !== undefined) {
+      payload.description = request.description.trim();
+    }
+
+    if (request.closingTime !== undefined) {
+      payload.closingTime = request.closingTime;
+    }
+
+    if (request.options !== undefined) {
+      if (request.options.length < 2) {
+        throw new Error("Poll must have at least 2 options");
+      }
+
+      payload.options = request.options.map((option) =>
+        typeof option === "string" ? option : option.text
+      );
+    }
+
+    if (request.type !== undefined) {
+      payload.type = request.type;
+    }
+
+    if (request.multiSelect !== undefined) {
+      payload.multiSelect = request.multiSelect;
+    }
+
+    if (request.anonymousVoting !== undefined) {
+      payload.anonymousVoting = request.anonymousVoting;
+    }
+
+    if (request.allowAddOptions !== undefined) {
+      payload.allowAddOptions = request.allowAddOptions;
+    }
+
+    if (request.hiddenPoll !== undefined) {
+      payload.hiddenPoll = request.hiddenPoll;
+    }
+
+    if (request.showResult !== undefined) {
+      payload.showResult = formatShowResult(request.showResult);
+    }
+
+    const response = await apiPatch<Poll | PollResponse, typeof payload>(
+      `/polls/${pollId}`,
+      payload,
+      {
+        authToken: token,
+      }
+    );
+
+    return unwrapPoll(response);
+  },
+
+  setupWebSocket: async (
+    pollId: string,
+    handlers: PollWebSocketHandlers
+  ): Promise<void> => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (!pollId) {
+      throw new Error("Poll ID is required");
+    }
+
+    const existingSocket = pollSockets.get(pollId);
+
+    if (
+      existingSocket &&
+      (existingSocket.readyState === WebSocket.OPEN ||
+        existingSocket.readyState === WebSocket.CONNECTING)
+    ) {
+      return;
+    }
+
+    const token = await getLiveToken();
+    const socketUrl = getPollWebSocketUrl(pollId, token);
+    const socket = new WebSocket(socketUrl);
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        const eventType =
+          data.type ||
+          data.event ||
+          data.action ||
+          data.status ||
+          "";
+
+        const pollPayload =
+          data.payload ||
+          data.poll ||
+          data.data ||
+          data;
+
+        if (
+          String(eventType).toLowerCase().includes("close") ||
+          String(eventType).toLowerCase().includes("ended")
+        ) {
+          handlers.onPollClosed?.();
+          return;
+        }
+
+        if (pollPayload && typeof pollPayload === "object") {
+          handlers.onVoteUpdate?.(unwrapPoll(pollPayload));
+        }
+      } catch (error) {
+        const err =
+          error instanceof Error ? error : new Error(String(error));
+        handlers.onError?.(err);
+      }
+    };
+
+    socket.onerror = () => {
+      handlers.onError?.(new Error("Poll WebSocket connection error"));
+    };
+
+    socket.onclose = () => {
+      pollSockets.delete(pollId);
+    };
+
+    pollSockets.set(pollId, socket);
+  },
+
+  closePollConnection: (pollId: string): void => {
+    const socket = pollSockets.get(pollId);
+
+    if (socket) {
+      socket.close();
+      pollSockets.delete(pollId);
+    }
+  },
+
+  getPoll: async (pollId: string): Promise<Poll> => {
+    return pollService.getById(pollId);
+  },
+
+  votePoll: async (
+    pollId: string,
+    request: PollVoteRequest,
+    token?: string
+  ): Promise<Poll> => {
+    return pollService.vote(pollId, request, token);
+  },
+
+  getPollOptions: async (pollId: string): Promise<any> => {
+    return pollService.getOptions(pollId);
+  },
+
+  createPoll: async (request: PollCreateRequest): Promise<Poll> => {
+    return pollService.create(request);
+  },
+
+  updatePoll: async (
+    pollId: string,
+    request: Partial<PollCreateRequest>
+  ): Promise<Poll> => {
+    return pollService.update(pollId, request);
+  },
+};

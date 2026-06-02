@@ -1,39 +1,51 @@
 export interface PollOption {
-  optionId: string;
+  id: string;
   text: string;
-  voteCount: number;
+  voteCount?: number;
   percentage?: number;
 }
 
 export interface Poll {
   pollId: string;
+  appUserId: string;
+  workspaceId: string;
   title: string;
   description?: string;
+  type: string;
   options: PollOption[];
   closingTime: string;
-  isActive: boolean;
-  totalVotes: number;
+  multiSelect: boolean;
+  anonymousVoting: boolean;
+  allowAddOptions: boolean;
+  hiddenPoll: boolean;
+  showResult: string;
   createdAt: string;
   updatedAt: string;
-  workspaceId: string;
-  createdBy: string;
+
+  hasVoted?: boolean;
+  selectedOptionIds?: string[];
+  votedOptionIds?: string[];
+  totalVotes?: number;
 }
 
-export interface PollVotePayload {
-  pollId: string;
-  optionId: string;
-  userId: string;
+export interface PollsResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: Poll[];
   timestamp: string;
 }
 
-export interface PollUpdate {
-  type: "vote" | "poll_closed" | "poll_updated";
-  data: {
-    pollId: string;
-    option?: PollOption;
-    poll?: Poll;
-    message?: string;
-  };
+export interface PollResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: Poll;
+  timestamp: string;
+}
+
+export interface PollVoteRequest {
+  optionIds: string[];
 }
 
 export interface PollCreateRequest {
@@ -48,8 +60,4 @@ export interface PollCreateRequest {
   allowAddOptions?: boolean;
   hiddenPoll?: boolean;
   showResult?: string;
-}
-
-export interface PollVoteRequest {
-  optionId: string;
 }
