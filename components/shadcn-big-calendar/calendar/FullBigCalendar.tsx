@@ -36,13 +36,43 @@ function renderEventContent(info: EventContentArg) {
   const tone = info.event.extendedProps.tone ?? "blue";
   const location = info.event.extendedProps.location;
 
-  return (
-    <div className={`event-box event-box-${tone}`}>
-      <div className="event-title">{info.event.title}</div>
-      {location && <div className="event-location">{location}</div>}
-      {info.timeText && <div className="event-time">{info.timeText}</div>}
-    </div>
-  );
+  const eventTime = new Date(info.event.start!).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  if (info.view.type === "dayGridMonth") {
+    return (
+      <div className={`event-box event-box-${tone}`}>
+        <span className="event-dot" />
+        <span className="event-time">{eventTime}</span>
+        <span className="event-title">{info.event.title}</span>
+      </div>
+    );
+  }
+
+  if (info.view.type === "timeGridWeek") {
+    return (
+      <div className={`event-box week-event-box event-box-${tone}`}>
+        <div className="event-title">{info.event.title}</div>
+        {location && <div className="event-location">{location}</div>}
+        <div className="event-time">{eventTime}</div>
+      </div>
+    );
+  }
+
+  if (info.view.type === "timeGridDay") {
+    return (
+      <div className={`event-box day-event-box event-box-${tone}`}>
+        <div className="event-title">{info.event.title}</div>
+        {location && <div className="event-location">{location}</div>}
+        <div className="event-time">{eventTime}</div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default function FullBigCalendar() {
@@ -160,7 +190,7 @@ export default function FullBigCalendar() {
               />
             </PopoverContent>
           </Popover>
-          
+
           <button
             type="button"
             className="calendar-icon-btn"
@@ -207,11 +237,23 @@ export default function FullBigCalendar() {
           slotDuration="01:00:00"
           scrollTime={new Date().toTimeString().slice(0, 8)}
           slotMinTime={view === "dayGridMonth" ? "00:00:00" : "00:00:00"}
-          slotMaxTime={view === "dayGridMonth" ? "24:00:00" : "12:00:00"}
+          slotMaxTime="24:00:00"
           slotLabelContent={(arg) => {
             const hour = arg.date.getHours();
             const period = hour >= 12 ? "PM" : "AM";
             const displayHour = String(hour % 12 || 12).padStart(2, "0");
+
+            if (view === "timeGridWeek") {
+              return {
+                html: `
+                  <div class="week-time-label">
+                  <div>${displayHour}</div>
+                  <div>${period}</div>
+                  </div>
+                      `,
+              };
+            }
+
             return `${displayHour} ${period}`;
           }}
           dayHeaderContent={(args) => {
