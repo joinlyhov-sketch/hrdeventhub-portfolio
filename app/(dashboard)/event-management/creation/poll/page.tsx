@@ -1,8 +1,15 @@
-import React from "react";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth/next";
 import PollForm from "@/components/feedback/poll/creation/PollForm";
 import { FeedbackBreadcrumb } from "@/components/dashboard/FeedbackBreadcrumb";
 
-export default function PollCreatePage() {
+export default async function PollCreatePage() {
+  const session = await getServerSession();
+
+  if (!session) {
+    redirect("/auth/login");
+  }
+
   return (
     <main className="p-6">
       <FeedbackBreadcrumb label="Poll Creation" />
