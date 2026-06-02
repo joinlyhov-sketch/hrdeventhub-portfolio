@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation"; // Imported useSearchParams
+import { useRouter, useSearchParams } from "next/navigation"; 
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "../../../ui/button";
 import PollHeader from "../../survey/PollHeader";
@@ -11,13 +11,13 @@ import WorkspaceSelector from "../../survey/WorkspaceSelector";
 import { pollService } from "@/service/poll.service";
 
 interface PollFormProps {
-  workspaceId?: string; // Explicit contextual fallback prop
+  workspaceId?: string;
   onSuccess?: () => void;
 }
 
 export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams(); // Read URL matrix values
+  const searchParams = useSearchParams();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -36,7 +36,7 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
     closingTime: "",
   });
 
-  // Syncing workspace contexts using exactly the same resolution chain as SurveyCreationForm
+
   useEffect(() => {
     const urlQueryId =
       searchParams.get("groupId") || searchParams.get("groupid");
@@ -161,7 +161,6 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
         if (onSuccess) {
           onSuccess();
         } else {
-          // Dynamic router fallback tracking matched directly with Survey logic
           router.push(`/group/${savedWorkspaceId}`);
         }
       }, 1500);
@@ -170,8 +169,6 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
       setIsSubmitting(false);
     }
   };
-
-  // Condition toggle tracking exactly like Survey to toggle field locked presentation
   const isWorkspaceContextLocked =
     !!searchParams.get("groupId") ||
     !!searchParams.get("groupid") ||
