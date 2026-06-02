@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { UserX } from "lucide-react";
 import { useWorkspaces } from "@/hooks/use-workspaces";
+import { useMyWorkspaces } from "@/hooks/use-my-workspace";
+import { useCurrentUser } from "@/context/user-context";
 import GroupCard from "./group-card";
 import { PaginationDemo } from "@/components/feedback/Pagination";
 
@@ -12,26 +14,32 @@ export default function GroupList() {
   const search = searchParams.get("search") ?? "";
   const type = searchParams.get("type") ?? "";
   const [page, setPage] = useState(1);
+  const { currentUser } = useCurrentUser();
+  const isAdmin = currentUser?.role === "admin";
 
   useEffect(() => {
     setPage(1);
   }, [search, type]);
 
-  const { workspaces, totalPages, isLoading } = useWorkspaces({
-    page,
-    size: 9,
-    name: search,
-  });
+  const adminData = useWorkspaces({ page, size: 9, name: search });
+  const memberData = useMyWorkspaces();
+
+  const { workspaces, totalPages, isLoading } = isAdmin
+    ? { ...adminData, totalPages: adminData.totalPages }
+    : { workspaces: memberData.workspaces, totalPages: 1, isLoading: memberData.isLoading };
 
   const filtered = workspaces.filter((workspace) => {
-    if (type === "Internal") return !workspace.isPublic;
-    if (type === "External") return workspace.isPublic;
-    return true;
+    const matchType =
+      type === "Internal" ? !workspace.isPublic :
+      type === "External" ? workspace.isPublic :
+      true;
+    const matchSearch = isAdmin
+      ? true
+      : search.trim() ? workspace.name.toLowerCase().includes(search.toLowerCase()) : true;
+    return matchType && matchSearch;
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
 
   if (!filtered.length) {
     return (
@@ -51,12 +59,12 @@ export default function GroupList() {
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-10 ">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">
         {filtered.map((workspace) => (
           <GroupCard key={workspace.workspaceId} workspace={workspace} />
         ))}
       </div>
-      {totalPages > 1 && (
+      {isAdmin && totalPages > 1 && (
         <PaginationDemo
           currentPage={page}
           totalPages={totalPages}
