@@ -5,6 +5,12 @@ import { authOptions } from "@/libs/auth";
 import { Poll, PollVoteRequest, PollCreateRequest } from "@/types/poll";
 import { apiGet, apiPost, apiPatch } from "@/libs/api";
 
+interface PollsResponse {
+  success: boolean;
+  message?: string;
+  payload: Poll[];
+}
+
 async function getAuthToken(): Promise<string | undefined> {
   const session = await getServerSession(authOptions);
   return session?.accessToken || (session?.user as any)?.token;
@@ -22,6 +28,23 @@ function formatShowResult(value: string | undefined): string {
     return "after_close";
 
   return "always";
+}
+
+export async function getAllPollsAction(
+  page: number = 1,
+  size: number = 100,
+): Promise<Poll[]> {
+  const authToken = await getAuthToken();
+
+  const response = await apiGet<PollsResponse | Poll[]>(
+    `/polls?page=${page}&size=${size}`,
+    { authToken },
+  );
+
+  if (response && "payload" in response) {
+    return response.payload;
+  }
+  return (response as Poll[]) || [];
 }
 
 export async function getPollAction(pollId: string): Promise<Poll> {

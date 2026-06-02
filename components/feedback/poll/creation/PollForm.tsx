@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation"; // Imported useSearchParams
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "../../../ui/button";
 import PollHeader from "../../survey/PollHeader";
@@ -10,15 +10,22 @@ import PollSidebar, { PollSettings } from "./PollSidebar";
 import WorkspaceSelector from "../../survey/WorkspaceSelector";
 import { pollService } from "@/service/poll.service";
 
-export default function PollForm() {
+interface PollFormProps {
+  workspaceId?: string; // Explicit contextual fallback prop
+  onSuccess?: () => void;
+}
+
+export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams(); // Read URL matrix values
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [options, setOptions] = useState(["Option 1", "Option 2", "Option 3"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [workspaceId, setWorkspaceId] = useState("");
+  const [workspaceIdState, setWorkspaceIdState] = useState("");
   const [settings, setSettings] = useState<PollSettings>({
     multipleSelect: false,
     anonymousVote: false,
@@ -28,6 +35,20 @@ export default function PollForm() {
     closingDate: "",
     closingTime: "",
   });
+
+  // Syncing workspace contexts using exactly the same resolution chain as SurveyCreationForm
+  useEffect(() => {
+    const urlQueryId =
+      searchParams.get("groupId") || searchParams.get("groupid");
+    const resolvedId = urlQueryId || workspaceId;
+
+    console.log("--- Syncing Poll Workspace Context ---");
+    console.log("Final Resolved Workspace ID Target:", resolvedId);
+
+    if (resolvedId) {
+      setWorkspaceIdState(resolvedId);
+    }
+  }, [searchParams, workspaceId]);
 
   const handleOptionTextChange = (index: number, text: string) => {
     const updatedOptions = [...options];
@@ -58,7 +79,6 @@ export default function PollForm() {
       setSettings((prev) => ({ ...prev, closingDate: "", closingTime: "" }));
       return;
     }
-
     const [date, time] = dateTimeString.split("T");
     setSettings((prev) => ({
       ...prev,
@@ -78,35 +98,29 @@ export default function PollForm() {
       setError("Poll title is required");
       return false;
     }
-
     if (options.length < 2) {
       setError("Poll must have at least 2 options");
       return false;
     }
-
     if (options.some((opt) => !opt || !opt.trim())) {
       setError("All options must have text");
       return false;
     }
-
     if (!settings.closingDate || !settings.closingTime) {
       setError("Closing date and time are required");
       return false;
     }
 
-    const closingDateTime = new Date(
-      `${settings.closingDate}T${settings.closingTime}`,
-    );
-    if (closingDateTime <= new Date()) {
+    if (
+      new Date(`${settings.closingDate}T${settings.closingTime}`) <= new Date()
+    ) {
       setError("Closing date and time must be in the future");
       return false;
     }
-
-    if (!workspaceId) {
+    if (!workspaceIdState) {
       setError("Workspace is required");
       return false;
     }
-
     return true;
   };
 
@@ -115,23 +129,18 @@ export default function PollForm() {
     setError(null);
     setSuccess(false);
 
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setIsSubmitting(true);
 
     try {
-      const closingDateTime = new Date(
-        `${settings.closingDate}T${settings.closingTime}`,
-      ).toISOString();
-
       const request = {
         title: title.trim(),
         description: description.trim(),
         options: options.map((opt) => opt.trim()),
-        closingTime: closingDateTime,
-        workspaceId,
+        closingTime: new Date(
+          `${settings.closingDate}T${settings.closingTime}`,
+        ).toISOString(),
+        workspaceId: workspaceIdState,
         type: "text",
         multiSelect: settings.multipleSelect,
         anonymousVoting: settings.anonymousVote,
@@ -140,25 +149,33 @@ export default function PollForm() {
         showResult: settings.showResult,
       };
 
-      console.log("Creating poll with request:", request);
-      const newPoll = await pollService.createPoll(request);
-      console.log("Poll created successfully:", newPoll);
+      await pollService.createPoll(request);
+
+      const savedWorkspaceId = workspaceIdState;
       setSuccess(true);
       setTitle("");
       setDescription("");
       setOptions(["Option 1", "Option 2", "Option 3"]);
 
       setTimeout(() => {
-        router.push(`/polls/${newPoll.pollId}`);
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          // Dynamic router fallback tracking matched directly with Survey logic
+          router.push(`/group/${savedWorkspaceId}`);
+        }
       }, 1500);
     } catch (err) {
-      console.error("Error creating poll:", err);
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to create poll";
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : "Failed to create poll");
       setIsSubmitting(false);
     }
   };
+
+  // Condition toggle tracking exactly like Survey to toggle field locked presentation
+  const isWorkspaceContextLocked =
+    !!searchParams.get("groupId") ||
+    !!searchParams.get("groupid") ||
+    !!workspaceId;
 
   return (
     <form
@@ -209,9 +226,10 @@ export default function PollForm() {
           />
 
           <WorkspaceSelector
-            selectedWorkspaceId={workspaceId}
-            onSelectWorkspace={setWorkspaceId}
+            selectedWorkspaceId={workspaceIdState}
+            onSelectWorkspace={setWorkspaceIdState}
             required={true}
+            disabled={isWorkspaceContextLocked}
           />
 
           <PollOptionsList
@@ -222,7 +240,6 @@ export default function PollForm() {
           />
         </div>
       </div>
-
       <aside className="lg:col-span-3 order-2 lg:order-5 w-full lg:sticky lg:top-24 p-4 flex justify-end">
         <PollSidebar
           settings={settings}
