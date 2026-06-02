@@ -148,7 +148,7 @@ export function PaginationDemo({
   };
 
   return (
-    <div className="flex w-full justify-end mt-6">
+    <div className="flex w-full justify-end mt-6 mb-6">
       <Pagination className="mx-0 justify-end w-auto">
         <PaginationContent>
           <PaginationItem>

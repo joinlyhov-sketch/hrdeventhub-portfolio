@@ -1,95 +1,55 @@
-import { env } from "../libs/env";
+import { apiGet, apiPost, apiPatch, apiDelete } from "@/libs/api";
+import { getSession } from "next-auth/react";
 import {
   Survey,
   SurveyRequest,
   SurveyResponseRequest,
   SurveySubmission,
-  ApiResponse,
 } from "../types/survey";
-import { getSession } from "next-auth/react";
 
-const apiBaseUrl = env?.NEXT_PUBLIC_API_BASE_URL;
-
-if (!apiBaseUrl) {
-  throw new Error("API base URL is not configured.");
-}
-
-const handleResponseError = async (
-  res: Response,
-  defaultMessage: string
-): Promise<never> => {
-  let errorMessage = defaultMessage;
-
-  try {
-    const bodyText = await res.text();
-    if (bodyText) {
-      try {
-        const errorJson = JSON.parse(bodyText) as {
-          detail?: string;
-          message?: string;
-          payload?: any; // Adjusted for payload architecture
-        };
-        errorMessage =
-          errorJson?.detail || errorJson?.message || defaultMessage;
-      } catch {
-        errorMessage = bodyText;
-      }
-    }
-  } catch {}
-
-  throw new Error(errorMessage);
-};
-
-const getAuthHeaders = async () => {
+// Dynamic token fetcher for client-side context (using explicit cast to bypass strict check)
+const getLiveToken = async (): Promise<string | undefined> => {
   const session = await getSession();
-  const token = session?.accessToken || (session?.user as any)?.token;
-
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
+  return session?.accessToken || (session?.user as any)?.token;
 };
+
+interface BackendApiResponse<T> {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: T;
+}
 
 export const surveyService = {
   // Create a new survey
   createSurvey: async (data: SurveyRequest): Promise<Survey> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${apiBaseUrl}/survey`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) await handleResponseError(res, "Failed to create survey.");
-    const response = (await res.json()) as any;
-    return response.payload!; // Fixed mapping
+    const token = await getLiveToken();
+    const response = await apiPost<BackendApiResponse<Survey>, SurveyRequest>(
+      "/survey",
+      data,
+      { authToken: token }
+    );
+    return response.payload;
   },
 
   // Get all surveys with pagination
   getAllSurveys: async (page: number = 1, size: number = 10): Promise<Survey[]> => {
-    const headers = await getAuthHeaders();
-    const url = new URL(`${apiBaseUrl}/survey`);
-    url.searchParams.set("page", page.toString());
-    url.searchParams.set("size", size.toString());
-
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers,
-    });
-    if (!res.ok) await handleResponseError(res, "Failed to fetch surveys.");
-    const response = (await res.json()) as any;
-    return response.payload || []; // Fixed mapping
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<Survey[]>>(
+      `/survey?page=${page}&size=${size}`,
+      { authToken: token }
+    );
+    return response.payload || [];
   },
 
   // Get survey by ID
   getSurveyById: async (surveyId: string): Promise<Survey> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${apiBaseUrl}/survey/${surveyId}`, {
-      method: "GET",
-      headers,
-    });
-    if (!res.ok) await handleResponseError(res, "Failed to fetch survey.");
-    const response = (await res.json()) as any;
-    return response.payload!; // Fixed mapping
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<Survey>>(
+      `/survey/${surveyId}`,
+      { authToken: token }
+    );
+    return response.payload;
   },
 
   // Get surveys by workspace
@@ -98,47 +58,29 @@ export const surveyService = {
     page: number = 1,
     size: number = 10
   ): Promise<Survey[]> => {
-    const headers = await getAuthHeaders();
-    const url = new URL(
-      `${apiBaseUrl}/survey/workspace/${workspaceId}`
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<Survey[]>>(
+      `/survey/workspace/${workspaceId}?page=${page}&size=${size}`,
+      { authToken: token }
     );
-    url.searchParams.set("page", page.toString());
-    url.searchParams.set("size", size.toString());
-
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers,
-    });
-    if (!res.ok)
-      await handleResponseError(res, "Failed to fetch workspace surveys.");
-    const response = (await res.json()) as any;
-    return response.payload || []; // Fixed mapping
+    return response.payload || [];
   },
 
   // Update survey
-  updateSurvey: async (
-    surveyId: string,
-    data: Partial<SurveyRequest>
-  ): Promise<Survey> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${apiBaseUrl}/survey/${surveyId}`, {
-      method: "PATCH",
-      headers,
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) await handleResponseError(res, "Failed to update survey.");
-    const response = (await res.json()) as any;
-    return response.payload!; // Fixed mapping
+  updateSurvey: async (surveyId: string, data: Partial<SurveyRequest>): Promise<Survey> => {
+    const token = await getLiveToken();
+    const response = await apiPatch<BackendApiResponse<Survey>, Partial<SurveyRequest>>(
+      `/survey/${surveyId}`,
+      data,
+      { authToken: token }
+    );
+    return response.payload;
   },
 
   // Delete survey
   deleteSurvey: async (surveyId: string): Promise<void> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${apiBaseUrl}/survey/${surveyId}`, {
-      method: "DELETE",
-      headers,
-    });
-    if (!res.ok) await handleResponseError(res, "Failed to delete survey.");
+    const token = await getLiveToken();
+    await apiDelete<any>(`/survey/${surveyId}`, { authToken: token });
   },
 
   // Submit survey response
@@ -146,16 +88,13 @@ export const surveyService = {
     surveyId: string,
     data: SurveyResponseRequest
   ): Promise<SurveySubmission> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${apiBaseUrl}/survey/${surveyId}/submit`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(data),
-    });
-    if (!res.ok)
-      await handleResponseError(res, "Failed to submit survey response.");
-    const response = (await res.json()) as any;
-    return response.payload!; // Fixed mapping
+    const token = await getLiveToken();
+    const response = await apiPost<BackendApiResponse<SurveySubmission>, SurveyResponseRequest>(
+      `/survey/${surveyId}/submit`,
+      data,
+      { authToken: token }
+    );
+    return response.payload;
   },
 
   // Get all responses for a survey
@@ -164,87 +103,57 @@ export const surveyService = {
     page: number = 1,
     size: number = 10
   ): Promise<SurveySubmission[]> => {
-    const headers = await getAuthHeaders();
-    const url = new URL(
-      `${apiBaseUrl}/survey/${surveyId}/responses`
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<SurveySubmission[]>>(
+      `/survey/${surveyId}/responses?page=${page}&size=${size}`,
+      { authToken: token }
     );
-    url.searchParams.set("page", page.toString());
-    url.searchParams.set("size", size.toString());
-
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers,
-    });
-    if (!res.ok)
-      await handleResponseError(res, "Failed to fetch survey responses.");
-    const response = (await res.json()) as any;
-    return response.payload || []; // Fixed mapping
+    return response.payload || [];
   },
 
   // Count responses for a survey
   countResponses: async (surveyId: string): Promise<number> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(
-      `${apiBaseUrl}/survey/${surveyId}/responses/count`,
-      {
-        method: "GET",
-        headers,
-      }
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<number>>(
+      `/survey/${surveyId}/responses/count`,
+      { authToken: token }
     );
-    if (!res.ok)
-      await handleResponseError(res, "Failed to count survey responses.");
-    const response = (await res.json()) as any;
-    return response.payload || 0; // Fixed mapping
+    return response.payload || 0;
   },
 
   // Get my response for a survey
   getMyResponse: async (surveyId: string): Promise<SurveySubmission | null> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(
-      `${apiBaseUrl}/survey/${surveyId}/responses/me`,
-      {
-        method: "GET",
-        headers,
-      }
-    );
-    if (res.status === 404) return null;
-    if (!res.ok)
-      await handleResponseError(res, "Failed to fetch your response.");
-    const response = (await res.json()) as any;
-    return response.payload || null; // Fixed mapping
+    const token = await getLiveToken();
+    try {
+      const response = await apiGet<BackendApiResponse<SurveySubmission>>(
+        `/survey/${surveyId}/responses/me`,
+        { authToken: token }
+      );
+      return response.payload || null;
+    } catch (error: any) {
+      // Gracefully handle a 404 response if the current user hasn't submitted an entry yet
+      if (error.status === 404 || error.message?.includes("404")) return null;
+      throw error;
+    }
   },
 
   // Get response by ID
-  getResponseById: async (
-    surveyId: string,
-    responseId: string
-  ): Promise<SurveySubmission> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(
-      `${apiBaseUrl}/survey/${surveyId}/responses/${responseId}`,
-      {
-        method: "GET",
-        headers,
-      }
+  getResponseById: async (surveyId: string, responseId: string): Promise<SurveySubmission> => {
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<SurveySubmission>>(
+      `/survey/${surveyId}/responses/${responseId}`,
+      { authToken: token }
     );
-    if (!res.ok)
-      await handleResponseError(res, "Failed to fetch response.");
-    const response = (await res.json()) as any;
-    return response.payload!; // Fixed mapping
+    return response.payload;
   },
 
   // Check if user has submitted
   hasSubmitted: async (surveyId: string): Promise<boolean> => {
-    const headers = await getAuthHeaders();
-    const res = await fetch(
-      `${apiBaseUrl}/survey/${surveyId}/submitted`,
-      {
-        method: "GET",
-        headers,
-      }
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<boolean>>(
+      `/survey/${surveyId}/submitted`,
+      { authToken: token }
     );
-    if (!res.ok) await handleResponseError(res, "Failed to check submission.");
-    const response = (await res.json()) as any;
-    return response.payload || false; // Fixed mapping
+    return response.payload || false;
   },
 };

@@ -14,8 +14,6 @@ import {
 import { WorkspaceMember, WorkspaceMemberResponse } from "@/types/workspace-type/workspace-members";
 
 export const workspaceService = {
-
-
   getAll: async (token: string, page: number = 1, size: number = 100): Promise<Workspace[]> => {
     const response = await apiGet<WorkspaceResponse>(
       `/workspaces?page=${page}&size=${size}`,
@@ -27,7 +25,7 @@ export const workspaceService = {
   getAllWithFilters: async (
     token: string,
     { page = 1, size = 10, name, generationId }: GetWorkspacesParams
-  ): Promise<Workspace[]> => {
+  ): Promise<{ workspaces: Workspace[]; totalPages: number }> => {
     const params = new URLSearchParams();
     params.set("page", page.toString());
     params.set("size", size.toString());
@@ -36,6 +34,18 @@ export const workspaceService = {
 
     const response = await apiGet<WorkspaceResponse>(
       `/workspaces?${params.toString()}`,
+      { authToken: token }
+    );
+
+    const hasMore = response.payload.length === size;
+    const totalPages = hasMore ? page + 1 : page;
+
+    return { workspaces: response.payload, totalPages };
+  },
+
+  getMyWorkspaces: async (token: string): Promise<Workspace[]> => {
+    const response = await apiGet<WorkspaceResponse>(
+      `/workspaces/me`,
       { authToken: token }
     );
     return response.payload;
@@ -57,14 +67,13 @@ export const workspaceService = {
     return response.payload;
   },
 
-  getMembers: async (workspaceId: string, token: string): Promise<WorkspaceMember[]> => {
-    const response = await apiGet<WorkspaceMemberResponse>(
-      `/workspaces/${workspaceId}/members`,
-      { authToken: token }
-    );
-    return response.payload;
-  },
-
+getMembers: async (workspaceId: string, token: string): Promise<WorkspaceMemberResponse> => {
+  const response = await apiGet<WorkspaceMemberResponse>(
+    `/workspaces/${workspaceId}/members`,
+    { authToken: token }
+  );
+  return response; 
+},
 
   create: async (payload: CreateWorkspaceRequest) => {
     const session = await getServerSession(authOptions);

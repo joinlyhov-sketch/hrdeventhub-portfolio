@@ -102,6 +102,7 @@ export interface AppUserPayload {
 export type ProfileRole = "ADMIN" | "ORGANIZER" | "STUDENT" | "ALUMNI";
 
 export interface ProfilePayload {
+  profilePicture?: string;
   profileId: string;
   profileSharingMode: string;
   roles: ProfileRole;
@@ -118,15 +119,15 @@ export interface ProfileResponse {
 
 declare module "next-auth" {
   interface Session {
-  accessToken:  string;
-  refreshToken: string;    
-  error?: "RefreshTokenExpired" | "RefreshTokenError";
-  user: {
-    id: string;
-    email: string;
-    role: string;
-  } & DefaultSession["user"];
-}
+    accessToken: string;
+    refreshToken: string;    
+    error?: "RefreshTokenExpired" | "RefreshTokenError";
+    user: {
+      id: string;
+      email: string;
+      role: string;
+    } & DefaultSession["user"];
+  }
   interface User {
     accessToken: string;
     refreshToken: string;
