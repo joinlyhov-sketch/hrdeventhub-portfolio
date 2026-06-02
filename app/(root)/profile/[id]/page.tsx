@@ -29,7 +29,7 @@ export default function ProfilePage() {
             <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1">
               <Tabnav
                 active={activeTab === "BG"}
-                label="Background"
+                label="Background"  
                 onClick={() => setActiveTab("BG")}
               />
               {showStudentTabs && (
