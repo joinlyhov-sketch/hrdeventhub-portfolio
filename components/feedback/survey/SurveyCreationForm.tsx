@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react"; // 1. Import useEffect
+import React, { useState, useCallback, useEffect } from "react";
 import { Loader2, Plus, AlertCircle } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation"; // 2. Import useSearchParams
+import { useRouter, useSearchParams } from "next/navigation";
 import SurveyHeader from "./SurveyHeader";
 import SurveyQuestionsList from "./SurveyQuestionsList";
 import QuestionTypeSidebar from "./QuestionTypeSidebar";
@@ -11,7 +11,7 @@ import { Button } from "../../ui/button";
 import { Question } from "../../../data/Question";
 import { useSurveyFormStore } from "../../../store/useSurveyFormStore";
 import { surveyService } from "../../../service/survey.service";
-import { SurveyContent, SurveyElement, SurveyPage } from "../../../types/survey";
+import { SurveyContent, SurveyElement } from "../../../types/survey";
 
 export type QuestionType =
   | "short-text"
@@ -25,45 +25,85 @@ export type QuestionType =
 
 interface SurveyCreationFormProps {
   workspaceId?: string;
+  surveyId?: string; // Add optional surveyId parameter prop configuration
   onSuccess?: () => void;
 }
 
-export default function SurveyCreationForm({ workspaceId, onSuccess }: SurveyCreationFormProps) {
+export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }: SurveyCreationFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formStore = useSurveyFormStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false); // Track database query loading status
   const [error, setError] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
 
+  const isEditMode = !!surveyId; // Flag to determine text & API targets dynamically
+
+  // 1. Fetch survey details if editing an existing entry
   useEffect(() => {
-  const urlQueryId = searchParams.get("groupId") || searchParams.get("groupid");
-  const resolvedId = urlQueryId || workspaceId;
+    if (!surveyId) {
+      // Default placeholder initialization layout for Create Mode
+      setQuestions([
+        { id: "1", type: "rating", text: "How would you rate today's event overall?", maxScale: 5, ratingValue: 0 },
+        { id: "2", type: "linear", text: "On a scale of 1 to 5, how satisfied were you with today's event?", linearStart: 1, linearEnd: 5 },
+      ]);
+      return;
+    }
 
-  console.log("--- Syncing Workspace Context ---");
-  console.log("Final Resolved Workspace ID Target:", resolvedId);
+    const loadExistingSurveyData = async () => {
+      setIsLoadingData(true);
+      try {
+        const survey = await surveyService.getSurveyById(surveyId);
+        
+        // Sync root parameters to your global Zustand form store template
+        formStore.setTitle(survey.title);
+        formStore.setDescription(survey.description || "");
+        formStore.setIsActive(survey.isActive);
+        if (survey.closingTime) {
+          // Format ISO timestamp cleanly to local datetime input fields value structures
+          formStore.setClosingTime(new Date(survey.closingTime).toISOString().slice(0, 16));
+        }
+        formStore.setSelectedWorkspaceId(survey.workspaceId);
 
-  if (resolvedId) {
-    formStore.setSelectedWorkspaceId(resolvedId);
-  }
-}, [searchParams, workspaceId, formStore.setSelectedWorkspaceId]);
+        // Map Backend Element structures back down into your UI Questions list array
+        if (survey.content?.pages?.[0]?.elements) {
+          const mappedQuestions: Question[] = survey.content.pages[0].elements.map((el, index) => {
+            // strip 'question_' out of name string key map references to retrieve base ID numbers safely
+            const extractedId = el.name.replace("question_", "") || `${index + 1}`;
+            
+            return {
+              id: extractedId,
+              type: el.type as QuestionType,
+              text: el.title,
+              options: el.choices,
+              matrixRows: el.rows,
+              matrixCols: el.columns,
+              minLabel: el.minRateLabel,
+              maxLabel: el.maxRateLabel,
+              maxScale: el.maxRateDescription,
+            } as Question;
+          });
+          setQuestions(mappedQuestions);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load survey data.");
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
 
+    loadExistingSurveyData();
+  }, [surveyId]);
 
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: "1",
-      type: "rating",
-      text: "How would you rate today's event overall?",
-      maxScale: 5,
-      ratingValue: 0,
-    },
-    {
-      id: "2",
-      type: "linear",
-      text: "On a scale of 1 to 5, how satisfied were you with today's event?",
-      linearStart: 1,
-      linearEnd: 5,
-    },
-  ]);
+  // 2. Intercept Workspace navigation links parameters routing
+  useEffect(() => {
+    const urlQueryId = searchParams.get("groupId") || searchParams.get("groupid");
+    const resolvedId = urlQueryId || workspaceId;
+    if (resolvedId && !isEditMode) {
+      formStore.setSelectedWorkspaceId(resolvedId);
+    }
+  }, [searchParams, workspaceId, isEditMode]);
 
   const addQuestionByType = (type: QuestionType) => {
     const templates: Record<QuestionType, Partial<Question>> = {
@@ -77,10 +117,7 @@ export default function SurveyCreationForm({ workspaceId, onSuccess }: SurveyCre
       matrix: { text: "Untitled Matrix Question Grid", matrixRows: ["Statement Row 1"], matrixCols: ["Poor", "Excellent"], matrixAnswers: {} },
     };
 
-    setQuestions([
-      ...questions,
-      { id: `${Date.now()}`, type, ...templates[type] } as Question,
-    ]);
+    setQuestions([...questions, { id: `${Date.now()}`, type, ...templates[type] } as Question]);
   };
 
   const convertQuestionsToBEFormat = useCallback((): SurveyContent => {
@@ -90,14 +127,12 @@ export default function SurveyCreationForm({ workspaceId, onSuccess }: SurveyCre
         type: q.type,
         title: q.text,
       };
-
       if (q.options) element.choices = q.options;
       if (q.matrixRows) element.rows = q.matrixRows;
       if (q.matrixCols) element.columns = q.matrixCols;
       if (q.minLabel) element.minRateLabel = q.minLabel;
       if (q.maxLabel) element.maxRateLabel = q.maxLabel;
       if (q.maxScale) element.maxRateDescription = q.maxScale;
-
       return element;
     });
 
@@ -119,17 +154,24 @@ export default function SurveyCreationForm({ workspaceId, onSuccess }: SurveyCre
       if (!formStore.selectedWorkspaceId) throw new Error("Please select a workspace");
 
       const content = convertQuestionsToBEFormat();
-
+      
+      // Include ALL fields since the backend validation requires workspaceId and isActive
       const surveyData = {
         title: formStore.title,
         description: formStore.description,
         content,
-        isActive: formStore.isActive,
+        isActive: formStore.isActive ?? true, 
         closingTime: new Date(formStore.closingTime).toISOString(),
-        workspaceId: formStore.selectedWorkspaceId,
+        workspaceId: formStore.selectedWorkspaceId, // Always include this
       };
 
-      await surveyService.createSurvey(surveyData);
+      console.log("Transmitting complete payload structure to backend endpoint:", surveyData);
+
+      if (isEditMode) {
+        await surveyService.updateSurvey(surveyId!, surveyData);
+      } else {
+        await surveyService.createSurvey(surveyData);
+      }
       
       const savedWorkspaceId = formStore.selectedWorkspaceId;
       formStore.reset();
@@ -141,14 +183,22 @@ export default function SurveyCreationForm({ workspaceId, onSuccess }: SurveyCre
         router.push(`/group/${savedWorkspaceId}`);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to create survey";
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : "Failed to save survey modifications.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const isWorkspaceContextLocked = !!searchParams.get("groupId") || !!searchParams.get("groupid") || !!workspaceId;
+  const isWorkspaceContextLocked = !!searchParams.get("groupId") || !!searchParams.get("groupid") || !!workspaceId || isEditMode;
+
+  if (isLoadingData) {
+    return (
+      <div className="w-full min-h-[400px] flex flex-col items-center justify-center gap-3">
+        <Loader2 size={36} className="animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground animate-pulse font-medium">Loading survey configuration data from database...</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleFormSubmission} className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full items-start">
@@ -166,10 +216,11 @@ export default function SurveyCreationForm({ workspaceId, onSuccess }: SurveyCre
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto px-5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
+              className="w-full sm:w-auto px-5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[140px]"
             >
               {isSubmitting && <Loader2 size={14} className="animate-spin" />}
-              {isSubmitting ? "Posting..." : "Post Survey"}
+              {/* Dynamic button text selection based on isEditMode flag */}
+              {isSubmitting ? (isEditMode ? "Saving Changes..." : "Posting...") : (isEditMode ? "Save Survey" : "Post Survey")}
             </Button>
           </div>
 
