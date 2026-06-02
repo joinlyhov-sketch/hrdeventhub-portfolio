@@ -1,21 +1,24 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react"; // Imported Lock icon for clarity
 import { workspaceService } from "../../../service/workspace.service";
 import { Workspace } from "../../../types/survey";
 import { Label } from "../../ui/label";
+import { getSession } from "next-auth/react";
 
 interface WorkspaceSelectorProps {
   selectedWorkspaceId: string;
   onSelectWorkspace: (workspaceId: string) => void;
   required?: boolean;
+  disabled?: boolean; // Accept disabled option handle flag
 }
 
 export default function WorkspaceSelector({
   selectedWorkspaceId,
   onSelectWorkspace,
   required = true,
+  disabled = false, // Default is selectable
 }: WorkspaceSelectorProps) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +28,14 @@ export default function WorkspaceSelector({
     const fetchWorkspaces = async () => {
       setLoading(true);
       try {
-        const data = await workspaceService.getAll("1", 100);
+        const session = await getSession();
+        const token = session?.accessToken || (session?.user as any)?.token;
+
+        if (!token) {
+          throw new Error("You are not authenticated. Please log in again.");
+        }
+
+        const data = await workspaceService.getAll(token, 1, 100);
         setWorkspaces(data);
         setError(null);
       } catch (err) {
@@ -41,8 +51,9 @@ export default function WorkspaceSelector({
 
   return (
     <div className="mb-6">
-      <Label htmlFor="workspace-select" className="block mb-2 text-sm font-medium">
-        Select Workspace {required && <span className="text-red-500">*</span>}
+      <Label htmlFor="workspace-select" className="mb-2 text-sm font-medium flex items-center gap-1.5">
+        <span>Select Workspace {required && !disabled && <span className="text-red-500">*</span>}</span>
+        {disabled && <Lock size={13} className="text-muted-foreground" />}
       </Label>
 
       {loading ? (
@@ -59,21 +70,35 @@ export default function WorkspaceSelector({
           <p className="text-sm text-yellow-700">No workspaces available</p>
         </div>
       ) : (
-        <select
-          id="workspace-select"
-          value={selectedWorkspaceId}
-          onChange={(e) => onSelectWorkspace(e.target.value)}
-          required={required}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-        >
-          <option value="">-- Select a workspace --</option>
-          {workspaces.map((workspace) => (
-            <option key={workspace.workspaceId} value={workspace.workspaceId}>
-              {workspace.name}
-              {workspace.generationName && ` (${workspace.generationName})`}
-            </option>
-          ))}
-        </select>
+        <div className="relative w-full">
+          <select
+            id="workspace-select"
+            value={selectedWorkspaceId}
+            onChange={(e) => onSelectWorkspace(e.target.value)}
+            required={required}
+            disabled={disabled} // Hook up native selection disable attribute block
+            className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all appearance-none ${
+              disabled ? "bg-slate-50 border-gray-200 text-gray-500 cursor-not-allowed opacity-90" : ""
+            }`}
+          >
+            <option value="">-- Select a workspace --</option>
+            {workspaces.map((workspace) => (
+              <option key={workspace.workspaceId} value={workspace.workspaceId}>
+                {workspace.name}
+                {workspace.generationName && ` (${workspace.generationName})`}
+              </option>
+            ))}
+          </select>
+          
+          {/* Visual chevron indicator handler bypass for disabled fields */}
+          {!disabled && (
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+              </svg>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
