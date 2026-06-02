@@ -1,10 +1,22 @@
 "use client";
+
 import { useState } from "react";
 import { Pin } from "lucide-react";
 import { PinnedCard } from "./PinnedCard";
+import { Post } from "@/types/posts";
 
-export function PinnedSection() {
+interface PinnedSectionProps {
+  posts: Post[];
+}
+
+export function PinnedSection({ posts }: PinnedSectionProps) {
   const [showAllPinned, setShowAllPinned] = useState(false);
+
+  const pinnedPosts = posts.filter((p) => p.pinned);
+
+  if (pinnedPosts.length === 0) return null;
+
+  const visiblePosts = showAllPinned ? pinnedPosts : pinnedPosts.slice(0, 1);
 
   return (
     <div className="space-y-4">
@@ -13,22 +25,20 @@ export function PinnedSection() {
           <Pin size={20} />
           <h2 className="text-primary">Pinned</h2>
         </div>
-        <button
-          onClick={() => setShowAllPinned(!showAllPinned)}
-          className="text-desc cursor-pointer hover:text-primary-hover transition-colors"
-        >
-          {showAllPinned ? "Show Less" : "View All"}
-        </button>
+        {pinnedPosts.length > 1 && (
+          <button
+            onClick={() => setShowAllPinned(!showAllPinned)}
+            className="text-desc cursor-pointer hover:text-primary-hover transition-colors"
+          >
+            {showAllPinned ? "Show Less" : `View All (${pinnedPosts.length})`}
+          </button>
+        )}
       </div>
 
       <div className="space-y-4">
-        <PinnedCard />
-        
-        {showAllPinned && (
-          <div className="grid grid-cols-1 gap-4 pt-2">
-            <PinnedCard />
-          </div>
-        )}
+        {visiblePosts.map((post) => (
+          <PinnedCard key={post.postId} post={post} />
+        ))}
       </div>
     </div>
   );

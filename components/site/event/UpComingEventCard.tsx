@@ -9,17 +9,14 @@ interface UpComingEventCardProps {
   groupid: string;
 }
 
-// Custom parser to handle format: "Tuesday, June 02, 2026, 11:47 AM"
 function parseCustomEventDate(dateStr: string): Date | null {
   try {
     const parts = dateStr.split(", ");
     if (parts.length < 4) return null;
 
-    const monthDayStr = parts[1]; // "June 02"
-    const yearStr = parts[2];     // "2026"
-    const timeStr = parts[3];     // "11:47 AM"
-
-    // Construct a standard string format that JavaScript loves: "June 02, 2026 11:47 AM"
+    const monthDayStr = parts[1];
+    const yearStr = parts[2];    
+    const timeStr = parts[3];    
     const cleanStandardString = `${monthDayStr}, ${yearStr} ${timeStr}`;
     const parsedDate = new Date(cleanStandardString);
 
@@ -39,33 +36,27 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
 
     return posts
       .filter((post) => {
-        // Explicitly map event category types containing an eventStart string
         if (post.category !== "event" || !post.eventStart) return false;
 
         const eventDateObj = parseCustomEventDate(post.eventStart);
         if (!eventDateObj) return false;
-
-        // Check if the event date is set in the future relative to right now
         return eventDateObj.getTime() >= now;
       })
       .sort((a, b) => {
         const dateA = parseCustomEventDate(a.eventStart!)?.getTime() ?? 0;
         const dateB = parseCustomEventDate(b.eventStart!)?.getTime() ?? 0;
-        return dateA - dateB; // Nearest upcoming event first
+        return dateA - dateB; 
       })
       .map((post, index) => {
-        // Parse custom text structure fields safely for the display UI badges
         const parts = post.eventStart!.split(", ");
         let monthStr = "EVENT";
         let dayStr = "??";
 
         if (parts[1]) {
-          const monthAndDay = parts[1].split(" "); // ["June", "02"]
+          const monthAndDay = parts[1].split(" "); 
           if (monthAndDay[0]) monthStr = monthAndDay[0].substring(0, 3).toUpperCase();
           if (monthAndDay[1]) dayStr = monthAndDay[1];
         }
-
-        // Clean time layout combination using backend eventEnd property details
         const startTimeStr = parts[3] ?? "TBD";
         const displayTime = post.eventEnd 
           ? `${startTimeStr} - ${post.eventEnd}`

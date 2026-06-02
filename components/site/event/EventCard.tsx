@@ -24,9 +24,18 @@ interface EventCardProps {
   role: UserRole;
   posts: Post[];
   searchQuery: string;
+  onDeletePost: (postId: string) => Promise<void> | void;
 }
 
-function EventItem({ post, role }: { post: Post; role: UserRole }) {
+function EventItem({
+  post,
+  role,
+  onDelete,
+}: {
+  post: Post;
+  role: UserRole;
+  onDelete: () => Promise<void> | void;
+}) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -109,23 +118,19 @@ function EventItem({ post, role }: { post: Post; role: UserRole }) {
                 {creator.role}
               </span>
             )}
-            {(role === "admin" || role === "organizer") && (
-              <EditPostDropDown
-                title={post.title}
-                editUrl={`/event-management/edition/event`}
-                onDelete={() => console.log("Delete", post.postId)}
-              />
-            )}
+             {(role === "admin" || role === "organizer") && (
+    <EditPostDropDown
+      title={post.title}
+      editUrl={`/event-management/edition/event`}
+      onDelete={onDelete}   
+    />
+  )}
           </div>
         </div>
-
-        {/* Content Section */}
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
         <p className="type-desc text-muted-foreground leading-relaxed mb-4">
           {post.content}
         </p>
-
-        {/* Dynamic Meta Info */}
         <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-6">
           {post.location && (
             <p className="type-detail text-grey-500">
@@ -186,7 +191,6 @@ function EventItem({ post, role }: { post: Post; role: UserRole }) {
             </div>
           )}
           
-          {/* Overlay Gradient with text info on left and right-aligned View Detail */}
           <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-6 text-white z-10 flex items-end justify-between gap-4">
             <div>
               <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide mb-2">
@@ -204,7 +208,6 @@ function EventItem({ post, role }: { post: Post; role: UserRole }) {
           </div>
         </div>
 
-        {/* Action Controls */}
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
           <ReactionPopover
             selectedValue={selectedReaction}
@@ -243,8 +246,6 @@ function EventItem({ post, role }: { post: Post; role: UserRole }) {
             <Share2 size={18} /> Share
           </button>
         </div>
-
-        {/* New Comment Input Wrapper */}
         <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
             {currentUser?.profilePicture ? (
@@ -356,11 +357,16 @@ function EventItem({ post, role }: { post: Post; role: UserRole }) {
   );
 }
 
-export function EventCard({ role, posts }: EventCardProps) {
+export function EventCard({ role, posts, onDeletePost }: EventCardProps) {
   return (
     <>
       {posts.map((post) => (
-        <EventItem key={post.postId} post={post} role={role} />
+        <EventItem
+          key={post.postId}
+          post={post}
+          role={role}
+          onDelete={() => onDeletePost(post.postId)}
+        />
       ))}
     </>
   );

@@ -1,17 +1,16 @@
 "use server";
 
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/auth";
 import { postService } from "@/service/post.service";
-import { revalidateTag } from "next/cache";
 
 export async function deletePostAction(workspaceId: string, postId: string) {
-  const session = await getServerSession();
-  
+  const session = await getServerSession(authOptions);
+
   if (!session?.accessToken) {
     throw new Error("Unauthorized");
   }
 
   const result = await postService.delete(workspaceId, postId, session.accessToken);
-  revalidateTag("workspace-posts", "max");
   return result;
 }

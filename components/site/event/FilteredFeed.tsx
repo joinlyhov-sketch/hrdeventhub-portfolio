@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useParams } from "next/navigation";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
 import { EventCard } from "./EventCard";
@@ -10,6 +11,7 @@ import { SurveyCard } from "./SurveyCard";
 import { ArticleCard } from "./ArticleCard";
 import { useCurrentUser } from "@/context/user-context";
 import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
+import { deletePostAction } from "@/actions/post.action";
 import { Post } from "@/types/posts";
 
 interface FilteredFeedProps {
@@ -20,30 +22,40 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
   const { currentUser } = useCurrentUser();
   const role = currentUser?.role ?? "student";
 
-  const { posts, isLoading } = useWorkspacePosts(groupid);
+  const { posts, isLoading, mutate } = useWorkspacePosts(groupid);
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-const chronologicalPosts = useMemo(() => {
+  const handleDeletePost = async (postId: string) => {
+    mutate(
+      (current) => current?.filter((p) => p.postId !== postId) ?? [],
+      false 
+    );
+    try {
+      await deletePostAction(groupid, postId);
+      mutate();
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      mutate();
+    }
+  };
+
+  const chronologicalPosts = useMemo(() => {
     return [...posts].sort((a, b) => {
-      const timeStringA = a.createdAt || a.createdAt || "";
-      const timeStringB = b.createdAt || b.createdAt || "";
-      const timeA = timeStringA ? new Date(timeStringA).getTime() : 0;
-      const timeB = timeStringB ? new Date(timeStringB).getTime() : 0;
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return timeB - timeA;
     });
   }, [posts]);
 
-  const postsByCategory = useMemo(() => {
-    return {
-      event: chronologicalPosts.filter((p) => p.category === "event"),
-      announcement: chronologicalPosts.filter((p) => p.category === "announcement"),
-      poll: chronologicalPosts.filter((p) => p.category === "poll"),
-      survey: chronologicalPosts.filter((p) => p.category === "survey"),
-      article: chronologicalPosts.filter((p) => p.category === "article"),
-    };
-  }, [chronologicalPosts]);
+  const postsByCategory = useMemo(() => ({
+    event: chronologicalPosts.filter((p) => p.category === "event"),
+    announcement: chronologicalPosts.filter((p) => p.category === "announcement"),
+    poll: chronologicalPosts.filter((p) => p.category === "poll"),
+    survey: chronologicalPosts.filter((p) => p.category === "survey"),
+    article: chronologicalPosts.filter((p) => p.category === "article"),
+  }), [chronologicalPosts]);
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -73,7 +85,10 @@ const chronologicalPosts = useMemo(() => {
     (!isCategoryActive("survey") || filtered.survey.length === 0) &&
     (!isCategoryActive("article") || filtered.article.length === 0);
 
-  const pinnedPosts = useMemo(() => chronologicalPosts.filter((p) => p.pinned), [chronologicalPosts]);
+  const pinnedPosts = useMemo(
+    () => chronologicalPosts.filter((p) => p.pinned),
+    [chronologicalPosts]
+  );
 
   if (isLoading) {
     return (
@@ -99,7 +114,7 @@ const chronologicalPosts = useMemo(() => {
         isEmpty={isFeedEmpty}
       />
 
-      {/* {!searchQuery && !isFeedEmpty && <PinnedSection posts={pinnedPosts} />} */}
+      {!searchQuery && !isFeedEmpty && <PinnedSection posts={pinnedPosts} />}
 
       <div className="space-y-4">
         {isCategoryActive("event") && filtered.event.length > 0 && (
@@ -107,6 +122,7 @@ const chronologicalPosts = useMemo(() => {
             role={role}
             posts={filtered.event}
             searchQuery={searchQuery}
+            onDeletePost={handleDeletePost}
           />
         )}
         {isCategoryActive("announcement") && filtered.announcement.length > 0 && (
@@ -114,31 +130,32 @@ const chronologicalPosts = useMemo(() => {
             role={role}
             posts={filtered.announcement}
             searchQuery={searchQuery}
-             onDeletePost={function (postId: string): Promise<void> | void {
-              throw new Error("Function not implemented.");
-            } }          />
+            onDeletePost={handleDeletePost}
+          />
         )}
         {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
           <PollCard
             role={role}
             posts={filtered.poll}
             searchQuery={searchQuery}
+            onDeletePost={handleDeletePost}
           />
-        )} */}
-        {/* {isCategoryActive("survey") && filtered.survey.length > 0 && (
+        )}
+        {isCategoryActive("survey") && filtered.survey.length > 0 && (
           <SurveyCard
             role={role}
             posts={filtered.survey}
             searchQuery={searchQuery}
+            onDeletePost={handleDeletePost}
           />
         )} */}
         {isCategoryActive("article") && filtered.article.length > 0 && (
           <ArticleCard
             role={role}
             posts={filtered.article}
-            searchQuery={searchQuery} onDeletePost={function (postId: string): Promise<void> | void {
-              throw new Error("Function not implemented.");
-            } }          />
+            searchQuery={searchQuery}
+            onDeletePost={handleDeletePost}
+          />
         )}
       </div>
     </div>

@@ -859,7 +859,6 @@ export function AppSidebar() {
             <SidebarMenuItem>
               {currentUser?.role === "student" && (
                 <SidebarMenuButton size="lg" className="pointer-events-none">
-                  {/* Dynamic Profile Picture / Initials Fallback */}
                   <div className="w-8 h-8 rounded-full shrink-0 bg-grey-200 overflow-hidden flex items-center justify-center">
                     {currentUser?.profilePicture ? (
                       <Image

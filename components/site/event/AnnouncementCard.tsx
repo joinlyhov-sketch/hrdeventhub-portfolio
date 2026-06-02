@@ -27,10 +27,7 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
 
   if (images.length === 0) return null;
 
-  const gridClass =
-    images.length === 1
-      ? "grid-cols-1"
-      : "grid-cols-2";
+  const gridClass = images.length === 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
     <>
@@ -85,7 +82,7 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
           </button>
           <div className="flex items-center gap-4 px-4 w-full max-w-4xl">
             <button
-              className="text-white p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
+              className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
               disabled={previewIndex === 0}
               onClick={(e) => { e.stopPropagation(); setPreviewIndex((p) => (p ?? 0) - 1); }}
             >
@@ -106,7 +103,7 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
               )}
             </div>
             <button
-              className="text-white p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
+              className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
               disabled={previewIndex === images.length - 1}
               onClick={(e) => { e.stopPropagation(); setPreviewIndex((p) => (p ?? 0) + 1); }}
             >
@@ -122,7 +119,15 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
   );
 }
 
-function AnnouncementItem({ post, role, onDelete }: { post: Post; role: UserRole; onDelete: () => Promise<void> | void }) {
+function AnnouncementItem({
+  post,
+  role,
+  onDelete,
+}: {
+  post: Post;
+  role: UserRole;
+  onDelete: () => Promise<void> | void;
+}) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -134,14 +139,8 @@ function AnnouncementItem({ post, role, onDelete }: { post: Post; role: UserRole
   const creator = post.creator;
   const profilePictureUrl = getMediaUrl(creator?.profilePicture);
   const hasProfilePicture = !!profilePictureUrl;
-
   const initials = creator?.fullName
-    ? creator.fullName
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+    ? creator.fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
 
   const hasLocation = !!post.location?.locationName;
@@ -167,15 +166,14 @@ function AnnouncementItem({ post, role, onDelete }: { post: Post; role: UserRole
   return (
     <>
       <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
+
         <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-[#EBF5FB] p-2 rounded-lg text-primary">
               <Megaphone size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-grey-900 leading-tight">
-                Announcement
-              </h4>
+              <h4 className="text-sm font-bold text-grey-900 leading-tight">Announcement</h4>
               <p className="text-xs font-medium text-grey-400">
                 {post.scheduledAt ?? post.createdAt}
               </p>
@@ -202,15 +200,11 @@ function AnnouncementItem({ post, role, onDelete }: { post: Post; role: UserRole
                   className="w-full h-full object-cover rounded-full"
                 />
               ) : (
-                <span className="type-desc-semibold text-primary uppercase">
-                  {initials}
-                </span>
+                <span className="type-desc-semibold text-primary uppercase">{initials}</span>
               )}
             </div>
             <div>
-              <h3 className="type-desc-semibold text-secondary">
-                {creator?.fullName ?? "—"}
-              </h3>
+              <h3 className="type-desc-semibold text-secondary">{creator?.fullName ?? "—"}</h3>
               <p className="type-detail-small-medium text-grey-400">
                 {post.scheduledAt ?? post.createdAt}
               </p>
@@ -232,9 +226,7 @@ function AnnouncementItem({ post, role, onDelete }: { post: Post; role: UserRole
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">
-          {post.content}
-        </p>
+        <p className="type-desc text-muted-foreground leading-relaxed mb-4">{post.content}</p>
 
         {hasMetaInfo && (
           <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-4">
@@ -284,9 +276,7 @@ function AnnouncementItem({ post, role, onDelete }: { post: Post; role: UserRole
             <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                activeReaction
-                  ? `${activeReaction.color} font-semibold`
-                  : "hover:text-primary"
+                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
               }`}
             >
               <ThumbsUp
@@ -375,11 +365,7 @@ function AnnouncementItem({ post, role, onDelete }: { post: Post; role: UserRole
                         )}
                         <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
                         <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
-                          <img
-                            src={reply.author.avatar}
-                            alt={reply.author.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={reply.author.avatar} alt={reply.author.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-1.5 text-sm">
@@ -428,11 +414,11 @@ export function AnnouncementCard({ role, posts, onDeletePost }: AnnouncementCard
   return (
     <>
       {posts.map((post) => (
-        <AnnouncementItem 
-          key={post.postId} 
-          post={post} 
-          role={role} 
-          onDelete={() => onDeletePost(post.postId)} 
+        <AnnouncementItem
+          key={post.postId}
+          post={post}
+          role={role}
+          onDelete={() => onDeletePost(post.postId)}
         />
       ))}
     </>

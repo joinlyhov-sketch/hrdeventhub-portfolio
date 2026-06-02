@@ -12,7 +12,7 @@ import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
 import { mockComments } from "@/data/articleData";
-import { UserRole } from "@/context/user-context";
+import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
 
@@ -24,6 +24,7 @@ interface ArticleCardProps {
 }
 
 function ArticleItem({ post, role, onDelete }: { post: Post; role: UserRole; onDelete: () => Promise<void> | void }) {
+  const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
@@ -152,12 +153,20 @@ function ArticleItem({ post, role, onDelete }: { post: Post; role: UserRole; onD
         </div>
 
         <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
-          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0">
-            <img
-              src="https://i.pravatar.cc/150?u=user"
-              alt="Me"
-              className="w-full h-full object-cover"
-            />
+          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+            {currentUser?.profilePicture ? (
+              <Image
+                src={currentUser.profilePicture}
+                alt={currentUser.name}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <span className="type-desc-small-semibold text-primary uppercase">
+                {currentUser?.avatarInitials ?? "?"}
+              </span>
+            )}
           </div>
           <div className="relative grow flex items-center bg-grey-50 rounded-full pr-1.5 pl-6 py-1.5">
             <input
@@ -258,11 +267,11 @@ export function ArticleCard({ role, posts, onDeletePost }: ArticleCardProps) {
   return (
     <>
       {posts.map((post) => (
-        <ArticleItem 
-          key={post.postId} 
-          post={post} 
-          role={role} 
-          onDelete={() => onDeletePost(post.postId)} 
+        <ArticleItem
+          key={post.postId}
+          post={post}
+          role={role}
+          onDelete={() => onDeletePost(post.postId)}
         />
       ))}
     </>
