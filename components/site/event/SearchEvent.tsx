@@ -32,10 +32,10 @@ export default function SearchEvent({
   isEmpty = false,
 }: SearchEventProps) {
   const params = useParams();
-  const groupId = params.groupId;
+  const groupid = params.groupid;
    const getCreationRoute = (value: string) => {
-    if (groupId && groupId !== "null") {
-      return `/event-management/creation/${value}?groupId=${groupId}`;
+    if (groupid && groupid !== "null") {
+      return `/event-management/creation/${value}?groupid=${groupid}`;
     }
     return `/event-management/creation/${value}`;
   };
