@@ -7,6 +7,8 @@ import { profileService } from "@/service/profile.service";
 import { getIdentityMeAction, updateIdentityMeAction, updateProfileMeAction } from "@/actions/profile.action";
 import { useRouter } from "next/navigation";
 
+import { uploadFileAction } from "@/actions/file.action";
+
 export default function StudentProfileForm() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -139,7 +141,9 @@ export default function StudentProfileForm() {
   }, [session]);
 
   const handleContainerClick = () => {
-    fileInputRef.current?.click();
+    if (!isUploading) {
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,17 +151,30 @@ export default function StudentProfileForm() {
     if (!file) return;
 
     setIsUploading(true);
+    setError(null);
+
+    const localBlobUrl = URL.createObjectURL(file);
+    setProfilePicture(localBlobUrl);
+
+    const dataPayload = new FormData();
+    dataPayload.append("file", file);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      const mockUploadedUrl = "https://api.dev.hrdevent.app/api/v4/files/preview-file?key=event/aaec3b93-91b8-4951-ad5e-ea40ec3a0fc8.png";
-      
-      setProfilePicture(mockUploadedUrl);
+      const result = await uploadFileAction(dataPayload);
+
+      if (result.ok && result.payload?.fileUrl) {
+        setProfilePicture(result.payload.fileUrl);
+      } else {
+        setError(result.error || "Profile image upload was rejected by the server.");
+        setProfilePicture(initialProfile?.profilePicture || ""); 
+      }
     } catch (err) {
-      console.error("Failed to upload image preview:", err);
+      console.error("Network profile pipeline upload crash:", err);
+      setError("A networking issue interrupted the asset transmission.");
+      setProfilePicture(initialProfile?.profilePicture || "");
     } finally {
       setIsUploading(false);
+      e.target.value = ""; 
     }
   };
 
@@ -266,7 +283,6 @@ export default function StudentProfileForm() {
         </h2>
 
         <div className="flex flex-col sm:flex-row gap-6 items-start">
-
           <div 
             onClick={handleContainerClick}
             className="relative group w-36 h-36 bg-grey-900 rounded-full flex flex-col items-center justify-center cursor-pointer overflow-hidden border border-border shrink-0 select-none shadow-xs transition-all hover:scale-[1.01]"
@@ -297,13 +313,12 @@ export default function StudentProfileForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 12v3m0 0l-1.5-1.5M12 15l1.5-1.5" />
                   </svg>
                   <span className="text-[11px] font-semibold text-white/90 tracking-wide text-center max-w-[80%] leading-tight">
-                    {isUploading ? "Uploading..." : "Upload Profile"}
+                    Upload Profile
                   </span>
                 </>
               )}
             </div>
           </div>
-
 
           <input 
             type="file"
@@ -311,6 +326,7 @@ export default function StudentProfileForm() {
             onChange={handleFileChange}
             accept="image/png, image/jpeg, image/jpg, image/webp"
             className="hidden"
+            disabled={isUploading}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 type-desc text-primary gap-4 flex-1 w-full">
@@ -382,7 +398,7 @@ export default function StudentProfileForm() {
             <div className="shrink-0">
               <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                <path d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20+addC29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M16 20H24" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -532,7 +548,7 @@ export default function StudentProfileForm() {
         </button>
         <button
           type="button"
-          disabled={isPending}
+          disabled={isPending || isUploading}
           onClick={handleSaveChanges}
           className="w-full sm:w-auto px-5 py-2 bg-primary text-white rounded-lg type-detail-semibold hover:bg-primary-hover shadow-xs border-0 cursor-pointer order-1 sm:order-2 disabled:opacity-50"
         >

@@ -168,7 +168,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
             searchQuery={searchQuery}
             onDeletePost={handleDeletePost}
           />
-        )}
+        )} */}  {/* <--- ADDED THE CLOSING TAG HERE */}
       </div>
     </div>
   );
