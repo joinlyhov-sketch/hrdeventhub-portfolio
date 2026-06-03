@@ -6,9 +6,7 @@ export interface PostLocation {
 }
 
 export interface PostMediaItem {
-  fileName: string;
   filePath: string;
-  fileType: string;
   isCover: boolean;
 }
 
@@ -18,27 +16,88 @@ export interface PostPayment {
 }
 
 export interface CreatePostPayload {
-  category: "event" | "announcement" | "article";
   title: string;
   content: string;
   purpose: string;
-  isPublished: boolean;
-  scheduledAt: string;
-  status: "draft" | "published";
-  isPinned: boolean;
-  expiresAt: string;
   eventStart: string;
   eventEnd: string;
+  scheduledAt: string | null;
+  expiresAt: string;
+  isPublished: boolean;
+  status: "draft" | "active" | "closed";
+  isPinned: boolean;
   location: PostLocation;
-  media?: PostMediaItem[];
+  media: PostMediaItem[];
   payment: PostPayment;
 }
 
 export interface CreatePostResponse {
   success: boolean;
   message: string;
-  payload: {
-    id: string;
-    title: string;
-  };
+  status: string;
+  timestamp: string;
+}
+
+export interface FileUploadBackendResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: string;
+  timestamp: string;
+}
+
+export interface AnnouncementLocationPayload {
+  locationName: string;
+  googleMapUrl: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface AnnouncementMediaPayload {
+  filePath: string;
+  isCover: boolean;
+}
+
+export interface CreateAnnouncementPayload {
+  title: string;
+  content: string;
+  purpose: string;
+  eventStart: string;
+  eventEnd: string;
+  scheduledAt: string | null;
+  expiresAt: string;
+  isPublished: boolean;
+  status: "draft" | "active";
+  isPinned: boolean;
+  location: AnnouncementLocationPayload;
+  media: AnnouncementMediaPayload[];
+}
+export interface CreateAnnouncementResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: string;
+  timestamp: string;
+}
+
+export interface ServerActionResponse<T> {
+  ok: boolean;
+  payload?: T;
+  error?: string;
+}
+
+export interface CreateArticlePayload {
+  title: string;
+  content: string;
+  isPublished: boolean;
+  status: "draft" | "active";
+  isPinned: boolean;
+}
+
+export interface CreateArticleBackendResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: string;
+  timestamp: string;
 }

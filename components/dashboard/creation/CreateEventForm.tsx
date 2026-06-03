@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter, usePathname } from "next/navigation";
-import { useForm, Controller, Resolver } from "react-hook-form";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm, Controller, useWatch, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import {
   Calendar,
   Clock,
@@ -11,6 +12,8 @@ import {
   FileText,
   BadgeDollarSign,
   Link as LinkIcon,
+  Layers,
+  Target,
 } from "lucide-react";
 
 import { Breadcrumb } from "../BreadCrumb";
@@ -20,38 +23,34 @@ import { Button } from "../../ui/button";
 import { CreationTabs } from "../CreationTab";
 import { FormTextarea } from "../FormTextarea";
 import { createPostAction } from "@/actions/post.action";
-import { eventPostSchema, EventPostFormValues } from "@/schemas/post-schema";
+import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
 import { CreatePostPayload } from "@/types/post-types";
-import { useSession } from "next-auth/react";
 
 export default function CreateEventForm() {
   const router = useRouter();
-  const params = useParams();
-  const pathname = usePathname();
+  const params = useSearchParams();
   const { data: session } = useSession();
+  const token = session?.accessToken;
 
-  const workspaceId = "ce54713a-cb06-4efb-aa1a-3e583791fc7b";
+  const workspaceId = params.get("groupId") || "";
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  let computedCategory: "event" | "announcement" | "article" = "event";
-  if (pathname?.endsWith("/announcement")) computedCategory = "announcement";
-  if (pathname?.endsWith("/article")) computedCategory = "article";
 
   const {
     register,
     handleSubmit,
     control,
-    setValue,
     formState: { errors },
   } = useForm<EventPostFormValues>({
     resolver: zodResolver(eventPostSchema) as Resolver<EventPostFormValues>,
     defaultValues: {
       title: "",
+      purpose: "",
       date: "",
       startTime: "",
       endTime: "",
       locationName: "",
       googleMapUrl: "",
+      status: "active",
       scheduleDate: "",
       price: 0,
       targetGoal: 0,
@@ -60,40 +59,41 @@ export default function CreateEventForm() {
     },
   });
 
-  const handleAttachmentsChange = (
-    mediaItems: Array<{ fileName: string; fileUrl: string }>,
-  ) => {
-    const mappedMedia = mediaItems.map((img, idx) => ({
-      fileName: img.fileName,
-      filePath: img.fileUrl,
-      fileType: "image",
-      isCover: idx === 0,
-    }));
-    setValue("media", mappedMedia, { shouldValidate: true });
-  };
+  const watchedStatus = useWatch({
+    control,
+    name: "status",
+    defaultValue: "active",
+  });
+
   const onSubmit = async (data: EventPostFormValues) => {
+    if (!workspaceId) {
+      alert("Error: Workspace context identification parameters are missing.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const startIso = new Date(`${data.date}T${data.startTime}`).toISOString();
     const endIso = new Date(`${data.date}T${data.endTime}`).toISOString();
-    const token = session?.accessToken;
 
-    const scheduledIso = data.scheduleDate
-      ? new Date(`${data.scheduleDate}T00:00:00`).toISOString()
-      : new Date().toISOString();
+    let scheduledIso: string | null = null;
+    if (data.status === "draft" && data.scheduleDate) {
+      scheduledIso = new Date(`${data.scheduleDate}T00:00:00`).toISOString();
+    } else {
+      scheduledIso = new Date().toISOString();
+    }
 
     const payload: CreatePostPayload = {
-      category: computedCategory,
-      title: data.title,
-      content: data.description,
-      purpose: "Community Event",
-      isPublished: true,
-      scheduledAt: scheduledIso,
-      status: "draft",
-      isPinned: false,
-      expiresAt: endIso,
+      title: data.title.trim(),
+      content: data.description.trim(),
+      purpose: data.purpose.trim() || "Community Event",
       eventStart: startIso,
       eventEnd: endIso,
+      scheduledAt: data.status === "active" ? startIso : scheduledIso,
+      expiresAt: endIso,
+      isPublished: data.status === "active",
+      status: data.status,
+      isPinned: false,
       location: {
         locationName: data.locationName,
         googleMapUrl: data.googleMapUrl || "https://maps.google.com",
@@ -102,20 +102,20 @@ export default function CreateEventForm() {
       },
       media: data.media,
       payment: {
-        paymentAmount: data.price,
-        donationGoal: data.targetGoal || 0,
+        paymentAmount: Number(data.price),
+        donationGoal: Number(data.targetGoal) || 0,
       },
     };
 
     console.log(
-      "FINAL OUTGOING PAYLOAD SENDING TO BACKEND SERVER:",
+      "PRE-FLIGHT OUTGOING OBJECT VERIFICATION CHECK:",
       JSON.stringify(payload, null, 2),
     );
 
     try {
       const result = await createPostAction(workspaceId, payload, token);
       if (result.ok) {
-        alert(`${computedCategory.toUpperCase()} created successfully!`);
+        alert("Event created successfully!");
         router.push(`/group/${workspaceId}`);
       } else {
         alert(`Creation failed: ${result.error}`);
@@ -129,10 +129,7 @@ export default function CreateEventForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
-      <Breadcrumb
-        label="Event Creation"
-        backHref={`/group/${workspaceId || ""}`}
-      />
+      <Breadcrumb label="Event Creation" backHref={`/group/${workspaceId}`} />
 
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col grow mb-4">
         <div className="p-5 md:px-1 lg:px-10 border-b border-slate-50">
@@ -143,7 +140,7 @@ export default function CreateEventForm() {
             Fill in the details below to publish your next conference or
             workshop.
           </p>
-          <CreationTabs />
+          <CreationTabs groupid={workspaceId} />
         </div>
 
         <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 grow">
@@ -158,6 +155,20 @@ export default function CreateEventForm() {
               {errors.title && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.title.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <FormInput
+                label="Event Purpose"
+                icon={Target}
+                placeholder="e.g. Community Seminar, Networking Conference"
+                {...register("purpose")}
+              />
+              {errors.purpose && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.purpose.message}
                 </p>
               )}
             </div>
@@ -233,46 +244,55 @@ export default function CreateEventForm() {
               )}
             </div>
 
+            <div className="flex flex-col w-full text-sm">
+              <label className="flex items-center gap-2 mb-2 font-semibold text-gray-700">
+                <Layers size={18} className="text-slate-400" />
+                Form Status Target
+              </label>
+              <select
+                {...register("status")}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
+              >
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+
+            {watchedStatus === "draft" && (
+              <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                <FormInput
+                  label="Schedule Publish Date"
+                  icon={Calendar}
+                  type="date"
+                  {...register("scheduleDate")}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-12 gap-y-5">
             <div>
               <FormInput
-                label="Schedule"
-                icon={Calendar}
-                type="date"
-                {...register("scheduleDate")}
+                label="Price"
+                icon={BadgeDollarSign}
+                placeholder="0.00"
+                type="number"
+                step="0.01"
+                {...register("price")}
               />
             </div>
-          </div>
 
-          <div>
-            <FormInput
-              label="Price"
-              icon={BadgeDollarSign}
-              placeholder="0.00"
-              type="number"
-              step="0.01"
-              {...register("price")}
-            />
-            {errors.price && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.price.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <FormInput
-              label="Target goal ( Optional )"
-              icon={BadgeDollarSign}
-              placeholder="0.00"
-              type="number"
-              step="0.01"
-              {...register("targetGoal")}
-            />
-            {errors.targetGoal && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.targetGoal.message}
-              </p>
-            )}
+            <div>
+              <FormInput
+                label="Target goal ( Optional )"
+                icon={BadgeDollarSign}
+                placeholder="0.00"
+                type="number"
+                step="0.01"
+                {...register("targetGoal")}
+              />
+            </div>
           </div>
 
           <div>
@@ -281,18 +301,13 @@ export default function CreateEventForm() {
               placeholder="Describe the mission and scope of this event..."
               {...register("description")}
             />
-            {errors.description && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.description.message}
-              </p>
-            )}
           </div>
 
           <Controller
             control={control}
             name="media"
-            render={() => (
-              <MediaUpload onAttachmentsChange={handleAttachmentsChange} />
+            render={({ field }) => (
+              <MediaUpload value={field.value} onChange={field.onChange} />
             )}
           />
         </div>
@@ -303,7 +318,7 @@ export default function CreateEventForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${workspaceId || ""}`)}
+          onClick={() => router.push(`/group/${workspaceId}`)}
           className="order-2 sm:order-1 w-full sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
         >
           Cancel

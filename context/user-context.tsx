@@ -13,6 +13,7 @@ export type CurrentUser = {
   email: string;
   role: UserRole;
   avatarInitials: string;
+  profilePicture?: string; 
 };
 
 const mapProfileRole = (role?: ProfileRole): UserRole => {
@@ -63,6 +64,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           email: appUser.email,
           role: mapProfileRole(profile.roles),
           avatarInitials: initials || "?",
+          profilePicture: profile.profilePicture || undefined, 
         });
       } catch {
         setCurrentUser(null);

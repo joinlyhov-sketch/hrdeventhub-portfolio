@@ -1,20 +1,59 @@
-import { apiPost } from "@/libs/api";
-import { CreatePostPayload, CreatePostResponse } from "@/types/post-types";
-import { apiGet } from "@/libs/api";
+import { apiPost, apiGet, apiDelete } from "@/libs/api";
+import {
+  CreateAnnouncementPayload,
+  CreateAnnouncementResponse,
+  CreateArticleBackendResponse,
+  CreateArticlePayload,
+  CreatePostPayload,
+  CreatePostResponse,
+} from "@/types/post-types";
 import { PostsResponse, Post } from "@/types/posts";
 
 export const postService = {
-  createPost: async (
+  createEventPost: async (
     workspaceId: string,
     payload: CreatePostPayload,
-    authToken?: string,
+    authToken: string,
   ): Promise<CreatePostResponse> => {
     return apiPost<CreatePostResponse, CreatePostPayload>(
-      `/workspaces/${workspaceId}/post`,
+      `/workspaces/${workspaceId}/post/event`,
       payload,
       { authToken },
     );
   },
+  createAnnouncement: async (
+    workspaceId: string,
+    payload: CreateAnnouncementPayload,
+    token?: string,
+  ): Promise<CreateAnnouncementResponse> => {
+    const path = `/workspaces/${workspaceId}/post/announcement`;
+
+    return apiPost<CreateAnnouncementResponse, CreateAnnouncementPayload>(
+      path,
+      payload,
+      {
+        authToken: token,
+        accept: "application/json",
+      },
+    );
+  },
+  createArticle: async (
+    workspaceId: string,
+    payload: CreateArticlePayload,
+    token?: string,
+  ): Promise<CreateArticleBackendResponse> => {
+    const path = `/workspaces/${workspaceId}/post/article`;
+
+    return apiPost<CreateArticleBackendResponse, CreateArticlePayload>(
+      path,
+      payload,
+      {
+        authToken: token,
+        accept: "application/json",
+      },
+    );
+  },
+
   getByWorkspace: async (
     workspaceId: string,
     token: string,
@@ -26,5 +65,18 @@ export const postService = {
       { authToken: token },
     );
     return response.payload;
+  },
+
+  delete: async (
+    workspaceId: string,
+    postId: string,
+    token: string,
+  ): Promise<any> => {
+    return await apiDelete(`/workspaces/${workspaceId}/post/${postId}`, {
+      headers: {
+        accept: "*/*",
+      },
+      authToken: token,
+    });
   },
 };
