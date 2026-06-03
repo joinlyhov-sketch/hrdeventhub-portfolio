@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   resendOtpAction,
   verifyForgotPasswordAction,
@@ -14,35 +14,24 @@ function secondsFromExpiry(expiresAt: number | null): number {
 }
 
 export default function VerifyStep() {
-  const [hydrated, setHydrated] = useState(false);
-  const email        = useResetPasswordStore((s) => s.email);
-  const storeToken   = useResetPasswordStore((s) => s.storeToken);
+  const email = useResetPasswordStore((s) => s.email);
+  const storeToken = useResetPasswordStore((s) => s.storeToken);
   const otpExpiresAt = useResetPasswordStore((s) => s.otpExpiresAt);
-  const storeEmail   = useResetPasswordStore((s) => s.storeEmail);
-  const reset        = useResetPasswordStore((s) => s.reset);
+  const storeEmail = useResetPasswordStore((s) => s.storeEmail);
+  const reset = useResetPasswordStore((s) => s.reset);
 
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
-  const [otp, setOtp]                             = useState(["", "", "", "", "", ""]);
-  const [error, setError]                         = useState<string | null>(null);
-  const [success, setSuccess]                     = useState<string | null>(null);
-  const [resendMessage, setResendMessage]         = useState<string | null>(null);
-  const [isPending, startTransition]              = useTransition();
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
-  const [secondsLeft, setSecondsLeft]             = useState(300);
+  const [secondsLeft, setSecondsLeft] = useState(() =>
+    secondsFromExpiry(otpExpiresAt),
+  );
 
-  // ── Wait for Zustand persist to rehydrate before doing anything ──────────
   useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  // ── Countdown — starts only after hydration so otpExpiresAt is real ──────
-  useEffect(() => {
-    if (!hydrated) return;
-
-    const initial = secondsFromExpiry(otpExpiresAt);
-    setSecondsLeft(initial);
-    if (initial <= 0) return;
-
     const timer = window.setInterval(() => {
       const remaining = secondsFromExpiry(otpExpiresAt);
       setSecondsLeft(remaining);
@@ -50,7 +39,7 @@ export default function VerifyStep() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [hydrated, otpExpiresAt]);
+  }, [otpExpiresAt]);
 
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
@@ -61,41 +50,36 @@ export default function VerifyStep() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    const isFilled = otp.every((d) => d !== "");
-    if (isFilled && autoSubmitEnabled && !isPending) {
-      submitOtp(otp.join(""));
-    }
-  }, [otp, hydrated]);
+  const submitOtp = useCallback(
+    (code: string) => {
+      setError(null);
+      setSuccess(null);
+      setResendMessage(null);
 
-  const submitOtp = (code: string) => {
-    setError(null);
-    setSuccess(null);
-    setResendMessage(null);
-
-    if (!email) {
-      setError("Email is missing. Please go back.");
-      return;
-    }
-    if (code.length !== 6) {
-      setError("Please enter the 6-digit OTP.");
-      return;
-    }
-
-    startTransition(async () => {
-      const result = await verifyForgotPasswordAction(email, code);
-      if (result?.error) {
-        setError(result.error);
-        setAutoSubmitEnabled(false);
+      if (!email) {
+        setError("Email is missing. Please go back.");
         return;
       }
-      if (result?.ok && result.token) {
-        reset(); 
-        storeToken(result.token);
+      if (code.length !== 6) {
+        setError("Please enter the 6-digit OTP.");
+        return;
       }
-    });
-  };
+
+      startTransition(async () => {
+        const result = await verifyForgotPasswordAction(email, code);
+        if (result?.error) {
+          setError(result.error);
+          setAutoSubmitEnabled(false);
+          return;
+        }
+        if (result?.ok && result.token) {
+          reset();
+          storeToken(result.token);
+        }
+      });
+    },
+    [email, reset, startTransition, storeToken],
+  );
 
   const handleVerify = () => submitOtp(otp.join(""));
 
@@ -104,6 +88,10 @@ export default function VerifyStep() {
     const next = [...otp];
     next[index] = value.slice(-1);
     setOtp(next);
+    const isFilled = next.every((digit) => digit !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) {
+      submitOtp(next.join(""));
+    }
     if (value && index < 5) inputs.current[index + 1]?.focus();
   };
 
@@ -128,8 +116,10 @@ export default function VerifyStep() {
         setError(result.error);
         return;
       }
-      setResendMessage(result.message ?? "Verification OTP successfully resent.");
-      storeEmail(email); 
+      setResendMessage(
+        result.message ?? "Verification OTP successfully resent.",
+      );
+      storeEmail(email);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
       inputs.current[0]?.focus();
@@ -138,7 +128,6 @@ export default function VerifyStep() {
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
-
 
   return (
     <motion.div
@@ -158,13 +147,15 @@ export default function VerifyStep() {
         {[...Array(6)].map((_, i) => (
           <input
             key={i}
-            ref={(el) => { inputs.current[i] = el; }}
+            ref={(el) => {
+              inputs.current[i] = el;
+            }}
             type="text"
             maxLength={1}
             value={otp[i]}
             onChange={(e) => handleChange(e.target.value, i)}
             onKeyDown={(e) => handleKeyDown(e, i)}
-            className="h-[58px] w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
+            className="h-14.5 w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
           />
         ))}
       </div>
@@ -201,7 +192,7 @@ export default function VerifyStep() {
       <button
         onClick={handleVerify}
         disabled={isPending}
-        className="mt-3 h-[58px] w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+        className="mt-3 h-14.5 w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
       >
         {isPending ? "Verifying..." : "Submit"}
       </button>

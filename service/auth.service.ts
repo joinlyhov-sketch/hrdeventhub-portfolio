@@ -2,6 +2,7 @@ import {
   AuthResponse,
   ForgotPasswordResponse,
   LoginRequest,
+  ProfileResponse,
   RegisterRequest,
   RegisterResponse,
   ResendOtpResponse,
@@ -9,128 +10,74 @@ import {
   VerifyForgotPasswordResponse,
   VerifyOtpResponse,
 } from "../types/auth-types";
-import { env } from "../libs/env";
-
-const apiBaseUrl = env?.NEXT_PUBLIC_API_BASE_URL;
-
-if (!apiBaseUrl) {
-  throw new Error("API base URL is not configured.");
-}
-
-const handleResponseError = async (res: Response, defaultMessage: string): Promise<never> => {
-  let errorMessage = defaultMessage;
-  try {
-    const errorJson = (await res.json()) as { message?: string };
-    if (errorJson?.message) {
-      errorMessage = errorJson.message;
-    }
-  } catch {
-    const errorBody = await res.text();
-    if (errorBody) {
-      errorMessage = errorBody;
-    }
-  }
-  throw new Error(errorMessage);
-};
+import { apiGet, apiPost } from "../libs/api";
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    const loginPayload = {
-      identifier: credentials.email,
-      password: credentials.password,
-    };
-    const res = await fetch(`${apiBaseUrl}/auths/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(loginPayload),
-    });
-
-    if (!res.ok) {
-      const errorBody = await res.text();
-      const details = errorBody ? ` - ${errorBody}` : "";
-      throw new Error(`Login failed (${res.status})${details}`);
-    }
-
-    return res.json();
+    return apiPost<AuthResponse, { identifier: string; password: string; rememberMe: boolean }>(
+      "/auths/login",
+      {
+        identifier: credentials.identifier,
+        password: credentials.password,
+        rememberMe: credentials.rememberMe ?? false,
+      },
+    );
   },
 
-register: async (data: RegisterRequest): Promise<RegisterResponse> => {
-  const res = await fetch(`${apiBaseUrl}/auths/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+    return apiPost<AuthResponse, { refreshToken: string }>(
+      "/auths/refresh",
+      { refreshToken },
+    );
+  },
 
-  if (res.status === 409) {
-    throw new Error("This email is already taken. Please use a different one.");
-  }
+  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
+    return apiPost<RegisterResponse, RegisterRequest>("/auths/register", data);
+  },
 
-  if (!res.ok) await handleResponseError(res, "Registration failed");
-  return res.json();
-},
   verifyOtp: async (email: string, otp: string): Promise<VerifyOtpResponse> => {
-    const url = new URL(`${apiBaseUrl}/auths/verify-otp`);
-    url.searchParams.set("email", email);
-    url.searchParams.set("otp", otp);
-
-    const res = await fetch(url.toString(), {
-      method: "POST",
-      headers: { accept: "*/*" },
-    });
-
-    if (!res.ok) await handleResponseError(res, "OTP verification failed");
-    return res.json();
+    const params = new URLSearchParams({ email, otp });
+    return apiPost<VerifyOtpResponse>(`/auths/verify-otp?${params.toString()}`);
   },
 
   forgotPassword: async (email: string): Promise<ForgotPasswordResponse> => {
-    const res = await fetch(`${apiBaseUrl}/auths/forgot-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", accept: "*/*" },
-      body: JSON.stringify({ email }),
-    });
-
-    if (!res.ok) await handleResponseError(res, "Email not found.");
-    return res.json();
+    return apiPost<ForgotPasswordResponse, { email: string }>(
+      "/auths/forgot-password",
+      { email },
+    );
   },
 
   verifyForgotPassword: async (
     email: string,
-    otp: string
+    otp: string,
   ): Promise<VerifyForgotPasswordResponse> => {
-    const res = await fetch(`${apiBaseUrl}/auths/verify-forgot-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", accept: "*/*" },
-      body: JSON.stringify({ email, otp }),
-    });
-
-    if (!res.ok) await handleResponseError(res, "OTP verification failed");
-    return res.json();
+    return apiPost<VerifyForgotPasswordResponse, { email: string; otp: string }>(
+      "/auths/verify-forgot-password",
+      { email, otp },
+    );
   },
 
   resetPassword: async (
     resetToken: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<ResetPasswordResponse> => {
-    const res = await fetch(`${apiBaseUrl}/auths/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", accept: "*/*" },
-      body: JSON.stringify({ resetToken, newPassword }),
-    });
-
-    if (!res.ok) await handleResponseError(res, "Reset password failed");
-    return res.json();
+    return apiPost<ResetPasswordResponse, { resetToken: string; newPassword: string }>(
+      "/auths/reset-password",
+      { resetToken, newPassword },
+    );
   },
+  logout: async (refreshToken: string): Promise<void> => {
+  await apiPost<void, { refreshToken: string }>(
+    "/auths/logout",
+    { refreshToken },
+  );
+},
 
   resendOtp: async (email: string): Promise<ResendOtpResponse> => {
-    const url = new URL(`${apiBaseUrl}/auths/resend`);
-    url.searchParams.set("email", email);
-
-    const res = await fetch(url.toString(), {
-      method: "POST",
-      headers: { accept: "*/*" },
-    });
-
-    if (!res.ok) await handleResponseError(res, "Resend OTP failed");
-    return res.json();
+    const params = new URLSearchParams({ email });
+    return apiPost<ResendOtpResponse>(`/auths/resend?${params.toString()}`);
   },
+
+  getProfileMe: async (authToken: string): Promise<ProfileResponse> =>
+    apiGet<ProfileResponse>("/profile/me", { authToken, accept: "*/*" }),
 };

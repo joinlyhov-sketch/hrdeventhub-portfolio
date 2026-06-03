@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { X } from "lucide-react";
 import { UserData } from "../../../../data/UserData";
 import {
   Dialog,

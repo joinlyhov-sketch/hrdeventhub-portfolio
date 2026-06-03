@@ -17,17 +17,15 @@ const itemVars: Variants = {
 };
 
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Email is invalid"),
+  identifier: z.string().min(1, "Email or Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
-type LoginErrors = Partial<Record<"email" | "password", string>>;
+type LoginErrors = Partial<Record<"identifier" | "password", string>>;
 
 export default function LoginComponent() {
-  const [email, setEmail] = useState("");
+  
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -39,7 +37,7 @@ export default function LoginComponent() {
   const handleChange = (
     field: keyof LoginErrors,
     value: string,
-    setter: (v: string) => void
+    setter: (v: string) => void,
   ) => {
     setter(value);
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -49,7 +47,7 @@ export default function LoginComponent() {
     e.preventDefault();
     setServerError(null);
 
-    const result = loginSchema.safeParse({ email: email.trim(), password });
+    const result = loginSchema.safeParse({ identifier: identifier.trim(), password });
 
     if (!result.success) {
       const fieldErrors: LoginErrors = {};
@@ -64,8 +62,9 @@ export default function LoginComponent() {
     setErrors({});
 
     const formData = new FormData();
-    formData.append("email", email.trim());
+    formData.append("identifier", identifier.trim());
     formData.append("password", password);
+    formData.append("rememberMe", String(rememberMe));
 
     startTransition(async () => {
       const res = await loginAction(formData);
@@ -87,13 +86,13 @@ export default function LoginComponent() {
       className="flex items-center justify-center w-full"
     >
       <div className="w-[624px] rounded-[32px] border border-[#dce6f0] bg-[#f9fbff]/80 backdrop-blur-sm p-18 shadow-sm">
-        {/* Header Section */}
         <div className="mb-10 text-center">
           <h1 className="text-[28px] font-bold tracking-tight text-[#17356f]">
             Welcome Back !
           </h1>
           <p className="mt-2 text-[20px] font-semibold text-[#5f6470]">
-            Discover events with <span className="text-[#1f4f98]">HRD EventHub</span>
+            Discover events with{" "}
+            <span className="text-[#1f4f98]">HRD EventHub</span>
           </p>
           <p className="text-[14px] text-[#8a92a6] mt-1">
             Enter your credential to access the website
@@ -110,19 +109,26 @@ export default function LoginComponent() {
           <div className="flex flex-col gap-1">
             <div
               className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
-                errors.email ? "border-red-400" : "border-[#dce6f0]"
+                errors.identifier ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
-              <Mail size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+              <Mail
+                size={18}
+                color="#b0bac9"
+                strokeWidth={2}
+                className="shrink-0"
+              />
               <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => handleChange("email", e.target.value, setEmail)}
+                type="text"
+                placeholder="Email or Username"
+                value={identifier}
+                onChange={(e) =>
+                  handleChange("identifier", e.target.value, setIdentifier)
+                }
                 className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
               />
             </div>
-            {errors.email && <FieldError message={errors.email} />}
+            {errors.identifier && <FieldError message={errors.identifier} />}
           </div>
 
           <div className="flex flex-col gap-1 pt-4">
@@ -131,7 +137,12 @@ export default function LoginComponent() {
                 errors.password ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
-              <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+              <Lock
+                size={18}
+                color="#b0bac9"
+                strokeWidth={2}
+                className="shrink-0"
+              />
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
@@ -162,8 +173,9 @@ export default function LoginComponent() {
               />
               <span className="text-sm text-[#4d5663]">Remember me</span>
             </label>
-            
-             <a href="/reset-password"
+
+            <a
+              href="/reset-password"
               className="text-sm font-semibold text-[#17356f] underline underline-offset-2"
             >
               Forgot password?
@@ -180,8 +192,8 @@ export default function LoginComponent() {
 
           <p className="text-center text-sm text-[#5f6470] pt-2">
             Don&apos;t have an account?{" "}
-            
-             <a href="/sign-up"
+            <a
+              href="/sign-up"
               className="font-semibold text-[#17356f] underline underline-offset-2"
             >
               Sign up

@@ -1,31 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  AlignLeft,
-  FileText,
-  CheckCircle,
-  ListChecks,
-  ArrowDownCircle,
-  Star,
-  ToggleLeft,
-  Grid,
-  BarChart4,
-  Loader2,
-  Plus,
-  Type,
-  TextAlignStart,
-  CircleDot,
-  SquareCheck,
-  ChevronDown,
-  ToggleRight,
-  LayoutGrid,
-} from "lucide-react";
+import React, { useState, useCallback, useEffect } from "react";
+import { Loader2, Plus, AlertCircle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import SurveyHeader from "./SurveyHeader";
-import SurveyQuestionsList, { Question } from "./SurveyQuestionsList";
-import SidebarItemButton from "./SidebarItemButton";
+import SurveyQuestionsList from "./SurveyQuestionsList";
+import QuestionTypeSidebar from "./QuestionTypeSidebar";
+import WorkspaceSelector from "./WorkspaceSelector";
+import { Button } from "../../ui/button";
+import { Question } from "../../../data/Question";
+import { useSurveyFormStore } from "../../../store/useSurveyFormStore";
+import { surveyService } from "../../../service/survey.service";
+import { SurveyContent, SurveyElement } from "../../../types/survey";
 
-type QuestionType =
+export type QuestionType =
   | "short-text"
   | "long-text"
   | "choice"
@@ -35,194 +23,241 @@ type QuestionType =
   | "matrix"
   | "yes-no";
 
-export default function SurveyCreationForm() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+interface SurveyCreationFormProps {
+  workspaceId?: string;
+  surveyId?: string; // Add optional surveyId parameter prop configuration
+  onSuccess?: () => void;
+}
 
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: "1",
-      type: "rating",
-      text: "How would you rate today's event overall?",
-      maxScale: 5,
-      ratingValue: 0,
-    },
-    {
-      id: "2",
-      type: "linear",
-      text: "On a scale of 1 to 5, how satisfied were you with today's event?",
-      linearStart: 1,
-      linearEnd: 5,
-    },
-  ]);
+export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }: SurveyCreationFormProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const formStore = useSurveyFormStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false); // Track database query loading status
+  const [error, setError] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+
+  const isEditMode = !!surveyId; // Flag to determine text & API targets dynamically
+
+  // 1. Fetch survey details if editing an existing entry
+  useEffect(() => {
+    if (!surveyId) {
+      // Default placeholder initialization layout for Create Mode
+      setQuestions([
+        { id: "1", type: "rating", text: "How would you rate today's event overall?", maxScale: 5, ratingValue: 0 },
+        { id: "2", type: "linear", text: "On a scale of 1 to 5, how satisfied were you with today's event?", linearStart: 1, linearEnd: 5 },
+      ]);
+      return;
+    }
+
+    const loadExistingSurveyData = async () => {
+      setIsLoadingData(true);
+      try {
+        const survey = await surveyService.getSurveyById(surveyId);
+        
+        // Sync root parameters to your global Zustand form store template
+        formStore.setTitle(survey.title);
+        formStore.setDescription(survey.description || "");
+        formStore.setIsActive(survey.isActive);
+        if (survey.closingTime) {
+          // Format ISO timestamp cleanly to local datetime input fields value structures
+          formStore.setClosingTime(new Date(survey.closingTime).toISOString().slice(0, 16));
+        }
+        formStore.setSelectedWorkspaceId(survey.workspaceId);
+
+        // Map Backend Element structures back down into your UI Questions list array
+        if (survey.content?.pages?.[0]?.elements) {
+          const mappedQuestions: Question[] = survey.content.pages[0].elements.map((el, index) => {
+            // strip 'question_' out of name string key map references to retrieve base ID numbers safely
+            const extractedId = el.name.replace("question_", "") || `${index + 1}`;
+            
+            return {
+              id: extractedId,
+              type: el.type as QuestionType,
+              text: el.title,
+              options: el.choices,
+              matrixRows: el.rows,
+              matrixCols: el.columns,
+              minLabel: el.minRateLabel,
+              maxLabel: el.maxRateLabel,
+              maxScale: el.maxRateDescription,
+            } as Question;
+          });
+          setQuestions(mappedQuestions);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load survey data.");
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    loadExistingSurveyData();
+  }, [surveyId]);
+
+  // 2. Intercept Workspace navigation links parameters routing
+  useEffect(() => {
+    const urlQueryId = searchParams.get("groupId") || searchParams.get("groupid");
+    const resolvedId = urlQueryId || workspaceId;
+    if (resolvedId && !isEditMode) {
+      formStore.setSelectedWorkspaceId(resolvedId);
+    }
+  }, [searchParams, workspaceId, isEditMode]);
 
   const addQuestionByType = (type: QuestionType) => {
     const templates: Record<QuestionType, Partial<Question>> = {
       "short-text": { text: "Untitled Short Text Question", textAnswer: "" },
       "long-text": { text: "Untitled Long Text Question", textAnswer: "" },
-      choice: {
-        text: "Untitled Choice Question",
-        options: ["Option 1", "Option 2"],
-        selectedChoice: "",
-      },
-      dropdown: {
-        text: "Untitled Dropdown Question",
-        options: ["Choice A", "Choice B"],
-        selectedChoice: "",
-      },
+      choice: { text: "Untitled Choice Question", options: ["Option 1", "Option 2"], selectedChoice: "" },
+      dropdown: { text: "Untitled Dropdown Question", options: ["Choice A", "Choice B"], selectedChoice: "" },
       rating: { text: "Untitled Rating Question", maxScale: 5, ratingValue: 0 },
-      linear: {
-        text: "Untitled Scale Question",
-        linearStart: 1,
-        linearEnd: 5,
-        minLabel: "Low",
-        maxLabel: "High",
-      },
+      linear: { text: "Untitled Scale Question", linearStart: 1, linearEnd: 5, minLabel: "Low", maxLabel: "High" },
       "yes-no": { text: "Untitled Binary Choice Question", toggleValue: false },
-      matrix: {
-        text: "Untitled Matrix Question Grid",
-        matrixRows: ["Statement Row 1"],
-        matrixCols: ["Poor", "Excellent"],
-        matrixAnswers: {},
-      },
+      matrix: { text: "Untitled Matrix Question Grid", matrixRows: ["Statement Row 1"], matrixCols: ["Poor", "Excellent"], matrixAnswers: {} },
     };
 
-    setQuestions([
-      ...questions,
-      { id: `${Date.now()}`, type, ...templates[type] } as Question,
-    ]);
+    setQuestions([...questions, { id: `${Date.now()}`, type, ...templates[type] } as Question]);
   };
+
+  const convertQuestionsToBEFormat = useCallback((): SurveyContent => {
+    const elements: SurveyElement[] = questions.map((q) => {
+      const element: SurveyElement = {
+        name: `question_${q.id}`,
+        type: q.type,
+        title: q.text,
+      };
+      if (q.options) element.choices = q.options;
+      if (q.matrixRows) element.rows = q.matrixRows;
+      if (q.matrixCols) element.columns = q.matrixCols;
+      if (q.minLabel) element.minRateLabel = q.minLabel;
+      if (q.maxLabel) element.maxRateLabel = q.maxLabel;
+      if (q.maxScale) element.maxRateDescription = q.maxScale;
+      return element;
+    });
+
+    return {
+      title: formStore.title || "Untitled Survey",
+      pages: [{ name: "page1", title: "Survey Page", elements }],
+    };
+  }, [questions, formStore.title]);
 
   const handleFormSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    alert("Survey Created Successfully!");
+
+    try {
+      if (!formStore.title.trim()) throw new Error("Survey title is required");
+      if (questions.length === 0) throw new Error("At least one question is required");
+      if (!formStore.closingTime) throw new Error("Closing time is required");
+      if (!formStore.selectedWorkspaceId) throw new Error("Please select a workspace");
+
+      const content = convertQuestionsToBEFormat();
+      
+      // Include ALL fields since the backend validation requires workspaceId and isActive
+      const surveyData = {
+        title: formStore.title,
+        description: formStore.description,
+        content,
+        isActive: formStore.isActive ?? true, 
+        closingTime: new Date(formStore.closingTime).toISOString(),
+        workspaceId: formStore.selectedWorkspaceId, // Always include this
+      };
+
+      console.log("Transmitting complete payload structure to backend endpoint:", surveyData);
+
+      if (isEditMode) {
+        await surveyService.updateSurvey(surveyId!, surveyData);
+      } else {
+        await surveyService.createSurvey(surveyData);
+      }
+      
+      const savedWorkspaceId = formStore.selectedWorkspaceId;
+      formStore.reset();
+      setQuestions([]);
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push(`/group/${savedWorkspaceId}`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save survey modifications.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  const isWorkspaceContextLocked = !!searchParams.get("groupId") || !!searchParams.get("groupid") || !!workspaceId || isEditMode;
+
+  if (isLoadingData) {
+    return (
+      <div className="w-full min-h-[400px] flex flex-col items-center justify-center gap-3">
+        <Loader2 size={36} className="animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground animate-pulse font-medium">Loading survey configuration data from database...</p>
+      </div>
+    );
+  }
+
   return (
-    <form
-      onSubmit={handleFormSubmission}
-      className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full"
-    >
+    <form onSubmit={handleFormSubmission} className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full items-start">
       <div className="lg:col-span-3 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
+          {error && (
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle size={20} className="text-red-600" />
+              <span className="text-sm text-red-700">{error}</span>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
-            <div></div>
-            <button
+            <div />
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto p-2.5 px-5 rounded-xl bg-blue-900 text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
+              className="w-full sm:w-auto px-5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[140px]"
             >
               {isSubmitting && <Loader2 size={14} className="animate-spin" />}
-              {isSubmitting ? "Posting..." : "Post Survey"}
-            </button>
+              {/* Dynamic button text selection based on isEditMode flag */}
+              {isSubmitting ? (isEditMode ? "Saving Changes..." : "Posting...") : (isEditMode ? "Save Survey" : "Post Survey")}
+            </Button>
           </div>
 
           <SurveyHeader
-            title={title}
-            setTitle={setTitle}
-            description={description}
-            setDescription={setDescription}
+            title={formStore.title}
+            setTitle={formStore.setTitle}
+            description={formStore.description}
+            setDescription={formStore.setDescription}
+            closingTime={formStore.closingTime}
+            setClosingTime={formStore.setClosingTime}
+            isActive={formStore.isActive}
+            setIsActive={formStore.setIsActive}
+          />
+
+          <WorkspaceSelector
+            selectedWorkspaceId={formStore.selectedWorkspaceId}
+            onSelectWorkspace={formStore.setSelectedWorkspaceId}
+            required={true}
+            disabled={isWorkspaceContextLocked}
           />
 
           <div className="w-full max-w-full overflow-hidden">
-            <SurveyQuestionsList
-              questions={questions}
-              setQuestions={setQuestions}
-            />
+            <SurveyQuestionsList questions={questions} setQuestions={setQuestions} />
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => addQuestionByType("choice")}
-            className="w-full p-4 border border-dashed border-gray-300 rounded-xl flex items-center justify-center gap-2 text-gray-400 hover:bg-gray-100/50 hover:text-gray-600 transition-all text-sm font-semibold shadow-sm"
+            className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-detail font-semibold text-gray-500 shadow-sm hover:bg-slate-50/50"
           >
-            <Plus size={16} /> Add Questions
-          </button>
+            <Plus size={24} />
+            Add Questions
+          </Button>
         </div>
       </div>
-
-      <div className="bg-white border-t lg:border-t-0 lg:border-l border-gray-100 p-4 sm:p-6 space-y-6 order-2 lg:h-[calc(100vh-64px)] lg:sticky lg:top-16 overflow-y-auto sticky top-50 z-30">
-        <div>
-          <h3 className="text-xs sm:text-sm font-bold text-gray-400 tracking-wider mb-4 uppercase">
-            Question Types
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-6 sm:gap-4 lg:space-y-6">
-            <div className="bg-slate-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-100 sm:border-none">
-              <span className="text-[10px] font-bold text-gray-300 block mb-2 tracking-widest">
-                BASIC
-              </span>
-              <div className="space-y-2">
-                <SidebarItemButton
-                  label="Short Text"
-                  icon={<Type size={16} />}
-                  onClick={() => addQuestionByType("short-text")}
-                />
-                <SidebarItemButton
-                  label="Long Text"
-                  icon={<TextAlignStart size={16} />}
-                  onClick={() => addQuestionByType("long-text")}
-                />
-              </div>
-            </div>
-
-            <div className="bg-slate-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-100 sm:border-none">
-              <span className="text-[10px] font-bold text-gray-300 block mb-2 tracking-widest">
-                CHOICE
-              </span>
-              <div className="space-y-2">
-                <SidebarItemButton
-                  label="Single Choice"
-                  icon={<CircleDot size={16} />}
-                  onClick={() => addQuestionByType("choice")}
-                />
-                <SidebarItemButton
-                  label="Multiple Choice"
-                  icon={<SquareCheck size={16} />}
-                  onClick={() => addQuestionByType("choice")}
-                />
-                <SidebarItemButton
-                  label="Dropdown"
-                  icon={<ChevronDown size={16} />}
-                  onClick={() => addQuestionByType("dropdown")}
-                />
-              </div>
-            </div>
-
-            <div className="bg-slate-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-100 sm:border-none">
-              <span className="text-[10px] font-bold text-gray-300 block mb-2 tracking-widest">
-                ADVANCED
-              </span>
-              <div className="space-y-2">
-                <SidebarItemButton
-                  label="Rating"
-                  icon={<Star size={16} />}
-                  onClick={() => addQuestionByType("rating")}
-                />
-                <SidebarItemButton
-                  label="Yes/No Toggle"
-                  icon={<ToggleRight size={16} />}
-                  onClick={() => addQuestionByType("yes-no")}
-                />
-                <SidebarItemButton
-                  label="Matrix"
-                  icon={<LayoutGrid size={16} />}
-                  onClick={() => addQuestionByType("matrix")}
-                />
-                <SidebarItemButton
-                  label="Linear Scale"
-                  icon={<BarChart4 size={16} />}
-                  onClick={() => addQuestionByType("linear")}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <QuestionTypeSidebar onAddQuestion={addQuestionByType} />
     </form>
   );
 }

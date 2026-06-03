@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star, ChevronLeft, MoreVertical } from "lucide-react";
+import { Star, ChevronLeft } from "lucide-react";
+import type { UserRole } from "@/context/user-context";
+import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 
 const steps = 5;
 
@@ -11,13 +13,17 @@ interface SurveyData {
   suggestions: string;
 }
 
-// Added onVisibilityChange callback required by parent container matching logic
 interface SurveyCardProps {
+  role: UserRole; 
   searchQuery: string;
   onVisibilityChange: (hasItems: boolean) => void;
 }
 
-export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps) {
+export function SurveyCard({
+  role,
+  searchQuery,
+  onVisibilityChange,
+}: SurveyCardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<SurveyData>({
     favoriteSession: "Cloud Infrastructure 2025",
@@ -25,22 +31,20 @@ export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps)
     suggestions: "",
   });
 
+  const surveyId = "survey-789";
   const title = "Event Feedback: Tech Innovation Summit";
   const description = "Help us improve the summit experience";
 
-  // Checks if the typed input matches either the card title or subtitle description text
   const isMatch =
     title.toLowerCase().includes((searchQuery || "").toLowerCase().trim()) ||
     description
       .toLowerCase()
       .includes((searchQuery || "").toLowerCase().trim());
 
-  // Notify parent container of visibility state changes when search updates
   useEffect(() => {
     onVisibilityChange(isMatch);
   }, [isMatch, onVisibilityChange]);
 
-  // Hides the component entirely if it doesn't match the current search string
   if (!isMatch) {
     return null;
   }
@@ -50,6 +54,10 @@ export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps)
     "Cloud Infrastructure 2025",
     "Quantum Computing Deep Dive",
   ];
+
+  const handleExecuteDelete = () => {
+    console.log("Deleting survey ID:", surveyId);
+  };
 
   const handleNext = () => {
     if (currentStep < steps) {
@@ -77,9 +85,13 @@ export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps)
             Survey
           </span>
         </div>
-        <button className="text-grey-400 hover:text-grey-900 transition-colors cursor-pointer">
-          <MoreVertical size={20} />
-        </button>
+        {(role === "admin" || role === "organizer") && (
+          <EditPostDropDown
+            title={title}
+            editUrl={`/event-management/edition/survey`}
+            onDelete={handleExecuteDelete}
+          />
+        )}
       </div>
 
       <p className="text-sm text-grey-500 mb-8">{description}</p>
@@ -135,7 +147,6 @@ export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps)
             </div>
           </div>
 
-          {/* Question 2: Star Ratings */}
           <div>
             <h3 className="text-sm font-medium text-grey-900 mb-4">
               How would you rate the overall keynote quality?
@@ -179,7 +190,6 @@ export function SurveyCard({ searchQuery, onVisibilityChange }: SurveyCardProps)
           </div>
         </div>
       ) : (
-        /* Fallback View Mock Content for Step 2 through 5 */
         <div className="py-16 text-center space-y-2">
           <p className="text-sm font-semibold text-primary uppercase tracking-wide">
             Step {currentStep} of {steps}

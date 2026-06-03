@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 import { Geist } from "next/font/google";
 import { cn } from "../libs/utils";
 import Providers from "./provider";
+import { UserProvider } from "../context/user-context";
+import { SessionGuard } from "@/components/auth/SessionGuard";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -39,7 +41,11 @@ export default function RootLayout({
       <body
         className={`${getGoogleSansFlex.className} min-h-full flex flex-col`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <UserProvider>
+            <SessionGuard>{children}</SessionGuard>
+          </UserProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { UserX, ListFilter, ArrowUp } from "lucide-react";
 import Search from "../../site/search/Search";
 import UserRow from "./UserRow";
-import Pagination from "./Pagination";
 import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
 import SuspendModal from "../pop-up/user-management-pop-up/SuspendModal";
 import ReactivateModal from "../pop-up/user-management-pop-up/ReactivateModal";
@@ -17,6 +16,16 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "../../ui/drop-down/dropdown-menu";
+import { PaginationDemo } from "@/components/feedback/Pagination";
+import Image from "next/image";
+
 interface UserTableClientProps {
   initialUsers: UserData[];
 }
@@ -26,6 +35,10 @@ export default function UserTableClient({
 }: UserTableClientProps) {
   const [users, setUsers] = useState<UserData[]>(initialUsers);
   const [search, setSearch] = useState("");
+  const [selectedGen, setSelectedGen] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [selectedUserForRole, setSelectedUserForRole] =
     useState<UserData | null>(null);
@@ -34,12 +47,47 @@ export default function UserTableClient({
   const [selectedUserForReactivate, setSelectedUserForReactivate] =
     useState<UserData | null>(null);
 
-  const filteredUsers = users.filter(
-    (user) =>
+  const uniqueGenerations = useMemo(() => {
+    const generations = initialUsers.map((user) => user.gen);
+    return Array.from(new Set(generations)).sort((a, b) => a - b);
+  }, [initialUsers]);
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.username.toLowerCase().includes(search.toLowerCase()) ||
       user.email.toLowerCase().includes(search.toLowerCase()) ||
-      user.phone.includes(search),
-  );
+      user.phone.includes(search);
+
+    const matchesGen =
+      selectedGen === "all" || user.gen.toString() === selectedGen;
+
+    const matchesStatus =
+      selectedStatus === "all" || user.status === selectedStatus;
+
+    return matchesSearch && matchesGen && matchesStatus;
+  });
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredUsers, currentPage]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleGenChange = (value: string) => {
+    setSelectedGen(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
+    setCurrentPage(1);
+  };
 
   const handleActionClick = (user: UserData) => {
     if (user.status === "Active") {
@@ -68,7 +116,7 @@ export default function UserTableClient({
       <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
         <Search
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearchChange}
           placeholder="Search for users..."
         />
       </div>
@@ -77,40 +125,105 @@ export default function UserTableClient({
         <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <TableHeader>
             <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
-              <TableHead className="px-5 py-3 text-desc-semibold tracking-wider text-center text-white w-[5%]">
+              <TableHead className="px-1 py-3 cursor-pointer type-desc-semibold text-center text-white w-[10%]">
                 No.
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-white w-[18%]">
+              <TableHead className="px-6 py-3 cursor-pointer type-desc-semibold text-white w-[18%]">
                 Username
               </TableHead>
-              <TableHead className="px-5 py-3 text-desc-semibold tracking-wider text-white w-[20%]">
+              <TableHead className="px-2 py-3 cursor-pointer type-desc-semibold text-white w-[20%]">
                 Email
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-white w-[13%]">
+              <TableHead className="px-6 py-3 cursor-pointer type-desc-semibold text-white w-[13%]">
                 Phone
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-white w-[10%]">
+              <TableHead className="px-6 py-3 cursor-pointer type-desc-semibold text-white w-[10%]">
                 Gender
               </TableHead>
-              <TableHead className="px-5 py-3 text-desc-semibold tracking-wider text-center text-white w-[10%]">
-                <div className="flex items-center justify-center gap-1 cursor-pointer select-none">
-                  Gen <ArrowUp size={16} />
-                  <ListFilter size={16} />
-                </div>
+
+              <TableHead className="px-1 py-3 cursor-pointer type-desc-semibold text-center text-white w-[10%]">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center justify-center gap-1 select-none transition-colors duration-150 hover:text-blue-200">
+                      <span className="truncate">
+                        Gen {selectedGen !== "all" ? `(${selectedGen})` : ""}
+                      </span>
+                      <ArrowUp size={16} className="shrink-0" />
+                      <ListFilter size={16} className="shrink-0" />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-0 min-w-[1px]">
+                    <DropdownMenuRadioGroup
+                      value={selectedGen}
+                      onValueChange={handleGenChange}
+                    >
+                      <DropdownMenuRadioItem
+                        value="all"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        All
+                      </DropdownMenuRadioItem>
+                      {uniqueGenerations.map((gen) => (
+                        <DropdownMenuRadioItem
+                          key={gen}
+                          value={gen.toString()}
+                          className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                        >
+                          Generation {gen}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-center text-white w-[12%]">
-                <div className="flex items-center justify-center gap-1 cursor-pointer select-none">
-                  Status <ListFilter size={16} />
-                </div>
+
+              <TableHead className="px-1 py-3 type-desc-semibold text-center text-white w-[15%]">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
+                      <span className="truncate">
+                        Status{" "}
+                        {selectedStatus !== "all" ? `(${selectedStatus})` : ""}
+                      </span>
+                      <ListFilter size={16} className="shrink-0" />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[125px]">
+                    <DropdownMenuRadioGroup
+                      value={selectedStatus}
+                      onValueChange={handleStatusChange}
+                    >
+                      <DropdownMenuRadioItem
+                        value="all"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        All
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="Active"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Active
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="Suspended"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Suspended
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableHead>
-              <TableHead className="px-6 py-3 text-desc-semibold tracking-wider text-white w-[10%]">
+
+              <TableHead className="px-1 py-3 type-desc-semibold text-white w-[10%]">
                 Action
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            {paginatedUsers.length > 0 ? (
+              paginatedUsers.map((user) => (
                 <UserRow
                   key={user.no}
                   user={user}
@@ -127,10 +240,10 @@ export default function UserTableClient({
                     </div>
                     <div>
                       <p className="text-base font-bold text-secondary">
-                        User doesn't exist
+                        User doesn&apos;t exist
                       </p>
                       <p className="text-sm text-gray-400 font-medium">
-                        We couldn't find any match for your current query.
+                        We couldn&apos;t find any match for your current query.
                       </p>
                     </div>
                   </div>
@@ -141,7 +254,13 @@ export default function UserTableClient({
         </Table>
       </div>
 
-      {filteredUsers.length > 0 && <Pagination />}
+      {filteredUsers.length > 0 && (
+        <PaginationDemo
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       {selectedUserForRole && (
         <EditRoleModal

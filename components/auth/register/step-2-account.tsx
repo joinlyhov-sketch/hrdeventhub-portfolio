@@ -41,15 +41,15 @@ const passwordSchema = z
   .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol");
 
 export default function Step2Account() {
-  const form = useRegisterStore((s) => s.form);
+  const form        = useRegisterStore((s) => s.form);
   const updateField = useRegisterStore((s) => s.updateField);
-  const setStep = useRegisterStore((s) => s.setStep);
-  const goToOTP = useRegisterStore((s) => s.goToOTP);
+  const setStep     = useRegisterStore((s) => s.setStep);
+  const goToOTP     = useRegisterStore((s) => s.goToOTP);
 
-  const [errors, setErrors] = useState<AccountValidate>({});
+  const [errors, setErrors]           = useState<AccountValidate>({});
   const [serverError, setServerError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [showPassword, setShowPassword] = useState(false);
+  const [isPending, startTransition]  = useTransition();
+  const [showPassword, setShowPassword]               = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (field: keyof AccountValidate, value: string) => {
@@ -60,10 +60,7 @@ export default function Step2Account() {
   const handlePasswordBlur = () => {
     const result = passwordSchema.safeParse(form.password);
     if (!result.success) {
-      setErrors((prev) => ({
-        ...prev,
-        password: result.error.issues[0].message,
-      }));
+      setErrors((prev) => ({ ...prev, password: result.error.issues[0].message }));
     } else {
       setErrors((prev) => ({ ...prev, password: undefined }));
     }
@@ -71,17 +68,11 @@ export default function Step2Account() {
 
   const handleConfirmPasswordBlur = () => {
     if (!form.confirmPassword) {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: "Please confirm your password",
-      }));
+      setErrors((prev) => ({ ...prev, confirmPassword: "Please confirm your password" }));
       return;
     }
     if (form.password !== form.confirmPassword) {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: "Passwords do not match",
-      }));
+      setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match" }));
     } else {
       setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
     }
@@ -91,8 +82,8 @@ export default function Step2Account() {
     setServerError(null);
 
     const result = step2Schema.safeParse({
-      email: form.email.trim(),
-      password: form.password,
+      email:           form.email.trim(),
+      password:        form.password,
       confirmPassword: form.confirmPassword,
     });
 
@@ -109,29 +100,40 @@ export default function Step2Account() {
     setErrors({});
 
     const payload: RegisterRequest = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      gender: form.gender ? form.gender[0].toUpperCase() : "",
-      email: form.email.trim(),
-      password: form.password,
+      firstName:   form.firstName.trim(),
+      lastName:    form.lastName.trim(),
+      gender:      form.gender ? form.gender[0].toUpperCase() : "",
+      email:       form.email.trim(),
+      password:    form.password,
       dateOfBirth: form.dateOfBirth,
       phoneNumber: form.phoneNumber.trim(),
     };
 
     startTransition(async () => {
       const res = await registerAction(payload);
+
       if (res?.error) {
+        const msg = res.error;
+        const lower = msg.toLowerCase();
+
         if (
-          res.error.toLowerCase().includes("email") ||
-          res.error.toLowerCase().includes("already taken") ||
-          res.error.toLowerCase().includes("conflict")
+          lower.includes("password") ||
+          lower.includes("stronger") ||
+          lower.includes("weak")
         ) {
-          setErrors({ email: res.error });
+          setErrors({ password: msg });
+        } else if (
+          lower.includes("email") ||
+          lower.includes("already taken") ||
+          lower.includes("conflict")
+        ) {
+          setErrors({ email: msg });
         } else {
-          setServerError(res.error);
+          setServerError(msg);
         }
         return;
       }
+
       if (res?.ok) goToOTP(form.email);
     });
   };
@@ -149,7 +151,7 @@ export default function Step2Account() {
           Account Info
         </h2>
         <p className="mt-2 text-[#6e7580] text-[14px]">
-          Join HRD EventHub & Get started
+          Join HRD EventHub &amp; Get started
         </p>
       </div>
 
@@ -221,9 +223,7 @@ export default function Step2Account() {
               {showConfirmPassword ? "Hide" : "Show"}
             </button>
           </div>
-          {errors.confirmPassword && (
-            <FieldError message={errors.confirmPassword} />
-          )}
+          {errors.confirmPassword && <FieldError message={errors.confirmPassword} />}
         </div>
       </div>
 

@@ -1,25 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
-  ChevronDown,
   CheckSquare,
   UserRoundCheck,
   PlusCircle,
   Lock,
-  Printer,
   Inbox,
 } from "lucide-react";
+import { Switch } from "../../../ui/switch";
+import { Input } from "../../../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../ui/select";
+import PollSidebarItem from "./PollSidebarItem";
 
-export default function PollSidebar() {
-  const [settings, setSettings] = useState({
-    multipleSelect: false,
-    anonymousVote: false,
-    addOption: false,
-    hiddenPoll: false,
-    showResult: "Select",
-  });
+export interface PollSettings {
+  multipleSelect: boolean;
+  anonymousVote: boolean;
+  addOption: boolean;
+  hiddenPoll: boolean;
+  showResult: string;
+  closingDate: string;
+  closingTime: string;
+}
 
+interface PollSidebarProps {
+  settings: PollSettings;
+  onSettingsChange: (settings: PollSettings) => void;
+}
+
+export default function PollSidebar({
+  settings,
+  onSettingsChange,
+}: PollSidebarProps) {
   const toggleItems = [
     { key: "multipleSelect", label: "Multiple select", icon: CheckSquare },
     { key: "anonymousVote", label: "Anonymous Vote", icon: UserRoundCheck },
@@ -27,73 +45,115 @@ export default function PollSidebar() {
     { key: "hiddenPoll", label: "Hidden Poll", icon: Lock },
   ];
 
+  const handleToggleChange = (key: string, checked: boolean) => {
+    onSettingsChange({ ...settings, [key]: checked });
+  };
+
+  const handleSelectChange = (value: string) => {
+    onSettingsChange({ ...settings, showResult: value });
+  };
+
+  const handleDateChange = (date: string) => {
+    onSettingsChange({ ...settings, closingDate: date });
+  };
+
+  const handleTimeChange = (time: string) => {
+    onSettingsChange({ ...settings, closingTime: time });
+  };
+
   return (
-    <div className="bg-white p-3  ">
-      <div>
-        <h3 className="text-sm font-semibold text-slate-400 tracking-wider mb-4">
+    <div className="bg-white space-y-5 w-full mx-auto shrink-0 flex flex-col justify-start">
+      <div className="space-y-1 w-full pl-0.5">
+        <h3 className="text-base font-bold text-slate-700 tracking-tight">
           Poll Option
         </h3>
-        <span className="text-xs font-bold text-slate-300 tracking-widest uppercase">
+        <span className="text-[11px] font-extrabold text-slate-400 tracking-widest uppercase block">
           Basic
         </span>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 w-full">
         {toggleItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = settings[item.key as keyof typeof settings];
-
+          const isActive = settings[
+            item.key as keyof typeof settings
+          ] as boolean;
           return (
-            <div
+            <PollSidebarItem
               key={item.key}
-              className="flex items-center gap-2 justify-between border border-slate-100 rounded-2xl p-4 hover:bg-slate-50 transition"
-            >
-              <div className="flex items-center gap-1">
-                <div className="bg-gray-100 p-2 rounded-xl">
-                  <Icon className="w-5 h-5 text-secondary" />
-                </div>
-                <span className="font-medium text-slate-600 text-sm">
-                  {item.label}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setSettings((p) => ({ ...p, [item.key]: !isActive }))
-                }
-                className={`w-11 h-6 flex items-center rounded-full p-0.5 transition-colors duration-300 ${isActive ? "bg-action" : "bg-gray-300"}`}
-              >
-                <div
-                  className={`bg-white w-5 h-5 rounded-full shadow transform transition-transform duration-300 ${isActive ? "translate-x-5" : "translate-x-0"}`}
+              label={item.label}
+              icon={item.icon}
+              rightElement={
+                <Switch
+                  checked={isActive}
+                  onCheckedChange={(checked) =>
+                    handleToggleChange(item.key, checked)
+                  }
+                  className="data-[state=checked]:bg-action"
                 />
-              </button>
-            </div>
+              }
+            />
           );
         })}
       </div>
 
-      <div className="space-y-3 pt-4 border-t border-slate-100">
-        <label className="text-xs font-bold text-slate-400 tracking-wider uppercase">
-          Show Result
+      <div className="space-y-3 pt-5 border-t border-slate-100 w-full">
+        <label className="text-[11px] font-extrabold text-slate-400 tracking-widest uppercase block pl-0.5">
+          Show Results
         </label>
-        <div className="relative">
-          <Inbox className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-secondary" />
-          <select
-            value={settings.showResult}
-            className="w-full appearance-none bg-white border border-slate-100 rounded-2xl pl-12 pr-10 py-4 font-medium text-slate-600 text-sm focus:outline-none cursor-pointer"
-            onChange={(e) =>
-              setSettings((p) => ({ ...p, showResult: e.target.value }))
-            }
-          >
-            <option value="Select">Select</option>
-            <option value="Always Visible">Alway Visable</option>
-            <option value="After Voting">After Voting</option>
-            <option value="After Poll Expire">After Poll Expire</option>
-          </select>
-          <ChevronDown className="w-5 h-5 text-gray-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+
+        <Select value={settings.showResult} onValueChange={handleSelectChange}>
+          <SelectTrigger className="w-full bg-white border border-slate-200/80 rounded-2xl px-4 py-2.5 font-medium text-slate-600 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 shadow-sm transition-all">
+            <Inbox className="w-4 h-4 mr-2 text-secondary" />
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl py-3 border border-slate-100 shadow-xl bg-white">
+            <SelectItem value="Select" className="rounded-xl">
+              Select
+            </SelectItem>
+            <SelectItem value="Always Visible" className="rounded-xl">
+              Always Visible
+            </SelectItem>
+            <SelectItem value="After Voting" className="rounded-xl">
+              After Voting
+            </SelectItem>
+            <SelectItem value="After Poll Expire" className="rounded-xl">
+              After Poll Expire
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {/* <div className="space-y-3 pt-5 border-t border-slate-100 w-full">
+        <label className="text-[11px] font-extrabold text-slate-400 tracking-widest uppercase block pl-0.5">
+          Closing Time *
+        </label>
+
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={settings.closingDate}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="flex-1 bg-white border border-slate-200/80 rounded-2xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 shadow-sm"
+              required
+            />
+            <Input
+              type="time"
+              value={settings.closingTime}
+              onChange={(e) => handleTimeChange(e.target.value)}
+              className="flex-1 bg-white border border-slate-200/80 rounded-2xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 shadow-sm"
+              required
+            />
+          </div>
+          {settings.closingDate && settings.closingTime && (
+            <p className="text-xs text-gray-500 pl-0.5">
+              {new Date(
+                `${settings.closingDate}T${settings.closingTime}`,
+              ).toLocaleString()}
+            </p>
+          )}
+        </div>
+      </div> */}
     </div>
   );
 }

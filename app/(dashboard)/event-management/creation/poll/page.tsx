@@ -1,18 +1,22 @@
-import React from "react";
-import { ChevronRight } from "lucide-react";
-import PollForm from "../../../../../components/feedback/poll/creation/PollForm";
-import PollSidebar from "../../../../../components/feedback/poll/creation/PollSidebar";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth/next";
+import PollForm from "@/components/feedback/poll/creation/PollForm";
+import { FeedbackBreadcrumb } from "@/components/dashboard/FeedbackBreadcrumb";
 
-export default function PollCreatePage() {
+export default async function PollCreatePage() {
+  const session = await getServerSession();
+
+  if (!session) {
+    redirect("/auth/login");
+  }
+
   return (
     <main className="p-6">
-      <div className="max-w-full mx-auto flex flex-col lg:flex-row gap-8 items-start">
+      <FeedbackBreadcrumb label="Poll Creation" />
+      <div className="max-w-420 mx-auto flex flex-col lg:flex-row gap-8 items-start">
         <div className="flex-1 w-full">
           <PollForm />
         </div>
-        <aside className="w-30% lg:w-30% h-full sticky top-24">
-          <PollSidebar />
-        </aside>
       </div>
     </main>
   );

@@ -1,5 +1,3 @@
-import { User } from "next-auth";
-
 export type UserRole = "Admin" | "Organizer" | "Student" | "Alumni";
 export type RegistrationStatus = "NOT_REGISTERED" | "REGISTERED" | "ADMIN_VIEW";
 
@@ -75,7 +73,7 @@ export const MOCK_EVENTS: HRDEvent[] = [
     description:
       "Join us for an exciting reunion bringing together HRD alumni from all generations! This is a great opportunity to reconnect with old friends, share experiences, and build lasting networks within the HRD community.",
     bannerUrl:
-      "https://scontent.fpnh10-1.fna.fbcdn.net/v/t39.30808-6/642407859_1355403639963021_2089671097789557486_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeFafTyIshiInHYlUBGtbGh9CZIqtScIFzQJkiq1JwgXNDO1AE6nCEvsSjhiy2Es1GwMijXWifq-JZBjvLekCUHb&_nc_ohc=18fYiGp2okcQ7kNvwFOrBSE&_nc_oc=AdpMI0yqiCxn0WDB-Qnj8uyFbDGWkOgeadcFBjaPc84ukDTyZZQDIxJwhmlnGOhcyf0&_nc_zt=23&_nc_ht=scontent.fpnh10-1.fna&_nc_gid=FahLUTN_FEW4UJ6Nemtbmg&_nc_ss=7b2a8&oh=00_Af7u2QuPVbsG0qTKsN0k40vXQQ3qoQIy-rPQaqyvACbqrA&oe=6A0E0125", // Path to your local public assets folder
+      "https://scontent.fpnh10-1.fna.fbcdn.net/v/t39.30808-6/642407859_1355403639963021_2089671097789557486_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeFafTyIshiInHYlUBGtbGh9CZIqtScIFzQJkiq1JwgXNDO1AE6nCEvsSjhiy2Es1GwMijXWifq-JZBjvLekCUHb&_nc_ohc=18fYiGp2okcQ7kNvwFOrBSE&_nc_oc=AdpMI0yqiCxn0WDB-Qnj8uyFbDGWkOgeadcFBjaPc84ukDTyZZQDIxJwhmlnGOhcyf0&_nc_zt=23&_nc_ht=scontent.fpnh10-1.fna&_nc_gid=FahLUTN_FEW4UJ6Nemtbmg&_nc_ss=7b2a8&oh=00_Af7u2QuPVbsG0qTKsN0k40vXQQ3qoQIy-rPQaqyvACbqrA&oe=6A0E0125",
     date: "May 18, 2026",
     time: "9:00 AM",
     location: "Toul Kork, Phnom Penh, Cambodia",
@@ -128,3 +126,55 @@ export const MOCK_EVENTS: HRDEvent[] = [
     ],
   },
 ];
+
+export interface StatCard {
+  title: string;
+  value: string;
+  iconName: 'BadgeDollarSign' | 'UserRound' | 'UserRoundCheck';
+  colorKey: 'primary' | 'action' | 'subtle' | 'secondary';
+}
+
+export const mockStatsData: StatCard[] = [
+  {
+    title: "Total Payment",
+    value: "$124,50",
+    iconName: "BadgeDollarSign",
+    colorKey: "primary",
+  },
+  {
+    title: "Total Attendee",
+    value: "69",
+    iconName: "UserRound",
+    colorKey: "action",
+  },
+  {
+    title: "Today",
+    value: "+6",
+    iconName: "UserRoundCheck",
+    colorKey: "subtle",
+  },
+  {
+    title: "This week",
+    value: "+12",
+    iconName: "UserRoundCheck",
+    colorKey: "secondary",
+  }
+];
+export interface Creator {
+  name: string;
+  avatarUrl: string;
+}
+
+export interface EventDetailState {
+  id: string;
+  likesCount: number;
+  commentsCount: number;
+  isLikedByUser: boolean;
+}
+
+export interface Reaction {
+  id: string;
+  label: string;
+  displayText: string;
+  color: string;
+}

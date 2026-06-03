@@ -1,110 +1,248 @@
 "use client";
 
-import React, { useState } from "react";
-import { Plus, X, Loader2 } from "lucide-react";
-import { FeedbackBreadcrumb } from "../../../dashboard/FeedbackBreadcrumb";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation"; 
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { Button } from "../../../ui/button";
+import PollHeader from "../../survey/PollHeader";
+import PollOptionsList from "./PollOptionsList";
+import PollSidebar, { PollSettings } from "./PollSidebar";
+import WorkspaceSelector from "../../survey/WorkspaceSelector";
+import { pollService } from "@/service/poll.service";
 
-export default function PollForm() {
+interface PollFormProps {
+  workspaceId?: string;
+  onSuccess?: () => void;
+}
+
+export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [options, setOptions] = useState(["Option 1", "Option 2", "Option 3"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [workspaceIdState, setWorkspaceIdState] = useState("");
+  const [settings, setSettings] = useState<PollSettings>({
+    multipleSelect: false,
+    anonymousVote: false,
+    addOption: false,
+    hiddenPoll: false,
+    showResult: "afterVote",
+    closingDate: "",
+    closingTime: "",
+  });
+
+
+  useEffect(() => {
+    const urlQueryId =
+      searchParams.get("groupId") || searchParams.get("groupid");
+    const resolvedId = urlQueryId || workspaceId;
+
+    console.log("--- Syncing Poll Workspace Context ---");
+    console.log("Final Resolved Workspace ID Target:", resolvedId);
+
+    if (resolvedId) {
+      setWorkspaceIdState(resolvedId);
+    }
+  }, [searchParams, workspaceId]);
 
   const handleOptionTextChange = (index: number, text: string) => {
     const updatedOptions = [...options];
     updatedOptions[index] = text;
     setOptions(updatedOptions);
+    setError(null);
+  };
+
+  const handleAddOption = () => {
+    setOptions([...options, `Option ${options.length + 1}`]);
+    setError(null);
+  };
+
+  const handleRemoveOption = (index: number) => {
+    if (options.length > 2) {
+      setOptions(options.filter((_, i) => i !== index));
+      setError(null);
+    }
+  };
+
+  const handleSettingsChange = (newSettings: PollSettings) => {
+    setSettings(newSettings);
+    setError(null);
+  };
+
+  const handleClosingDateTimeChange = (dateTimeString: string) => {
+    if (!dateTimeString) {
+      setSettings((prev) => ({ ...prev, closingDate: "", closingTime: "" }));
+      return;
+    }
+    const [date, time] = dateTimeString.split("T");
+    setSettings((prev) => ({
+      ...prev,
+      closingDate: date || "",
+      closingTime: time || "",
+    }));
+    setError(null);
+  };
+
+  const combinedClosingDateTime =
+    settings.closingDate && settings.closingTime
+      ? `${settings.closingDate}T${settings.closingTime}`
+      : "";
+
+  const validateForm = (): boolean => {
+    if (!title || !title.trim()) {
+      setError("Poll title is required");
+      return false;
+    }
+    if (options.length < 2) {
+      setError("Poll must have at least 2 options");
+      return false;
+    }
+    if (options.some((opt) => !opt || !opt.trim())) {
+      setError("All options must have text");
+      return false;
+    }
+    if (!settings.closingDate || !settings.closingTime) {
+      setError("Closing date and time are required");
+      return false;
+    }
+
+    if (
+      new Date(`${settings.closingDate}T${settings.closingTime}`) <= new Date()
+    ) {
+      setError("Closing date and time must be in the future");
+      return false;
+    }
+    if (!workspaceIdState) {
+      setError("Workspace is required");
+      return false;
+    }
+    return true;
   };
 
   const handleFormSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(false);
+
+    if (!validateForm()) return;
     setIsSubmitting(true);
 
-    const payload = {
-      title,
-      description,
-      choices: options,
-    };
+    try {
+      const request = {
+        title: title.trim(),
+        description: description.trim(),
+        options: options.map((opt) => opt.trim()),
+        closingTime: new Date(
+          `${settings.closingDate}T${settings.closingTime}`,
+        ).toISOString(),
+        workspaceId: workspaceIdState,
+        type: "text",
+        multiSelect: settings.multipleSelect,
+        anonymousVoting: settings.anonymousVote,
+        allowAddOptions: settings.addOption,
+        hiddenPoll: settings.hiddenPoll,
+        showResult: settings.showResult,
+      };
 
-    console.log("Posting payload:", payload);
+      await pollService.createPoll(request);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    alert("Poll Posted Successfully!");
+      const savedWorkspaceId = workspaceIdState;
+      setSuccess(true);
+      setTitle("");
+      setDescription("");
+      setOptions(["Option 1", "Option 2", "Option 3"]);
+
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push(`/group/${savedWorkspaceId}`);
+        }
+      }, 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create poll");
+      setIsSubmitting(false);
+    }
   };
+  const isWorkspaceContextLocked =
+    !!searchParams.get("groupId") ||
+    !!searchParams.get("groupid") ||
+    !!workspaceId;
 
   return (
-    <form onSubmit={handleFormSubmission} className="space-y-2">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
-        <FeedbackBreadcrumb label="Create Poll" />
-      </div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
-        <div></div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full sm:w-auto p-2.5 px-6 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-[120px]"
-        >
-          {isSubmitting && <Loader2 size={14} className="animate-spin" />}
-          {isSubmitting ? "Posting..." : "Post Poll"}
-        </button>
-      </div>
-
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 border-l-[6px] border-l-blue-900">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Untitled Poll"
-          required
-          className="w-full text-3xl font-bold text-gray-800 placeholder-gray-400 outline-none mb-4 bg-transparent"
-        />
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add a description for your Poll..."
-          className="w-full text-base text-gray-600 placeholder-gray-400 outline-none pb-2 border-b border-gray-200 focus:border-gray-300 bg-transparent"
-        />
-      </div>
-
-      <div className="space-y-3">
-        {options.map((option, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between bg-white border border-slate-200 rounded-2xl px-6 py-4 shadow-sm hover:border-slate-300 transition"
-          >
-            <input
-              type="text"
-              value={option}
-              onChange={(e) => handleOptionTextChange(index, e.target.value)}
-              className="w-full bg-transparent text-[#64748B] font-medium outline-none"
-              required
-            />
-            {options.length > 1 && (
-              <button
-                type="button"
-                onClick={() =>
-                  setOptions(options.filter((_, i) => i !== index))
-                }
-                className="text-gray-400 hover:text-red-500 ml-2 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+    <form
+      onSubmit={handleFormSubmission}
+      className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start"
+    >
+      <div className="lg:col-span-9 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
+            <div />
+            <Button
+              type="submit"
+              disabled={isSubmitting || success}
+              className="w-full sm:w-auto px-5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 min-w-30"
+            >
+              {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+              {success
+                ? "Poll Created!"
+                : isSubmitting
+                  ? "Posting..."
+                  : "Post Poll"}
+            </Button>
           </div>
-        ))}
-        <button
-          type="button"
-          onClick={() =>
-            setOptions([...options, `Option ${options.length + 1}`])
-          }
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-500 font-medium py-4 rounded-2xl hover:bg-slate-50 transition bg-white/50"
-        >
-          <Plus className="w-4 h-4" />
-          Add Option
-        </button>
+
+          {error && (
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle size={18} className="text-red-600 shrink-0" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <CheckCircle size={18} className="text-green-600 shrink-0" />
+              <p className="text-sm text-green-700">
+                Poll created successfully! Redirecting...
+              </p>
+            </div>
+          )}
+
+          <PollHeader
+            title={title}
+            setTitle={setTitle}
+            description={description}
+            setDescription={setDescription}
+            closingTime={combinedClosingDateTime}
+            setClosingTime={handleClosingDateTimeChange}
+          />
+
+          <WorkspaceSelector
+            selectedWorkspaceId={workspaceIdState}
+            onSelectWorkspace={setWorkspaceIdState}
+            required={true}
+            disabled={isWorkspaceContextLocked}
+          />
+
+          <PollOptionsList
+            options={options}
+            onOptionChange={handleOptionTextChange}
+            onAddOption={handleAddOption}
+            onRemoveOption={handleRemoveOption}
+          />
+        </div>
       </div>
+      <aside className="lg:col-span-3 order-2 lg:order-5 w-full lg:sticky lg:top-24 p-4 flex justify-end">
+        <PollSidebar
+          settings={settings}
+          onSettingsChange={handleSettingsChange}
+        />
+      </aside>
     </form>
   );
 }

@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { Payer } from "../../../../types/transaction-detail";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../ui/avatar";
+import Link from "next/link";
+import Image from "next/image";
 
 interface PayerCardProps {
   payer: Payer;
@@ -25,15 +27,15 @@ export function PayerCard({ payer }: PayerCardProps) {
             Payer Information
           </h3>
         </div>
-        <a
-          href="#"
+        <Link
+          href={"/profile"}
           target="_blank"
           rel="noopener noreferrer"
           className="flex text-primary items-center gap-1.5 text-sm font-semibold type-desc hover:underline"
         >
           <span>View Profile</span>
           <ExternalLink className="w-4 h-4" strokeWidth={2.5} />
-        </a>
+        </Link>
       </div>
 
       <div className="flex items-center gap-4 mb-6">
@@ -61,52 +63,50 @@ export function PayerCard({ payer }: PayerCardProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-6 mb-4">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 text-[#2C5295]">
-            <GraduationCap className="w-6 h-6" strokeWidth={1.5} />
-          </div>
+        <div className="flex gap-1.5 items-center">
+          <GraduationCap className="text-[#2C5295] w-8 h-8" strokeWidth={1} />
+          <div className="mt-0.5 text-[#2C5295] flex flex-col gap-2.5"></div>
           <div>
             <p className="type-detail-semibold uppercase tracking-wider text-gray-500 mb-0.5">
               Generation
             </p>
-            <p className="type-detail-medium text-gray-900">
+            <p className="type-detail-medium text-secondary">
               {payer.generation}
             </p>
           </div>
         </div>
 
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 text-[#2C5295]">
-            <BookOpen className="w-6 h-6" strokeWidth={1.5} />
-          </div>
+        <div className="flex gap-1.5 items-center">
+          <Image src={"/images/book.svg"} alt="book" width={26} height={26} />
+
+          <div className="mt-0.5 text-[#2C5295] flex flex-col gap-2.5"></div>
           <div>
             <p className="type-detail-semibold uppercase tracking-wider text-gray-500 mb-0.5">
               Skill
             </p>
-            <p className="type-detail-medium text-gray-900">{payer.skill}</p>
+            <p className="type-detail-medium text-secondary">{payer.skill}</p>
           </div>
         </div>
       </div>
 
       <div className="space-y-3">
-        {/* Email Field */}
         <div className="flex items-center gap-4 bg-[#F5F8FF] rounded-xl p-4 transition-colors hover:bg-[#EEF3FF]">
-          <Mail className="w-5 h-5 text-[#0F2854]" strokeWidth={2} />
+          <Mail className="w-6 h-6 text-primary" />
           <div>
             <p className="type-detail-semibold uppercase tracking-wider text-gray-500 mb-0.5">
               Email Address
             </p>
-            <p className="text-base font-medium text-gray-800">{payer.email}</p>
+            <p className="text-desc font-medium text-gray-800">{payer.email}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-4 bg-[#F5F8FF] rounded-xl p-4 transition-colors hover:bg-[#EEF3FF]">
-          <Phone className="w-5 h-5 text-[#0F2854]" strokeWidth={2} />
+          <Phone className="w-6 h-6 text-primary" />
           <div>
             <p className="type-detail-semibold uppercase tracking-wider text-gray-500 mb-0.5">
               Phone Number
             </p>
-            <p className="text-base font-medium text-gray-800">{payer.phone}</p>
+            <p className="text-desc font-medium text-gray-800">{payer.phone}</p>
           </div>
         </div>
       </div>

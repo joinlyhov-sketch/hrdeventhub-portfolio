@@ -1,19 +1,16 @@
-import { Metadata } from "next";
-import CalendarFeature from "../../../components/calendarEvents/calendar/CalendarFeature";
-import UpcomingEventSection from "../../../components/calendarEvents/calendar/UpcomingEventSelection";
-import TopBarCalendar from "../../../components/calendarEvents/calendar/Top-Bar";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Calendar",
-};
-export default function Page() {
+import FullBigCalendar from "@/components/shadcn-big-calendar/calendar/FullBigCalendar";
+import TopBar from "@/components/shadcn-big-calendar/calendar/TopBar";
+import UpcomingEventSection from "@/components/shadcn-big-calendar/calendar/UpcomingEventSelection";
+
+export default function CalendarPage() {
   return (
-    <main className="w-full bg-background min-h-full flex mt-6 flex-col pr-8 lg:pr-12 lg:pl-12">
-      <TopBarCalendar />
-      <div className="max-w-420 mx-auto w-full">
-        <CalendarFeature />
+    <main className="min-h-screen w-full min-w-0 px-10 py-6">
+      <TopBar />
+      <div className="mx-auto w-full max-w-[1440px] m-3 space-y-6">
+        <FullBigCalendar />
         <UpcomingEventSection />
-    
       </div>
     </main>
   );

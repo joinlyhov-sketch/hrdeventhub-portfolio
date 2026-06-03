@@ -1,20 +1,24 @@
 "use client";
 
-import React from "react";
-import { EllipsisVertical } from "lucide-react";
 import { AttendeeData } from "../../../../data/AttendeeData";
 import { TableCell, TableRow } from "../../../ui/table";
+import ActionDropdown from "@/components/site/pop-up/action-button/ActionDropdown";
+import { User, Trash2 } from "lucide-react"; 
+import { DropdownAction } from "@/components/site/pop-up/action-button/ActionDropdown";
+import { useRouter } from "next/navigation";
+
 interface AttendeeRowProps {
   attendee: AttendeeData;
-  onEditRole: (attendee: AttendeeData) => void;
-  onToggleSuspend: (attendee: AttendeeData) => void;
+  onViewProfile: (attendee: AttendeeData) => void; 
+  onDeleteAttendee: (id: string | number) => void;
 }
 
 export default function AttendeeRow({
   attendee,
-  onEditRole,
-  onToggleSuspend,
+  onDeleteAttendee,
 }: AttendeeRowProps) {
+  const router = useRouter();
+  
   const getStatusStyles = (status: string) => {
     const normalize = (status || "").toLowerCase().trim();
 
@@ -40,13 +44,26 @@ export default function AttendeeRow({
 
   const badgeStyle = getStatusStyles(attendee.status);
 
+  const rowActions: DropdownAction[] = [
+    { 
+      label: "View Profile", 
+      icon: User, 
+      onClick: () => router.push(`/profile/${attendee.no}`)
+    },
+    { 
+      label: "Delete", 
+      icon: Trash2, 
+      onClick: () => onDeleteAttendee(attendee.no) 
+    }
+  ];
+
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[64px]">
-      <TableCell className="px-5 py-3 text-desc text-slate-500 font-medium text-center w-[5%] truncate">
+      <TableCell className="px-1 py-3 type-desc text-slate-500 font-bold text-center w-[5%] truncate">
         {attendee.no}
       </TableCell>
 
-      <TableCell className="px-5 py-3 text-sm text-slate-700 font-semibold w-[18%]">
+      <TableCell className="px-5 py-3 type-desc text-slate-700 font-semibold w-[18%]">
         <div className="flex items-center gap-3 truncate">
           <img
             src={attendee.avatar || "/placeholder-avatar.png"}
@@ -57,25 +74,25 @@ export default function AttendeeRow({
         </div>
       </TableCell>
 
-      <TableCell className="px-5 py-3 text-sm text-slate-500 font-medium w-[10%] truncate">
+      <TableCell className="px-5 py-3 type-desc text-slate-500 font-medium w-[10%] truncate">
         {attendee.gender}
       </TableCell>
 
-      <TableCell className="px-3 py-3 text-sm text-slate-400 font-normal w-[12%] truncate">
+      <TableCell className="px-3 py-3 type-desc text-slate-400 font-normal w-[12%] truncate">
         {attendee.timestamp}
       </TableCell>
 
-      <TableCell className="px-8 py-3 text-sm text-primary text-desc w-[22%] truncate">
+      <TableCell className="px-1 py-3 type-desc text-desc w-[22%] text-primary truncate">
         {attendee.remark}
       </TableCell>
 
-      <TableCell className="px-5 py-3 text-sm text-slate-500 font-medium text-center w-[10%] truncate">
+      <TableCell className="px-5 py-3 type-desc text-slate-500 font-medium text-center w-[10%] truncate">
         {attendee.amount.toString().startsWith("$")
           ? attendee.amount
           : `$${attendee.amount}`}
       </TableCell>
 
-      <TableCell className="px-8 py-3 text-sm w-[12%]">
+      <TableCell className="px-2 py-3 type-desc w-[12%]">
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium capitalize shrink-0 ${badgeStyle.bg}`}
         >
@@ -84,14 +101,8 @@ export default function AttendeeRow({
         </span>
       </TableCell>
 
-      <TableCell className="px-6 py-3 text-sm text-center w-[10%]">
-        <button
-          type="button"
-          onClick={() => onEditRole(attendee)}
-          className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition-colors inline-flex items-center justify-center cursor-pointer shrink-0"
-        >
-          <EllipsisVertical size={18} />
-        </button>
+      <TableCell className="px-6 py-3 type-desc text-center w-[10%]">
+        <ActionDropdown actions={rowActions}/>
       </TableCell>
     </TableRow>
   );
