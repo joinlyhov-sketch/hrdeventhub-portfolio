@@ -31,7 +31,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
   const handleDeletePost = async (postId: string) => {
     mutate(
       (current) => current?.filter((p) => p.postId !== postId) ?? [],
-      false
+      false,
     );
     try {
       await deletePostAction(groupid, postId);
@@ -50,12 +50,18 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     });
   }, [posts]);
 
-  const postsByCategory = useMemo(() => ({
-    event: chronologicalPosts.filter((p) => p.category === "event"),
-    announcement: chronologicalPosts.filter((p) => p.category === "announcement"),
-    survey: chronologicalPosts.filter((p) => p.category === "survey"),
-    article: chronologicalPosts.filter((p) => p.category === "article"),
-  }), [chronologicalPosts]);
+  const postsByCategory = useMemo(
+    () => ({
+      event: chronologicalPosts.filter((p) => p.category === "event"),
+      announcement: chronologicalPosts.filter(
+        (p) => p.category === "announcement",
+      ),
+      poll: chronologicalPosts.filter((p) => p.category === "poll"),
+      survey: chronologicalPosts.filter((p) => p.category === "survey"),
+      article: chronologicalPosts.filter((p) => p.category === "article"),
+    }),
+    [chronologicalPosts],
+  );
 
   const filteredPolls = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -74,7 +80,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
       list.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
-          p.content.toLowerCase().includes(q)
+          p.content.toLowerCase().includes(q),
       );
     return {
       event: filterPosts(postsByCategory.event),
@@ -96,7 +102,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
 
   const pinnedPosts = useMemo(
     () => chronologicalPosts.filter((p) => p.pinned),
-    [chronologicalPosts]
+    [chronologicalPosts],
   );
 
   const isLoading = postsLoading || pollsLoading;
@@ -136,15 +142,16 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
             onDeletePost={handleDeletePost}
           />
         )}
-        {isCategoryActive("announcement") && filtered.announcement.length > 0 && (
-          <AnnouncementCard
-            role={role}
-            posts={filtered.announcement}
-            searchQuery={searchQuery}
-            onDeletePost={handleDeletePost}
-          />
-        )}
-        {isCategoryActive("poll") && filteredPolls.length > 0 && (
+        {isCategoryActive("announcement") &&
+          filtered.announcement.length > 0 && (
+            <AnnouncementCard
+              role={role}
+              posts={filtered.announcement}
+              searchQuery={searchQuery}
+              onDeletePost={handleDeletePost}
+            />
+          )}
+        {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
           <PollCard
             role={role}
             polls={filteredPolls}

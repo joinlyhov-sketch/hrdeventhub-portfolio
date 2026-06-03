@@ -56,7 +56,7 @@ export const surveyService = {
   getSurveysByWorkspace: async (
     workspaceId: string,
     page: number = 1,
-    size: number = 10
+    size: number = 10,
   ): Promise<Survey[]> => {
     const token = await getLiveToken();
     const response = await apiGet<BackendApiResponse<Survey[]>>(
@@ -86,7 +86,7 @@ export const surveyService = {
   // Submit survey response
   submitSurveyResponse: async (
     surveyId: string,
-    data: SurveyResponseRequest
+    data: SurveyResponseRequest,
   ): Promise<SurveySubmission> => {
     const token = await getLiveToken();
     const response = await apiPost<BackendApiResponse<SurveySubmission>, SurveyResponseRequest>(
@@ -101,7 +101,7 @@ export const surveyService = {
   getResponses: async (
     surveyId: string,
     page: number = 1,
-    size: number = 10
+    size: number = 10,
   ): Promise<SurveySubmission[]> => {
     const token = await getLiveToken();
     const response = await apiGet<BackendApiResponse<SurveySubmission[]>>(
