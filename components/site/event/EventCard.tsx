@@ -3,12 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ThumbsUp,
-  MessageSquare,
-  Share2,
-  SendHorizontal,
-} from "lucide-react";
+import { ThumbsUp, MessageSquare, Share2, SendHorizontal } from "lucide-react";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
@@ -25,16 +20,19 @@ interface EventCardProps {
   posts: Post[];
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
+  groupid: string;
 }
 
 function EventItem({
   post,
   role,
   onDelete,
+  groupid,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
+  groupid: string;
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -100,7 +98,7 @@ function EventItem({
                 {creator?.fullName ?? "—"}
               </h3>
               <p className="type-detail-small-medium text-grey-400">
-                {post.scheduledAt ?? post.createdAt}
+                {post.createdAt}
               </p>
             </div>
           </div>
@@ -111,30 +109,34 @@ function EventItem({
                   creator.role.toLowerCase() === "admin"
                     ? "bg-[#EBF5FB] text-[#3FA6DC]"
                     : creator.role.toLowerCase() === "organizer"
-                    ? "bg-[#FFF7ED] text-[#F97316]"
-                    : "bg-grey-100 text-grey-500"
+                      ? "bg-[#FFF7ED] text-[#F97316]"
+                      : "bg-grey-100 text-grey-500"
                 }`}
               >
                 {creator.role}
               </span>
             )}
-             {(role === "admin" || role === "organizer") && (
-    <EditPostDropDown
-      title={post.title}
-      editUrl={`/event-management/edition/event`}
-      onDelete={onDelete}   
-    />
-  )}
+            {(role === "admin" || role === "organizer") && (
+              <EditPostDropDown
+                title={post.title}
+                editUrl={`/event-management/edition/event`}
+                onDelete={onDelete}
+              />
+            )}
           </div>
         </div>
+
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
         <p className="type-desc text-muted-foreground leading-relaxed mb-4">
           {post.content}
         </p>
+
         <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-6">
           {post.location && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">LOCATION: </span>
+              <span className="type-detail-semibold text-foreground">
+                LOCATION:{" "}
+              </span>
               <a
                 href={post.location.googleMapUrl}
                 target="_blank"
@@ -147,14 +149,18 @@ function EventItem({
           )}
           {post.eventStart && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">DATE: </span>
+              <span className="type-detail-semibold text-foreground">
+                DATE:{" "}
+              </span>
               {post.eventStart}
               {post.eventEnd && ` — ${post.eventEnd}`}
             </p>
           )}
           {post.purpose && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">PURPOSE: </span>
+              <span className="type-detail-semibold text-foreground">
+                PURPOSE:{" "}
+              </span>
               {post.purpose}
             </p>
           )}
@@ -187,20 +193,25 @@ function EventItem({
                   />
                 </svg>
               </div>
-              <span className="type-desc-small-semibold">No image available</span>
+              <span className="type-desc-small-semibold">
+                No image available
+              </span>
             </div>
           )}
-          
+
           <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-6 text-white z-10 flex items-end justify-between gap-4">
             <div>
               <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide mb-2">
                 Event
               </span>
               <h4 className="type-desc-semibold">{post.title}</h4>
-              <p className="type-detail-small-medium opacity-80">{post.eventStart ?? "—"}</p>
+              <p className="type-detail-small-medium opacity-80">
+                {post.eventStart ?? "—"}
+              </p>
             </div>
+
             <Link
-              href={`/event-management/events/view/${post.postId}`}
+              href={`/group/${groupid}/event/${post.postId}`}
               className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white type-desc-small-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer shrink-0 text-center shadow-md mb-0.5"
             >
               View Detail
@@ -225,7 +236,9 @@ function EventItem({
                 size={18}
                 className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
               />
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span>
+                {activeReaction ? activeReaction.displayText : "Like"}
+              </span>
               <span className="type-detail-small-medium font-normal text-grey-400">
                 ({likesCount})
               </span>
@@ -236,7 +249,7 @@ function EventItem({
             onClick={() => setShowComments(!showComments)}
             className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
           >
-            <MessageSquare size={18} /> {post.comments.length}
+            <MessageSquare size={18} /> {post.comments?.length ?? 0}
           </button>
 
           <button
@@ -246,7 +259,10 @@ function EventItem({
             <Share2 size={18} /> Share
           </button>
         </div>
-        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+
+        <div
+          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
+        >
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
             {currentUser?.profilePicture ? (
               <Image
@@ -284,13 +300,23 @@ function EventItem({
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-1.5 text-sm">
-                      <span className="type-detail-semibold text-grey-900">{comment.author.name}</span>
-                      <span className="text-grey-400 type-desc-small-semibold font-normal">· {comment.date}</span>
+                      <span className="type-detail-semibold text-grey-900">
+                        {comment.author.name}
+                      </span>
+                      <span className="text-grey-400 type-desc-small-semibold font-normal">
+                        · {comment.date}
+                      </span>
                     </div>
-                    <p className="type-detail text-grey-900 leading-normal">{comment.text}</p>
+                    <p className="type-detail text-grey-900 leading-normal">
+                      {comment.text}
+                    </p>
                     <div className="flex items-center gap-4 type-desc-small-semibold text-grey-900 pt-1">
-                      <button className="hover:underline cursor-pointer">Reply</button>
-                      <button className="hover:underline cursor-pointer">Like</button>
+                      <button className="hover:underline cursor-pointer">
+                        Reply
+                      </button>
+                      <button className="hover:underline cursor-pointer">
+                        Like
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -302,7 +328,10 @@ function EventItem({
                       style={{ bottom: "24px" }}
                     />
                     {comment.replies.map((reply, index) => (
-                      <div key={reply.id} className="relative flex items-start gap-3">
+                      <div
+                        key={reply.id}
+                        className="relative flex items-start gap-3"
+                      >
                         {index > 0 && (
                           <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
                         )}
@@ -316,24 +345,39 @@ function EventItem({
                         </div>
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-1.5 text-sm">
-                            <span className="type-detail-semibold text-grey-900">{reply.author.name}</span>
-                            <span className="text-grey-400 type-desc-small-semibold font-normal">· {reply.date}</span>
+                            <span className="type-detail-semibold text-grey-900">
+                              {reply.author.name}
+                            </span>
+                            <span className="text-grey-400 type-desc-small-semibold font-normal">
+                              · {reply.date}
+                            </span>
                           </div>
                           <p className="type-detail text-grey-900 leading-normal">
                             {reply.text.split(" ").map((word, i) =>
                               word.startsWith("@") ? (
-                                <span key={i} className="text-blue-600 type-detail-medium">{word} </span>
+                                <span
+                                  key={i}
+                                  className="text-blue-600 type-detail-medium"
+                                >
+                                  {word}{" "}
+                                </span>
                               ) : (
                                 word + " "
-                              )
+                              ),
                             )}
                           </p>
                           <div className="flex items-center gap-4 type-desc-small-semibold text-grey-900 pt-1">
-                            <button className="hover:underline cursor-pointer">Reply</button>
+                            <button className="hover:underline cursor-pointer">
+                              Reply
+                            </button>
                             {reply.isOwn && (
                               <>
-                                <button className="hover:underline cursor-pointer">Edit</button>
-                                <button className="hover:underline cursor-pointer">Delete</button>
+                                <button className="hover:underline cursor-pointer">
+                                  Edit
+                                </button>
+                                <button className="hover:underline cursor-pointer">
+                                  Delete
+                                </button>
                               </>
                             )}
                           </div>
@@ -357,7 +401,12 @@ function EventItem({
   );
 }
 
-export function EventCard({ role, posts, onDeletePost }: EventCardProps) {
+export function EventCard({
+  role,
+  posts,
+  onDeletePost,
+  groupid,
+}: EventCardProps) {
   return (
     <>
       {posts.map((post) => (
@@ -366,6 +415,7 @@ export function EventCard({ role, posts, onDeletePost }: EventCardProps) {
           post={post}
           role={role}
           onDelete={() => onDeletePost(post.postId)}
+          groupid={groupid} // Relays correctly here down to EventItem
         />
       ))}
     </>

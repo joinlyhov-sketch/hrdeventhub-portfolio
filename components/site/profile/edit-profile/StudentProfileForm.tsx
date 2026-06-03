@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition, useRef } from "react";
 import { Camera, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
@@ -12,6 +12,9 @@ export default function StudentProfileForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [initialIdentity, setInitialIdentity] = useState<any>(null);
   const [initialProfile, setInitialProfile] = useState<any>(null);
@@ -135,6 +138,29 @@ export default function StudentProfileForm() {
     loadAllUserData();
   }, [session]);
 
+  const handleContainerClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      
+      const mockUploadedUrl = "https://api.dev.hrdevent.app/api/v4/files/preview-file?key=event/aaec3b93-91b8-4951-ad5e-ea40ec3a0fc8.png";
+      
+      setProfilePicture(mockUploadedUrl);
+    } catch (err) {
+      console.error("Failed to upload image preview:", err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleUpdateEducation = (index: number, fields: any) => {
     const updated = [...education];
     updated[index] = { ...updated[index], ...fields };
@@ -240,16 +266,52 @@ export default function StudentProfileForm() {
         </h2>
 
         <div className="flex flex-col sm:flex-row gap-6 items-start">
-          <div className="relative group w-36 h-36 bg-grey-900 rounded-full flex flex-col items-center justify-center cursor-pointer overflow-hidden border border-border shrink-0">
+
+          <div 
+            onClick={handleContainerClick}
+            className="relative group w-36 h-36 bg-grey-900 rounded-full flex flex-col items-center justify-center cursor-pointer overflow-hidden border border-border shrink-0 select-none shadow-xs transition-all hover:scale-[1.01]"
+          >
             {profilePicture ? (
               <img src={profilePicture} alt="Profile picture" className="w-full h-full object-cover" />
             ) : (
-              <>
+              <div className="flex flex-col items-center justify-center p-2 text-center">
                 <Camera className="w-6 h-6 text-white mb-1" />
-                <span className="type-detail text-grey-300 text-center px-1">Upload Profile</span>
-              </>
+                <span className="type-detail text-grey-300 px-1 text-xs">Upload Profile</span>
+              </div>
             )}
+
+            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white">
+              {isUploading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="1.8" 
+                    stroke="currentColor" 
+                    className="w-6 h-6 text-white/90"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 12v3m0 0l-1.5-1.5M12 15l1.5-1.5" />
+                  </svg>
+                  <span className="text-[11px] font-semibold text-white/90 tracking-wide text-center max-w-[80%] leading-tight">
+                    {isUploading ? "Uploading..." : "Upload Profile"}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
+
+
+          <input 
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/png, image/jpeg, image/jpg, image/webp"
+            className="hidden"
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 type-desc text-primary gap-4 flex-1 w-full">
             <div className="flex flex-col gap-1.5 w-full">

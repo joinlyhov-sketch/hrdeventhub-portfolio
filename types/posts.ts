@@ -40,25 +40,24 @@ export type PostCategory = "event" | "announcement" | "article" | "poll" | "surv
 
 export interface Post {
   postId: string;
-  category: PostCategory;
+  category?: string;
   title: string;
   content: string;
-  purpose?: string;             
-  scheduledAt?: string;        
-  status: string;
-  expiresAt: string;
-  eventStart?: string;          
-  eventEnd?: string;            
-  createdAt: string;
-  updatedAt: string;
-  appUserId: string;
-  location?: PostLocation;
+  purpose?: string;
+  status?: string;
+  expiresAt?: string;
+  eventStart?: string;
+  eventEnd?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  appUserId?: string;
+  pinned?: boolean;
+  published?: boolean;
   media?: PostMedia[];
-  payment?: PostPayment;
-  comments: unknown[];
-  creator?: PostCreator;        
-  pinned: boolean;
-  published: boolean;
+  location?: PostLocation;
+  payment?: PostPayment | null;
+  comments?: any[];
+  creator?: PostCreator;
 }
 
 export interface PostsResponse {

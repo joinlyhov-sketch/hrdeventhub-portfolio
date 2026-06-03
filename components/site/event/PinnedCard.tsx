@@ -3,23 +3,20 @@
 import { Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
 import staticImage from "../../../public/images/PinnedCardTest.jpg";
 
 interface PinnedCardProps {
   post: Post;
+  groupid: string;
 }
 
-export function PinnedCard({ post }: PinnedCardProps) {
-  const params = useParams();
-  const groupId = params?.Groupid as string;
-
+export function PinnedCard({ post, groupid }: PinnedCardProps) {
   const coverImage = post.media?.find((m) => m.isCover) ?? post.media?.[0];
   const imageUrl = getMediaUrl(coverImage?.filePath);
 
-  const badge = post.category.toUpperCase();
+  const badge = (post.category ?? "event").toUpperCase();
   const schedule = [post.eventStart, post.eventEnd].filter(Boolean).join(" — ");
 
   return (
@@ -60,7 +57,10 @@ export function PinnedCard({ post }: PinnedCardProps) {
         </div>
 
         <div className="w-full md:w-auto shrink-0">
-          <Link href={`/group/${groupId}/event/${post.postId}`} className="w-full">
+          <Link
+            href={`/group/${groupid}/event/${post.postId}`}
+            className="w-full"
+          >
             <button
               type="button"
               className="w-full md:w-auto bg-white text-secondary hover:bg-grey-100 active:scale-[0.99] hover:cursor-pointer transition-all px-7 py-3.5 rounded-xl type-detail-semibold shadow-md whitespace-nowrap"

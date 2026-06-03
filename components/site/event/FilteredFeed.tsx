@@ -131,7 +131,8 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
         isEmpty={isFeedEmpty}
       />
 
-      {!searchQuery && !isFeedEmpty && <PinnedSection posts={pinnedPosts} />}
+
+      {!searchQuery && !isFeedEmpty && <PinnedSection posts={pinnedPosts} groupid={groupid} />}
 
       <div className="space-y-4">
         {isCategoryActive("event") && filtered.event.length > 0 && (
@@ -140,6 +141,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
             posts={filtered.event}
             searchQuery={searchQuery}
             onDeletePost={handleDeletePost}
+            groupid={groupid}
           />
         )}
         {isCategoryActive("announcement") &&
@@ -159,14 +161,6 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
             onDeletePoll={(pollId) => console.log("delete poll", pollId)}
           />
         )}
-        {/* {isCategoryActive("survey") && filtered.survey.length > 0 && (
-          <SurveyCard
-            role={role}
-            posts={filtered.survey}
-            searchQuery={searchQuery}
-            onDeletePost={handleDeletePost}
-          />
-        )} */}
         {isCategoryActive("article") && filtered.article.length > 0 && (
           <ArticleCard
             role={role}

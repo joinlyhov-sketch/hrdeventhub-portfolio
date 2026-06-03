@@ -1,3 +1,4 @@
+// @/actions/post.action.ts
 "use server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
@@ -128,15 +129,14 @@ export async function createArticleAction(
 
 export async function deletePostAction(workspaceId: string, postId: string) {
   const session = await getServerSession(authOptions);
+  if (!session?.accessToken) throw new Error("Unauthorized");
 
-  if (!session?.accessToken) {
-    throw new Error("Unauthorized");
-  }
+  return await postService.delete(workspaceId, postId, session.accessToken);
+}
 
-  const result = await postService.delete(
-    workspaceId,
-    postId,
-    session.accessToken,
-  );
-  return result;
+export async function getPostDetailAction(workspaceId: string, postId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.accessToken) throw new Error("Unauthorized");
+
+  return await postService.getById(workspaceId, postId, session.accessToken);
 }

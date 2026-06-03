@@ -9,6 +9,14 @@ import {
 } from "@/types/post-types";
 import { PostsResponse, Post } from "@/types/posts";
 
+export interface SinglePostResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: Post;
+  timestamp: string;
+}
+
 export const postService = {
   createEventPost: async (
     workspaceId: string,
@@ -21,6 +29,7 @@ export const postService = {
       { authToken },
     );
   },
+
   createAnnouncement: async (
     workspaceId: string,
     payload: CreateAnnouncementPayload,
@@ -37,6 +46,7 @@ export const postService = {
       },
     );
   },
+
   createArticle: async (
     workspaceId: string,
     payload: CreateArticlePayload,
@@ -67,15 +77,28 @@ export const postService = {
     return response.payload;
   },
 
+  getById: async (
+    workspaceId: string, 
+    postId: string, 
+    token: string
+  ): Promise<Post> => {
+    const response = await apiGet<SinglePostResponse>(
+      `/workspaces/${workspaceId}/post/${postId}`,
+      {
+        headers: { accept: "*/*" },
+        authToken: token,
+      }
+    );
+    return response.payload;
+  },
+
   delete: async (
-    workspaceId: string,
-    postId: string,
-    token: string,
+    workspaceId: string, 
+    postId: string, 
+    token: string
   ): Promise<any> => {
     return await apiDelete(`/workspaces/${workspaceId}/post/${postId}`, {
-      headers: {
-        accept: "*/*",
-      },
+      headers: { accept: "*/*" },
       authToken: token,
     });
   },

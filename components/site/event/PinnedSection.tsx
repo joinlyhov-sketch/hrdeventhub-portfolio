@@ -7,9 +7,10 @@ import { Post } from "@/types/posts";
 
 interface PinnedSectionProps {
   posts: Post[];
+  groupid: string;  
 }
 
-export function PinnedSection({ posts }: PinnedSectionProps) {
+export function PinnedSection({ posts, groupid }: PinnedSectionProps) {
   const [showAllPinned, setShowAllPinned] = useState(false);
 
   const pinnedPosts = posts.filter((p) => p.pinned);
@@ -37,7 +38,7 @@ export function PinnedSection({ posts }: PinnedSectionProps) {
 
       <div className="space-y-4">
         {visiblePosts.map((post) => (
-          <PinnedCard key={post.postId} post={post} />
+          <PinnedCard key={post.postId} post={post} groupid={groupid} />
         ))}
       </div>
     </div>
