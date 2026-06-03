@@ -10,18 +10,31 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
+
+# Fixed: Using key=value format to remove Docker warnings
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Define Build Arguments required by your environment validator
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXTAUTH_URL
+ARG NEXTAUTH_SECRET
+
+# Expose them as environment variables to the 'npm run build' process
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
+ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+
 RUN npm run build
 
 # Stage 3: Runner
 FROM node:24-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
 
-# CRITICAL: Allow external port mapping to find the Next.js server
-ENV HOSTNAME "0.0.0.0"
-ENV PORT 3000
+# Fixed: Using key=value format
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
