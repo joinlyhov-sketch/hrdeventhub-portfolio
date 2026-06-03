@@ -56,7 +56,6 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
           setProfile(response.payload);
         }
       } catch (error) {
-        // Quiet catch
       } finally {
         setLoading(false);
       }
