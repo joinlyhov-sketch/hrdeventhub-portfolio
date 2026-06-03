@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.pravatar.cc",
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9090',
+        pathname: '/api/v4/files/**',
+      },
     ],
   },
 };

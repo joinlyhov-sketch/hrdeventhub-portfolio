@@ -1,10 +1,13 @@
 "use client";
+
 import { useCurrentUser } from "@/context/user-context";
 import Link from "next/link";
+import Image from "next/image";
 import { Globe, Link2, LockKeyhole } from "lucide-react";
 import GroupDropDown from "../pop-up/action-button/action-button-group";
 import { Workspace } from "@/types/workspace-type/group";
 import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
+import { getMediaUrl } from "@/libs/media";
 
 interface GroupCardProps {
   workspace: Workspace;
@@ -52,23 +55,41 @@ export default function GroupCard({ workspace }: GroupCardProps) {
         </p>
 
         <div className="mt-auto pt-6 border-t border-border flex items-center justify-between">
-          <div className="flex items-center -space-x-3">
-            {visibleMembers.map((member) => (
-              <div
-                key={member.appUserId}
-                className="w-10 h-10 rounded-full border-2 border-white bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center"
-                title={`${member.firstName} ${member.lastName}`}
-              >
-                <span className="text-[11px] font-bold text-primary uppercase">
-                  {member.firstName[0]}{member.lastName[0]}
-                </span>
-              </div>
-            ))}
+          <div className="flex items-center -space-x-3 select-none">
+            {visibleMembers.map((member) => {
+              const firstLetter = member.firstName?.[0] ?? "";
+              const lastLetter = member.lastName?.[0] ?? "";
+              const mediaUrl = getMediaUrl((member as any).profileImage);
+
+              return (
+                <div
+                  key={member.appUserId}
+                  className="w-10 h-10 rounded-full border-2 border-white bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center shrink-0 position-relative"
+                  title={`${member.firstName} ${member.lastName}`}
+                >
+                  {mediaUrl ? (
+                    <Image
+                      src={mediaUrl}
+                      alt={`${member.firstName} ${member.lastName}`}
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <span className="text-[11px] font-bold text-primary uppercase">
+                      {firstLetter}{lastLetter}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+            
             {extraCount > 0 && (
-              <div className="w-10 h-10 rounded-full border-2 border-white bg-[#EBF5FB] flex items-center justify-center text-[#3FA6DC] type-desc-small-semibold shadow-sm">
+              <div className="w-10 h-10 rounded-full border-2 border-white bg-[#EBF5FB] flex items-center justify-center text-[#3FA6DC] type-desc-small-semibold shadow-sm shrink-0">
                 +{extraCount}
               </div>
             )}
+            
             {members.length === 0 && (
               <span className="text-[13px] text-gray-400 font-medium">No members yet</span>
             )}

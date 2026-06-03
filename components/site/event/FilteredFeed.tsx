@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useParams } from "next/navigation";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
 import { EventCard } from "./EventCard";
@@ -11,6 +10,7 @@ import { SurveyCard } from "./SurveyCard";
 import { ArticleCard } from "./ArticleCard";
 import { useCurrentUser } from "@/context/user-context";
 import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
+import { useWorkspacePolls } from "@/hooks/use-workspace-polls";
 import { deletePostAction } from "@/actions/post.action";
 import { Post } from "@/types/posts";
 
@@ -22,7 +22,8 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
   const { currentUser } = useCurrentUser();
   const role = currentUser?.role ?? "student";
 
-  const { posts, isLoading, mutate } = useWorkspacePosts(groupid);
+  const { posts, isLoading: postsLoading, mutate } = useWorkspacePosts(groupid);
+  const { polls, isLoading: pollsLoading } = useWorkspacePolls(groupid);
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -62,6 +63,16 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     [chronologicalPosts],
   );
 
+  const filteredPolls = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return polls;
+    return polls.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        (p.description ?? "").toLowerCase().includes(q)
+    );
+  }, [polls, searchQuery]);
+
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return postsByCategory;
@@ -74,7 +85,6 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     return {
       event: filterPosts(postsByCategory.event),
       announcement: filterPosts(postsByCategory.announcement),
-      poll: filterPosts(postsByCategory.poll),
       survey: filterPosts(postsByCategory.survey),
       article: filterPosts(postsByCategory.article),
     };
@@ -86,7 +96,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
   const isFeedEmpty =
     (!isCategoryActive("event") || filtered.event.length === 0) &&
     (!isCategoryActive("announcement") || filtered.announcement.length === 0) &&
-    (!isCategoryActive("poll") || filtered.poll.length === 0) &&
+    (!isCategoryActive("poll") || filteredPolls.length === 0) &&
     (!isCategoryActive("survey") || filtered.survey.length === 0) &&
     (!isCategoryActive("article") || filtered.article.length === 0);
 
@@ -94,6 +104,8 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     () => chronologicalPosts.filter((p) => p.pinned),
     [chronologicalPosts],
   );
+
+  const isLoading = postsLoading || pollsLoading;
 
   if (isLoading) {
     return (
@@ -142,12 +154,12 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
         {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
           <PollCard
             role={role}
-            posts={filtered.poll}
+            polls={filteredPolls}
             searchQuery={searchQuery}
-            onDeletePost={handleDeletePost}
+            onDeletePoll={(pollId) => console.log("delete poll", pollId)}
           />
         )}
-        {isCategoryActive("survey") && filtered.survey.length > 0 && (
+        {/* {isCategoryActive("survey") && filtered.survey.length > 0 && (
           <SurveyCard
             role={role}
             posts={filtered.survey}

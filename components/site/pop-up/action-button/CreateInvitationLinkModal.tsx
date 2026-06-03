@@ -13,6 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X, CalendarIcon, ChevronUp, ChevronDown } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
+import { addDays } from "date-fns";
+import { type DateRange } from "react-day-picker";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Popover,
   PopoverContent,
@@ -33,7 +36,6 @@ export default function CreateInvitationLinkModal({
     "http://96.9.81.187:3001/join/Y9xjMfJLoqty6DJVm3tLw7vdWTwogb8N",
   );
 
-  const [date, setDate] = React.useState<Date | undefined>();
   const [open, setOpen] = React.useState(false);
 
   const handleCreateLink = () => {
@@ -42,6 +44,12 @@ export default function CreateInvitationLinkModal({
       expireDate || "expireDate",
     );
   };
+
+  // Dynamically defaults to starting from today instead of a hardcoded past month
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 30),
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -83,8 +91,20 @@ export default function CreateInvitationLinkModal({
                       variant="outline"
                       className="w-full h-[52px] justify-start pl-11 rounded-xl border border-blue-100 bg-white text-left font-normal text-gray-500 hover:bg-white"
                     >
+                      {/* FIXED: Reading directly from dateRange to display text */}
                       <div className="w-full flex items-center justify-between">
-                        {date ? format(date, "PPP") : "Select Expire Date"}
+                        {dateRange?.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "LLL dd, yyyy")} –{" "}
+                              {format(dateRange.to, "LLL dd, yyyy")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "LLL dd, yyyy")
+                          )
+                        ) : (
+                          "Select Expire Date"
+                        )}
 
                         {open ? (
                           <ChevronUp size={18} />
@@ -97,16 +117,24 @@ export default function CreateInvitationLinkModal({
 
                   <PopoverContent
                     align="start"
-                    className="w-auto p-0 rounded-xl border border-blue-100 shadow-lg"
+                    className="w-auto p-0 rounded-xl border border-blue-100 shadow-sm"
                   >
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={(selectedDate) => {
-                        setDate(selectedDate);
-                        setOpen(false); 
-                      }}
-                    />
+                    <Card className="mx-auto w-fit p-0">
+                      <CardContent className="p-0">
+                        <Calendar
+                          mode="range"
+                          defaultMonth={dateRange?.from}
+                          selected={dateRange}
+                          onSelect={setDateRange}
+                          numberOfMonths={2}
+                          disabled={(date) => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            return date < today;
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
                   </PopoverContent>
                 </Popover>
               </div>

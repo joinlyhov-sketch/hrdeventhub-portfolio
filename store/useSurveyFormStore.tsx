@@ -20,7 +20,6 @@ interface SurveyFormState {
   workspaceId: string;
   selectedWorkspaceId: string;
 
-  // Actions
   setTitle: (title: string) => void;
   setDescription: (description: string) => void;
   setIsActive: (isActive: boolean) => void;
