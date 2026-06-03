@@ -3,13 +3,16 @@
 import React from "react";
 import { Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import { Variants } from 'framer-motion';
+
+const transitionEase: any = [0.22, 1, 0.36, 1];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 36 },
   visible: (d = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: d },
+    transition: { duration: 0.7, ease: transitionEase, delay: d },
   }),
 };
 
@@ -19,7 +22,7 @@ const slideInLeft = {
     opacity: 1,
     x: 0,
     rotate: -15,
-    transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.5 },
+    transition: { duration: 0.85, ease: transitionEase, delay: 0.5 },
   },
 };
 
@@ -29,7 +32,7 @@ const slideInRight = {
     opacity: 1,
     x: 0,
     rotate: 12,
-    transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.6 },
+    transition: { duration: 0.85, ease: transitionEase, delay: 0.6 },
   },
 };
 
@@ -39,7 +42,7 @@ const slideInCenter = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.4 },
+    transition: { duration: 0.85, ease: transitionEase, delay: 0.4 },
   },
 };
 
@@ -62,7 +65,7 @@ const featureItem = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.6, ease: transitionEase },
   },
 };
 
@@ -438,7 +441,7 @@ export default function HeroSession() {
             >
               <motion.div
                 className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:top-5 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center"
-                variants={heartPop}
+                variants={slideInCenter}
                 initial="hidden"
                 animate="visible"
               >
