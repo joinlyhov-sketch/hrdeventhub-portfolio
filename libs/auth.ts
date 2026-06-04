@@ -65,35 +65,61 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }: { token: JWT; user?: User }) {
-      if (user) {
-        token.id               = user.id as string;
-        token.role             = user.user?.role;
-        token.accessToken      = user.accessToken;
-        token.refreshToken     = user.refreshToken;
-        token.rememberMe       = user.rememberMe;
-        token.accessTokenExpiry = Date.now() + 15 * 60 * 1000; 
-        return token;
-      }
-
-      if (Date.now() < token.accessTokenExpiry) {
-        return token;
-      }
+  if (user) {
+    token.id           = user.id as string;
+    token.role         = user.user?.role;
+    token.accessToken  = user.accessToken;
+    token.refreshToken = user.refreshToken;
+    token.rememberMe   = user.rememberMe;
+    const parts = (user.accessToken as string)?.split(".");
+    if (parts?.length === 3) {
       try {
-        const refreshed = await authService.refreshToken(token.refreshToken);
-        return {
-          ...token,
-          accessToken:       refreshed.payload.token,
-          refreshToken:      refreshed.payload.refreshToken,
-          accessTokenExpiry: Date.now() + 15 * 60 * 1000,
-          error:             undefined,
-        };
+        const decoded = JSON.parse(
+          Buffer.from(parts[1], "base64").toString("utf-8")
+        ) as { exp?: number };
+        token.accessTokenExpiry = decoded.exp ? decoded.exp * 1000 : Date.now() + 24 * 60 * 60 * 1000;
       } catch {
-        return {
-          ...token,
-          error: "RefreshTokenExpired" as const,
-        };
+        token.accessTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
       }
-    },
+    } else {
+      token.accessTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
+    }
+
+    return token;
+  }
+
+  if (Date.now() < (token.accessTokenExpiry as number)) {
+    return token;
+  }
+
+  try {
+    const refreshed = await authService.refreshToken(token.refreshToken as string);
+
+    const parts = refreshed.payload.token?.split(".");
+    let newExpiry = Date.now() + 24 * 60 * 60 * 1000;
+    if (parts?.length === 3) {
+      try {
+        const decoded = JSON.parse(
+          Buffer.from(parts[1], "base64").toString("utf-8")
+        ) as { exp?: number };
+        newExpiry = decoded.exp ? decoded.exp * 1000 : newExpiry;
+      } catch {}
+    }
+
+    return {
+      ...token,
+      accessToken:       refreshed.payload.token,
+      refreshToken:      refreshed.payload.refreshToken,
+      accessTokenExpiry: newExpiry,
+      error:             undefined,
+    };
+  } catch {
+    return {
+      ...token,
+      error: "RefreshTokenExpired" as const,
+    };
+  }
+},
 
     async session({ session, token }) {
   if (session.user) {
