@@ -14,6 +14,7 @@ import {
 import { mockComments } from "@/data/event";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import { usePostReaction } from "@/hooks/use-post-reaction";
 
 interface EventCardProps {
   role: UserRole;
@@ -37,8 +38,9 @@ function EventItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [likesCount, setLikesCount] = useState(0);
+
+  const { selectedReaction, likesCount, handleLikeToggle, handleReactionSelect } =
+    usePostReaction(post.postId);
 
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
@@ -57,21 +59,6 @@ function EventItem({
         .toUpperCase()
         .slice(0, 2)
     : "?";
-
-  const handleLikeToggle = () => {
-    if (selectedReaction) {
-      setSelectedReaction(null);
-      setLikesCount((prev) => prev - 1);
-    } else {
-      setSelectedReaction("like");
-      setLikesCount((prev) => prev + 1);
-    }
-  };
-
-  const handleReactionSelect = (reactionId: string) => {
-    if (!selectedReaction) setLikesCount((prev) => prev + 1);
-    setSelectedReaction(reactionId);
-  };
 
   return (
     <>
@@ -209,7 +196,6 @@ function EventItem({
                 {post.eventStart ?? "—"}
               </p>
             </div>
-
             <Link
               href={`/group/${groupid}/event/${post.postId}`}
               className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white type-desc-small-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer shrink-0 text-center shadow-md mb-0.5"
@@ -236,9 +222,7 @@ function EventItem({
                 size={18}
                 className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
               />
-              <span>
-                {activeReaction ? activeReaction.displayText : "Like"}
-              </span>
+              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
               <span className="type-detail-small-medium font-normal text-grey-400">
                 ({likesCount})
               </span>
@@ -311,12 +295,8 @@ function EventItem({
                       {comment.text}
                     </p>
                     <div className="flex items-center gap-4 type-desc-small-semibold text-grey-900 pt-1">
-                      <button className="hover:underline cursor-pointer">
-                        Reply
-                      </button>
-                      <button className="hover:underline cursor-pointer">
-                        Like
-                      </button>
+                      <button className="hover:underline cursor-pointer">Reply</button>
+                      <button className="hover:underline cursor-pointer">Like</button>
                     </div>
                   </div>
                 </div>
@@ -328,56 +308,34 @@ function EventItem({
                       style={{ bottom: "24px" }}
                     />
                     {comment.replies.map((reply, index) => (
-                      <div
-                        key={reply.id}
-                        className="relative flex items-start gap-3"
-                      >
+                      <div key={reply.id} className="relative flex items-start gap-3">
                         {index > 0 && (
                           <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
                         )}
                         <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
                         <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
-                          <img
-                            src={reply.author.avatar}
-                            alt={reply.author.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={reply.author.avatar} alt={reply.author.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-1.5 text-sm">
-                            <span className="type-detail-semibold text-grey-900">
-                              {reply.author.name}
-                            </span>
-                            <span className="text-grey-400 type-desc-small-semibold font-normal">
-                              · {reply.date}
-                            </span>
+                            <span className="type-detail-semibold text-grey-900">{reply.author.name}</span>
+                            <span className="text-grey-400 type-desc-small-semibold font-normal">· {reply.date}</span>
                           </div>
                           <p className="type-detail text-grey-900 leading-normal">
                             {reply.text.split(" ").map((word, i) =>
                               word.startsWith("@") ? (
-                                <span
-                                  key={i}
-                                  className="text-blue-600 type-detail-medium"
-                                >
-                                  {word}{" "}
-                                </span>
+                                <span key={i} className="text-blue-600 type-detail-medium">{word} </span>
                               ) : (
                                 word + " "
                               ),
                             )}
                           </p>
                           <div className="flex items-center gap-4 type-desc-small-semibold text-grey-900 pt-1">
-                            <button className="hover:underline cursor-pointer">
-                              Reply
-                            </button>
+                            <button className="hover:underline cursor-pointer">Reply</button>
                             {reply.isOwn && (
                               <>
-                                <button className="hover:underline cursor-pointer">
-                                  Edit
-                                </button>
-                                <button className="hover:underline cursor-pointer">
-                                  Delete
-                                </button>
+                                <button className="hover:underline cursor-pointer">Edit</button>
+                                <button className="hover:underline cursor-pointer">Delete</button>
                               </>
                             )}
                           </div>
@@ -401,12 +359,7 @@ function EventItem({
   );
 }
 
-export function EventCard({
-  role,
-  posts,
-  onDeletePost,
-  groupid,
-}: EventCardProps) {
+export function EventCard({ role, posts, onDeletePost, groupid }: EventCardProps) {
   return (
     <>
       {posts.map((post) => (
@@ -415,7 +368,7 @@ export function EventCard({
           post={post}
           role={role}
           onDelete={() => onDeletePost(post.postId)}
-          groupid={groupid} // Relays correctly here down to EventItem
+          groupid={groupid}
         />
       ))}
     </>

@@ -11,19 +11,12 @@ import { DiscussionSection } from "../../../components/site/event-detail/discuss
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import PaymentModal from "@/components/site/pop-up/payment/PaymentModal";
 import Link from "next/link";
-import { reactionService } from "../../../service/post-reaction.service";
 import { useSession, signOut } from "next-auth/react";
-import { Post } from "@/types/posts";
-import {
-  ReactionPopover,
-  REACTIONS,
-} from "@/components/site/pop-up/comment/reaction";
+import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
 import { usePaymentModalStore } from "@/store/usePaymentModalStore";
-import type {
-  EventDetailState,
-  Reaction as ReactionType,
-} from "@/data/event-detail";
+import { reactionService } from "../../../service/post-reaction.service";
 import { useCurrentUser } from "@/context/user-context";
+import { Post } from "@/types/posts";
 
 type PostReactionResponse = {
   success: boolean;
@@ -44,15 +37,8 @@ interface EventDetailClientProps {
 }
 
 export default function EventDetailClient({ event }: EventDetailClientProps) {
-  console.log("=== EventDetailClient MOUNTED");
   const { currentUser } = useCurrentUser();
   const { data: session, status } = useSession();
-
-  console.log("=== EventDetailClient status:", status);
-  console.log(
-    "=== EventDetailClient session:",
-    JSON.stringify(session, null, 2),
-  );
 
   const isAdminOrOrganizer =
     currentUser?.role === "admin" || currentUser?.role === "organizer";
@@ -63,29 +49,34 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
-  const openPaymentModal = usePaymentModalStore(
-    (state) => state.openPaymentModal,
-  );
+  const openPaymentModal = usePaymentModalStore((state) => state.openPaymentModal);
 
-  const [detailData, setDetailData] = useState<EventDetailState>({
-    id: event?.id || "det-4401",
-    likesCount: event?.likesCount || 0,
-    commentsCount: event?.commentsCount || 0,
+  const [detailData, setDetailData] = useState({
+    id: event?.postId || "det-4401",
+    likesCount: 124,
+    commentsCount: event?.comments?.length || 0,
     isLikedByUser: false,
   });
 
+  const mediaList =
+    event?.media && event.media.length > 0
+      ? event.media.map((m: any) => m.filePath || m.url)
+      : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
+
   useEffect(() => {
-    console.log("Full session object:", session);
-  }, [session]);
+    if (session?.error === "RefreshTokenExpired") {
+      signOut({ callbackUrl: "/login" });
+    }
+  }, [session?.error]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    if (!currentUser?.id || !event?.id || !session?.accessToken) return;
+    if (!currentUser?.id || !event?.postId || !session?.accessToken) return;
 
     const fetchUserReaction = async () => {
       try {
         const data = (await reactionService.getReactionPost(
-          event.id,
+          event.postId,
           session.accessToken,
         )) as PostReactionResponse;
 
@@ -108,16 +99,11 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         }
       } catch (err) {
         console.error("Failed to fetch post reaction:", err);
-  const [detailData, setDetailData] = useState({
-    id: event?.postId || "det-4401",
-    likesCount: 124,
-    commentsCount: event?.comments?.length || 0,
-    isLikedByUser: false,
-  });
+      }
+    };
 
-  const mediaList = event?.media && event.media.length > 0
-    ? event.media.map((m: any) => m.filePath || m.url)
-    : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
+    fetchUserReaction();
+  }, [currentUser?.id, event?.postId, session?.accessToken, status]);
 
   const handlePrevImage = () => {
     setCurrentImgIndex((prev) => (prev === 0 ? mediaList.length - 1 : prev - 1));
@@ -129,38 +115,11 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
   const activeReaction = REACTIONS.find((r: any) => r.id === selectedReaction);
 
-  const handleLikeToggle = () => {
-    setDetailData((prev) => {
-      const isCurrentlyActive = !!selectedReaction;
-      if (isCurrentlyActive) {
-        setSelectedReaction(null);
-        return { ...prev, isLikedByUser: false, likesCount: prev.likesCount - 1 };
-      } else {
-        setSelectedReaction("like");
-        return { ...prev, isLikedByUser: true, likesCount: prev.likesCount + 1 };
-      }
-    };
-
-    fetchUserReaction();
-  }, [currentUser?.id, event?.id, session?.accessToken, status]);
-
-  // EventDetailClient.tsx — add this useEffect
-  useEffect(() => {
-    if (session?.error === "RefreshTokenExpired") {
-      signOut({ callbackUrl: "/login" }); // force re-login
-    }
-  }, [session?.error]);
-
-  const activeReaction = REACTIONS.find(
-    (r: ReactionType) => r.id === selectedReaction,
-  );
-
   const handleLikeToggle = async () => {
-    if (!session?.accessToken || !event?.id) return;
+    if (!session?.accessToken || !event?.postId) return;
 
     const isCurrentlyActive = !!selectedReaction;
 
-    // Optimistic UI update first
     setDetailData((prev) => ({
       ...prev,
       isLikedByUser: !isCurrentlyActive,
@@ -170,30 +129,27 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
     try {
       if (isCurrentlyActive) {
-        await reactionService.removeReactionPost(event.id, session.accessToken);
+        await reactionService.removeReactionPost(event.postId, session.accessToken);
       } else {
-        await reactionService.reactPost(event.id, "like", session.accessToken);
+        await reactionService.reactPost(event.postId, "like", session.accessToken);
       }
     } catch (err) {
       console.error("Failed to toggle reaction:", err);
-      // Revert UI if API call fails
       setDetailData((prev) => ({
         ...prev,
         isLikedByUser: isCurrentlyActive,
-        likesCount: isCurrentlyActive
-          ? prev.likesCount + 1
-          : prev.likesCount - 1,
+        likesCount: isCurrentlyActive ? prev.likesCount + 1 : prev.likesCount - 1,
       }));
       setSelectedReaction(isCurrentlyActive ? "like" : null);
     }
   };
 
   const handleReactionSelect = async (reactionId: string) => {
-    if (!session?.accessToken || !event?.id) return;
+    if (!session?.accessToken || !event?.postId) return;
 
     const wasAlreadyActive = !!selectedReaction;
+    const previousReaction = selectedReaction;
 
-    // Optimistic UI update first
     setSelectedReaction(reactionId);
     setDetailData((prev) => ({
       ...prev,
@@ -203,18 +159,12 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
     try {
       if (wasAlreadyActive) {
-        // Change reaction type — remove old one first, then add new
-        await reactionService.removeReactionPost(event.id, session.accessToken);
+        await reactionService.removeReactionPost(event.postId, session.accessToken);
       }
-      await reactionService.reactPost(
-        event.id,
-        reactionId,
-        session.accessToken,
-      );
+      await reactionService.reactPost(event.postId, reactionId, session.accessToken);
     } catch (err) {
       console.error("Failed to select reaction:", err);
-      // Revert UI if API call fails
-      setSelectedReaction(wasAlreadyActive ? selectedReaction : null);
+      setSelectedReaction(previousReaction);
       setDetailData((prev) => ({
         ...prev,
         isLikedByUser: wasAlreadyActive,
@@ -352,32 +302,14 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         </section>
 
         <section className="flex gap-x-6 py-2 border-b border-border text-grey-400 type-detail">
-          <ReactionPopover
-            selectedValue={selectedReaction}
-            onReactionSelect={handleReactionSelect}
-          >
+          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
             <button
               onClick={handleLikeToggle}
-              className={`fleDx items-center gap-x-1 transition-colors cursor-pointer select-none ${
-                activeReaction
-                  ? `${activeReaction.color} font-semibold`
-                  : "hover:text-primary"
-              }`}
+              className={`flex items-center gap-x-1 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
             >
-              <ThumbsUp
-                size={16}
-                className={
-                  activeReaction?.id === "like"
-                    ? "fill-primary stroke-primary"
-                    : ""
-                }
-              />{" "}
-              <span>
-                {activeReaction ? activeReaction.displayText : "Like"}
-              </span>
-              <span className="text-xs font-normal text-grey-400">
-                ({detailData.likesCount})
-              </span>
+              <ThumbsUp size={16} className={activeReaction?.id === "like" ? "fill-primary stroke-primary" : ""} />
+              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span className="text-xs font-normal text-grey-400">({detailData.likesCount})</span>
             </button>
           </ReactionPopover>
 
