@@ -37,13 +37,15 @@ export default function GroupCard({ workspace }: GroupCardProps) {
             {isInternal ? "Internal" : "External"}
           </span>
 
-          {currentUser?.role === "admin" ? (
-            <GroupDropDown workspace={workspace} />
-          ) : (
-            <div className="p-2 rounded-full border border-[#FFD7A1] text-[#EFCF8B] hover:scale-110 transition-transform cursor-pointer">
-              <Link2 size={20} />
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {currentUser?.role === "admin" ? (
+              <GroupDropDown workspace={workspace} />
+            ) : (
+              <div className="p-2 rounded-full border border-[#FFD7A1] text-[#EFCF8B] hover:scale-110 transition-transform cursor-pointer">
+                <Link2 size={20} />
+              </div>
+            )}
+          </div>
         </div>
 
         <h2 className="text-subtitle font-black bg-linear-to-r from-primary to-[#efa537] bg-clip-text text-transparent mb-3 uppercase tracking-wide">
@@ -77,21 +79,24 @@ export default function GroupCard({ workspace }: GroupCardProps) {
                     />
                   ) : (
                     <span className="text-[11px] font-bold text-primary uppercase">
-                      {firstLetter}{lastLetter}
+                      {firstLetter}
+                      {lastLetter}
                     </span>
                   )}
                 </div>
               );
             })}
-            
+
             {extraCount > 0 && (
               <div className="w-10 h-10 rounded-full border-2 border-white bg-[#EBF5FB] flex items-center justify-center text-[#3FA6DC] type-desc-small-semibold shadow-sm shrink-0">
                 +{extraCount}
               </div>
             )}
-            
+
             {members.length === 0 && (
-              <span className="text-[13px] text-gray-400 font-medium">No members yet</span>
+              <span className="text-[13px] text-gray-400 font-medium">
+                No members yet
+              </span>
             )}
           </div>
 

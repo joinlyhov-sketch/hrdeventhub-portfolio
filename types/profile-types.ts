@@ -1,3 +1,5 @@
+export type SharingMode = "PUBLIC" | "PRIVATE" | "SELECTIVE";
+
 export interface Education {
   endYear: any;
   institutionName: string;
@@ -27,6 +29,7 @@ export interface AppUser {
   firstName: string;
   lastName: string;
   email: string;
+  gender: string;
   dateOfBirth: string;
   phoneNumber: string;
   active: boolean;
@@ -36,18 +39,27 @@ export interface AppUser {
   updatedAt: string;
 }
 
+export interface ProfilePreferences {
+  showBirthdate: boolean;
+  showEmail: boolean;
+  showSocial: boolean;
+  showPhoneNumber: boolean;
+  showCurrentStatus: boolean;
+}
+
 export interface UserProfilePayload {
   profileId: string;
   bio: string;
   profilePicture: string | null;
   major: string;
   cvResumeUrl: string | null;
-  profileSharingMode: "PUBLIC" | "PRIVATE";
+  profileSharingMode: SharingMode;
   currentStatus: string;
   roles: "ADMIN" | "ORGANIZER" | "STUDENT" | "ALUMNI";
   education: Education[];
   skills: string[];
   socialAccount: SocialAccount[];
+  preferences?: ProfilePreferences[];
   generation: Generation;
   appUser: AppUser;
 }

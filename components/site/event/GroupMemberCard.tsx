@@ -42,7 +42,6 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
 
   return (
     <div className="w-full max-w-md bg-background rounded-[12px] border border-border p-5 shadow-sm transition-all duration-300">
-      {/* Header Info */}
       <div className="flex items-center justify-between gap-4 mb-6">
         <div className="min-w-0">
           <h3 className="type-subtitle font-extrabold text-primary leading-tight truncate">
@@ -53,7 +52,6 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
           </p>
         </div>
         
-        {/* Header Stack Avatars */}
         <div className="flex items-center -space-x-2 shrink-0 select-none">
           {headerVisibleMembers.map((member) => {
             const firstLetter = member.firstName?.[0] ?? "";
@@ -100,7 +98,6 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
         </div>
       )}
 
-      {/* Main Members List */}
       <div
         className={`space-y-4 mb-3 pr-2 pl-2 ${
           showAll ? "max-h-80 overflow-y-auto pr-1" : ""

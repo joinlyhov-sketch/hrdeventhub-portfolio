@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signOut, useSession } from "next-auth/react";  
+import { signOut, useSession } from "next-auth/react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,33 +16,47 @@ import {
   useSidebar,
 } from "../ui/sidebar";
 import Image from "next/image";
-import { LogOut } from "lucide-react";
+import { LogOut, Pin } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutModal } from "./pop-up/commons/LogoutModal";
 import { useCurrentUser } from "@/context/user-context";
-import { logoutAction } from "@/actions/auth.action"; 
+import { logoutAction } from "@/actions/auth.action";
+import { usePinnedWorkspaces } from "@/hooks/use-pinned-workspace";
+import { useMyWorkspaces } from "@/hooks/use-my-workspace";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 const ADMIN_ROLES = ["admin", "organizer"] as const;
 
 export function AppSidebar() {
   const { currentUser } = useCurrentUser();
-  const { data: session } = useSession();            
+  const { data: session } = useSession();
   const { state } = useSidebar();
   const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
+  const { pinnedId } = usePinnedWorkspaces();
+  const isAdmin = currentUser?.role === "admin";
+
+  const adminData = useWorkspaces({ page: 1, size: 100 });
+  const memberData = useMyWorkspaces();
+
+  const allWorkspaces = isAdmin ? adminData.workspaces : memberData.workspaces;
+
+  const pinnedWorkspace = allWorkspaces.find((w) => w.workspaceId === pinnedId);
+
   const canSeeAdministration =
     currentUser !== null &&
-    ADMIN_ROLES.includes(currentUser?.role as typeof ADMIN_ROLES[number]);
+    ADMIN_ROLES.includes(currentUser?.role as (typeof ADMIN_ROLES)[number]);
 
   const handleConfirmLogout = async () => {
     setIsLogoutOpen(false);
     if (session?.refreshToken) {
-      await logoutAction(session.refreshToken);        
+      await logoutAction(session.refreshToken);
     }
     signOut({ callbackUrl: "/" });
   };
+
   return (
     <>
       <Sidebar collapsible="icon" className="border-r z-50">
@@ -53,25 +67,14 @@ export function AppSidebar() {
                 asChild
                 size="lg"
                 className={`
-                transition-all
-                duration-300
-                ease-in-out
+                transition-all duration-300 ease-in-out
                 ${state === "collapsed" ? "justify-center" : "justify-start"}
               `}
               >
                 <Link href="/">
                   <div
-                    className={`
-                  overflow-hidden
-                  transition-all
-                  duration-300
-                  ease-in-out
-                  ${
-                    state === "collapsed"
-                      ? "w-auto opacity-100 scale-100"
-                      : "w-0 hidden scale-75"
-                  }
-                `}
+                    className={`overflow-hidden transition-all duration-300 ease-in-out
+                  ${state === "collapsed" ? "w-auto opacity-100 scale-100" : "w-0 hidden scale-75"}`}
                   >
                     <Image
                       src="/images/hrdLogo.webp"
@@ -81,19 +84,9 @@ export function AppSidebar() {
                       className="shrink-0"
                     />
                   </div>
-
                   <div
-                    className={`
-                  overflow-hidden
-                  transition-all
-                  duration-300
-                  ease-in-out
-                  ${
-                    state === "collapsed"
-                      ? "w-0 opacity-0"
-                      : "w-auto scale-150 opacity-100 ml-4"
-                  }
-                `}
+                    className={`overflow-hidden transition-all duration-300 ease-in-out
+                  ${state === "collapsed" ? "w-0 opacity-0" : "w-auto scale-150 opacity-100 ml-4"}`}
                   >
                     <Image
                       src="/images/Logo.webp"
@@ -111,108 +104,84 @@ export function AppSidebar() {
         </SidebarHeader>
 
         <SidebarContent className="py-2">
+          {/* ── Events (Pinned Workspaces) ──────────────────────────────────── */}
           <SidebarGroup>
             <SidebarGroupLabel
-              className={`
-                        text-fs-desc text-gray-500
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+              className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+            >
+              Events
+            </SidebarGroupLabel>
+
+            <SidebarMenu className="flex flex-col gap-1">
+              {!pinnedWorkspace ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip="Pin a workspace to see it here"
+                    className="h-auto cursor-default hover:bg-transparent focus:bg-transparent"
+                    disabled
+                  >
+                    <Pin
+                      size={16}
+                      className="shrink-0 text-muted-foreground/50"
+                    />
+                    <span
+                      className={`overflow-hidden whitespace-normal transition-all duration-500 ease-in-out text-xs text-muted-foreground/60 leading-snug
+                        ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                    >
+                      Pin a workspace to show it here
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : (
+                (() => {
+                  const workspace = pinnedWorkspace;
+                  const initials = workspace.name
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((word: string) => word[0]?.toUpperCase() ?? "")
+                    .join("");
+
+                  const href = `/group/${workspace.workspaceId}`;
+                  const isActive = pathname === href;
+
+                  return (
+                    <SidebarMenuItem key={workspace.workspaceId}>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip={workspace.name}
+                        className="h-11"
+                        isActive={isActive}
+                      >
+                        <Link href={href}>
+                          <span className="w-5 h-5 rounded-md bg-primary/15 text-primary flex items-center justify-center text-[9px] font-bold shrink-0 uppercase">
+                            {initials}
+                          </span>
+
+                          <span
+                            className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                              ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                          >
+                            {workspace.name}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })()
+              )}
+            </SidebarMenu>
+          </SidebarGroup>
+  
+          <SidebarGroup>
+            <SidebarGroupLabel
+              className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
             >
               General
             </SidebarGroupLabel>
             <SidebarMenu className="flex flex-col gap-1">
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Events"
-                  className="h-11"
-                  isActive={pathname === "/group/1"}
-                >
-                  <Link href="/group/1">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M6 1.5V3.75"
-                        stroke="#878787"
-                        strokeWidth="1.5"
-                        strokeMiterlimit="10"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M12 1.5V3.75"
-                        stroke="#878787"
-                        strokeWidth="1.5"
-                        strokeMiterlimit="10"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M5.25 8.25H11.25"
-                        stroke="#878787"
-                        strokeWidth="1.5"
-                        strokeMiterlimit="10"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M5.25 11.25H9"
-                        stroke="#878787"
-                        strokeWidth="1.5"
-                        strokeMiterlimit="10"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M11.25 16.5H6.75C3 16.5 2.25 14.955 2.25 11.865V7.2375C2.25 3.7125 3.5025 2.7675 6 2.625H12C14.4975 2.76 15.75 3.7125 15.75 7.2375V12"
-                        stroke="#878787"
-                        strokeWidth="1.5"
-                        strokeMiterlimit="10"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M15.75 12L11.25 16.5V14.25C11.25 12.75 12 12 13.5 12H15.75Z"
-                        stroke="#878787"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span
-                      className={`
-                      text-fs-desc text-gray-500
-                    overflow-hidden
-                    whitespace-nowrap
-                    transition-all
-                    duration-500
-                    ease-int-out
-                    ${
-                      state === "collapsed"
-                        ? "max-w-0 opacity-0 -translate-x-2"
-                        : "max-w-50 opacity-100 translate-x-0"
-                    }
-                  `}
-                    >
-                      Events
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {/* Group */}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={pathname === "/group"}
@@ -257,21 +226,9 @@ export function AppSidebar() {
                         strokeLinejoin="round"
                       />
                     </svg>
-
                     <span
-                      className={`
-                      text-fs-desc text-gray-500
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                        ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                     >
                       Group
                     </span>
@@ -349,21 +306,9 @@ export function AppSidebar() {
                         strokeLinejoin="round"
                       />
                     </svg>
-
                     <span
-                      className={`
-                      text-fs-desc text-gray-500
-                    overflow-hidden
-                    whitespace-nowrap
-                    transition-all
-                    duration-500
-                    ease-in-out
-                    ${
-                      state === "collapsed"
-                        ? "max-w-0 opacity-0 -translate-x-2"
-                        : "max-w-50 opacity-100 translate-x-0"
-                    }
-                  `}
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                        ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                     >
                       Calendar
                     </span>
@@ -375,7 +320,7 @@ export function AppSidebar() {
                 <SidebarMenuButton
                   isActive={pathname === "/profile/1"}
                   asChild
-                  tooltip="Event Management"
+                  tooltip="Profile"
                   className="h-11"
                 >
                   <Link href="/profile/1">
@@ -402,19 +347,8 @@ export function AppSidebar() {
                       />
                     </svg>
                     <span
-                      className={`
-                      text-fs-desc text-gray-500
-                    overflow-hidden
-                    whitespace-nowrap
-                    transition-all
-                    duration-500
-                    ease-in-out
-                    ${
-                      state === "collapsed"
-                        ? "max-w-0 opacity-0 -translate-x-2"
-                        : "max-w-50 opacity-100 translate-x-0"
-                    }
-                  `}
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                        ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                     >
                       Profile
                     </span>
@@ -444,7 +378,6 @@ export function AppSidebar() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-
                       <path
                         d="M14.4083 11.8048L11.7532 14.4598C11.6482 14.5648 11.5508 14.7598 11.5283 14.9023L11.3858 15.9148C11.3333 16.2823 11.5883 16.5373 11.9558 16.4848L12.9682 16.3423C13.1107 16.3198 13.3133 16.2223 13.4108 16.1173L16.0657 13.4623C16.5232 13.0048 16.7407 12.4723 16.0657 11.7973C15.3982 11.1298 14.8658 11.3473 14.4083 11.8048Z"
                         stroke="#878787"
@@ -453,7 +386,6 @@ export function AppSidebar() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-
                       <path
                         d="M14.0273 12.1875C14.2523 12.9975 14.8823 13.6275 15.6923 13.8525"
                         stroke="#878787"
@@ -462,7 +394,6 @@ export function AppSidebar() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-
                       <path
                         d="M2.55859 16.5C2.55859 13.5975 5.44611 11.25 9.00111 11.25C9.78111 11.25 10.5311 11.3625 11.2286 11.5725"
                         stroke="#878787"
@@ -472,25 +403,15 @@ export function AppSidebar() {
                       />
                     </svg>
                     <span
-                      className={`
-                      text-fs-desc text-gray-500
-                    overflow-hidden
-                    whitespace-nowrap
-                    transition-all
-                    duration-500
-                    ease-in-out
-                    ${
-                      state === "collapsed"
-                        ? "max-w-0 opacity-0 -translate-x-2"
-                        : "max-w-50 opacity-100 translate-x-0"
-                    }
-                  `}
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                        ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                     >
                       Edit Profile
                     </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={pathname === "/profile/1/setting"}
@@ -514,7 +435,6 @@ export function AppSidebar() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-
                       <path
                         d="M1.5 9.66105V8.34105C1.5 7.56105 2.1375 6.91605 2.925 6.91605C4.2825 6.91605 4.8375 5.95605 4.155 4.77855C3.765 4.10355 3.9975 3.22605 4.68 2.83605L5.9775 2.09355C6.57 1.74105 7.335 1.95105 7.6875 2.54355L7.77 2.68605C8.445 3.86355 9.555 3.86355 10.2375 2.68605L10.32 2.54355C10.6725 1.95105 11.4375 1.74105 12.03 2.09355L13.3275 2.83605C14.01 3.22605 14.2425 4.10355 13.8525 4.77855C13.17 5.95605 13.725 6.91605 15.0825 6.91605C15.8625 6.91605 16.5075 7.55355 16.5075 8.34105V9.66105C16.5075 10.4411 15.87 11.0861 15.0825 11.0861C13.725 11.0861 13.17 12.0461 13.8525 13.2236C14.2425 13.9061 14.01 14.7761 13.3275 15.1661L12.03 15.9086C11.4375 16.2611 10.6725 16.0511 10.32 15.4586L10.2375 15.3161C9.5625 14.1386 8.4525 14.1386 7.77 15.3161L7.6875 15.4586C7.335 16.0511 6.57 16.2611 5.9775 15.9086L4.68 15.1661C3.9975 14.7761 3.765 13.8986 4.155 13.2236C4.8375 12.0461 4.2825 11.0861 2.925 11.0861C2.1375 11.0861 1.5 10.4411 1.5 9.66105Z"
                         stroke="#878787"
@@ -525,19 +445,8 @@ export function AppSidebar() {
                       />
                     </svg>
                     <span
-                      className={`
-                      text-fs-desc text-gray-500
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                        ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                     >
                       Setting
                     </span>
@@ -550,19 +459,8 @@ export function AppSidebar() {
           {canSeeAdministration && (
             <SidebarGroup>
               <SidebarGroupLabel
-                className={`
-                        text-fs-desc text-gray-500
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+                className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                  ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
               >
                 Administration
               </SidebarGroupLabel>
@@ -590,7 +488,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M14.4083 11.8048L11.7532 14.4598C11.6482 14.5648 11.5508 14.7598 11.5283 14.9023L11.3858 15.9148C11.3333 16.2823 11.5883 16.5373 11.9558 16.4848L12.9682 16.3423C13.1107 16.3198 13.3133 16.2223 13.4108 16.1173L16.0657 13.4623C16.5232 13.0048 16.7407 12.4723 16.0657 11.7973C15.3982 11.1298 14.8658 11.3473 14.4083 11.8048Z"
                           stroke="#878787"
@@ -599,7 +496,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M14.0273 12.1875C14.2523 12.9975 14.8823 13.6275 15.6923 13.8525"
                           stroke="#878787"
@@ -608,7 +504,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M2.55859 16.5C2.55859 13.5975 5.44611 11.25 9.00111 11.25C9.78111 11.25 10.5311 11.3625 11.2286 11.5725"
                           stroke="#878787"
@@ -618,19 +513,8 @@ export function AppSidebar() {
                         />
                       </svg>
                       <span
-                        className={`
-                        text-fs-desc text-gray-500
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                          ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                       >
                         User Management
                       </span>
@@ -661,7 +545,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M12 1.5V3.75"
                           stroke="#878787"
@@ -670,7 +553,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M5.25 9.75H11.25"
                           stroke="#878787"
@@ -679,7 +561,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M5.25 12.75H9"
                           stroke="#878787"
@@ -688,7 +569,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M12 2.625C14.4975 2.76 15.75 3.7125 15.75 7.2375V11.8725C15.75 14.9625 15 16.5075 11.25 16.5075H6.75C3 16.5075 2.25 14.9625 2.25 11.8725V7.2375C2.25 3.7125 3.5025 2.7675 6 2.625H12Z"
                           stroke="#878787"
@@ -699,19 +579,8 @@ export function AppSidebar() {
                         />
                       </svg>
                       <span
-                        className={`
-                        text-fs-desc text-gray-500
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                          ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                       >
                         Event Management
                       </span>
@@ -741,7 +610,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M6.67469 12.3937C7.03469 12.0037 7.5897 12.0337 7.9047 12.4612L8.35471 13.0612C8.70721 13.5337 9.29218 13.5337 9.64468 13.0612L10.0872 12.4688C10.4022 12.0487 10.9572 12.0187 11.3172 12.4012C12.1047 13.2412 12.7422 12.9637 12.7422 11.7862V6.81374C12.7422 5.03624 12.3222 4.59375 10.6572 4.59375H7.32719C5.66219 4.59375 5.24219 5.03624 5.24219 6.81374V11.7862C5.24969 12.9487 5.89469 13.2262 6.67469 12.3937Z"
                           stroke="#878787"
@@ -751,19 +619,8 @@ export function AppSidebar() {
                         />
                       </svg>
                       <span
-                        className={`
-                        text-fs-desc text-gray-500
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                          ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                       >
                         Transaction History
                       </span>
@@ -792,28 +649,24 @@ export function AppSidebar() {
                           strokeWidth={1.5}
                           strokeLinecap="round"
                         />
-
                         <path
                           d="M9 13.6128V10.5078"
                           stroke="#878787"
                           strokeWidth={1.5}
                           strokeLinecap="round"
                         />
-
                         <path
                           d="M12.8398 13.6103V8.94531"
                           stroke="#878787"
                           strokeWidth={1.5}
                           strokeLinecap="round"
                         />
-
                         <path
                           d="M12.8402 4.39062L12.4952 4.79562C10.5827 7.03062 8.01766 8.61313 5.16016 9.32563"
                           stroke="#878787"
                           strokeWidth={1.5}
                           strokeLinecap="round"
                         />
-
                         <path
                           d="M10.6406 4.39062H12.8381V6.58063"
                           stroke="#878787"
@@ -821,7 +674,6 @@ export function AppSidebar() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-
                         <path
                           d="M6.75 16.5H11.25C15 16.5 16.5 15 16.5 11.25V6.75C16.5 3 15 1.5 11.25 1.5H6.75C3 1.5 1.5 3 1.5 6.75V11.25C1.5 15 3 16.5 6.75 16.5Z"
                           stroke="#878787"
@@ -831,19 +683,8 @@ export function AppSidebar() {
                         />
                       </svg>
                       <span
-                        className={`
-                        text-fs-desc text-gray-500
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                          ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                       >
                         Feedback & Polls
                       </span>
@@ -854,6 +695,7 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
         </SidebarContent>
+
         <SidebarFooter className="border-t">
           <SidebarMenu>
             <SidebarMenuItem>
@@ -875,20 +717,8 @@ export function AppSidebar() {
                     )}
                   </div>
                   <div
-                    className={`
-                      text-fs-desc text-gray-500
-                      flex flex-col
-                      overflow-hidden
-                      whitespace-nowrap
-                      transition-all
-                      duration-500
-                      ease-in-out
-                      ${
-                        state === "collapsed"
-                          ? "max-w-0 opacity-0 -translate-x-2"
-                          : "max-w-50 opacity-100 translate-x-0"
-                      }
-                    `}
+                    className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                      ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                   >
                     <span className="type-detail-semibold text-grey-900 leading-tight">
                       {currentUser?.name ?? "Loading..."}
@@ -908,18 +738,8 @@ export function AppSidebar() {
               >
                 <LogOut />
                 <span
-                  className={`
-                    overflow-hidden
-                    whitespace-nowrap
-                    transition-all
-                    duration-500
-                    ease-in-out
-                    ${
-                      state === "collapsed"
-                        ? "max-w-0 opacity-0 -translate-x-2"
-                        : "max-w-50 opacity-100 translate-x-0"
-                    }
-                  `}
+                  className={`overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                    ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                 >
                   Logout
                 </span>
