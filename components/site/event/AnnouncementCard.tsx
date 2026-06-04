@@ -16,11 +16,13 @@ import {
   ReactionPopover,
   REACTIONS,
 } from "@/components/site/pop-up/comment/reaction";
-import { mockComments } from "@/data/announcementData";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
-import ExpandableText from "./ExpandableText";
+import { usePostReaction } from "@/hooks/use-post-reaction";
+import { usePostComments } from "@/hooks/use-post-comments";
+import { createCommentAction } from "@/actions/comment.action";
+import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 
 interface AnnouncementCardProps {
   role: UserRole;
@@ -31,13 +33,10 @@ interface AnnouncementCardProps {
 
 function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-
   const images = media.filter((m) => !m.filePath.endsWith(".pdf"));
   const displayImages = images.slice(0, 4);
   const remaining = images.length - 4;
-
   if (images.length === 0) return null;
-
   const gridClass = images.length === 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
@@ -54,7 +53,6 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
               : images.length === 3 && index === 0
                 ? "row-span-2 h-full min-h-48"
                 : "h-48";
-
           return (
             <div
               key={item.mediaId}
@@ -152,14 +150,22 @@ function AnnouncementItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [likesCount, setLikesCount] = useState(0);
 
+  const {
+    selectedReaction,
+    likesCount,
+    handleLikeToggle,
+    handleReactionSelect,
+  } = usePostReaction(post.postId);
+
+  const [commentInput, setCommentInput] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  const { comments, refetch } = usePostComments(post.postId);
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
   const profilePictureUrl = getMediaUrl(creator?.profilePicture);
-  const hasProfilePicture = !!profilePictureUrl;
   const initials = creator?.fullName
     ? creator.fullName
         .split(" ")
@@ -174,19 +180,28 @@ function AnnouncementItem({
   const hasPurpose = !!post.purpose;
   const hasMetaInfo = hasLocation || hasDate || hasPurpose;
 
-  const handleLikeToggle = () => {
-    if (selectedReaction) {
-      setSelectedReaction(null);
-      setLikesCount((prev) => prev - 1);
-    } else {
-      setSelectedReaction("like");
-      setLikesCount((prev) => prev + 1);
-    }
-  };
+  // const handleLikeToggle = () => {
+  //   if (selectedReaction) { setSelectedReaction(null); setLikesCount((p) => p - 1); }
+  //   else { setSelectedReaction("like"); setLikesCount((p) => p + 1); }
+  // };
 
-  const handleReactionSelect = (reactionId: string) => {
-    if (!selectedReaction) setLikesCount((prev) => prev + 1);
-    setSelectedReaction(reactionId);
+  // const handleReactionSelect = (reactionId: string) => {
+  //   if (!selectedReaction) setLikesCount((p) => p + 1);
+  //   setSelectedReaction(reactionId);
+  // };
+
+  const handleSubmitComment = async () => {
+    if (!commentInput.trim()) return;
+    setIsSubmittingComment(true);
+    try {
+      const result = await createCommentAction(post.postId, commentInput);
+      if (result.ok) {
+        setCommentInput("");
+        await refetch();
+      }
+    } finally {
+      setIsSubmittingComment(false);
+    }
   };
 
   return (
@@ -218,9 +233,9 @@ function AnnouncementItem({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
-              {hasProfilePicture ? (
+              {profilePictureUrl ? (
                 <Image
-                  src={profilePictureUrl!}
+                  src={profilePictureUrl}
                   alt={creator!.fullName}
                   width={48}
                   height={48}
@@ -243,13 +258,7 @@ function AnnouncementItem({
           </div>
           {creator?.role && (
             <span
-              className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${
-                creator.role.toLowerCase() === "admin"
-                  ? "bg-[#EBF5FB] text-[#3FA6DC]"
-                  : creator.role.toLowerCase() === "organizer"
-                    ? "bg-[#FFF7ED] text-[#F97316]"
-                    : "bg-grey-100 text-grey-500"
-              }`}
+              className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
             >
               {creator.role}
             </span>
@@ -257,8 +266,9 @@ function AnnouncementItem({
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-
-        <ExpandableText text={post.content} />
+        <p className="type-desc text-muted-foreground leading-relaxed mb-4">
+          {post.content}
+        </p>
 
         {hasMetaInfo && (
           <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-4">
@@ -316,11 +326,7 @@ function AnnouncementItem({
           >
             <button
               onClick={handleLikeToggle}
-              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                activeReaction
-                  ? `${activeReaction.color} font-semibold`
-                  : "hover:text-primary"
-              }`}
+              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
             >
               <ThumbsUp
                 size={18}
@@ -339,7 +345,7 @@ function AnnouncementItem({
             onClick={() => setShowComments(!showComments)}
             className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
           >
-            <MessageSquare size={18} /> {post.comments?.length ?? 0}
+            <MessageSquare size={18} /> {comments?.length ?? 0}
           </button>
 
           <button
@@ -357,7 +363,7 @@ function AnnouncementItem({
             {currentUser?.profilePicture ? (
               <Image
                 src={currentUser.profilePicture}
-                alt={currentUser.name}
+                alt={currentUser.name || "profile"}
                 width={40}
                 height={40}
                 className="w-full h-full object-cover rounded-full"
@@ -372,112 +378,41 @@ function AnnouncementItem({
             <input
               type="text"
               placeholder="Add a comment..."
+              value={commentInput}
+              onChange={(e) => setCommentInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
               className="w-full bg-transparent border-none py-1.5 type-detail text-grey-900 placeholder:text-grey-400 outline-none"
             />
-            <button className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0">
+            <button
+              onClick={handleSubmitComment}
+              disabled={!commentInput.trim() || isSubmittingComment}
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <SendHorizontal size={16} className="relative left-[-0.5px]" />
             </button>
           </div>
         </div>
 
         {showComments && (
-          <div className="space-y-6 pt-2">
-            {mockComments.map((comment) => (
-              <div key={comment.id} className="relative flex flex-col">
-                <div className="flex items-start gap-3 relative z-10">
-                  <div className="w-10 h-10 rounded-full bg-[#EBF5FB] flex items-center justify-center shrink-0 text-[#3FA6DC] font-semibold text-sm">
-                    {comment.author.initials}
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <span className="type-detail-semibold text-grey-900">
-                        {comment.author.name}
-                      </span>
-                      <span className="text-grey-400 type-desc-small-semibold font-normal">
-                        · {comment.date}
-                      </span>
-                    </div>
-                    <p className="type-detail text-grey-900 leading-normal">
-                      {comment.text}
-                    </p>
-                    <div className="flex items-center gap-4 type-desc-small-semibold text-grey-900 pt-1">
-                      <button className="hover:underline cursor-pointer">
-                        Reply
-                      </button>
-                      <button className="hover:underline cursor-pointer">
-                        Like
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {comment.replies && comment.replies.length > 0 && (
-                  <div className="relative pl-10 mt-4 space-y-5">
-                    <div
-                      className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]"
-                      style={{ bottom: "24px" }}
-                    />
-                    {comment.replies.map((reply, index) => (
-                      <div
-                        key={reply.id}
-                        className="relative flex items-start gap-3"
-                      >
-                        {index > 0 && (
-                          <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
-                        )}
-                        <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
-                        <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
-                          <img
-                            src={reply.author.avatar}
-                            alt={reply.author.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-1.5 text-sm">
-                            <span className="type-detail-semibold text-grey-900">
-                              {reply.author.name}
-                            </span>
-                            <span className="text-grey-400 type-desc-small-semibold font-normal">
-                              · {reply.date}
-                            </span>
-                          </div>
-                          <p className="type-detail text-grey-900 leading-normal">
-                            {reply.text.split(" ").map((word, i) =>
-                              word.startsWith("@") ? (
-                                <span
-                                  key={i}
-                                  className="text-blue-600 type-detail-medium"
-                                >
-                                  {word}{" "}
-                                </span>
-                              ) : (
-                                word + " "
-                              ),
-                            )}
-                          </p>
-                          <div className="flex items-center gap-4 type-desc-small-semibold text-grey-900 pt-1">
-                            <button className="hover:underline cursor-pointer">
-                              Reply
-                            </button>
-                            {reply.isOwn && (
-                              <>
-                                <button className="hover:underline cursor-pointer">
-                                  Edit
-                                </button>
-                                <button className="hover:underline cursor-pointer">
-                                  Delete
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          <div className="space-y-4 pt-2">
+            {comments.length > 0 ? (
+              comments.map((comment) => (
+                <CommentNode
+                  key={comment.commentId}
+                  comment={comment}
+                  currentUserId={currentUser?.id}
+                  currentUserPicture={currentUser?.profilePicture}
+                  currentUserInitials={currentUser?.avatarInitials}
+                  onRefetch={refetch}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-grey-400 type-detail-medium">
+                  No comments yet. Be the first to comment!
+                </p>
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>

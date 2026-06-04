@@ -10,15 +10,17 @@ import { profileService } from "@/service/profile.service";
 import { UserProfilePayload } from "@/types/profile-types";
 import { getMediaUrl } from "@/libs/media";
 import EndorseStudentModal from "../pop-up/EndorseStep";
+import { signOut } from "next-auth/react";
 
 const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <div className="flex flex-row w-full">
     <div className="flex items-center gap-3 w-full">
       <span className="text-primary shrink-0">{icon}</span>
-    <span className="   text-grey-900 truncate">{text}</span>
+      <span className="text-grey-900 truncate">{text}</span>
     </div>
   </div>
 );
+
 
 const formatSkills = (skills: string[]): string => {
   if (!skills || skills.length === 0) return "N/A";
@@ -34,10 +36,10 @@ const formatDate = (dateString?: string): string => {
   });
 };
 
-export default function ProfileCard({ userRole }: { userRole: UserRole }) {
+export default function ProfileCard({ userRole }: { userRole: UserRole | null }) {
   const { data: session } = useSession();
   const { currentUser } = useCurrentUser();
-  
+
   const [profile, setProfile] = useState<UserProfilePayload | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isEndorseOpen, setIsEndorseOpen] = useState(false);
@@ -56,7 +58,6 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
           setProfile(response.payload);
         }
       } catch (error) {
-        // Quiet catch
       } finally {
         setLoading(false);
       }
@@ -64,6 +65,33 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
 
     fetchProfileData();
   }, [session?.accessToken]);
+  useEffect(() => {
+  const fetchProfileData = async () => {
+    const token = session?.accessToken;
+    const sessionError = (session as any)?.error;
+
+    if (sessionError === "RefreshTokenExpired") {
+      signOut({ callbackUrl: "/login" });
+      return;
+    }
+
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const response = await profileService.getProfileMe(token);
+      if (response.success) {
+        setProfile(response.payload);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProfileData();
+}, [session?.accessToken]);
 
   if (loading) {
     return (
@@ -88,16 +116,19 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
   const facebookAccount = profile.socialAccount?.find((s: any) => s.platform === "facebook" && s.url?.trim());
   const telegramAccount = profile.socialAccount?.find((s: any) => s.platform === "telegram" && s.url?.trim());
 
+  const canEditProfile = userRole === "admin" || userRole === "student" || userRole === null;
+  const canEndorse = userRole === "alumni";
+
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full w-full overflow-hidden">
       <div className="h-32 bg-primary w-full rounded-xl shrink-0" />
       <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow justify-between">
         <div className="w-full flex flex-col items-center">
           <div className="w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10">
-            <img 
-              src={profileAvatar} 
-              alt={displayName} 
-              className="w-full h-full object-cover" 
+            <img
+              src={profileAvatar}
+              alt={displayName}
+              className="w-full h-full object-cover"
             />
           </div>
           <div className="text-center w-full px-2">
@@ -109,7 +140,7 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
               {profile.bio ? `"${profile.bio}"` : "No bio provided yet."}
             </p>
           </div>
-          
+
           <div className="w-full space-y-3 pt-6 text-left">
             <h3 className="type-subtitle-24 text-secondary font-semibold mb-4">Personal Information</h3>
             <InfoRow icon={<Mail size={16} />} text={profile.appUser.email} />
@@ -130,7 +161,6 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
                   </svg>
                 </a>
               )}
-
               {telegramAccount && (
                 <a href={telegramAccount.url} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105 shrink-0">
                   <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -140,7 +170,6 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
                   </svg>
                 </a>
               )}
-
               {githubAccount && (
                 <a href={githubAccount.url} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105 shrink-0">
                   <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -149,7 +178,6 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
                   </svg>
                 </a>
               )}
-
               {linkedinAccount && (
                 <a href={linkedinAccount.url} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105 shrink-0">
                   <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -168,14 +196,14 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
 
         <div className="w-full">
           <div className="mt-6 w-full">
-            {(userRole === "admin" || userRole === "student") && (
+            {canEditProfile && (
               <Link href={`/profile/${profileId}/edit-profile`} className="block w-full">
                 <button className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
                   Edit Profile
                 </button>
               </Link>
             )}
-            {userRole === "alumni" && (
+            {canEndorse && (
               <button
                 onClick={() => setIsEndorseOpen(true)}
                 className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer"
@@ -183,7 +211,7 @@ export default function ProfileCard({ userRole }: { userRole: UserRole }) {
                 Endorse
               </button>
             )}
-          </div> 
+          </div>
         </div>
       </div>
 

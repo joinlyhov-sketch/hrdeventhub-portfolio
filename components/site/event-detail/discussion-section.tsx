@@ -1,114 +1,124 @@
 "use client";
-import { Heart, Send } from "lucide-react";
+
+import { useState } from "react";
 import Image from "next/image";
+import { Send, Smile } from "lucide-react";
 import { Post } from "@/types/posts";
+import { usePostComments } from "@/hooks/use-post-comments";
+import { createCommentAction } from "@/actions/comment.action";
+import { useCurrentUser } from "@/context/user-context";
+import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
+
+const EMOJI_LIST = [
+  "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
+  "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
+  "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
+  "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
+];
 
 interface DiscussionSectionProps {
   event: Post;
 }
 
 export function DiscussionSection({ event }: DiscussionSectionProps) {
-  const defaultUserAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb";
-  const processedComments = event?.comments || [];
+  const { currentUser } = useCurrentUser();
+  const [commentInput, setCommentInput] = useState("");
+  const [showEmoji, setShowEmoji] = useState(false);
+
+  const { comments, refetch } = usePostComments(event.postId);
+
+  const handleSubmitComment = async () => {
+    if (!commentInput.trim()) return;
+    const result = await createCommentAction(event.postId, commentInput);
+    if (result.ok) {
+      setCommentInput("");
+      await refetch();
+    }
+  };
 
   return (
     <div className="space-y-6">
       <section className="flex items-center gap-x-2.5">
-        <div
-          className="w-10 h-10 rounded-full bg-cover bg-center bg-no-repeat border"
-          style={{ backgroundImage: `url(${defaultUserAvatar})` }}
-        />
-        <section className="flex justify-between items-center bg-grey-100 rounded-xl pl-4 pr-1 py-2 w-full">
+        <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
+          {currentUser?.profilePicture ? (
+            <Image
+              src={currentUser.profilePicture}
+              alt={currentUser.name || "User avatar"}
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-xs font-bold text-primary uppercase">
+              {currentUser?.avatarInitials ?? "?"}
+            </span>
+          )}
+        </div>
+
+        <div className="flex justify-between items-center bg-grey-100 rounded-2xl pl-4 pr-2 py-2 w-full gap-2">
           <input
             type="text"
-            placeholder="Add a comment..."
-            className="type-detail bg-transparent outline-none w-full text-foreground placeholder:text-muted-foreground"
+            placeholder="Write a comment…"
+            value={commentInput}
+            onChange={(e) => setCommentInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
+            className="text-sm bg-transparent outline-none w-full text-grey-900 placeholder:text-grey-400"
           />
-          <Send size={28} className="bg-primary rounded-full p-1.5 text-primary-foreground cursor-pointer" />
-        </section>
+
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setShowEmoji((v) => !v)}
+              className="text-grey-400 hover:text-grey-600 transition-colors cursor-pointer"
+            >
+              <Smile size={18} />
+            </button>
+            {showEmoji && (
+              <div className="absolute bottom-full mb-2 right-0 z-50 bg-background border border-border rounded-2xl shadow-lg p-3 w-64">
+                <div className="grid grid-cols-8 gap-1">
+                  {EMOJI_LIST.map((e) => (
+                    <button
+                      key={e}
+                      onClick={() => { setCommentInput((v) => v + e); setShowEmoji(false); }}
+                      className="text-lg hover:scale-125 transition-transform cursor-pointer flex items-center justify-center h-7 w-7"
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={handleSubmitComment}
+            disabled={!commentInput.trim()}
+            className="disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+          >
+            <Send
+              size={28}
+              className="bg-primary rounded-full p-1.5 text-primary-foreground cursor-pointer hover:opacity-90 transition-opacity"
+            />
+          </button>
+        </div>
       </section>
 
-      <div className="space-y-6">
-        {processedComments.length > 0 ? (
-          processedComments.map((comment, idx) => {
-            const commentId = comment?.commentId || idx;
-            const commentText = comment?.text || comment?.content || "";
-            const commentAuthor = comment?.user?.fullName || comment?.user?.name || "KSGA Student";
-            const commentAvatar = comment?.user?.avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde";
-            const commentTime = comment?.timestamp || (comment?.createdAt ? new Date(comment.createdAt).toLocaleDateString() : "Just now");
-            const commentLikes = comment?.likes ?? 0;
-
-            return (
-              <div key={commentId} className="space-y-4 pt-2">
-                <div className="flex gap-3 items-start">
-                  <Image
-                    unoptimized
-                    src={commentAvatar}
-                    alt=""
-                    width={36}
-                    height={36}
-                    className="w-9 h-9 rounded-full object-cover border"
-                  />
-                  <div className="type-detail">
-                    <div className="flex items-center gap-2">
-                      <span className="type-detail-semibold text-grey-900">{commentAuthor}</span>
-                      <span className="text-grey-400 type-detail-small-medium">{commentTime}</span>
-                    </div>
-                    <p className="text-grey-500 mt-1 type-detail">{commentText}</p>
-
-                    <div className="flex items-center gap-4 text-grey-400 mt-2 type-desc-small-semibold">
-                      <button className="hover:text-grey-900">Reply</button>
-                      <button className="hover:text-grey-900">Like</button>
-                      {commentLikes > 0 && (
-                        <span className="text-destructive flex items-center gap-x-1">
-                          <Heart size={12} /> {commentLikes}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {comment?.replies?.map((reply: any, rIdx: number) => {
-                  const replyId = reply?.replyId || rIdx;
-                  const replyAuthor = reply?.user?.fullName || reply?.user?.name || "KSGA User";
-                  const replyAvatar = reply?.user?.avatarUrl || "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61";
-                  const replyTime = reply?.timestamp || (reply?.createdAt ? new Date(reply.createdAt).toLocaleDateString() : "Just now");
-                  const replyLikes = reply?.likes ?? 0;
-
-                  return (
-                    <div key={replyId} className="ml-12 flex gap-3 items-start border-l-2 border-grey-100 pl-4">
-                      <Image
-                        unoptimized
-                        src={replyAvatar}
-                        alt=""
-                        width={28}
-                        height={28}
-                        className="w-7 h-7 rounded-full object-cover border"
-                      />
-                      <div className="type-detail">
-                        <div className="flex items-center gap-2">
-                          <span className="type-detail-semibold text-grey-900">{replyAuthor}</span>
-                          <span className="text-grey-400 type-detail-small-medium">{replyTime}</span>
-                        </div>
-                        <p className="text-grey-500 mt-1 type-detail">{reply?.text}</p>
-
-                        <div className="flex items-center gap-4 text-grey-400 mt-2 type-desc-small-semibold">
-                          <button className="hover:text-grey-900">Reply</button>
-                          {replyLikes > 0 && (
-                            <span className="text-destructive flex items-center gap-x-1">
-                              <Heart size={12} /> {replyLikes}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })
+      <div className="space-y-5">
+        {comments && comments.length > 0 ? (
+          comments.map((comment) => (
+            <CommentNode
+              key={comment.commentId}
+              comment={comment}
+              currentUserId={currentUser?.id}
+              currentUserPicture={currentUser?.profilePicture}
+              currentUserInitials={currentUser?.avatarInitials}
+              isNested={false}
+              onRefetch={refetch}
+            />
+          ))
         ) : (
-          <p className="text-center text-xs text-grey-400 py-4">No comments posted yet. Be the first to start the conversation!</p>
+          <div className="text-center py-8">
+            <p className="text-grey-400 text-sm">No comments yet. Be the first to comment!</p>
+          </div>
         )}
       </div>
     </div>
