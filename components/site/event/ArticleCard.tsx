@@ -13,6 +13,7 @@ import { mockComments } from "@/data/articleData";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 
 interface ArticleCardProps {
   role: UserRole;
@@ -120,9 +121,7 @@ function ArticleItem({
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">
-          {post.content}
-        </p>
+        <ExpandableText text={post.content} />
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
           <ReactionPopover

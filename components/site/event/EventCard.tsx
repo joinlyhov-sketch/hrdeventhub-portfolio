@@ -14,6 +14,7 @@ import {
 import { mockComments } from "@/data/event";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 
 interface EventCardProps {
   role: UserRole;
@@ -127,9 +128,8 @@ function EventItem({
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">
-          {post.content}
-        </p>
+
+        <ExpandableText text={post.content} />
 
         <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-6">
           {post.location && (

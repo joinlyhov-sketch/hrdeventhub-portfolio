@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller, useWatch, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 import {
   Calendar,
   Clock,
@@ -29,9 +29,6 @@ import { CreatePostPayload } from "@/types/post-types";
 export default function CreateEventForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const { data: session } = useSession();
-  const token = session?.accessToken;
-
   const workspaceId = params.get("groupId") || "";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,7 +47,7 @@ export default function CreateEventForm() {
       endTime: "",
       locationName: "",
       googleMapUrl: "",
-      status: "active",
+      status: "draft",
       scheduleDate: "",
       price: 0,
       targetGoal: 0,
@@ -59,10 +56,35 @@ export default function CreateEventForm() {
     },
   });
 
+  function getCoordinatesFromGoogleMapsUrl(url: string) {
+    const placeMatch = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
+
+    if (placeMatch) {
+      return {
+        latitude: Number(placeMatch[1]),
+        longitude: Number(placeMatch[2]),
+      };
+    }
+
+    const viewportMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+
+    if (viewportMatch) {
+      return {
+        latitude: Number(viewportMatch[1]),
+        longitude: Number(viewportMatch[2]),
+      };
+    }
+
+    return {
+      latitude: 0,
+      longitude: 0,
+    };
+  }
+
   const watchedStatus = useWatch({
     control,
     name: "status",
-    defaultValue: "active",
+    defaultValue: "draft",
   });
 
   const onSubmit = async (data: EventPostFormValues) => {
@@ -83,6 +105,10 @@ export default function CreateEventForm() {
       scheduledIso = new Date().toISOString();
     }
 
+    const coordinates = getCoordinatesFromGoogleMapsUrl(
+      data.googleMapUrl || "",
+    );
+
     const payload: CreatePostPayload = {
       title: data.title.trim(),
       content: data.description.trim(),
@@ -96,9 +122,9 @@ export default function CreateEventForm() {
       isPinned: false,
       location: {
         locationName: data.locationName,
-        googleMapUrl: data.googleMapUrl || "https://maps.google.com",
-        latitude: 0,
-        longitude: 0,
+        googleMapUrl: data.googleMapUrl,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
       },
       media: data.media,
       payment: {
@@ -113,12 +139,12 @@ export default function CreateEventForm() {
     );
 
     try {
-      const result = await createPostAction(workspaceId, payload, token);
+      const result = await createPostAction(workspaceId, payload);
       if (result.ok) {
-        alert("Event created successfully!");
+        toast.success("Event created successfully!");
         router.push(`/group/${workspaceId}`);
       } else {
-        alert(`Creation failed: ${result.error}`);
+        toast.error(`Creation failed: ${result.error}`);
       }
     } catch (err) {
       console.error(err);
@@ -151,6 +177,7 @@ export default function CreateEventForm() {
                 icon={FileText}
                 placeholder="Please input the event title"
                 {...register("title")}
+                isError={errors.title != null}
               />
               {errors.title && (
                 <p className="text-red-500 text-xs mt-1">
@@ -165,6 +192,7 @@ export default function CreateEventForm() {
                 icon={Target}
                 placeholder="e.g. Community Seminar, Networking Conference"
                 {...register("purpose")}
+                isError={errors.purpose != null}
               />
               {errors.purpose && (
                 <p className="text-red-500 text-xs mt-1">
@@ -175,10 +203,11 @@ export default function CreateEventForm() {
 
             <div>
               <FormInput
-                label="Date"
+                label="Scheduled Event Date"
                 icon={Calendar}
                 type="date"
                 {...register("date")}
+                isError={errors.date != null}
               />
               {errors.date && (
                 <p className="text-red-500 text-xs mt-1">
@@ -189,10 +218,26 @@ export default function CreateEventForm() {
 
             <div>
               <FormInput
+                label="Location Name"
+                icon={MapPin}
+                placeholder="Enter building name or physical address"
+                {...register("locationName")}
+                isError={errors.locationName != null}
+              />
+              {errors.locationName && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.locationName.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <FormInput
                 label="Start Time"
                 icon={Clock}
                 type="time"
                 {...register("startTime")}
+                isError={errors.startTime != null}
               />
               {errors.startTime && (
                 <p className="text-red-500 text-xs mt-1">
@@ -207,6 +252,7 @@ export default function CreateEventForm() {
                 icon={Clock}
                 type="time"
                 {...register("endTime")}
+                isError={errors.endTime != null}
               />
               {errors.endTime && (
                 <p className="text-red-500 text-xs mt-1">
@@ -217,25 +263,12 @@ export default function CreateEventForm() {
 
             <div>
               <FormInput
-                label="Location Name"
-                icon={MapPin}
-                placeholder="Enter building name or physical address"
-                {...register("locationName")}
-              />
-              {errors.locationName && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.locationName.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <FormInput
                 label="Google Maps URL"
                 icon={LinkIcon}
                 placeholder="https://maps.google.com/..."
-                type="url"
+                type="text"
                 {...register("googleMapUrl")}
+                isError={errors.googleMapUrl != null}
               />
               {errors.googleMapUrl && (
                 <p className="text-red-500 text-xs mt-1">
@@ -253,20 +286,25 @@ export default function CreateEventForm() {
                 {...register("status")}
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
               >
-                <option value="active">Active</option>
                 <option value="draft">Draft</option>
-                <option value="closed">Closed</option>
+                <option value="active">Active</option>
               </select>
             </div>
 
             {watchedStatus === "draft" && (
               <div className="animate-in fade-in slide-in-from-top-1 duration-200">
                 <FormInput
-                  label="Schedule Publish Date"
+                  label="Post Publish Date"
                   icon={Calendar}
                   type="date"
                   {...register("scheduleDate")}
+                  isError={errors.scheduleDate != null}
                 />
+                {errors.scheduleDate && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.scheduleDate.message}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -279,8 +317,15 @@ export default function CreateEventForm() {
                 placeholder="0.00"
                 type="number"
                 step="0.01"
+                min={0}
                 {...register("price")}
+                isError={errors.price != null}
               />
+              {errors.price && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.price.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -289,9 +334,16 @@ export default function CreateEventForm() {
                 icon={BadgeDollarSign}
                 placeholder="0.00"
                 type="number"
+                min={0}
                 step="0.01"
                 {...register("targetGoal")}
+                isError={errors.targetGoal != null}
               />
+              {errors.targetGoal && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.targetGoal.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -300,16 +352,29 @@ export default function CreateEventForm() {
               label="Description"
               placeholder="Describe the mission and scope of this event..."
               {...register("description")}
+              isError={errors.description != null}
             />
+            {errors.description && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.description.message}
+              </p>
+            )}
           </div>
 
           <Controller
             control={control}
             name="media"
             render={({ field }) => (
-              <MediaUpload value={field.value} onChange={field.onChange} />
+              <MediaUpload
+                value={field.value}
+                onChange={field.onChange}
+                isCover={true}
+              />
             )}
           />
+          {errors.media && (
+            <p className="text-red-500 text-xs mt-1">{errors.media.message}</p>
+          )}
         </div>
       </div>
 

@@ -7,13 +7,19 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { uploadFileAction, deleteFileAction } from "@/actions/file.action";
 import { PostMediaItem } from "@/types/post-types";
+import { toast } from "sonner";
 
 interface MediaUploadProps {
   value: PostMediaItem[];
   onChange: (media: PostMediaItem[]) => void;
+  isCover: boolean | null;
 }
 
-const MediaUpload = ({ value = [], onChange }: MediaUploadProps) => {
+const MediaUpload = ({
+  value = [],
+  onChange,
+  isCover = false,
+}: MediaUploadProps) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [deletingKeys, setDeletingKeys] = useState<Record<string, boolean>>({});
 
@@ -42,10 +48,14 @@ const MediaUpload = ({ value = [], onChange }: MediaUploadProps) => {
 
           updatedMediaList = [...updatedMediaList, newMediaItem];
         } else {
-          console.error(result.error || "Upload execution failure occurred");
+          toast.error(
+            "Upload failed: File size exceeds the 5 MB limit. Please upload a file smaller than 5 MB.",
+          );
         }
       } catch (err) {
         console.error("Network upload error:", err);
+
+        toast.error(err instanceof Error ? err.message : "Upload failed");
       }
     }
 
@@ -174,15 +184,19 @@ const MediaUpload = ({ value = [], onChange }: MediaUploadProps) => {
                   unoptimized
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
 
                 <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10">
-                  {image.isCover ? (
-                    <div className="bg-primary text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md">
-                      <Check size={12} strokeWidth={3} /> ACTIVE COVER
+                  {isCover && (
+                    <div>
+                      {image.isCover ? (
+                        <div className="bg-primary text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md">
+                          <Check size={12} strokeWidth={3} /> ACTIVE COVER
+                        </div>
+                      ) : (
+                        <div />
+                      )}
                     </div>
-                  ) : (
-                    <div />
                   )}
 
                   <button
@@ -203,21 +217,23 @@ const MediaUpload = ({ value = [], onChange }: MediaUploadProps) => {
                   </button>
                 </div>
 
-                <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between z-10">
-                  <p className="text-[10px] text-white/90 font-medium truncate max-w-35 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-md">
-                    {image.filePath.split("/").pop()}
-                  </p>
+                {isCover && (
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between z-10">
+                    <p className="text-[10px] text-white/90 font-medium truncate max-w-35 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-md">
+                      {image.filePath.split("/").pop()}
+                    </p>
 
-                  {!image.isCover && !isTargetDeleting && (
-                    <button
-                      type="button"
-                      onClick={() => handleSelectCover(image.filePath)}
-                      className="bg-white text-secondary hover:bg-primary hover:text-white transition-all text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-md active:scale-95"
-                    >
-                      Set As Cover
-                    </button>
-                  )}
-                </div>
+                    {!image.isCover && !isTargetDeleting && (
+                      <button
+                        type="button"
+                        onClick={() => handleSelectCover(image.filePath)}
+                        className="bg-white text-secondary hover:bg-primary hover:text-white transition-all text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-md active:scale-95"
+                      >
+                        Set As Cover
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           );

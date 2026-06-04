@@ -20,6 +20,7 @@ import { mockComments } from "@/data/announcementData";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 
 interface AnnouncementCardProps {
   role: UserRole;
@@ -256,9 +257,8 @@ function AnnouncementItem({
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">
-          {post.content}
-        </p>
+
+        <ExpandableText text={post.content} />
 
         {hasMetaInfo && (
           <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-4">

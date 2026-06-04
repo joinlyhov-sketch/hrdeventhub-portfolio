@@ -1,4 +1,3 @@
-// @/actions/post.action.ts
 "use server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
@@ -13,17 +12,25 @@ import { ServerActionResponse } from "@/types/file-types";
 export async function createPostAction(
   workspaceId: string,
   payload: CreatePostPayload,
-  authToken?: string,
 ) {
   try {
-    if (!authToken) {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    if (!workspaceId) {
+      return {
+        ok: false,
+        error: "Missing required identifier: workspaceId parameter",
+      };
+    }
+    if (!token) {
       return { error: "Authorization token identifier is missing." };
     }
 
     const response = await postService.createEventPost(
       workspaceId,
       payload,
-      authToken,
+      token,
     );
 
     if (response && response.success === false) {
@@ -100,7 +107,6 @@ export async function createArticleAction(
       };
     }
 
-    // Call the core api-driven engine workflow
     const response = await postService.createArticle(
       workspaceId,
       payload,
