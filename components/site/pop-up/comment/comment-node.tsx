@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Trash2, Smile } from "lucide-react";
+import { Trash2, Smile, Send } from "lucide-react";
 import { Comment } from "@/types/comment";
 import {
   createReplyAction,
   editCommentAction,
   deleteCommentAction,
 } from "@/actions/comment.action";
+import Link from "next/link";
 
 interface CommentNodeProps {
   comment: Comment;
@@ -16,6 +17,8 @@ interface CommentNodeProps {
   currentUserPicture?: string;
   currentUserInitials?: string;
   isNested?: boolean;
+  index?: number;
+  totalReplies?: number;
   onRefetch: () => Promise<void>;
 }
 
@@ -86,6 +89,94 @@ function EmojiPopover({ onPick, onClose }: { onPick: (e: string) => void; onClos
   );
 }
 
+function InlineInputBar({
+  value,
+  onChange,
+  onSubmit,
+  onCancel,
+  onClose,
+  placeholder,
+  submitIcon,
+  autoFocus = true,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit: () => void;
+  onCancel?: () => void;
+  onClose?: () => void;
+  placeholder?: string;
+  submitIcon?: React.ReactNode;
+  autoFocus?: boolean;
+}) {
+  const [showEmoji, setShowEmoji] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleBlur = useCallback(() => {
+    setTimeout(() => {
+      if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
+        if (!showEmoji && onClose) onClose();
+      }
+    }, 150);
+  }, [onClose, showEmoji]);
+
+  return (
+    <div ref={containerRef} onBlur={handleBlur}>
+      <div className="flex items-center bg-grey-100 rounded-2xl px-3 py-1.5 gap-2">
+        <input
+          autoFocus={autoFocus}
+          placeholder={placeholder ?? "Write something…"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(); }
+            if (e.key === "Escape" && onClose) onClose();
+          }}
+          className="flex-1 bg-transparent outline-none text-sm text-grey-900 placeholder:text-grey-400"
+        />
+
+        <div className="relative shrink-0">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setShowEmoji((v) => !v)}
+            className="text-grey-400 hover:text-grey-600 transition-colors cursor-pointer"
+          >
+            <Smile size={16} />
+          </button>
+          {showEmoji && (
+            <EmojiPopover
+              onPick={(emoji) => onChange(value + emoji)}
+              onClose={() => setShowEmoji(false)}
+            />
+          )}
+        </div>
+
+        <button
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onSubmit}
+          disabled={!value.trim()}
+          className="shrink-0 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+        >
+          {submitIcon ?? (
+            <Send size={26} className="bg-primary rounded-full p-1.5 text-primary-foreground hover:opacity-90 transition-opacity" />
+          )}
+        </button>
+      </div>
+
+      {onCancel && (
+        <div className="mt-1.5 pl-1">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onCancel}
+            className="text-xs text-primary font-semibold hover:underline cursor-pointer"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ReplyInput({
   currentUserPicture,
   currentUserInitials,
@@ -103,59 +194,18 @@ function ReplyInput({
   onClose: () => void;
   targetName?: string;
 }) {
-  const [showEmoji, setShowEmoji] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const handleBlur = useCallback(() => {
-    setTimeout(() => {
-      if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
-        if (!showEmoji) onClose();
-      }
-    }, 150);
-  }, [onClose, showEmoji]);
-
   return (
-    <div ref={containerRef} className="flex gap-2 items-start mt-2" onBlur={handleBlur}>
+    <div className="flex gap-2 items-start mt-2">
       <Avatar src={currentUserPicture} alt="Your avatar" initials={currentUserInitials ?? "?"} size={28} />
       <div className="flex-1">
-        <div className="relative flex items-center bg-grey-100 rounded-2xl px-3 py-1.5 gap-2">
-          <input
-            autoFocus
-            placeholder={targetName ? `Reply to ${targetName}…` : "Write a reply…"}
-            value={replyText}
-            onChange={(e) => onReplyTextChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(); }
-              if (e.key === "Escape") onClose();
-            }}
-            className="flex-1 bg-transparent outline-none type-detail text-grey-900 placeholder:text-grey-400 text-sm"
-          />
-          <div className="relative shrink-0">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setShowEmoji((v) => !v)}
-              className="text-grey-400 hover:text-grey-600 transition-colors cursor-pointer"
-            >
-              <Smile size={16} />
-            </button>
-            {showEmoji && (
-              <EmojiPopover
-                onPick={(emoji) => { onReplyTextChange(replyText + emoji); }}
-                onClose={() => setShowEmoji(false)}
-              />
-            )}
-          </div>
-        </div>
-        <div className="flex gap-3 mt-1.5 pl-1">
-          <button
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={onSubmit}
-            disabled={!replyText.trim()}
-            className="text-xs text-primary font-semibold hover:underline disabled:opacity-40 cursor-pointer"
-          >
-            Reply
-          </button>
-        </div>
+        <InlineInputBar
+          value={replyText}
+          onChange={onReplyTextChange}
+          onSubmit={onSubmit}
+          onCancel={onClose}
+          onClose={onClose}
+          placeholder={targetName ? `Reply to ${targetName}…` : "Write a reply…"}
+        />
       </div>
     </div>
   );
@@ -167,6 +217,8 @@ export function CommentNode({
   currentUserPicture,
   currentUserInitials,
   isNested = false,
+  index = 0,
+  totalReplies = 0,
   onRefetch,
 }: CommentNodeProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -179,6 +231,7 @@ export function CommentNode({
   const isOwner = currentUserId === comment.appUser.appUserId;
   const hasReplies = comment.replies && comment.replies.length > 0;
   const replyCount = comment.replies?.length ?? 0;
+  const isEditing = editingId === comment.commentId;
 
   const handleEdit = async () => {
     if (!editText.trim()) return;
@@ -207,114 +260,147 @@ export function CommentNode({
     setReplyText("");
   }, []);
 
+  const closeEdit = useCallback(() => {
+    setEditingId(null);
+    setEditText("");
+  }, []);
+
   return (
-    <div className="flex gap-2.5">
-      <div className="flex flex-col items-center shrink-0" style={{ width: 36 }}>
-        <Avatar
-          src={comment.appUser.profilePicture}
-          alt={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
-          initials={initials}
-          size={36}
-        />
-        {hasReplies && showReplies && (
-          <div className="w-px bg-grey-200 mt-1.5 mb-1 flex-1" />
-        )}
-      </div>
+    <div className="relative flex flex-col">
+      {isNested && (
+        <>
+          {index > 0 && (
+            <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
+          )}
+          <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
+        </>
+      )}
 
-      <div className="flex-1 min-w-0 pb-1">
-        <div className="inline-block bg-grey-100 rounded-2xl px-3 py-2 max-w-full">
-          <div className="flex items-center gap-2 justify-between">
-            <span className="type-detail-semibold text-grey-900 text-sm leading-tight">
-              {comment.appUser.firstName} {comment.appUser.lastName}
-            </span>
-            {isOwner && (
-              <div className="flex gap-2 items-center ml-4 shrink-0">
-                <button
-                  onClick={() => { setEditingId(comment.commentId); setEditText(comment.comment); }}
-                  className="text-grey-400 hover:text-primary transition-colors text-xs cursor-pointer"
-                >
-                  Edit
-                </button>
-                <button onClick={handleDelete} className="text-grey-400 hover:text-destructive transition-colors cursor-pointer">
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            )}
-          </div>
+      <div className="flex gap-2.5 relative z-10 items-start">
+        <div className="flex flex-col items-center shrink-0" style={{ width: 36 }}>
+          <Link href={`/profile/${comment.appUser.appUserId}`}>
+            <Avatar
+              src={comment.appUser.profilePicture}
+              alt={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
+              initials={initials}
+              size={36}
+            />
+          </Link>
+        </div>
 
-          {editingId === comment.commentId ? (
-            <div className="mt-1 space-y-1.5">
-              <textarea
+        <div className="flex-1 min-w-0 pb-1">
+          {isEditing ? (
+            <div className="space-y-1">
+              <span className="text-xs text-grey-400 pl-1">
+                Editing comment by{" "}
+                <span className="font-semibold text-grey-700">
+                  {comment.appUser.firstName} {comment.appUser.lastName}
+                </span>
+              </span>
+              <InlineInputBar
                 value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                className="w-full bg-white rounded-lg p-2 text-sm border border-grey-200 outline-none resize-none text-grey-900"
+                onChange={setEditText}
+                onSubmit={handleEdit}
+                onCancel={closeEdit}
+                onClose={closeEdit}
+                placeholder="Edit your comment…"
               />
-              <div className="flex gap-2">
-                <button onClick={handleEdit} className="text-xs bg-primary text-white px-3 py-1 rounded hover:opacity-90 cursor-pointer">Save</button>
-                <button onClick={() => setEditingId(null)} className="text-xs border border-grey-200 px-3 py-1 rounded hover:bg-grey-50 cursor-pointer">Cancel</button>
-              </div>
             </div>
           ) : (
-            <p className="text-sm text-grey-900 leading-normal mt-0.5">
-              {comment.comment.split(" ").map((word, i) =>
-                word.startsWith("@") ? (
-                  <span key={i} className="text-blue-600 font-semibold">{word} </span>
-                ) : (word + " ")
+            <div className="inline-block bg-grey-100 rounded-2xl px-3 py-2 max-w-full">
+              <div className="flex items-center gap-2 justify-between">
+                <Link
+                  href={`/profile/${comment.appUser.appUserId}`}
+                  className="type-detail-semibold text-grey-900 text-sm leading-tight hover:underline hover:text-primary transition-colors"
+                >
+                  {comment.appUser.firstName} {comment.appUser.lastName}
+                </Link>
+                {isOwner && (
+                  <div className="flex gap-2 items-center ml-4 shrink-0">
+                    <button
+                      onClick={() => { setEditingId(comment.commentId); setEditText(comment.comment); }}
+                      className="text-grey-400 hover:text-primary transition-colors text-xs cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="text-grey-400 hover:text-destructive transition-colors cursor-pointer"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-grey-900 leading-normal mt-0.5">
+                {comment.comment.split(" ").map((word, i) =>
+                  word.startsWith("@") ? (
+                    <span key={i} className="text-blue-600 font-semibold">{word} </span>
+                  ) : (word + " ")
+                )}
+              </p>
+            </div>
+          )}
+
+          {!isEditing && (
+            <>
+              <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
+                <span className="font-normal">{timeAgo(comment.createdAt)}</span>
+                <button className="hover:text-grey-900 transition-colors cursor-pointer">Like</button>
+                <button
+                  onClick={() => { setShowReplyInput((v) => !v); setReplyText(""); }}
+                  className="hover:text-grey-900 transition-colors cursor-pointer"
+                >
+                  Reply
+                </button>
+              </div>
+
+              {hasReplies && (
+                <button
+                  onClick={() => setShowReplies((v) => !v)}
+                  className="flex items-center gap-1.5 mt-1.5 pl-1 text-xs font-semibold text-primary hover:underline cursor-pointer"
+                >
+                  <div className="w-5 h-px bg-grey-300" />
+                  {showReplies ? "Hide replies" : `View ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
+                </button>
               )}
-            </p>
+            </>
+          )}
+
+          {showReplyInput && (
+            <ReplyInput
+              currentUserPicture={currentUserPicture}
+              currentUserInitials={currentUserInitials}
+              replyText={replyText}
+              onReplyTextChange={setReplyText}
+              onSubmit={handleReply}
+              onClose={closeReplyInput}
+              targetName={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
+            />
+          )}
+
+          {hasReplies && showReplies && (
+            <div className="relative pl-10 mt-4 space-y-5">
+              <div
+                className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]"
+                style={{ bottom: "24px" }}
+              />
+              {comment.replies.map((reply, idx) => (
+                <CommentNode
+                  key={reply.commentId}
+                  comment={reply}
+                  currentUserId={currentUserId}
+                  currentUserPicture={currentUserPicture}
+                  currentUserInitials={currentUserInitials}
+                  isNested={true}
+                  index={idx}
+                  totalReplies={comment.replies.length}
+                  onRefetch={onRefetch}
+                />
+              ))}
+            </div>
           )}
         </div>
-
-        <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
-          <span className="font-normal">{timeAgo(comment.createdAt)}</span>
-          <button className="hover:text-grey-900 transition-colors cursor-pointer">Like</button>
-          <button
-            onClick={() => { setShowReplyInput((v) => !v); setReplyText(""); }}
-            className="hover:text-grey-900 transition-colors cursor-pointer"
-          >
-            Reply
-          </button>
-        </div>
-
-        {hasReplies && (
-          <button
-            onClick={() => setShowReplies((v) => !v)}
-            className="flex items-center gap-1.5 mt-1.5 pl-1 text-xs font-semibold text-primary hover:underline cursor-pointer"
-          >
-            <div className="w-5 h-px bg-grey-300" />
-            {showReplies
-              ? "Hide replies"
-              : `View ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
-          </button>
-        )}
-
-        {showReplyInput && (
-          <ReplyInput
-            currentUserPicture={currentUserPicture}
-            currentUserInitials={currentUserInitials}
-            replyText={replyText}
-            onReplyTextChange={setReplyText}
-            onSubmit={handleReply}
-            onClose={closeReplyInput}
-            targetName={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
-          />
-        )}
-
-        {hasReplies && showReplies && (
-          <div className="mt-2 space-y-3">
-            {comment.replies.map((reply) => (
-              <CommentNode
-                key={reply.commentId}
-                comment={reply}
-                currentUserId={currentUserId}
-                currentUserPicture={currentUserPicture}
-                currentUserInitials={currentUserInitials}
-                isNested={true}
-                onRefetch={onRefetch}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

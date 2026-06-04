@@ -32,13 +32,14 @@ export const authOptions: NextAuthOptions = {
             console.error("Auth payload missing access token", authData);
             return null;
           }
-          let decoded: { userId?: string; sub?: string } = {};
+          
+          let decoded: { userId?: string; sub?: string; roles?: string } = {};
           const parts = token.split(".");
           if (parts.length === 3) {
             try {
               decoded = JSON.parse(
                 Buffer.from(parts[1], "base64").toString("utf-8"),
-              ) as { userId?: string; sub?: string };
+              ) as { userId?: string; sub?: string; roles?: string };
             } catch {
               console.error("Failed to decode JWT payload");
             }
@@ -46,15 +47,22 @@ export const authOptions: NextAuthOptions = {
 
           const userId    = decoded.userId ?? "unknown";
           const userEmail = decoded.sub    ?? (credentials.identifier as string);
+          const rawRole   = decoded.roles  ?? "STUDENT";
+          
+          let resolvedRole = "student";
+          if (rawRole === "ADMIN") resolvedRole = "admin";
+          else if (rawRole === "ORGANIZER") resolvedRole = "organizer";
+          else if (rawRole === "ALUMNI") resolvedRole = "alumni";
+
           const rememberMe = credentials.rememberMe === "true";
 
           return {
             id: userId,
             email: userEmail,
+            role: resolvedRole,
             accessToken: token,
             refreshToken,
             rememberMe,
-            user: { id: userId, email: userEmail, role: "user" },
           };
         } catch (error) {
           console.error("Login failed", error);
@@ -65,72 +73,75 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }: { token: JWT; user?: User }) {
-  if (user) {
-    token.id           = user.id as string;
-    token.role         = user.user?.role;
-    token.accessToken  = user.accessToken;
-    token.refreshToken = user.refreshToken;
-    token.rememberMe   = user.rememberMe;
-    const parts = (user.accessToken as string)?.split(".");
-    if (parts?.length === 3) {
-      try {
-        const decoded = JSON.parse(
-          Buffer.from(parts[1], "base64").toString("utf-8")
-        ) as { exp?: number };
-        token.accessTokenExpiry = decoded.exp ? decoded.exp * 1000 : Date.now() + 24 * 60 * 60 * 1000;
-      } catch {
-        token.accessTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
+      if (user) {
+        token.id           = user.id;
+        token.email        = user.email;
+        token.role         = user.role;
+        token.accessToken  = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        token.rememberMe   = user.rememberMe;
+        
+        const parts = (user.accessToken as string)?.split(".");
+        if (parts?.length === 3) {
+          try {
+            const decoded = JSON.parse(
+              Buffer.from(parts[1], "base64").toString("utf-8")
+            ) as { exp?: number };
+            token.accessTokenExpiry = decoded.exp ? decoded.exp * 1000 : Date.now() + 24 * 60 * 60 * 1000;
+          } catch {
+            token.accessTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
+          }
+        } else {
+          token.accessTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
+        }
+
+        return token;
       }
-    } else {
-      token.accessTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
-    }
 
-    return token;
+      if (Date.now() < (token.accessTokenExpiry as number)) {
+        return token;
   }
 
-  if (Date.now() < (token.accessTokenExpiry as number)) {
-    return token;
-  }
-
-  try {
-    const refreshed = await authService.refreshToken(token.refreshToken as string);
-
-    const parts = refreshed.payload.token?.split(".");
-    let newExpiry = Date.now() + 24 * 60 * 60 * 1000;
-    if (parts?.length === 3) {
       try {
-        const decoded = JSON.parse(
-          Buffer.from(parts[1], "base64").toString("utf-8")
-        ) as { exp?: number };
-        newExpiry = decoded.exp ? decoded.exp * 1000 : newExpiry;
-      } catch {}
-    }
+        const refreshed = await authService.refreshToken(token.refreshToken as string);
 
-    return {
-      ...token,
-      accessToken:       refreshed.payload.token,
-      refreshToken:      refreshed.payload.refreshToken,
-      accessTokenExpiry: newExpiry,
-      error:             undefined,
-    };
-  } catch {
-    return {
-      ...token,
-      error: "RefreshTokenExpired" as const,
-    };
-  }
-},
+        const parts = refreshed.payload.token?.split(".");
+        let newExpiry = Date.now() + 24 * 60 * 60 * 1000;
+        if (parts?.length === 3) {
+          try {
+            const decoded = JSON.parse(
+              Buffer.from(parts[1], "base64").toString("utf-8")
+            ) as { exp?: number };
+            newExpiry = decoded.exp ? decoded.exp * 1000 : newExpiry;
+          } catch {}
+        }
+
+        return {
+          ...token,
+          accessToken:       refreshed.payload.token,
+          refreshToken:      refreshed.payload.refreshToken,
+          accessTokenExpiry: newExpiry,
+          error:             undefined,
+        };
+      } catch {
+        return {
+          ...token,
+          error: "RefreshTokenExpired" as const,
+        };
+      }
+    },
 
     async session({ session, token }) {
-  if (session.user) {
-    session.user.id     = token.id   as string;
-    session.user.role   = token.role as string;
-    session.accessToken  = token.accessToken  as string;
-    session.refreshToken = token.refreshToken as string;
-    session.error        = token.error;
-  }
-  return session;
-},
+      if (session.user) {
+        session.user.id      = token.id;
+        session.user.email   = token.email;
+        session.user.role    = token.role;
+        session.accessToken  = token.accessToken;
+        session.refreshToken = token.refreshToken;
+        session.error        = token.error;
+      }
+      return session;
+    },
   },
 };
 

@@ -1,63 +1,15 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Download, ClipboardList } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { profileService } from "@/service/profile.service";
 import { UserProfilePayload } from "@/types/profile-types";
-import { signOut } from "next-auth/react";  
 
-export default function BackgroundTab() {
-  const { data: session } = useSession();
-  const [profile, setProfile] = useState<UserProfilePayload | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+interface BackgroundTabProps {
+  profile: UserProfilePayload | null;
+  loading: boolean;
+}
 
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      const token = session?.accessToken;
-      if (!token) return;
-
-      try {
-        setLoading(true);
-        const response = await profileService.getProfileMe(token);
-        if (response.success) {
-          setProfile(response.payload);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfileData();
-  }, [session?.accessToken]);
-useEffect(() => {
-  const fetchProfileData = async () => {
-    const token = session?.accessToken;
-    const sessionError = (session as any)?.error;
-
-    if (sessionError === "RefreshTokenExpired") {
-      signOut({ callbackUrl: "/login" });
-      return;
-    }
-
-    if (!token) return;
-
-    try {
-      setLoading(true);
-      const response = await profileService.getProfileMe(token);
-      if (response.success) {
-        setProfile(response.payload);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchProfileData(); 
-}, [session?.accessToken]);
+export default function BackgroundTab({ profile, loading }: BackgroundTabProps) {
   if (loading) {
     return (
       <div className="bg-card border border-border rounded-xl p-6 flex items-center justify-center h-48 w-full">
@@ -78,13 +30,18 @@ useEffect(() => {
     ? profile.skills[0].split(",").map((s) => s.trim())
     : [];
 
-  const hasResume = !!(profile.cvResumeUrl && profile.cvResumeUrl !== "null" && profile.cvResumeUrl.trim() !== "");
+  const hasResume = !!(
+    profile.cvResumeUrl &&
+    profile.cvResumeUrl !== "null" &&
+    profile.cvResumeUrl.trim() !== ""
+  );
 
-const handleDownloadCV = () => {
-  if (hasResume && profile.cvResumeUrl) {
-    window.open(profile.cvResumeUrl, "_blank", "noopener,noreferrer");
-  }
-};
+  const handleDownloadCV = () => {
+    if (hasResume && profile.cvResumeUrl) {
+      window.open(profile.cvResumeUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <div className="space-y-8">
       <section>
@@ -101,12 +58,10 @@ const handleDownloadCV = () => {
                 </div>
               </div>
               <div>
-                <h4 className="type-detail-semibold text-secondary">
-                  {edu.degree}
-                </h4>
+                <h4 className="type-detail-semibold text-secondary">{edu.degree}</h4>
                 <p className="type-desc-semibold text-primary">{edu.institutionName}</p>
                 <p className="type-detail-small-medium text-muted-foreground mt-1">
-                  {edu.startYear} - {edu.isCurrent ? "PRESENT" : ""}
+                  {edu.startYear} – {edu.isCurrent ? "Present" : edu.endYear ?? ""}
                 </p>
               </div>
             </div>
@@ -115,23 +70,27 @@ const handleDownloadCV = () => {
       </section>
 
       <section>
-        <h3 className="type-subtitle text-primary mb-4">Skill</h3>
+        <h3 className="type-subtitle text-primary mb-4">Skills</h3>
         <div className="flex flex-wrap gap-2">
-          {parsedSkills.map((skill) => (
-            <span
-              key={skill}
-              className="bg-muted text-primary px-3 py-1.5 rounded-full type-desc-small-semibold transition-colors duration-150 hover:bg-grey-100"
-            >
-              {skill}
-            </span>
-          ))}
+          {parsedSkills.length > 0 ? (
+            parsedSkills.map((skill) => (
+              <span
+                key={skill}
+                className="bg-muted text-primary px-3 py-1.5 rounded-full type-desc-small-semibold transition-colors duration-150 hover:bg-grey-100"
+              >
+                {skill}
+              </span>
+            ))
+          ) : (
+            <p className="type-desc text-muted-foreground">No skills listed yet.</p>
+          )}
         </div>
       </section>
 
       <section>
         <h3 className="type-subtitle-24 text-primary mb-4">Resume</h3>
         {hasResume ? (
-          <div 
+          <div
             onClick={handleDownloadCV}
             className="flex items-center justify-between p-4 border border-border rounded-lg bg-grey-50 group cursor-pointer hover:border-primary transition-colors"
           >
