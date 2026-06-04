@@ -2,24 +2,24 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Edit, ThumbsUp, MessageCircleMore, Share2 } from "lucide-react";
+import { Edit, ThumbsUp, MessageCircleMore, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import PriceContentComponent from "../../../components/site/event-detail/price-content";
-import MapContentComponent from "../../../components/site/event-detail//map-content";
-import DetailContentComponent from "../../../components/site/event-detail//detail-content";
-import { AdminOverview } from "../../../components/site/event-detail//register-table";
-import { DiscussionSection } from "../../../components/site/event-detail//discussion-section";
+import MapContentComponent from "../../../components/site/event-detail/map-content";
+import DetailContentComponent from "../../../components/site/event-detail/detail-content";
+import { AdminOverview } from "../../../components/site/event-detail/register-table";
+import { DiscussionSection } from "../../../components/site/event-detail/discussion-section";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import PaymentModal from "@/components/site/pop-up/payment/PaymentModal";
 import Link from "next/link";
 import { reactionService } from "../../../service/post-reaction.service";
 import { useSession, signOut } from "next-auth/react";
+import { Post } from "@/types/posts";
 import {
   ReactionPopover,
   REACTIONS,
 } from "@/components/site/pop-up/comment/reaction";
 import { usePaymentModalStore } from "@/store/usePaymentModalStore";
 import type {
-  HRDEvent,
   EventDetailState,
   Reaction as ReactionType,
 } from "@/data/event-detail";
@@ -40,7 +40,7 @@ type Tab = "details" | "price" | "map";
 type AdminSubTab = "overview" | "discussion";
 
 interface EventDetailClientProps {
-  event: HRDEvent;
+  event: Post;
 }
 
 export default function EventDetailClient({ event }: EventDetailClientProps) {
@@ -56,10 +56,12 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
   const isAdminOrOrganizer =
     currentUser?.role === "admin" || currentUser?.role === "organizer";
+
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [activeAdminTab, setActiveAdminTab] = useState<AdminSubTab>("overview");
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
   const openPaymentModal = usePaymentModalStore(
     (state) => state.openPaymentModal,
@@ -106,6 +108,36 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         }
       } catch (err) {
         console.error("Failed to fetch post reaction:", err);
+  const [detailData, setDetailData] = useState({
+    id: event?.postId || "det-4401",
+    likesCount: 124,
+    commentsCount: event?.comments?.length || 0,
+    isLikedByUser: false,
+  });
+
+  const mediaList = event?.media && event.media.length > 0
+    ? event.media.map((m: any) => m.filePath || m.url)
+    : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
+
+  const handlePrevImage = () => {
+    setCurrentImgIndex((prev) => (prev === 0 ? mediaList.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    setCurrentImgIndex((prev) => (prev === mediaList.length - 1 ? 0 : prev + 1));
+  };
+
+  const activeReaction = REACTIONS.find((r: any) => r.id === selectedReaction);
+
+  const handleLikeToggle = () => {
+    setDetailData((prev) => {
+      const isCurrentlyActive = !!selectedReaction;
+      if (isCurrentlyActive) {
+        setSelectedReaction(null);
+        return { ...prev, isLikedByUser: false, likesCount: prev.likesCount - 1 };
+      } else {
+        setSelectedReaction("like");
+        return { ...prev, isLikedByUser: true, likesCount: prev.likesCount + 1 };
       }
     };
 
@@ -122,37 +154,6 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
   const activeReaction = REACTIONS.find(
     (r: ReactionType) => r.id === selectedReaction,
   );
-
-  // const handleLikeToggle = () => {
-  //   setDetailData((prev) => {
-  //     const isCurrentlyActive = !!selectedReaction;
-  //     if (isCurrentlyActive) {
-  //       setSelectedReaction(null);
-  //       return {
-  //         ...prev,
-  //         isLikedByUser: false,
-  //         likesCount: prev.likesCount - 1,
-  //       };
-  //     } else {
-  //       setSelectedReaction("like");
-  //       return {
-  //         ...prev,
-  //         isLikedByUser: true,
-  //         likesCount: prev.likesCount + 1,
-  //       };
-  //     }
-  //   });
-  // };
-
-  // const handleReactionSelect = (reactionId: string) => {
-  //   const wasAlreadyActive = !!selectedReaction;
-  //   setSelectedReaction(reactionId);
-  //   setDetailData((prev) => ({
-  //     ...prev,
-  //     isLikedByUser: true,
-  //     likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
-  //   }));
-  // };
 
   const handleLikeToggle = async () => {
     if (!session?.accessToken || !event?.id) return;
@@ -222,21 +223,30 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
     }
   };
 
+  const formattedCreationDate = event?.createdAt
+    ? new Date(event.createdAt).toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
+
   return (
     <>
       <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
         <section className="flex justify-between items-center">
           <div className="flex items-center gap-x-3">
-            <div
-              className="w-10 h-10 rounded-full bg-cover bg-center"
-              style={{ backgroundImage: `url(${event.creator.avatarUrl})` }}
-            />
+            <div className="w-10 h-10 rounded-full bg-grey-200 border border-border flex items-center justify-center font-bold text-primary uppercase">
+              {event?.title?.slice(0, 2) || "EV"}
+            </div>
             <div>
               <p className="type-desc-semibold text-secondary">
-                {event.creator.name}
+                {isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team"}
               </p>
               <p className="type-detail-small-medium text-muted-foreground">
-                01/05/2026 20:25
+                {formattedCreationDate}
               </p>
             </div>
           </div>
@@ -256,17 +266,42 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           </div>
         </section>
 
-        <h2 className="type-title text-grey-900">Calling for HRD Alumni !</h2>
+        <h2 className="type-title text-grey-900">{event?.title || "Event Detail"}</h2>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Image
-            unoptimized
-            src={event.bannerUrl}
-            alt="Banner"
-            width={600}
-            height={350}
-            className="rounded-xl object-cover"
-          />
+          <div className="relative group aspect-video md:h-[350px] w-full rounded-xl overflow-hidden bg-grey-50 border border-border">
+            <Image
+              unoptimized
+              src={mediaList[currentImgIndex]}
+              alt={`Banner slider image view ${currentImgIndex + 1}`}
+              fill
+              className="object-cover transition-all duration-300"
+            />
+            {mediaList.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition-colors cursor-pointer select-none z-10"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition-colors cursor-pointer select-none z-10"
+                >
+                  <ChevronRight size={20} />
+                </button>
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/20 px-3 py-1 rounded-full">
+                  {mediaList.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-2 w-2 rounded-full transition-all ${index === currentImgIndex ? "bg-white scale-125" : "bg-white/50"}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
 
           <div className="flex flex-col justify-between">
             <div className="grid grid-cols-3 bg-grey-100 p-1 text-center rounded-xl type-desc-small-semibold">
@@ -282,9 +317,27 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
             </div>
 
             <div className="grow pt-4 max-w-full items-stretch min-[1290px]:w-3xl">
-              {activeTab === "details" && <DetailContentComponent />}
-              {activeTab === "price" && <PriceContentComponent />}
-              {activeTab === "map" && <MapContentComponent />}
+              {activeTab === "details" && (
+                <DetailContentComponent
+                  title={event?.title}
+                  content={event?.content}
+                  eventStart={event?.eventStart}
+                  eventEnd={event?.eventEnd}
+                  locationName={event?.location?.locationName}
+                />
+              )}
+              {activeTab === "price" && (
+                <PriceContentComponent payment={event?.payment} />
+              )}
+              {activeTab === "map" && (
+                <MapContentComponent
+                  locationId={event?.location?.locationId}
+                  locationName={event?.location?.locationName}
+                  googleMapUrl={event?.location?.googleMapUrl}
+                  latitude={event?.location?.latitude}
+                  longitude={event?.location?.longitude}
+                />
+              )}
             </div>
 
             {!isAdminOrOrganizer && (
@@ -331,10 +384,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           <span className="flex items-center gap-x-1">
             <MessageCircleMore size={16} /> {detailData.commentsCount}
           </span>
-          <button
-            onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-x-1 hover:text-primary cursor-pointer"
-          >
+          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-x-1 hover:text-primary cursor-pointer">
             <Share2 size={16} /> Share
           </button>
         </section>
@@ -355,12 +405,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
                 Discussion
               </button>
             </section>
-
-            {activeAdminTab === "overview" ? (
-              <AdminOverview />
-            ) : (
-              <DiscussionSection event={event} />
-            )}
+            {activeAdminTab === "overview" ? <AdminOverview /> : <DiscussionSection event={event} />}
           </div>
         ) : (
           <div className="space-y-4">
@@ -369,12 +414,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         )}
       </section>
 
-      <ShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/events/${detailData.id}`}
-      />
-
+      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} shareUrl={`hrdeventhub.app/events/${detailData.id}`} />
       <PaymentModal />
     </>
   );

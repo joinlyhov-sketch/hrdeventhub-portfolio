@@ -69,7 +69,11 @@ export default function GroupDropDown({ workspace }: GroupDropDownProps) {
         onClose={() => setIsDeleteOpen(false)}
         group={{ title: workspace.name, id: workspace.workspaceId }}
       />
-      <CreateInvitationLinkModal isOpen={isLinkOpen} onClose={() => setIsLinkOpen(false)} />
+      <CreateInvitationLinkModal
+  isOpen={isLinkOpen}
+  onClose={() => setIsLinkOpen(false)}
+  workspace={workspace}
+/>
     </>
   );
 }

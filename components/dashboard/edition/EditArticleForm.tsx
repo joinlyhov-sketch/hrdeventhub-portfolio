@@ -1,7 +1,5 @@
 "use client";
-import {
-  FileText,
-} from "lucide-react";
+import { FileText } from "lucide-react";
 import { Breadcrumb } from "../BreadCrumb";
 import { FormInput } from "../FormInput";
 import MediaUpload from "../MediaUpload";
@@ -37,7 +35,7 @@ export default function EditArticleForm() {
             label="Description"
             placeholder="Describe the mission and scope of this article..."
           />
-          <MediaUpload />
+          {/* <MediaUpload /> */}
         </div>
       </div>
       <div className="p-2 flex flex-col sm:flex-row justify-end gap-3">

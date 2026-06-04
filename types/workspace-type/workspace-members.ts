@@ -2,6 +2,7 @@ export interface WorkspaceMember {
   appUserId: string;
   firstName: string;
   lastName: string;
+  profileImage?: string;
 }
 
 export interface WorkspaceMemberResponse {
