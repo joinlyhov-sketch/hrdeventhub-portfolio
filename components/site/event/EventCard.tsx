@@ -10,6 +10,7 @@ import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit
 import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import { usePostReaction } from "@/hooks/use-post-reaction";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
@@ -36,8 +37,10 @@ function EventItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [likesCount, setLikesCount] = useState(0);
+
+  const { selectedReaction, likesCount, handleLikeToggle, handleReactionSelect } =
+    usePostReaction(post.postId);
+  
   const [commentInput, setCommentInput] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
@@ -52,15 +55,15 @@ function EventItem({
     ? creator.fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
 
-  const handleLikeToggle = () => {
-    if (selectedReaction) { setSelectedReaction(null); setLikesCount((p) => p - 1); }
-    else { setSelectedReaction("like"); setLikesCount((p) => p + 1); }
-  };
+  // const handleLikeToggle = () => {
+  //   if (selectedReaction) { setSelectedReaction(null); setLikesCount((p) => p - 1); }
+  //   else { setSelectedReaction("like"); setLikesCount((p) => p + 1); }
+  // };
 
-  const handleReactionSelect = (reactionId: string) => {
-    if (!selectedReaction) setLikesCount((p) => p + 1);
-    setSelectedReaction(reactionId);
-  };
+  // const handleReactionSelect = (reactionId: string) => {
+  //   if (!selectedReaction) setLikesCount((p) => p + 1);
+  //   setSelectedReaction(reactionId);
+  // };
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
@@ -162,9 +165,14 @@ function EventItem({
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
             >
-              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500" : ""} />
+              <ThumbsUp
+                size={18}
+                className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
+              />
               <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="type-detail-small-medium font-normal text-grey-400">({likesCount})</span>
+              <span className="type-detail-small-medium font-normal text-grey-400">
+                ({likesCount})
+              </span>
             </button>
           </ReactionPopover>
 

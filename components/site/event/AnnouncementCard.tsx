@@ -16,6 +16,7 @@ import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/rea
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import { usePostReaction } from "@/hooks/use-post-reaction";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
@@ -133,8 +134,10 @@ function AnnouncementItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [likesCount, setLikesCount] = useState(0);
+
+  const { selectedReaction, likesCount, handleLikeToggle, handleReactionSelect } =
+    usePostReaction(post.postId);
+    
   const [commentInput, setCommentInput] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
@@ -152,15 +155,15 @@ function AnnouncementItem({
   const hasPurpose = !!post.purpose;
   const hasMetaInfo = hasLocation || hasDate || hasPurpose;
 
-  const handleLikeToggle = () => {
-    if (selectedReaction) { setSelectedReaction(null); setLikesCount((p) => p - 1); }
-    else { setSelectedReaction("like"); setLikesCount((p) => p + 1); }
-  };
+  // const handleLikeToggle = () => {
+  //   if (selectedReaction) { setSelectedReaction(null); setLikesCount((p) => p - 1); }
+  //   else { setSelectedReaction("like"); setLikesCount((p) => p + 1); }
+  // };
 
-  const handleReactionSelect = (reactionId: string) => {
-    if (!selectedReaction) setLikesCount((p) => p + 1);
-    setSelectedReaction(reactionId);
-  };
+  // const handleReactionSelect = (reactionId: string) => {
+  //   if (!selectedReaction) setLikesCount((p) => p + 1);
+  //   setSelectedReaction(reactionId);
+  // };
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;

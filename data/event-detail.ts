@@ -59,7 +59,7 @@ export const CURRENT_USER: UserProfile = {
 
 export const MOCK_EVENTS: HRDEvent[] = [
   {
-    id: "Sport Reunion Event",
+    id: "83bd51d6-4669-4d53-a04e-17759869c06c",
     creator: {
       id: "von-tavann",
       name: "Von Tavann",
