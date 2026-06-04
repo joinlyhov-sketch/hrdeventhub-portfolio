@@ -9,6 +9,7 @@ import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/rea
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
@@ -97,6 +98,7 @@ function ArticleItem({
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
+        <ExpandableText text={post.content} />
         <p className="type-desc text-muted-foreground leading-relaxed mb-4">{post.content}</p>
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">

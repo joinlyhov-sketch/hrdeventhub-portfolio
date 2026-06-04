@@ -6,6 +6,7 @@ import { cn } from "../libs/utils";
 import Providers from "./provider";
 import { UserProvider } from "../context/user-context";
 import { SessionGuard } from "@/components/auth/SessionGuard";
+import { Toaster } from "sonner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -46,6 +47,7 @@ export default function RootLayout({
             <SessionGuard>{children}</SessionGuard>
           </UserProvider>
         </Providers>
+        <Toaster position="top-right" richColors closeButton duration={3000} />
       </body>
     </html>
   );

@@ -64,8 +64,8 @@ export interface CreateAnnouncementPayload {
   purpose: string;
   eventStart: string;
   eventEnd: string;
-  scheduledAt: string | null;
   expiresAt: string;
+  scheduledAt: string | null;
   isPublished: boolean;
   status: "draft" | "active";
   isPinned: boolean;
@@ -101,3 +101,72 @@ export interface CreateArticleBackendResponse {
   payload: string;
   timestamp: string;
 }
+
+export interface ApiFieldError {
+  message: string;
+  field: string;
+}
+
+export interface ApiFieldError {
+  message: string;
+  field: string;
+}
+
+export interface PostEventPayloadDetails {
+  postId: string;
+  category: string;
+  title: string;
+  content: string;
+  purpose: string;
+  scheduledAt: string;
+  status: "draft" | "active" | "closed";
+  expiresAt: string;
+  eventStart: string;
+  eventEnd: string;
+  createdAt: string;
+  updatedAt: string;
+  appUserId: string;
+  location: PostLocation & { locationId: string };
+  media: unknown[];
+  comments: unknown[];
+  creator: {
+    userId: string;
+    fullName: string;
+    profilePicture: string;
+    role: string;
+  };
+  pinned: boolean;
+  published: boolean;
+}
+
+export interface CreatePostSuccessResponse {
+  success: true; // Hardcoded true discriminant flag
+  message: string;
+  status: string;
+  payload: PostEventPayloadDetails;
+  timestamp: string;
+}
+
+export interface CreatePostErrorResponse {
+  detail: string;
+  instance: string;
+  status: number;
+  title: string;
+  type: string;
+  timestamp: string;
+  errors: ApiFieldError[];
+}
+
+export type CreatePostActionResponse =
+  | {
+      ok: true;
+      payload: CreatePostSuccessResponse;
+      error?: never;
+      errors?: never;
+    }
+  | {
+      ok: false;
+      error: string;
+      errors?: ApiFieldError[];
+      payload?: never;
+    };
