@@ -64,4 +64,7 @@ export const profileService = {
       authToken: token,
     });
   },
+  getProfileById: async (id: string, token: string): Promise<UserProfileResponse> => {
+  return await apiGet<UserProfileResponse>(`/profile/${id}`, { authToken: token });
+},
 };
