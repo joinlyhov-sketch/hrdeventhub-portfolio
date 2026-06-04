@@ -84,7 +84,7 @@ export default function StudentProfileForm() {
           setCurrentStatus(p.currentStatus || "studying");
           setProfilePicture(p.profilePicture || "");
           setCvResumeUrl(p.cvResumeUrl || "");
-          setProfileSharingMode(p.profileSharingMode || "PUBLIC");
+          // setProfileSharingMode(p.profileSharingMode || "PUBLIC");
 
           let parsedSkills: string[] = [];
           if (p.skills && p.skills[0]) {
@@ -128,7 +128,7 @@ export default function StudentProfileForm() {
             currentStatus: (p.currentStatus || "studying").toLowerCase(),
             profilePicture: p.profilePicture || "",
             cvResumeUrl: p.cvResumeUrl || "",
-            profileSharingMode: p.profileSharingMode || "PUBLIC",
+            // profileSharingMode: p.profileSharingMode || "PUBLIC",
             skills: parsedSkills,
             education: parsedEdu.filter(edu => edu.institutionName.trim() !== ""),
             socials: { linkedin: lUrl, github: gUrl, facebook: fUrl, telegram: tUrl }

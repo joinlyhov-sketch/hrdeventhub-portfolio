@@ -1,7 +1,5 @@
 "use client";
-
 import * as React from "react";
-import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -11,48 +9,82 @@ import {
 } from "@/components/ui/dialog-payments/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { X, CalendarIcon, ChevronUp, ChevronDown } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { addDays } from "date-fns";
-import { type DateRange } from "react-day-picker";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/reaction/popover";
+import { X, Copy, Check } from "lucide-react";
+import { createInvitationAction } from "@/actions/invitation.action";
+import { Workspace } from "@/types/workspace-type/group";
+import { useGenerations } from "@/hooks/use-generation";
 
 interface CreateInvitationLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
+  workspace: Workspace;
 }
 
 export default function CreateInvitationLinkModal({
   isOpen,
   onClose,
+  workspace,
 }: CreateInvitationLinkModalProps) {
-  const [expireDate, setExpireDate] = React.useState("");
-  const [inviteUrl, setInviteUrl] = React.useState(
-    "http://96.9.81.187:3001/join/Y9xjMfJLoqty6DJVm3tLw7vdWTwogb8N",
-  );
+  const [ttlDays, setTtlDays] = React.useState<string>("1");
+  const [inviteLink, setInviteLink] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+  const [error, setError] = React.useState("");
 
-  const [open, setOpen] = React.useState(false);
+  const { generations } = useGenerations();
 
-  const handleCreateLink = () => {
-    console.log(
-      "Generating dynamic secure link for:",
-      expireDate || "expireDate",
-    );
+  const generationId = React.useMemo(() => {
+    if (workspace.generationId) return workspace.generationId;
+    if (workspace.generationName && generations.length > 0) {
+      const matched = generations.find((g) => g.name === workspace.generationName);
+      return matched?.generationId ?? "";
+    }
+    return "";
+  }, [workspace, generations]);
+
+  const handleCreate = async () => {
+    const days = parseInt(ttlDays);
+    if (!ttlDays || isNaN(days) || days < 1) {
+      setError("Please enter a valid number of days (minimum 1).");
+      return;
+    }
+
+    setError("");
+
+    try {
+      setIsSubmitting(true);
+      const result = await createInvitationAction({
+        workspaceId: workspace.workspaceId,
+        generationId,
+        ttlDays: days,
+      });
+
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+      const fullLink = `${baseUrl}${result.payload.inviteLink}`;
+      setInviteLink(fullLink);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create invitation link.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Dynamically defaults to starting from today instead of a hardcoded past month
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: new Date(),
-    to: addDays(new Date(), 30),
-  });
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleClose = () => {
+    setTtlDays("1");
+    setInviteLink("");
+    setError("");
+    setCopied(false);
+    onClose();
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[720px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
         <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-6">
           <DialogHeader className="space-y-1">
@@ -60,110 +92,76 @@ export default function CreateInvitationLinkModal({
               Create Invitation Link
             </DialogTitle>
             <DialogDescription className="text-[15px] text-gray-500 font-normal">
-              Generate a secure link and optionally scope who can join.
+              Generate a secure link for <span className="font-semibold text-gray-700">{workspace.name}</span>.
             </DialogDescription>
           </DialogHeader>
-
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <X size={22} strokeWidth={2.5} />
           </button>
         </div>
+
         <div className="px-8 py-6 space-y-6 bg-white">
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <label className="text-[17px] font-bold text-[#1e3a8a] block">
-              Link Expiration (required)
+              Expire in (days)
             </label>
-
-            <div className="flex gap-3 items-center">
-              <div className="relative flex-1">
-                <CalendarIcon
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"
-                  size={18}
+            <div className="flex gap-3 items-start">
+              <div className="flex-1 space-y-1">
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="e.g. 1, 7, 30"
+                  value={ttlDays}
+                  onChange={(e) => {
+                    setTtlDays(e.target.value);
+                    if (error) setError("");
+                  }}
+                  className={`h-[52px] px-4 rounded-xl border bg-white text-[15px] placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent transition-all ${error ? "border-red-400" : "border-blue-100"}`}
                 />
-
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full h-[52px] justify-start pl-11 rounded-xl border border-blue-100 bg-white text-left font-normal text-gray-500 hover:bg-white"
-                    >
-                      {/* FIXED: Reading directly from dateRange to display text */}
-                      <div className="w-full flex items-center justify-between">
-                        {dateRange?.from ? (
-                          dateRange.to ? (
-                            <>
-                              {format(dateRange.from, "LLL dd, yyyy")} –{" "}
-                              {format(dateRange.to, "LLL dd, yyyy")}
-                            </>
-                          ) : (
-                            format(dateRange.from, "LLL dd, yyyy")
-                          )
-                        ) : (
-                          "Select Expire Date"
-                        )}
-
-                        {open ? (
-                          <ChevronUp size={18} />
-                        ) : (
-                          <ChevronDown size={18} />
-                        )}
-                      </div>
-                    </Button>
-                  </PopoverTrigger>
-
-                  <PopoverContent
-                    align="start"
-                    className="w-auto p-0 rounded-xl border border-blue-100 shadow-sm"
-                  >
-                    <Card className="mx-auto w-fit p-0">
-                      <CardContent className="p-0">
-                        <Calendar
-                          mode="range"
-                          defaultMonth={dateRange?.from}
-                          selected={dateRange}
-                          onSelect={setDateRange}
-                          numberOfMonths={2}
-                          disabled={(date) => {
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            return date < today;
-                          }}
-                        />
-                      </CardContent>
-                    </Card>
-                  </PopoverContent>
-                </Popover>
+                {error && <p className="text-red-500 text-[13px]">{error}</p>}
               </div>
-
               <Button
-                onClick={handleCreateLink}
-                className="h-[52px] px-8 bg-[#2b4c8c] hover:bg-[#1e3563] text-white font-semibold rounded-xl text-[15px] shadow-sm transition-colors shrink-0"
+                onClick={handleCreate}
+                disabled={isSubmitting}
+                className="h-[52px] px-8 bg-[#2b4c8c] hover:bg-[#1e3563] text-white font-semibold rounded-xl text-[15px] shadow-sm transition-colors shrink-0 disabled:opacity-50"
               >
-                Create Link
+                {isSubmitting ? "Creating..." : "Create Link"}
               </Button>
             </div>
           </div>
 
-          <div className="space-y-2.5 pt-2">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">
-              Invite URL
-            </label>
-            <Input
-              type="text"
-              readOnly
-              value={inviteUrl}
-              className="h-[52px] px-4 rounded-xl border border-blue-100 bg-white text-[15px] text-gray-400 select-all focus-visible:ring-1 focus-visible:ring-blue-400 transition-all"
-            />
-          </div>
+          {inviteLink && (
+            <div className="space-y-2.5">
+              <label className="text-[17px] font-bold text-[#1e3a8a] block">
+                Invite URL
+              </label>
+              <div className="relative flex items-center">
+                <Input
+                  type="text"
+                  readOnly
+                  value={inviteLink}
+                  className="h-[52px] pr-12 px-4 rounded-xl border border-blue-100 bg-white text-[15px] text-gray-500 select-all focus-visible:ring-1 focus-visible:ring-blue-400 transition-all"
+                />
+                <button
+                  onClick={handleCopy}
+                  className="absolute right-4 text-gray-400 hover:text-primary transition-colors cursor-pointer"
+                  title="Copy link"
+                >
+                  {copied ? <Check size={18} className="text-green-500" /> : <Copy size={18} />}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
         <div className="flex justify-end items-end bg-[#f8fafc] px-8 py-5 border-t border-gray-50">
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={handleClose}
             className="h-[44px] px-8 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-xl text-[15px] transition-colors"
           >
             Cancel
