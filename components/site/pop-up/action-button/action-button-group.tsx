@@ -1,6 +1,13 @@
 "use client";
 import React, { useState } from "react";
-import { SquarePen, Trash2, Link2, MoreHorizontal } from "lucide-react";
+import {
+  SquarePen,
+  Trash2,
+  Link2,
+  MoreHorizontal,
+  Pin,
+  PinOff,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +19,7 @@ import EditGroupModal from "@/components/site/pop-up/action-button/EditGroupForm
 import { GroupDeleteModal } from "@/components/site/pop-up/commons/delete-modal-group";
 import CreateInvitationLinkModal from "@/components/site/pop-up/action-button/CreateInvitationLinkModal";
 import { Workspace } from "@/types/workspace-type/group";
+import { usePinnedWorkspaces } from "@/hooks/use-pinned-workspace";
 
 interface GroupDropDownProps {
   workspace: Workspace;
@@ -21,6 +29,9 @@ export default function GroupDropDown({ workspace }: GroupDropDownProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isLinkOpen, setIsLinkOpen] = useState(false);
+  const { isPinned, togglePin } = usePinnedWorkspaces();
+
+  const pinned = isPinned(workspace.workspaceId);
 
   return (
     <>
@@ -39,41 +50,73 @@ export default function GroupDropDown({ workspace }: GroupDropDownProps) {
         >
           <DropdownMenuGroup className="flex flex-col gap-1">
             <DropdownMenuItem
-              onClick={(e) => { e.stopPropagation(); setIsEditOpen(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditOpen(true);
+              }}
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 focus:bg-primary/10 hover:text-primary focus:text-primary cursor-pointer transition-colors"
             >
               <SquarePen size={16} className="stroke-primary" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={(e) => { e.stopPropagation(); setIsDeleteOpen(true); }}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 focus:bg-destructive/10 hover:text-destructive focus:text-destructive cursor-pointer transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePin(workspace.workspaceId);
+              }}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-action hover:bg-action/10 focus:bg-action/10 hover:text-action focus:text-action cursor-pointer transition-colors"
             >
-              <Trash2 size={16} className="stroke-destructive" />
-              Delete
+              {pinned ? (
+                <>
+                  <PinOff size={16} className="stroke-action" />
+                  Unpin from Sidebar
+                </>
+              ) : (
+                <>
+                  <Pin size={16} className="stroke-action" />
+                  Pin to Sidebar
+                </>
+              )}
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={(e) => { e.stopPropagation(); setIsLinkOpen(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsLinkOpen(true);
+              }}
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-action hover:bg-action/10 focus:bg-action/10 hover:text-action focus:text-action cursor-pointer transition-colors"
             >
               <Link2 size={16} className="stroke-action" />
               Link
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteOpen(true);
+              }}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 focus:bg-destructive/10 hover:text-destructive focus:text-destructive cursor-pointer transition-colors"
+            >
+              <Trash2 size={16} className="stroke-destructive" />
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <EditGroupModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} workspace={workspace} />
+      <EditGroupModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        workspace={workspace}
+      />
       <GroupDeleteModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         group={{ title: workspace.name, id: workspace.workspaceId }}
       />
       <CreateInvitationLinkModal
-  isOpen={isLinkOpen}
-  onClose={() => setIsLinkOpen(false)}
-  workspace={workspace}
-/>
+        isOpen={isLinkOpen}
+        onClose={() => setIsLinkOpen(false)}
+        workspace={workspace}
+      />
     </>
   );
 }

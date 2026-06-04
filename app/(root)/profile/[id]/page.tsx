@@ -9,9 +9,9 @@ import { useCurrentUser } from "@/context/user-context";
 
 export default function ProfilePage() {
   const { currentUser } = useCurrentUser();
-  const role = currentUser?.role ?? "student";
+  const role = currentUser?.role ?? null;
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
-  const showStudentTabs = role === "student" || role === "alumni";
+  const showStudentTabs = role === "student" || role === "alumni" || role === null;
 
   return (
     <div className="w-full bg-background z-30">
@@ -29,7 +29,7 @@ export default function ProfilePage() {
             <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1">
               <Tabnav
                 active={activeTab === "BG"}
-                label="Background"  
+                label="Background"
                 onClick={() => setActiveTab("BG")}
               />
               {showStudentTabs && (

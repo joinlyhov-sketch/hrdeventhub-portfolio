@@ -5,6 +5,7 @@ import { Download, ClipboardList } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
 import { UserProfilePayload } from "@/types/profile-types";
+import { signOut } from "next-auth/react";  
 
 export default function BackgroundTab() {
   const { data: session } = useSession();
@@ -28,10 +29,35 @@ export default function BackgroundTab() {
         setLoading(false);
       }
     };
-
     fetchProfileData();
   }, [session?.accessToken]);
+useEffect(() => {
+  const fetchProfileData = async () => {
+    const token = session?.accessToken;
+    const sessionError = (session as any)?.error;
 
+    if (sessionError === "RefreshTokenExpired") {
+      signOut({ callbackUrl: "/login" });
+      return;
+    }
+
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const response = await profileService.getProfileMe(token);
+      if (response.success) {
+        setProfile(response.payload);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProfileData(); 
+}, [session?.accessToken]);
   if (loading) {
     return (
       <div className="bg-card border border-border rounded-xl p-6 flex items-center justify-center h-48 w-full">
