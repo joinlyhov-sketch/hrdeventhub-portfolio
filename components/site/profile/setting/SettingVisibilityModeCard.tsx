@@ -266,11 +266,13 @@ export default function SettingVisibilityModeCard({
       );
       if (!modeResult?.success) throw new Error("Failed to update sharing mode.");
 
-      const prefResult = await profileService.updatePreferences(
-        computedPreferences,
-        token
-      );
-      if (!prefResult?.success) throw new Error("Failed to update preferences.");
+      if (computedMode === "SELECTIVE") {
+        const prefResult = await profileService.updatePreferences(
+          computedPreferences,
+          token
+        );
+        if (!prefResult?.success) throw new Error("Failed to update preferences.");
+      }
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -630,7 +632,7 @@ const ProfileIcon = () => (
 const ContactIcon = () => (
   <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="44" height="44" rx="22" fill="#3BC1A8" fillOpacity="0.2" />
-    <path d="M27 29C27 29.53 26.79 30.04 26.41 30.41C26.04 30.79 25.53 31 25 31H14C13.47 31 12.96 30.79 12.59 30.41C12.21 30.04 12 29.53 12 29V21C12 20.65 12.09 20.3 12.27 20 Flext" />
+    <path d="M27 29C27 29.53 26.79 30.04 26.41 30.41C26.04 30.79 25.53 31 25 31H14C13.47 31 12.96 30.79 12.59 30.41C12.21 30.04 12 29.53 12 29V21C12 20.65 12.09 20.3 12.27 20" stroke="#3BC1A8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     <path d="M32 15.5L25.58 19.68C25.26 19.89 24.88 20 24.5 20C24.12 20 23.74 19.89 23.42 19.68L17 15.5M19 13H30C31.1 13 32 13.9 32 15V23C32 24.1 31.1 25 30 25H19C17.9 25 17 24.1 17 23V15C17 13.9 17.9 13 19 13Z" stroke="#3BC1A8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
