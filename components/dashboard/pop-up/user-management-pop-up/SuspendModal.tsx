@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AlertOctagon } from "lucide-react";
-import { UserData } from "../../../../data/UserData";
+import { UserData } from "../../../../types/user-management-type/user";
 import {
   Dialog,
   DialogContent,
@@ -23,15 +23,15 @@ import { SuspendButton } from "../../../site/user-mangement/button/SuspendButton
 interface SuspendModalProps {
   user: UserData;
   onClose: () => void;
-  onConfirm: (userId: number, reason: string) => void;
+  onConfirm: (userId: string | number, reason: string) => void;
 }
 
-const REASON_OPTIONS = [
-  "Spam Activity",
-  "Policy Violation",
-  "Inappropriate Behavior",
-  "Inappropriate Media",
-  "Other",
+const REASON_MAPPING = [
+  { value: "SPAM", label: "Spam Activity" },
+  { value: "POLICY_VIOLATION", label: "Policy Violation" },
+  { value: "INAPPROPRIATE_BEHAVIOR", label: "Inappropriate Behavior" },
+  { value: "INAPPROPRIATE_MEDIA", label: "Inappropriate Media" },
+  { value: "OTHER", label: "Other" },
 ];
 
 export default function SuspendModal({
@@ -78,13 +78,13 @@ export default function SuspendModal({
                   <SelectValue placeholder="Reason" />
                 </SelectTrigger>
                 <SelectContent className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-50 overflow-y-auto">
-                  {REASON_OPTIONS.map((option) => (
+                  {REASON_MAPPING.map((option) => (
                     <SelectItem
-                      key={option}
-                      value={option}
+                      key={option.value}
+                      value={option.value} 
                       className="px-6 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
                     >
-                      {option}
+                      {option.label} 
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -104,9 +104,16 @@ export default function SuspendModal({
 
           <div className="flex items-center justify-center gap-4 pt-4 w-full">
             <CancelButton onClick={onClose} />
-            <SuspendButton
-              onClick={() => onConfirm(user.no, selectedReason || "Reason")}
-            />
+            
+            <div 
+              className="inline-block shrink-0"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onConfirm(user.no, selectedReason || "OTHER");
+              }}
+            >
+              <SuspendButton onClick={() => {}} />
+            </div>
           </div>
         </div>
       </DialogContent>

@@ -1,33 +1,42 @@
 "use client";
-import { SquarePen, UserX2, UserRoundCheck } from "lucide-react";
-import { UserData } from "../../../data/UserData";
+
+import React from "react";
+import { UserRoundCheck } from "lucide-react";
+import { UserData } from "../../../types/user-management-type/user";
 import { TableCell, TableRow } from "../../ui/table";
 import Image from "next/image";
 
 interface UserRowProps {
   user: UserData;
+  index: number;
   onEditRole: (user: UserData) => void;
   onToggleSuspend: (user: UserData) => void;
 }
 
 export default function UserRow({
   user,
+  index,
   onEditRole,
   onToggleSuspend,
 }: UserRowProps) {
   const isActive = user.status === "Active";
+  const rowDisplayIdentifier = String(
+    typeof index === "number" && !isNaN(index) ? index + 1 : 1,
+  );
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
-      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] ">
-        {user.no}
+      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%]">
+        {rowDisplayIdentifier}
       </TableCell>
 
       <TableCell className="px-3 py-3 type-desc text-gray-500 w-[18%]">
         <div className="flex items-center gap-3 truncate">
-          <img
+          <Image
             src={user.avatar}
-            alt=""
+            alt={user.username}
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full object-cover shrink-0"
           />
           <span className="truncate">{user.username}</span>
@@ -47,7 +56,7 @@ export default function UserRow({
       </TableCell>
 
       <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] truncate">
-        {user.gen}
+        Gen {user.gen}
       </TableCell>
 
       <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[15%]">
@@ -74,7 +83,7 @@ export default function UserRow({
             onClick={() => onEditRole(user)}
             className="text-slate-600 hover:text-blue-900 transition-colors cursor-pointer shrink-0"
           >
-            <Image src={"edit.svg"} alt="edit" width={18} height={18} />
+            <Image src={"/edit.svg"} alt="edit" width={18} height={18} />
           </button>
           <button
             type="button"
@@ -87,7 +96,7 @@ export default function UserRow({
           >
             {isActive ? (
               <Image
-                src={"user-minus.svg"}
+                src={"/user-minus.svg"}
                 alt="user-minus"
                 width={18}
                 height={18}

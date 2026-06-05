@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserData } from "../../../../data/UserData";
+import { UserData } from "../../../../types/user-management-type/user";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,8 @@ import { SaveButton } from "../../../site/user-mangement/button/SaveButton";
 interface EditRoleModalProps {
   user: UserData;
   onClose: () => void;
-  onSave: (userId: number, newRole: string) => void;
+  // CHANGED: Changed userId type from number to string | number to match user.no
+  onSave: (userId: string | number, newRole: string) => void;
 }
 
 export default function EditRoleModal({
@@ -23,7 +24,8 @@ export default function EditRoleModal({
   onClose,
   onSave,
 }: EditRoleModalProps) {
-  const [role, setRole] = useState("Student");
+  // Synchronize state initial value with the user's existing role from types
+  const [role, setRole] = useState<string>(user.role || "USER");
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>

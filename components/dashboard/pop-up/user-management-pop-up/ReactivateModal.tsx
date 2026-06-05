@@ -2,7 +2,7 @@
 
 import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
-import { UserData } from "../../../../data/UserData";
+import { UserData } from "../../../../types/user-management-type/user";
 import {
   Dialog,
   DialogContent,
@@ -15,8 +15,8 @@ import { ReactivateButton } from "../../../site/user-mangement/button/Reactivate
 
 interface ReactivateModalProps {
   user: UserData;
-  onClose: () => void;
-  onConfirm: (userId: number) => void;
+  onClose: () => void
+  onConfirm: (userId: string | number) => void;
 }
 
 export default function ReactivateModal({
@@ -29,15 +29,10 @@ export default function ReactivateModal({
       <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-4xl p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150">
         <div className="bg-[#F8FAFC] px-8 py-3 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
-            {/* <img
-              src={user.avatar}
-              alt=""
-              className="w-12 h-12 rounded-full object-cover"
-            /> */}
             <Image 
-            src={user.avatar}
+              src={user.avatar}
               alt="avatar"
-              width ={48}
+              width={48}
               height={48}
               className="w-12 h-12 rounded-full object-cover"
             />
