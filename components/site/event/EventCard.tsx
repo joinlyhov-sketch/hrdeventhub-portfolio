@@ -7,9 +7,13 @@ import { ThumbsUp, MessageSquare, Share2, SendHorizontal } from "lucide-react";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import {
+  ReactionPopover,
+  REACTIONS,
+} from "@/components/site/pop-up/comment/reaction";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 import { usePostReaction } from "@/hooks/use-post-reaction";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
@@ -38,9 +42,13 @@ function EventItem({
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
 
-  const { selectedReaction, likesCount, handleLikeToggle, handleReactionSelect } =
-    usePostReaction(post.postId);
-  
+  const {
+    selectedReaction,
+    likesCount,
+    handleLikeToggle,
+    handleReactionSelect,
+  } = usePostReaction(post.postId);
+
   const [commentInput, setCommentInput] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
@@ -52,7 +60,12 @@ function EventItem({
   const creator = post.creator;
   const profilePictureUrl = getMediaUrl(creator?.profilePicture);
   const initials = creator?.fullName
-    ? creator.fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? creator.fullName
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "?";
 
   // const handleLikeToggle = () => {
@@ -70,7 +83,10 @@ function EventItem({
     setIsSubmittingComment(true);
     try {
       const result = await createCommentAction(post.postId, commentInput);
-      if (result.ok) { setCommentInput(""); await refetch(); }
+      if (result.ok) {
+        setCommentInput("");
+        await refetch();
+      }
     } finally {
       setIsSubmittingComment(false);
     }
@@ -83,49 +99,80 @@ function EventItem({
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
               {profilePictureUrl ? (
-                <Image src={profilePictureUrl} alt={creator!.fullName} width={48} height={48} className="w-full h-full object-cover rounded-full" />
+                <Image
+                  src={profilePictureUrl}
+                  alt={creator!.fullName}
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover rounded-full"
+                />
               ) : (
-                <span className="type-desc-semibold text-primary uppercase">{initials}</span>
+                <span className="type-desc-semibold text-primary uppercase">
+                  {initials}
+                </span>
               )}
             </div>
             <div>
-              <h3 className="type-desc-semibold text-secondary">{creator?.fullName ?? "—"}</h3>
-              <p className="type-detail-small-medium text-grey-400">{post.createdAt}</p>
+              <h3 className="type-desc-semibold text-secondary">
+                {creator?.fullName ?? "—"}
+              </h3>
+              <p className="type-detail-small-medium text-grey-400">
+                {post.createdAt}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {creator?.role && (
-              <span className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}>
+              <span
+                className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+              >
                 {creator.role}
               </span>
             )}
             {(role === "admin" || role === "organizer") && (
-              <EditPostDropDown title={post.title} editUrl={`/event-management/edition/event`} onDelete={onDelete} />
+              <EditPostDropDown
+                title={post.title}
+                editUrl={`/event-management/edition/event?groupId=${groupid}&postId=${post.postId}`}
+                onDelete={onDelete}
+              />
             )}
           </div>
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">{post.content}</p>
+
+        <ExpandableText text={post.content} />
 
         <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-6">
           {post.location && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">LOCATION: </span>
-              <a href={post.location.googleMapUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              <span className="type-detail-semibold text-foreground">
+                LOCATION:{" "}
+              </span>
+              <a
+                href={post.location.googleMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
                 {post.location.locationName ?? "View on map"}
               </a>
             </p>
           )}
           {post.eventStart && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">DATE: </span>
-              {post.eventStart}{post.eventEnd && ` — ${post.eventEnd}`}
+              <span className="type-detail-semibold text-foreground">
+                DATE:{" "}
+              </span>
+              {post.eventStart}
+              {post.eventEnd && ` — ${post.eventEnd}`}
             </p>
           )}
           {post.purpose && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">PURPOSE: </span>
+              <span className="type-detail-semibold text-foreground">
+                PURPOSE:{" "}
+              </span>
               {post.purpose}
             </p>
           )}
@@ -133,22 +180,45 @@ function EventItem({
 
         <div className="relative rounded-[12px] overflow-hidden mb-6 h-64 bg-grey-100">
           {imageUrl ? (
-            <Image src={imageUrl} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 700px" />
+            <Image
+              src={imageUrl}
+              alt={post.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 700px"
+            />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-grey-400">
               <div className="w-12 h-12 rounded-full bg-grey-200 flex items-center justify-center">
-                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 19.5h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
+                <svg
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 19.5h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z"
+                  />
                 </svg>
               </div>
-              <span className="type-desc-small-semibold">No image available</span>
+              <span className="type-desc-small-semibold">
+                No image available
+              </span>
             </div>
           )}
           <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-6 text-white z-10 flex items-end justify-between gap-4">
             <div>
-              <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide mb-2">Event</span>
+              <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide mb-2">
+                Event
+              </span>
               <h4 className="type-desc-semibold">{post.title}</h4>
-              <p className="type-detail-small-medium opacity-80">{post.eventStart ?? "—"}</p>
+              <p className="type-detail-small-medium opacity-80">
+                {post.eventStart ?? "—"}
+              </p>
             </div>
             <Link
               href={`/group/${groupid}/event/${post.postId}`}
@@ -160,7 +230,10 @@ function EventItem({
         </div>
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
-          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
+          <ReactionPopover
+            selectedValue={selectedReaction}
+            onReactionSelect={handleReactionSelect}
+          >
             <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
@@ -169,28 +242,46 @@ function EventItem({
                 size={18}
                 className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
               />
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              <span>
+                {activeReaction ? activeReaction.displayText : "Like"}
+              </span>
               <span className="type-detail-small-medium font-normal text-grey-400">
                 ({likesCount})
               </span>
             </button>
           </ReactionPopover>
 
-          <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
+          <button
+            onClick={() => setShowComments(!showComments)}
+            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+          >
             <MessageSquare size={18} /> {comments?.length ?? 0}
           </button>
 
-          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+          >
             <Share2 size={18} /> Share
           </button>
         </div>
 
-        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+        <div
+          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
+        >
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
             {currentUser?.profilePicture ? (
-              <Image src={currentUser.profilePicture} alt={currentUser.name || "profile"} width={40} height={40} className="w-full h-full object-cover rounded-full" />
+              <Image
+                src={currentUser.profilePicture}
+                alt={currentUser.name || "profile"}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover rounded-full"
+              />
             ) : (
-              <span className="type-desc-small-semibold text-primary uppercase">{currentUser?.avatarInitials ?? "?"}</span>
+              <span className="type-desc-small-semibold text-primary uppercase">
+                {currentUser?.avatarInitials ?? "?"}
+              </span>
             )}
           </div>
           <div className="relative grow flex items-center bg-grey-50 rounded-full pr-1.5 pl-6 py-1.5">
@@ -227,7 +318,9 @@ function EventItem({
               ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-grey-400 type-detail-medium">No comments yet. Be the first to comment!</p>
+                <p className="text-grey-400 type-detail-medium">
+                  No comments yet. Be the first to comment!
+                </p>
               </div>
             )}
           </div>
@@ -243,11 +336,22 @@ function EventItem({
   );
 }
 
-export function EventCard({ role, posts, onDeletePost, groupid }: EventCardProps) {
+export function EventCard({
+  role,
+  posts,
+  onDeletePost,
+  groupid,
+}: EventCardProps) {
   return (
     <>
       {posts.map((post) => (
-        <EventItem key={post.postId} post={post} role={role} onDelete={() => onDeletePost(post.postId)} groupid={groupid} />
+        <EventItem
+          key={post.postId}
+          post={post}
+          role={role}
+          onDelete={() => onDeletePost(post.postId)}
+          groupid={groupid}
+        />
       ))}
     </>
   );

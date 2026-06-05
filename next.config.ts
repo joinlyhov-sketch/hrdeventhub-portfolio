@@ -22,12 +22,17 @@ const nextConfig: NextConfig = {
         hostname: "i.pravatar.cc",
       },
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '9090',
-        pathname: '/api/v4/files/**',
+        protocol: "http",
+        hostname: "localhost",
+        port: "9090",
+        pathname: "/api/v4/files/**",
       },
     ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "20mb",
+    },
   },
 };
 

@@ -5,10 +5,14 @@ import Image from "next/image";
 import { ThumbsUp, MessageSquare, Share2, SendHorizontal } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import {
+  ReactionPopover,
+  REACTIONS,
+} from "@/components/site/pop-up/comment/reaction";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
@@ -18,16 +22,19 @@ interface ArticleCardProps {
   posts: Post[];
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
+  groupId: string;
 }
 
 function ArticleItem({
   post,
   role,
   onDelete,
+  groupId,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
+  groupId: string;
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -43,12 +50,22 @@ function ArticleItem({
   const creator = post.creator;
   const profilePictureUrl = getMediaUrl(creator?.profilePicture);
   const initials = creator?.fullName
-    ? creator.fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? creator.fullName
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "?";
 
   const handleLikeToggle = () => {
-    if (selectedReaction) { setSelectedReaction(null); setLikesCount((p) => p - 1); }
-    else { setSelectedReaction("like"); setLikesCount((p) => p + 1); }
+    if (selectedReaction) {
+      setSelectedReaction(null);
+      setLikesCount((p) => p - 1);
+    } else {
+      setSelectedReaction("like");
+      setLikesCount((p) => p + 1);
+    }
   };
 
   const handleReactionSelect = (reactionId: string) => {
@@ -61,7 +78,10 @@ function ArticleItem({
     setIsSubmittingComment(true);
     try {
       const result = await createCommentAction(post.postId, commentInput);
-      if (result.ok) { setCommentInput(""); await refetch(); }
+      if (result.ok) {
+        setCommentInput("");
+        await refetch();
+      }
     } finally {
       setIsSubmittingComment(false);
     }
@@ -74,58 +94,102 @@ function ArticleItem({
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
               {profilePictureUrl ? (
-                <Image src={profilePictureUrl} alt={creator?.fullName ?? "User"} width={48} height={48} className="w-full h-full object-cover rounded-full" />
+                <Image
+                  src={profilePictureUrl}
+                  alt={creator?.fullName ?? "User"}
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover rounded-full"
+                />
               ) : (
-                <span className="type-desc-semibold text-primary uppercase">{initials}</span>
+                <span className="type-desc-semibold text-primary uppercase">
+                  {initials}
+                </span>
               )}
             </div>
             <div>
-              <h3 className="type-detail-semibold text-secondary">{creator?.fullName ?? "—"}</h3>
-              <p className="type-detail-small-medium text-grey-400">{post.createdAt}</p>
+              <h3 className="type-detail-semibold text-secondary">
+                {creator?.fullName ?? "—"}
+              </h3>
+              <p className="type-detail-small-medium text-grey-400">
+                {post.createdAt}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {creator?.role && (
-              <span className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}>
+              <span
+                className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+              >
                 {creator.role}
               </span>
             )}
             {(role === "admin" || role === "organizer") && (
-              <GenericPostDropDown title={post.title} editUrl={`/event-management/edition/article`} onDelete={onDelete} />
+              <GenericPostDropDown
+                title={post.title}
+                editUrl={`/event-management/edition/article?groupId=${groupId}&postId=${post.postId}`}
+                onDelete={onDelete}
+              />
             )}
           </div>
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">{post.content}</p>
+        <ExpandableText text={post.content} />
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
-          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
+          <ReactionPopover
+            selectedValue={selectedReaction}
+            onReactionSelect={handleReactionSelect}
+          >
             <button
               onClick={handleLikeToggle}
               className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
             >
-              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500" : ""} />
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="type-detail-small-medium font-normal text-grey-400">({likesCount})</span>
+              <ThumbsUp
+                size={18}
+                className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
+              />
+              <span>
+                {activeReaction ? activeReaction.displayText : "Like"}
+              </span>
+              <span className="type-detail-small-medium font-normal text-grey-400">
+                ({likesCount})
+              </span>
             </button>
           </ReactionPopover>
 
-          <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
+          <button
+            onClick={() => setShowComments(!showComments)}
+            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+          >
             <MessageSquare size={18} /> {comments?.length ?? 0}
           </button>
 
-          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+          >
             <Share2 size={18} /> Share
           </button>
         </div>
 
-        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+        <div
+          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
+        >
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
             {currentUser?.profilePicture ? (
-              <Image src={currentUser.profilePicture} alt={currentUser.name || "profile"} width={40} height={40} className="w-full h-full object-cover rounded-full" />
+              <Image
+                src={currentUser.profilePicture}
+                alt={currentUser.name || "profile"}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover rounded-full"
+              />
             ) : (
-              <span className="type-desc-small-semibold text-primary uppercase">{currentUser?.avatarInitials ?? "?"}</span>
+              <span className="type-desc-small-semibold text-primary uppercase">
+                {currentUser?.avatarInitials ?? "?"}
+              </span>
             )}
           </div>
           <div className="relative grow flex items-center bg-grey-50 rounded-full pr-1.5 pl-6 py-1.5">
@@ -162,7 +226,9 @@ function ArticleItem({
               ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-grey-400 type-detail-medium">No comments yet. Be the first to comment!</p>
+                <p className="text-grey-400 type-detail-medium">
+                  No comments yet. Be the first to comment!
+                </p>
               </div>
             )}
           </div>
@@ -178,11 +244,22 @@ function ArticleItem({
   );
 }
 
-export function ArticleCard({ role, posts, onDeletePost }: ArticleCardProps) {
+export function ArticleCard({
+  role,
+  posts,
+  onDeletePost,
+  groupId,
+}: ArticleCardProps) {
   return (
     <>
       {posts.map((post) => (
-        <ArticleItem key={post.postId} post={post} role={role} onDelete={() => onDeletePost(post.postId)} />
+        <ArticleItem
+          key={post.postId}
+          post={post}
+          role={role}
+          onDelete={() => onDeletePost(post.postId)}
+          groupId={groupId}
+        />
       ))}
     </>
   );

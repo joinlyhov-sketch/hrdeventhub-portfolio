@@ -39,6 +39,36 @@ export interface AppUser {
   updatedAt: string;
 }
 
+export interface UpdateIdentityRequest {
+  firstName: string;
+  lastName: string;
+  username: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+}
+
+export interface UpdateSharingModeRequest {
+  mode: SharingMode;
+}
+
+export interface UpdatePreferencesRequest {
+  showEmail: boolean;
+  showPhoneNumber: boolean;
+  showBirthdate: boolean;
+  showGender: boolean;
+  showBio: boolean;
+  showProfilePicture: boolean;
+  showMajor: boolean;
+  showCurrentStatus: boolean;
+  showCv: boolean;
+  showEducation: boolean;
+  showSkills: boolean;
+  showSocial: boolean;
+  showGeneration: boolean;
+}
+
+
+
 export interface ProfilePreferences {
   showBirthdate: boolean;
   showEmail: boolean;
@@ -48,8 +78,9 @@ export interface ProfilePreferences {
 }
 
 export interface UserProfilePayload {
+  avatar?: string | null;
   profileId: string;
-  bio: string;
+   bio?: string;
   profilePicture: string | null;
   major: string;
   cvResumeUrl: string | null;
@@ -58,7 +89,7 @@ export interface UserProfilePayload {
   roles: "ADMIN" | "ORGANIZER" | "STUDENT" | "ALUMNI";
   education: Education[];
   skills: string[];
-  socialAccount: SocialAccount[];
+  socialAccount?: Array<{ platform: string; url: string }>;
   preferences?: ProfilePreferences[];
   generation: Generation;
   appUser: AppUser;
