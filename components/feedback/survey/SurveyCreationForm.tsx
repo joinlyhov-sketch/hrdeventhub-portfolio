@@ -29,7 +29,11 @@ interface SurveyCreationFormProps {
   onSuccess?: () => void;
 }
 
-export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }: SurveyCreationFormProps) {
+export default function SurveyCreationForm({
+  workspaceId,
+  surveyId,
+  onSuccess,
+}: SurveyCreationFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formStore = useSurveyFormStore();
@@ -45,8 +49,20 @@ export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }:
     if (!surveyId) {
       // Default placeholder initialization layout for Create Mode
       setQuestions([
-        { id: "1", type: "rating", text: "How would you rate today's event overall?", maxScale: 5, ratingValue: 0 },
-        { id: "2", type: "linear", text: "On a scale of 1 to 5, how satisfied were you with today's event?", linearStart: 1, linearEnd: 5 },
+        {
+          id: "1",
+          type: "rating",
+          text: "How would you rate today's event overall?",
+          maxScale: 5,
+          ratingValue: 0,
+        },
+        {
+          id: "2",
+          type: "linear",
+          text: "On a scale of 1 to 5, how satisfied were you with today's event?",
+          linearStart: 1,
+          linearEnd: 5,
+        },
       ]);
       return;
     }
@@ -55,39 +71,45 @@ export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }:
       setIsLoadingData(true);
       try {
         const survey = await surveyService.getSurveyById(surveyId);
-        
+
         // Sync root parameters to your global Zustand form store template
         formStore.setTitle(survey.title);
         formStore.setDescription(survey.description || "");
         formStore.setIsActive(survey.isActive);
         if (survey.closingTime) {
           // Format ISO timestamp cleanly to local datetime input fields value structures
-          formStore.setClosingTime(new Date(survey.closingTime).toISOString().slice(0, 16));
+          formStore.setClosingTime(
+            new Date(survey.closingTime).toISOString().slice(0, 16),
+          );
         }
         formStore.setSelectedWorkspaceId(survey.workspaceId);
 
         // Map Backend Element structures back down into your UI Questions list array
         if (survey.content?.pages?.[0]?.elements) {
-          const mappedQuestions: Question[] = survey.content.pages[0].elements.map((el, index) => {
-            // strip 'question_' out of name string key map references to retrieve base ID numbers safely
-            const extractedId = el.name.replace("question_", "") || `${index + 1}`;
-            
-            return {
-              id: extractedId,
-              type: el.type as QuestionType,
-              text: el.title,
-              options: el.choices,
-              matrixRows: el.rows,
-              matrixCols: el.columns,
-              minLabel: el.minRateLabel,
-              maxLabel: el.maxRateLabel,
-              maxScale: el.maxRateDescription,
-            } as Question;
-          });
+          const mappedQuestions: Question[] =
+            survey.content.pages[0].elements.map((el, index) => {
+              // strip 'question_' out of name string key map references to retrieve base ID numbers safely
+              const extractedId =
+                el.name.replace("question_", "") || `${index + 1}`;
+
+              return {
+                id: extractedId,
+                type: el.type as QuestionType,
+                text: el.title,
+                options: el.choices,
+                matrixRows: el.rows,
+                matrixCols: el.columns,
+                minLabel: el.minRateLabel,
+                maxLabel: el.maxRateLabel,
+                maxScale: el.maxRateDescription,
+              } as Question;
+            });
           setQuestions(mappedQuestions);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load survey data.");
+        setError(
+          err instanceof Error ? err.message : "Failed to load survey data.",
+        );
       } finally {
         setIsLoadingData(false);
       }
@@ -98,7 +120,8 @@ export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }:
 
   // 2. Intercept Workspace navigation links parameters routing
   useEffect(() => {
-    const urlQueryId = searchParams.get("groupId") || searchParams.get("groupid");
+    const urlQueryId =
+      searchParams.get("groupId") || searchParams.get("groupid");
     const resolvedId = urlQueryId || workspaceId;
     if (resolvedId && !isEditMode) {
       formStore.setSelectedWorkspaceId(resolvedId);
@@ -109,15 +132,37 @@ export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }:
     const templates: Record<QuestionType, Partial<Question>> = {
       "short-text": { text: "Untitled Short Text Question", textAnswer: "" },
       "long-text": { text: "Untitled Long Text Question", textAnswer: "" },
-      choice: { text: "Untitled Choice Question", options: ["Option 1", "Option 2"], selectedChoice: "" },
-      dropdown: { text: "Untitled Dropdown Question", options: ["Choice A", "Choice B"], selectedChoice: "" },
+      choice: {
+        text: "Untitled Choice Question",
+        options: ["Option 1", "Option 2"],
+        selectedChoice: "",
+      },
+      dropdown: {
+        text: "Untitled Dropdown Question",
+        options: ["Choice A", "Choice B"],
+        selectedChoice: "",
+      },
       rating: { text: "Untitled Rating Question", maxScale: 5, ratingValue: 0 },
-      linear: { text: "Untitled Scale Question", linearStart: 1, linearEnd: 5, minLabel: "Low", maxLabel: "High" },
+      linear: {
+        text: "Untitled Scale Question",
+        linearStart: 1,
+        linearEnd: 5,
+        minLabel: "Low",
+        maxLabel: "High",
+      },
       "yes-no": { text: "Untitled Binary Choice Question", toggleValue: false },
-      matrix: { text: "Untitled Matrix Question Grid", matrixRows: ["Statement Row 1"], matrixCols: ["Poor", "Excellent"], matrixAnswers: {} },
+      matrix: {
+        text: "Untitled Matrix Question Grid",
+        matrixRows: ["Statement Row 1"],
+        matrixCols: ["Poor", "Excellent"],
+        matrixAnswers: {},
+      },
     };
 
-    setQuestions([...questions, { id: `${Date.now()}`, type, ...templates[type] } as Question]);
+    setQuestions([
+      ...questions,
+      { id: `${Date.now()}`, type, ...templates[type] } as Question,
+    ]);
   };
 
   const convertQuestionsToBEFormat = useCallback((): SurveyContent => {
@@ -149,30 +194,35 @@ export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }:
 
     try {
       if (!formStore.title.trim()) throw new Error("Survey title is required");
-      if (questions.length === 0) throw new Error("At least one question is required");
+      if (questions.length === 0)
+        throw new Error("At least one question is required");
       if (!formStore.closingTime) throw new Error("Closing time is required");
-      if (!formStore.selectedWorkspaceId) throw new Error("Please select a workspace");
+      if (!formStore.selectedWorkspaceId)
+        throw new Error("Please select a workspace");
 
       const content = convertQuestionsToBEFormat();
-      
+
       // Include ALL fields since the backend validation requires workspaceId and isActive
       const surveyData = {
         title: formStore.title,
         description: formStore.description,
         content,
-        isActive: formStore.isActive ?? true, 
+        isActive: formStore.isActive ?? true,
         closingTime: new Date(formStore.closingTime).toISOString(),
         workspaceId: formStore.selectedWorkspaceId, // Always include this
       };
 
-      console.log("Transmitting complete payload structure to backend endpoint:", surveyData);
+      console.log(
+        "Transmitting complete payload structure to backend endpoint:",
+        surveyData,
+      );
 
       if (isEditMode) {
         await surveyService.updateSurvey(surveyId!, surveyData);
       } else {
         await surveyService.createSurvey(surveyData);
       }
-      
+
       const savedWorkspaceId = formStore.selectedWorkspaceId;
       formStore.reset();
       setQuestions([]);
@@ -183,25 +233,38 @@ export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }:
         router.push(`/group/${savedWorkspaceId}`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save survey modifications.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to save survey modifications.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const isWorkspaceContextLocked = !!searchParams.get("groupId") || !!searchParams.get("groupid") || !!workspaceId || isEditMode;
+  const isWorkspaceContextLocked =
+    !!searchParams.get("groupId") ||
+    !!searchParams.get("groupid") ||
+    !!workspaceId ||
+    isEditMode;
 
   if (isLoadingData) {
     return (
       <div className="w-full min-h-[400px] flex flex-col items-center justify-center gap-3">
         <Loader2 size={36} className="animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground animate-pulse font-medium">Loading survey configuration data from database...</p>
+        <p className="text-sm text-muted-foreground animate-pulse font-medium">
+          Loading survey configuration data from database...
+        </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleFormSubmission} className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full items-start">
+    <form
+      onSubmit={handleFormSubmission}
+      className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full items-start"
+    >
       <div className="lg:col-span-3 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
           {error && (
@@ -220,7 +283,13 @@ export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }:
             >
               {isSubmitting && <Loader2 size={14} className="animate-spin" />}
               {/* Dynamic button text selection based on isEditMode flag */}
-              {isSubmitting ? (isEditMode ? "Saving Changes..." : "Posting...") : (isEditMode ? "Save Survey" : "Post Survey")}
+              {isSubmitting
+                ? isEditMode
+                  ? "Saving Changes..."
+                  : "Posting..."
+                : isEditMode
+                  ? "Save Survey"
+                  : "Post Survey"}
             </Button>
           </div>
 
@@ -243,7 +312,10 @@ export default function SurveyCreationForm({ workspaceId, surveyId, onSuccess }:
           />
 
           <div className="w-full max-w-full overflow-hidden">
-            <SurveyQuestionsList questions={questions} setQuestions={setQuestions} />
+            <SurveyQuestionsList
+              questions={questions}
+              setQuestions={setQuestions}
+            />
           </div>
 
           <Button

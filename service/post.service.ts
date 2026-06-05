@@ -1,4 +1,4 @@
-import { apiPost, apiGet, apiDelete, apiPut } from "@/libs/api";
+import { apiPost, apiGet, apiDelete, apiPatch } from "@/libs/api";
 import {
   CreateAnnouncementPayload,
   CreateAnnouncementResponse,
@@ -113,7 +113,7 @@ export const postService = {
     payload: UpdateEventPayload,
     authToken: string,
   ): Promise<CreatePostSuccessResponse> => {
-    return apiPut<CreatePostSuccessResponse, UpdateEventPayload>(
+    return apiPatch<CreatePostSuccessResponse, UpdateEventPayload>(
       `/workspaces/${workspaceId}/post/${postId}/event`,
       payload,
       { authToken },
@@ -125,7 +125,7 @@ export const postService = {
     payload: UpdateEventPayload,
     authToken: string,
   ): Promise<CreatePostSuccessResponse> => {
-    return apiPut<CreatePostSuccessResponse, UpdateEventPayload>(
+    return apiPatch<CreatePostSuccessResponse, UpdateEventPayload>(
       `/workspaces/${workspaceId}/post/${postId}/announcement`,
       payload,
       { authToken },
@@ -139,7 +139,7 @@ export const postService = {
   ): Promise<UpdateArticleApiResponse> => {
     const path = `/workspaces/${workspaceId}/post/${postId}/article`;
 
-    return apiPut<UpdateArticleApiResponse, UpdateArticlePayload>(
+    return apiPatch<UpdateArticleApiResponse, UpdateArticlePayload>(
       path,
       payload,
       {
