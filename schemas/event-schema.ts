@@ -22,7 +22,7 @@ export const eventPostSchema = z
     status: z.enum(["draft", "active"]),
 
     scheduleDate: z.string().optional(),
-
+    isPinned: z.boolean().default(false),
     price: z.coerce
       .number()
       .min(1, "Price at least 1$ and cannot be negative value"),

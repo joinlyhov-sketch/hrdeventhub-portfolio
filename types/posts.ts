@@ -1,6 +1,6 @@
 export interface PostLocation {
   locationId: string;
-  locationName?: string;      
+  locationName?: string;
   googleMapUrl: string;
   latitude: number;
   longitude: number;
@@ -8,9 +8,9 @@ export interface PostLocation {
 
 export interface PostMedia {
   mediaId: string;
-  fileName?: string;            
+  fileName?: string;
   filePath: string;
-  fileType?: "image" | "document"; 
+  fileType?: "image" | "document";
   isCover: boolean;
   createdAt: string;
 }
@@ -24,19 +24,24 @@ export interface PostPayment {
   createdAt: string;
   updatedAt: string;
   paymentAccId: string;
-  billNo?: string;            
-  khqrData?: string;            
-  khqrDataBase64?: string;      
+  billNo?: string;
+  khqrData?: string;
+  khqrDataBase64?: string;
 }
 
-export interface PostCreator {  
+export interface PostCreator {
   userId: string;
   fullName: string;
   profilePicture: string | null;
   role: string;
 }
 
-export type PostCategory = "event" | "announcement" | "article" | "poll" | "survey";
+export type PostCategory =
+  | "event"
+  | "announcement"
+  | "article"
+  | "poll"
+  | "survey";
 
 export interface Post {
   postId: string;
@@ -44,6 +49,7 @@ export interface Post {
   title: string;
   content: string;
   purpose?: string;
+  scheduledAt?: string;
   status?: string;
   expiresAt?: string;
   eventStart?: string;
