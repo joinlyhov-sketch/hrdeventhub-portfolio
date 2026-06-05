@@ -155,7 +155,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
               groupid={groupid}
             />
           )}
-        {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
+     {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
           <PollCard
             role={role}
             polls={filteredPolls}
@@ -172,7 +172,6 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
             groupId={groupid}
           />
         )}{" "}
-        {/* <--- ADDED THE CLOSING TAG HERE */}
       </div>
     </div>
   );
