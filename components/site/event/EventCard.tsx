@@ -13,6 +13,7 @@ import {
 } from "@/components/site/pop-up/comment/reaction";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 import { usePostReaction } from "@/hooks/use-post-reaction";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
@@ -131,7 +132,7 @@ function EventItem({
             {(role === "admin" || role === "organizer") && (
               <EditPostDropDown
                 title={post.title}
-                editUrl={`/event-management/edition/event`}
+                editUrl={`/event-management/edition/event?groupId=${groupid}&postId=${post.postId}`}
                 onDelete={onDelete}
               />
             )}
@@ -139,9 +140,8 @@ function EventItem({
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">
-          {post.content}
-        </p>
+
+        <ExpandableText text={post.content} />
 
         <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-6">
           {post.location && (

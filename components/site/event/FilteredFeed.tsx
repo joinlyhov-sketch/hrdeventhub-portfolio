@@ -69,7 +69,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     return polls.filter(
       (p) =>
         p.title.toLowerCase().includes(q) ||
-        (p.description ?? "").toLowerCase().includes(q)
+        (p.description ?? "").toLowerCase().includes(q),
     );
   }, [polls, searchQuery]);
 
@@ -131,8 +131,9 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
         isEmpty={isFeedEmpty}
       />
 
-
-      {!searchQuery && !isFeedEmpty && <PinnedSection posts={pinnedPosts} groupid={groupid} />}
+      {!searchQuery && !isFeedEmpty && (
+        <PinnedSection posts={pinnedPosts} groupid={groupid} />
+      )}
 
       <div className="space-y-4">
         {isCategoryActive("event") && filtered.event.length > 0 && (
@@ -151,6 +152,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
               posts={filtered.announcement}
               searchQuery={searchQuery}
               onDeletePost={handleDeletePost}
+              groupid={groupid}
             />
           )}
         {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
@@ -160,15 +162,17 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
             searchQuery={searchQuery}
             onDeletePoll={(pollId) => console.log("delete poll", pollId)}
           />
-        )}
+        )} */}
         {isCategoryActive("article") && filtered.article.length > 0 && (
           <ArticleCard
             role={role}
             posts={filtered.article}
             searchQuery={searchQuery}
             onDeletePost={handleDeletePost}
+            groupId={groupid}
           />
-        )} */}  {/* <--- ADDED THE CLOSING TAG HERE */}
+        )}{" "}
+        {/* <--- ADDED THE CLOSING TAG HERE */}
       </div>
     </div>
   );

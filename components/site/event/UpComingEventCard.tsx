@@ -15,8 +15,8 @@ function parseCustomEventDate(dateStr: string): Date | null {
     if (parts.length < 4) return null;
 
     const monthDayStr = parts[1];
-    const yearStr = parts[2];    
-    const timeStr = parts[3];    
+    const yearStr = parts[2];
+    const timeStr = parts[3];
     const cleanStandardString = `${monthDayStr}, ${yearStr} ${timeStr}`;
     const parsedDate = new Date(cleanStandardString);
 
@@ -45,7 +45,7 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
       .sort((a, b) => {
         const dateA = parseCustomEventDate(a.eventStart!)?.getTime() ?? 0;
         const dateB = parseCustomEventDate(b.eventStart!)?.getTime() ?? 0;
-        return dateA - dateB; 
+        return dateA - dateB;
       })
       .map((post, index) => {
         const parts = post.eventStart!.split(", ");
@@ -53,12 +53,13 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
         let dayStr = "??";
 
         if (parts[1]) {
-          const monthAndDay = parts[1].split(" "); 
-          if (monthAndDay[0]) monthStr = monthAndDay[0].substring(0, 3).toUpperCase();
+          const monthAndDay = parts[1].split(" ");
+          if (monthAndDay[0])
+            monthStr = monthAndDay[0].substring(0, 3).toUpperCase();
           if (monthAndDay[1]) dayStr = monthAndDay[1];
         }
         const startTimeStr = parts[3] ?? "TBD";
-        const displayTime = post.eventEnd 
+        const displayTime = post.eventEnd
           ? `${startTimeStr} - ${post.eventEnd}`
           : startTimeStr;
 
@@ -99,7 +100,7 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
           Upcoming Events
         </h3>
         <Link href="/calendar" className="shrink-0">
-          <button className="type-detail-small-semibold text-primary hover:underline hover:cursor-pointer whitespace-nowrap">
+          <button className="type-detail text-primary hover:underline hover:cursor-pointer whitespace-nowrap">
             View Calendar
           </button>
         </Link>
@@ -117,35 +118,38 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
       ) : (
         <div className="flex flex-col gap-6 w-full">
           {upcomingEvents.map((event) => (
-            <div
+            <Link
               key={event.id}
-              className="flex items-center gap-4 min-w-0 w-full"
+              href={`/group/${groupid}/event/${event.id}`}
+              className="cursor-pointer hover:bg-primary/5 p-2 rounded-2xl duration-300"
             >
-              <div
-                className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl shrink-0 select-none ${
-                  event.variant === "blue"
-                    ? "bg-[#EFF6FF] text-[#1E40AF]"
-                    : "bg-[#ECFDF5] text-[#047857]"
-                }`}
-              >
-                <span className="text-[10px] font-bold tracking-wider uppercase opacity-90">
-                  {event.month}
-                </span>
-                <span className="text-2xl font-bold leading-none mt-0.5">
-                  {event.day}
-                </span>
-              </div>
+              <div className="flex items-center gap-4 min-w-0 w-full">
+                <div
+                  className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl shrink-0 select-none ${
+                    event.variant === "blue"
+                      ? "bg-[#EFF6FF] text-[#1E40AF]"
+                      : "bg-[#ECFDF5] text-[#047857]"
+                  }`}
+                >
+                  <span className="text-[10px] font-bold tracking-wider uppercase opacity-90">
+                    {event.month}
+                  </span>
+                  <span className="text-2xl font-bold leading-none mt-0.5">
+                    {event.day}
+                  </span>
+                </div>
 
-              <div className="flex flex-col gap-1 min-w-0 flex-1">
-                <h4 className="text-base font-bold text-grey-900 leading-snug truncate">
-                  {event.title}
-                </h4>
-                <div className="flex items-center gap-1.5 text-xs font-medium text-grey-400 min-w-0">
-                  <Clock size={14} className="shrink-0" />
-                  <span className="truncate">{event.time}</span>
+                <div className="flex flex-col gap-1 min-w-0 flex-1">
+                  <h4 className="text-base font-bold text-grey-900 leading-snug truncate">
+                    {event.title}
+                  </h4>
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-grey-400 min-w-0">
+                    <Clock size={14} className="shrink-0" />
+                    <span className="truncate">{event.time}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

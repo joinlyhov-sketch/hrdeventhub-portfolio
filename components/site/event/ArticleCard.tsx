@@ -12,6 +12,7 @@ import {
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
@@ -21,16 +22,19 @@ interface ArticleCardProps {
   posts: Post[];
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
+  groupId: string;
 }
 
 function ArticleItem({
   post,
   role,
   onDelete,
+  groupId,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
+  groupId: string;
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -123,7 +127,7 @@ function ArticleItem({
             {(role === "admin" || role === "organizer") && (
               <GenericPostDropDown
                 title={post.title}
-                editUrl={`/event-management/edition/article`}
+                editUrl={`/event-management/edition/article?groupId=${groupId}&postId=${post.postId}`}
                 onDelete={onDelete}
               />
             )}
@@ -131,9 +135,7 @@ function ArticleItem({
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">
-          {post.content}
-        </p>
+        <ExpandableText text={post.content} />
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
           <ReactionPopover
@@ -242,7 +244,12 @@ function ArticleItem({
   );
 }
 
-export function ArticleCard({ role, posts, onDeletePost }: ArticleCardProps) {
+export function ArticleCard({
+  role,
+  posts,
+  onDeletePost,
+  groupId,
+}: ArticleCardProps) {
   return (
     <>
       {posts.map((post) => (
@@ -251,6 +258,7 @@ export function ArticleCard({ role, posts, onDeletePost }: ArticleCardProps) {
           post={post}
           role={role}
           onDelete={() => onDeletePost(post.postId)}
+          groupId={groupId}
         />
       ))}
     </>

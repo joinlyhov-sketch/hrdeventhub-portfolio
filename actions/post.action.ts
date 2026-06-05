@@ -3,11 +3,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
 import { postService } from "@/service/post.service";
 import {
+  ApiResponseActionWrapper,
   CreateAnnouncementPayload,
   CreateArticlePayload,
   CreatePostPayload,
+  UpdateArticlePayload,
+  UpdateEventPayload,
+  UpdatePostActionResponse,
 } from "@/types/post-types";
 import { ServerActionResponse } from "@/types/file-types";
+import { revalidatePath } from "next/cache";
 
 export async function createPostAction(
   workspaceId: string,
@@ -129,6 +134,127 @@ export async function createArticleAction(
         error instanceof Error
           ? error.message
           : "An unexpected core network engine failure occurred.",
+    };
+  }
+}
+
+export async function updatePostAction(
+  workspaceId: string,
+  postId: string,
+  payload: UpdateEventPayload,
+): Promise<UpdatePostActionResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    if (!workspaceId || !postId) {
+      return {
+        ok: false,
+        error:
+          "Required context identification attributes (workspaceId/postId) are missing.",
+      };
+    }
+    if (!token) {
+      return { ok: false, error: "Authorization session has expired." };
+    }
+
+    const response = await postService.updateEventPost(
+      workspaceId,
+      postId,
+      payload,
+      token,
+    );
+
+    return {
+      ok: true,
+      message: response.message || "Event updated successfully",
+    };
+  } catch (error: unknown) {
+    console.error("Server Action Process Failure:", error);
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected core network engine failure occurred.",
+    };
+  }
+}
+
+export async function updateAnnouncementAction(
+  workspaceId: string,
+  postId: string,
+  payload: UpdateEventPayload,
+): Promise<UpdatePostActionResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    if (!workspaceId || !postId) {
+      return {
+        ok: false,
+        error:
+          "Required context identification attributes (workspaceId/postId) are missing.",
+      };
+    }
+    if (!token) {
+      return { ok: false, error: "Authorization session has expired." };
+    }
+
+    const response = await postService.updateAnnouncementPost(
+      workspaceId,
+      postId,
+      payload,
+      token,
+    );
+
+    revalidatePath(`/group/${workspaceId}`);
+
+    return {
+      ok: true,
+      message: response.message || "Announcement updated successfully",
+    };
+  } catch (error: unknown) {
+    console.error("Server Action Process Failure (Announcement):", error);
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected core network engine failure occurred.",
+    };
+  }
+}
+
+export async function updateArticleAction(
+  workspaceId: string,
+  postId: string,
+  payload: UpdateArticlePayload,
+): Promise<ApiResponseActionWrapper> {
+  try {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    const response = await postService.UpdateArticlePost(
+      workspaceId,
+      postId,
+      payload,
+      token,
+    );
+
+    revalidatePath(`/group/${workspaceId}`);
+
+    return {
+      ok: true,
+      data: response.payload,
+    };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected server execution lifecycle error occurred.",
     };
   }
 }

@@ -19,6 +19,7 @@ import {
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
 import { usePostReaction } from "@/hooks/use-post-reaction";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
@@ -29,6 +30,7 @@ interface AnnouncementCardProps {
   posts: Post[];
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
+  groupid: string;
 }
 
 function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
@@ -142,10 +144,12 @@ function AnnouncementItem({
   post,
   role,
   onDelete,
+  groupId,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
+  groupId: string;
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -224,7 +228,7 @@ function AnnouncementItem({
           {(role === "admin" || role === "organizer") && (
             <GenericPostDropDown
               title={post.title}
-              editUrl={`/event-management/edition/announcement`}
+              editUrl={`/event-management/edition/announcement?groupId=${groupId}&postId=${post.postId}`}
               onDelete={onDelete}
             />
           )}
@@ -266,9 +270,8 @@ function AnnouncementItem({
         </div>
 
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">
-          {post.content}
-        </p>
+
+        <ExpandableText text={post.content} />
 
         {hasMetaInfo && (
           <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-4">
@@ -430,6 +433,7 @@ export function AnnouncementCard({
   role,
   posts,
   onDeletePost,
+  groupid,
 }: AnnouncementCardProps) {
   return (
     <>
@@ -439,6 +443,7 @@ export function AnnouncementCard({
           post={post}
           role={role}
           onDelete={() => onDeletePost(post.postId)}
+          groupId={groupid}
         />
       ))}
     </>

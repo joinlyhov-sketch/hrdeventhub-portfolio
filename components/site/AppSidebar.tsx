@@ -44,6 +44,7 @@ export function AppSidebar() {
   const allWorkspaces = isAdmin ? adminData.workspaces : memberData.workspaces;
 
   const pinnedWorkspace = allWorkspaces.find((w) => w.workspaceId === pinnedId);
+  const profileHref = `/profile/${currentUser?.id ?? "1"}`;
 
   const canSeeAdministration =
     currentUser !== null &&
@@ -104,7 +105,6 @@ export function AppSidebar() {
         </SidebarHeader>
 
         <SidebarContent className="py-2">
-          {/* ── Events (Pinned Workspaces) ──────────────────────────────────── */}
           <SidebarGroup>
             <SidebarGroupLabel
               className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
@@ -181,7 +181,6 @@ export function AppSidebar() {
               General
             </SidebarGroupLabel>
             <SidebarMenu className="flex flex-col gap-1">
-              {/* Group */}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={pathname === "/group"}
@@ -318,12 +317,12 @@ export function AppSidebar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={pathname === "/profile/1"}
+                  isActive={pathname === `${profileHref}`}
                   asChild
                   tooltip="Profile"
                   className="h-11"
                 >
-                  <Link href="/profile/1">
+                  <Link href={profileHref}>
                     <svg
                       width={18}
                       height={18}
@@ -358,12 +357,12 @@ export function AppSidebar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={pathname === "/profile/1/edit-profile"}
+                  isActive={pathname === `${profileHref}/edit-profile`}
                   asChild
                   tooltip="Edit-Profile"
                   className="h-11"
                 >
-                  <Link href={"/profile/1/edit-profile"}>
+                  <Link href={`${profileHref}/edit-profile`}>
                     <svg
                       width={18}
                       height={18}
@@ -414,12 +413,12 @@ export function AppSidebar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={pathname === "/profile/1/setting"}
+                  isActive={pathname === `${profileHref}/setting`}
                   asChild
                   tooltip="Setting"
                   className="h-11"
                 >
-                  <Link href={"/profile/1/setting"}>
+                  <Link href={`${profileHref}/setting`}>
                     <svg
                       width={18}
                       height={18}
