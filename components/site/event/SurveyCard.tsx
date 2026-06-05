@@ -138,8 +138,8 @@ function QuestionField({
     }
 
     case "linear": {
-      const min = element.linearStart ?? 1;
-      const max = element.linearEnd ?? 5;
+      const min = 1;
+      const max = element.maxRateDescription ?? 5;
       const current = (value as number) ?? min;
       return (
         <div className="space-y-3">
