@@ -140,7 +140,7 @@ export interface PostEventPayloadDetails {
 }
 
 export interface CreatePostSuccessResponse {
-  success: true; // Hardcoded true discriminant flag
+  success: true;
   message: string;
   status: string;
   payload: PostEventPayloadDetails;
@@ -170,3 +170,84 @@ export type CreatePostActionResponse =
       errors?: ApiFieldError[];
       payload?: never;
     };
+
+export interface UpdateEventPayload {
+  title: string;
+  content: string;
+  purpose: string;
+  eventStart: string;
+  eventEnd: string;
+  scheduledAt: string | null;
+  expiresAt: string;
+  isPublished: boolean;
+  status: "draft" | "active" | "closed";
+  isPinned: boolean;
+  location: {
+    locationName: string;
+    googleMapUrl: string;
+  };
+  media: PostMediaItem[];
+  payment: PostPayment;
+}
+
+export type UpdatePostActionResponse =
+  | {
+      ok: true;
+      message: string;
+    }
+  | {
+      ok: false;
+      error: string;
+      errors?: ApiFieldError[];
+    };
+
+export interface UpdateArticlePayload {
+  title: string;
+  content: string;
+  isPublished: boolean;
+  status: "draft" | "active";
+  isPinned: boolean;
+}
+
+export interface ApiResponseActionWrapper {
+  ok: boolean;
+  error?: string;
+  errors?: Array<{ message: string }>;
+}
+
+export interface ArticleCreator {
+  userId: string;
+  fullName: string;
+  profilePicture: string;
+  role: string;
+}
+
+export interface UpdateArticleResponsePayload {
+  postId: string;
+  category: "article" | string;
+  title: string;
+  content: string;
+  status: "draft" | "active" | string;
+  createdAt: string;
+  updatedAt: string;
+  appUserId: string;
+  media: unknown[];
+  comments: unknown[];
+  creator: ArticleCreator;
+  pinned: boolean;
+  published: boolean;
+}
+
+export interface UpdateArticleApiResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: UpdateArticleResponsePayload;
+  timestamp: string;
+}
+
+export interface ApiResponseActionWrapper {
+  ok: boolean;
+  error?: string;
+  data?: UpdateArticleResponsePayload;
+}

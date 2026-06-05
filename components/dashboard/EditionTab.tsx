@@ -5,9 +5,14 @@ import Link from "next/link";
 import { CalendarDays, Megaphone, BookOpenTextIcon } from "lucide-react";
 import { Button } from "../ui/button";
 
-export function EditionTabs() {
+export function EditionTabs({
+  groupId = "",
+  postId = "",
+}: {
+  groupId: string | null;
+  postId: string | null;
+}) {
   const pathname = usePathname();
-
   const navigationItems = [
     {
       href: "/event-management/edition/event",
@@ -44,7 +49,7 @@ export function EditionTabs() {
             }`}
           >
             <Link
-              href={item.href}
+              href={`${item.href}?groupId=${groupId}&postId=${postId}`}
               className="flex items-center py-5 justify-center gap-2"
             >
               <Icon
