@@ -10,6 +10,8 @@ import { Survey } from "../../../types/survey";
 import { surveyService } from "../../../service/survey.service";
 import { useSurveyListStore } from "../../../store/useSurveyStore";
 
+import { deleteSurveyAction } from "@/actions/survey.action";
+
 interface SurveyListProps {
   workspaceId?: string;
   showActions?: boolean;
@@ -54,7 +56,7 @@ export default function SurveyList({ workspaceId, showActions = true }: SurveyLi
     if (!confirm("Are you sure you want to delete this survey?")) return;
 
     try {
-      await surveyService.deleteSurvey(surveyId);
+      await deleteSurveyAction(surveyId, workspaceId);
       removeSurvey(surveyId);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to delete survey");
