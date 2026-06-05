@@ -153,22 +153,22 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
               onDeletePost={handleDeletePost}
             />
           )}
-        {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
+     {/* {isCategoryActive("poll") && filtered.poll.length > 0 && (
           <PollCard
             role={role}
             polls={filteredPolls}
             searchQuery={searchQuery}
             onDeletePoll={(pollId) => console.log("delete poll", pollId)}
           />
-        )}
-        {isCategoryActive("article") && filtered.article.length > 0 && (
+        )} */}
+        {/* {isCategoryActive("article") && filtered.article.length > 0 && (
           <ArticleCard
             role={role}
             posts={filtered.article}
             searchQuery={searchQuery}
             onDeletePost={handleDeletePost}
           />
-        )} */}  {/* <--- ADDED THE CLOSING TAG HERE */}
+        )}  */}
       </div>
     </div>
   );

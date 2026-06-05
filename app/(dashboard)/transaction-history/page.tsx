@@ -16,7 +16,7 @@ export default function TransactionHistoryPage() {
         description="Monitor participant responses and review insights from completed community surveys."
       />
       <div className="w-full max-w-420 min-w-0 mx-auto lg:pr-11.25 lg:pl-11.75">
-        <StatsCardsSection stats={statsData} />
+        {/* <StatsCardsSection stats={statsData} /> */}
 
         <TransactionTableSection
           transactions={transactionsData}
