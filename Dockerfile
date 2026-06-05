@@ -1,13 +1,20 @@
-# Stage 1: Dependencies
+
 FROM node:24-alpine AS deps
+
 RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Stage 2: Builder
+COPY package.json package-lock.json* ./
+
+RUN npm ci
+
 FROM node:24-alpine AS builder
+
 WORKDIR /app
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -26,8 +33,12 @@ ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 
 RUN npm run build
 
-# Stage 3: Runner
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN npm run build
+
 FROM node:24-alpine AS runner
+
 WORKDIR /app
 
 # Fixed: Using key=value format
@@ -49,4 +60,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 EXPOSE 3000
+
 CMD ["node", "server.js"]
