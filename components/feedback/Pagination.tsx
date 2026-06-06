@@ -49,7 +49,7 @@ export function PaginationDemo({
               href="#"
               onClick={(e) => handlePageClick(e, i)}
               isActive={currentPage === i}
-              className="hover:bg-transparent hover:text-inherit"
+              className="hover:bg-transparent focus:bg-[#F0F3FF] hover:text-inherit"
             >
               {i}
             </PaginationLink>
@@ -155,7 +155,7 @@ export function PaginationDemo({
             <PaginationPrevious
               href="#"
               onClick={handlePrevious}
-              className={`hover:bg-transparent hover:text-inherit ${
+              className={`hover:bg-transparent  hover:text-inherit ${
                 currentPage === 1 ? "pointer-events-none opacity-50" : ""
               }`}
             />
