@@ -23,3 +23,21 @@ export interface CreateInvitationResponse {
   payload: InvitationPayload;
   timestamp: string;
 }
+
+export interface InvitationPreview {
+  workspaceName: string;
+  workspaceDescription: string;
+  generationName: string;
+  memberCount: number;
+  members: { firstName: string; lastName: string; profileImage?: string }[];
+  expiredAt: string;
+  public: boolean;
+}
+
+export interface InvitationPreviewResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: InvitationPreview;
+  timestamp: string;
+}

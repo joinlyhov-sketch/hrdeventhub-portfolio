@@ -43,7 +43,7 @@ export default function Navbar() {
             <Link href="/login" className="hidden sm:block border border-slate-300 px-5 py-2 rounded-full text-primary hover:bg-primary hover:text-white transition-all duration-300 active:scale-95">
               Log in
             </Link>
-            <Link href="/sign-up">
+            <Link href="/sign-up" className="hidden md:block">
               <button className="bg-primary text-white px-5 py-2 rounded-full shadow-md hover:bg-primary transition-all duration-300 active:scale-95 cursor-pointer">
                 Register
               </button>
@@ -65,7 +65,7 @@ export default function Navbar() {
           </div>
           <div className="pt-10">
             <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
-              <button className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform">Sign Up</button>
+              <button className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform">Register</button>
             </Link>
             <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
               <button className="w-full border border-primary my-3 py-4 rounded-2xl font-bold text-xl active:scale-[0.98] transition-transform hover:cursor-pointer">Log In</button>

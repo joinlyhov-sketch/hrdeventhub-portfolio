@@ -11,9 +11,10 @@ import { getMediaUrl } from "@/libs/media";
 
 interface GroupCardProps {
   workspace: Workspace;
+  pinnedCount: number;
 }
 
-export default function GroupCard({ workspace }: GroupCardProps) {
+export default function GroupCard({ workspace, pinnedCount }: GroupCardProps) {
   const { currentUser } = useCurrentUser();
   const isInternal = !workspace.isPublic;
   const { members } = useWorkspaceMembers(workspace.workspaceId);
@@ -38,7 +39,11 @@ export default function GroupCard({ workspace }: GroupCardProps) {
           </span>
 
           <div className="flex items-center gap-2">
-            <GroupDropDown workspace={workspace} userRole={currentUser?.role} />
+            <GroupDropDown
+              workspace={workspace}
+              userRole={currentUser?.role}
+              pinnedCount={pinnedCount}
+            />
           </div>
         </div>
 
@@ -73,8 +78,7 @@ export default function GroupCard({ workspace }: GroupCardProps) {
                     />
                   ) : (
                     <span className="text-[11px] font-bold text-primary uppercase">
-                      {firstLetter}
-                      {lastLetter}
+                      {firstLetter}{lastLetter}
                     </span>
                   )}
                 </div>

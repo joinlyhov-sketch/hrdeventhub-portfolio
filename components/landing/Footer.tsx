@@ -3,9 +3,10 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-white pt-20 pb-10 px-6">
-      <div className="container mx-auto grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
-        <div className="col-span-2">
+    <footer className="bg-white pt-20 pb-10 px-6 w-full">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+        
+        <div>
           <div className="flex items-center gap-2 mb-6">
             <Image
               src="/images/Logo.webp"
@@ -19,47 +20,9 @@ export default function Footer() {
             Orchestrating professional excellence.
           </p>
         </div>
+
         <div>
-          <h5 className="type-detail-semibold mb-6 uppercase tracking-widest text-slate-900">
-            Explore
-          </h5>
-          <ul className="space-y-4 type-detail text-slate-500">
-            <li>
-              <a href="#" className="hover:text-blue-600">
-                Events
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-blue-600">
-                Calendar
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-blue-600">
-                Profile
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h5 className="type-detail-semibold mb-6 uppercase tracking-widest text-slate-900">
-            Engagement
-          </h5>
-          <ul className="space-y-4 type-detail text-slate-500">
-            <li>
-              <a href="#" className="hover:text-blue-600">
-                Survey & Polls
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-blue-600">
-                Contact
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h5 className="type-detail-semibold mb-6 uppercase tracking-widest text-slate-900">
+          <h5 className="type-detail-semibold mb-6 uppercase text-slate-900">
             Contact & Support
           </h5>
 
@@ -67,9 +30,7 @@ export default function Footer() {
             <li className="flex items-start gap-3">
               <MapPin className="w-4 h-4 mt-1 text-slate-500" />
               <span>
-                No. 12, st.323, Boeung Kak 2, Toul Kork,
-                <br />
-                Phnom Penh, Cambodia
+                No. 12, st.323, Boeung Kak 2, Toul Kork, Phnom Penh, Cambodia
               </span>
             </li>
 
@@ -85,7 +46,8 @@ export default function Footer() {
           </ul>
         </div>
       </div>
-      <div className="container mx-auto pt-10 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4 type-detail text-slate-400 tracking-widest">
+
+      <div className="max-w-7xl mx-auto pt-10 border-t border-slate-100 flex justify-center items-center type-detail text-slate-400 tracking-widest">
         <p>© 2026 HRD EventHub. Orchestrating professional excellence.</p>
       </div>
     </footer>
