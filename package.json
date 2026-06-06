@@ -25,6 +25,7 @@
     "date-fns": "^4.4.0",
     "flags-react": "^1.0.3",
     "font-awesome": "^4.7.0",
+    "framer-motion": "^12.40.0",
     "lucide-react": "^1.16.0",
     "motion": "^12.38.0",
     "next": "^16.2.6",

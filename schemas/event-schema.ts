@@ -44,6 +44,7 @@ export const eventPostSchema = z
         }),
       )
       .min(1, "Please upload at least one image"),
+    workspaceId: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     const today = new Date();

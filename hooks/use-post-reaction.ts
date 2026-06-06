@@ -3,15 +3,22 @@ import { useSession } from "next-auth/react";
 import { useCurrentUser } from "@/context/user-context";
 import { reactionService } from "@/service/post-reaction.service";
 
+export type ReactionItem = {
+  reactionId: string;
+  type: string;
+  createdAt: string;
+  postId: string;
+  reactor: {
+    appUserId: string;
+    firstName?: string;
+    lastName?: string;
+    profileImage?: string;
+  };
+};
+
 type PostReactionResponse = {
   success: boolean;
-  payload: {
-    reactionId: string;
-    type: string;
-    createdAt: string;
-    postId: string;
-    appUserId: string;
-  }[];
+  payload: ReactionItem[];
 };
 
 export function usePostReaction(postId: string, initialLikesCount = 0) {
@@ -20,6 +27,7 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
 
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
   const [likesCount, setLikesCount] = useState(initialLikesCount);
+  const [reactionPayload, setReactionPayload] = useState<ReactionItem[]>([]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -32,14 +40,13 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
           session.accessToken,
         )) as PostReactionResponse;
 
-        const userReaction = data.payload?.find(
-          (r) => r.appUserId === currentUser.id,
-        );
-
+        setReactionPayload(data.payload ?? []);
         setLikesCount(data.payload.length);
-        if (userReaction) {
-          setSelectedReaction(userReaction.type);
-        }
+
+        const userReaction = data.payload?.find(
+          (r) => r.reactor.appUserId === currentUser.id,
+        );
+        if (userReaction) setSelectedReaction(userReaction.type);
       } catch (err) {
         console.error("Failed to fetch post reaction:", err);
       }
@@ -53,9 +60,22 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
 
     const isCurrentlyActive = !!selectedReaction;
 
-    // Optimistic update
     setSelectedReaction(isCurrentlyActive ? null : "like");
     setLikesCount((prev) => (isCurrentlyActive ? prev - 1 : prev + 1));
+    setReactionPayload((prev) =>
+      isCurrentlyActive
+        ? prev.filter((r) => r.reactor.appUserId !== currentUser?.id)
+        : [
+            ...prev,
+            {
+              reactionId: "temp",
+              type: "like",
+              createdAt: "",
+              postId,
+              reactor: { appUserId: currentUser?.id ?? "", firstName: currentUser?.name?.split(" ")[0] ?? "", lastName: currentUser?.name?.split(" ").slice(1).join(" ") ?? "", profileImage: currentUser?.profilePicture ?? "" },
+            },
+          ],
+    );
 
     try {
       if (isCurrentlyActive) {
@@ -65,9 +85,22 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
       }
     } catch (err) {
       console.error("Failed to toggle reaction:", err);
-      // Revert on failure
       setSelectedReaction(isCurrentlyActive ? "like" : null);
       setLikesCount((prev) => (isCurrentlyActive ? prev + 1 : prev - 1));
+      setReactionPayload((prev) =>
+        isCurrentlyActive
+          ? [
+              ...prev,
+              {
+                reactionId: "temp",
+                type: "like",
+                createdAt: "",
+                postId,
+                reactor: { appUserId: currentUser?.id ?? "", firstName: currentUser?.name?.split(" ")[0] ?? "", lastName: currentUser?.name?.split(" ").slice(1).join(" ") ?? "", profileImage: currentUser?.profilePicture ?? "" },
+              },
+            ]
+          : prev.filter((r) => r.reactor.appUserId !== currentUser?.id),
+      );
     }
   };
 
@@ -77,8 +110,20 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
     const wasAlreadyActive = !!selectedReaction;
     const previousReaction = selectedReaction;
 
-    // Optimistic update
     setSelectedReaction(reactionId);
+    setReactionPayload((prev) => {
+      const without = prev.filter((r) => r.reactor.appUserId !== currentUser?.id);
+      return [
+        ...without,
+        {
+          reactionId: "temp",
+          type: reactionId,
+          createdAt: "",
+          postId,
+          reactor: { appUserId: currentUser?.id ?? "", firstName: currentUser?.name?.split(" ")[0] ?? "", lastName: currentUser?.name?.split(" ").slice(1).join(" ") ?? "", profileImage: currentUser?.profilePicture ?? "" },
+        },
+      ];
+    });
     if (!wasAlreadyActive) setLikesCount((prev) => prev + 1);
 
     try {
@@ -88,8 +133,22 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
       await reactionService.reactPost(postId, reactionId, session.accessToken);
     } catch (err) {
       console.error("Failed to select reaction:", err);
-      // Revert on failure
       setSelectedReaction(previousReaction);
+      setReactionPayload((prev) => {
+        const without = prev.filter((r) => r.reactor.appUserId !== currentUser?.id);
+        return previousReaction
+          ? [
+              ...without,
+              {
+                reactionId: "temp",
+                type: previousReaction,
+                createdAt: "",
+                postId,
+                reactor: { appUserId: currentUser?.id ?? "", firstName: currentUser?.name?.split(" ")[0] ?? "", lastName: currentUser?.name?.split(" ").slice(1).join(" ") ?? "", profileImage: currentUser?.profilePicture ?? "" },
+              },
+            ]
+          : without;
+      });
       if (!wasAlreadyActive) setLikesCount((prev) => prev - 1);
     }
   };
@@ -97,6 +156,7 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
   return {
     selectedReaction,
     likesCount,
+    reactionPayload,
     handleLikeToggle,
     handleReactionSelect,
   };

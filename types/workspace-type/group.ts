@@ -9,6 +9,7 @@ export interface Group {
 export interface Workspace {
   workspaceId: string;
   name: string;
+  isPinned: boolean;
   description: string;
   isPublic: boolean;
   generationId?: string;
@@ -65,6 +66,12 @@ export interface UpdateWorkspaceResponse {
 }
 
 export interface DeleteWorkspaceResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  timestamp: string;
+}
+export interface PinWorkspaceResponse {
   success: boolean;
   message: string;
   status: string;

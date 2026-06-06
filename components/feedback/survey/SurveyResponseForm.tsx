@@ -9,6 +9,8 @@ import { Survey, SurveyElement } from "../../../types/survey";
 import { surveyService } from "../../../service/survey.service";
 import { Input } from "../../ui/input";
 
+import { submitSurveyResponseAction } from "@/actions/survey.action";
+
 interface SurveyResponseFormProps {
   surveyId: string;
 }
@@ -30,12 +32,11 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
       try {
         const data = await surveyService.getSurveyById(surveyId);
         setSurvey(data);
-
-        // Check if user has already submitted
+      
         const submitted = await surveyService.hasSubmitted(surveyId);
         setHasSubmitted(submitted);
 
-        // If already submitted, fetch their response
+
         if (submitted) {
           const myResponse = await surveyService.getMyResponse(surveyId);
           if (myResponse) {
@@ -70,7 +71,6 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
     try {
       if (!survey) throw new Error("Survey not found");
 
-      // Validate all elements have responses
       const allElements = survey.content.pages.flatMap((p) => p.elements);
       const emptyFields = allElements.filter((el) => !responses[el.name]);
 
@@ -82,7 +82,7 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
         );
       }
 
-      await surveyService.submitSurveyResponse(surveyId, { content: responses });
+      await submitSurveyResponseAction(surveyId, { content: responses });
 
       setSuccess(true);
       setHasSubmitted(true);
@@ -185,7 +185,6 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
         </Card>
       )}
 
-      {/* Survey Questions */}
       <div className="space-y-6">
         {survey.content.pages.map((page) =>
           page.elements.map((element) => (
@@ -194,8 +193,7 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
                 <span className="block font-semibold text-foreground mb-2">
                   {element.title}
                 </span>
-
-                {/* Text Input */}
+          
                 {["short-text", "long-text"].includes(element.type) && (
                   <textarea
                     value={responses[element.name] || ""}
@@ -208,7 +206,6 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
                   />
                 )}
 
-                {/* Multiple Choice */}
                 {element.type === "choice" && element.choices && (
                   <div className="space-y-2">
                     {element.choices.map((choice) => (
@@ -228,8 +225,7 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
                     ))}
                   </div>
                 )}
-
-                {/* Dropdown */}
+              
                 {element.type === "dropdown" && element.choices && (
                   <select
                     value={responses[element.name] || ""}
@@ -247,7 +243,6 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
                   </select>
                 )}
 
-                {/* Rating */}
                 {element.type === "rating" && (
                   <div className="flex gap-2">
                     {[...Array(element.maxRateDescription || 5)].map((_, i) => (
@@ -269,7 +264,6 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
                   </div>
                 )}
 
-                {/* Linear Scale */}
                 {element.type === "linear" && (
                   <div className="space-y-3">
                     <div className="flex justify-between text-xs text-gray-500">
@@ -292,7 +286,6 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
                   </div>
                 )}
 
-                {/* Matrix */}
                 {element.type === "matrix" && element.rows && element.columns && (
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
@@ -338,7 +331,6 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
                   </div>
                 )}
 
-                {/* Yes/No Toggle */}
                 {element.type === "yes-no" && (
                   <div className="flex gap-4">
                     {["Yes", "No"].map((option) => (
@@ -363,8 +355,7 @@ export default function SurveyResponseForm({ surveyId }: SurveyResponseFormProps
           ))
         )}
       </div>
-
-      {/* Submit Button */}
+      
       <Button
         type="submit"
         disabled={submitting}

@@ -7,7 +7,7 @@ export function useMyWorkspaces() {
   const { data: session } = useSession();
   const token = session?.accessToken;
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     token ? ["workspaces-me", token] : null,
     () => workspaceService.getMyWorkspaces(token!)
   );
@@ -16,5 +16,6 @@ export function useMyWorkspaces() {
     workspaces: data ?? [],
     isLoading,
     error,
+    mutate,
   };
 }
