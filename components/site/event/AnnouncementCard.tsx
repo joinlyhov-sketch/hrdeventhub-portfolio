@@ -4,17 +4,18 @@ import { useState } from "react";
 import Image from "next/image";
 import {
   ThumbsUp,
-  MessageSquare,
   Share2,
   SendHorizontal,
   Megaphone,
   X,
+  MessageCircleMore,
 } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 import {
   ReactionPopover,
   REACTIONS,
+  TwemojiImg,
 } from "@/components/site/pop-up/comment/reaction";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
@@ -329,16 +330,21 @@ function AnnouncementItem({
           >
             <button
               onClick={handleLikeToggle}
-              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
+                activeReaction
+                  ? `${activeReaction.color} font-semibold`
+                  : "hover:text-primary"
+              }`}
             >
-              <ThumbsUp
-                size={18}
-                className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
-              />
-              <span>
-                {activeReaction ? activeReaction.displayText : "Like"}
+              <span className="flex items-center gap-1.5">
+                {activeReaction ? (
+                  <TwemojiImg emoji={activeReaction.emoji} size={18} />
+                ) : (
+                  <ThumbsUp size={18} />
+                )}
+                {activeReaction?.displayText ?? "Like"}
               </span>
-              <span className="type-detail-small-medium font-normal text-grey-400">
+              <span className="text-md font-normal text-grey-400">
                 ({likesCount})
               </span>
             </button>
@@ -348,7 +354,7 @@ function AnnouncementItem({
             onClick={() => setShowComments(!showComments)}
             className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
           >
-            <MessageSquare size={18} /> {comments?.length ?? 0}
+            <MessageCircleMore size={18} /> {comments?.length ?? 0}
           </button>
 
           <button
