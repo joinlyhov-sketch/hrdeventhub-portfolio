@@ -128,15 +128,14 @@ declare module "next-auth" {
       role: string;
     } & DefaultSession["user"];
   }
+
   interface User {
     accessToken: string;
     refreshToken: string;
     rememberMe: boolean;
-    user: {
-      id: string;
-      email: string;
-      role: string;
-    };
+    id: string;
+    email: string;
+    role: string;
   }
 }
 
@@ -147,6 +146,7 @@ declare module "next-auth/jwt" {
     accessTokenExpiry: number;
     rememberMe: boolean;
     id: string;
+    email: string;
     role: string;
     error?: "RefreshTokenExpired" | "RefreshTokenError";
   }

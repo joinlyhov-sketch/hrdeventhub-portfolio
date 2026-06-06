@@ -174,8 +174,7 @@ export default function SurveyFeedbackFeature() {
 
   return (
     <div className="w-full max-w-full block box-border clear-both">
-      <section className="w-full max-w-full rounded-2xl border border-border bg-card p-4 box-border block overflow-hidden">
-        <SectionTitle />
+      <section className="w-full max-w-full rounded-2xl box-border block overflow-hidden">
 
         <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
           <Search
@@ -230,15 +229,6 @@ export default function SurveyFeedbackFeature() {
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function SectionTitle() {
-  return (
-    <div className="mb-5 flex items-center gap-3">
-      <User className="text-primary" size={24} />
-      <h2 className="type-subtitle text-primary">Results</h2>
     </div>
   );
 }

@@ -26,6 +26,7 @@ import {
   AnnouncementPostFormValues,
 } from "@/schemas/announcement-schema";
 import { CreateAnnouncementPayload, PostMediaItem } from "@/types/post-types";
+import { toast } from "sonner";
 
 export default function CreateAnnouncementForm() {
   const router = useRouter();
@@ -60,6 +61,31 @@ export default function CreateAnnouncementForm() {
 
   const currentStatus = watch("status");
 
+  function getCoordinatesFromGoogleMapsUrl(url: string) {
+    const placeMatch = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
+
+    if (placeMatch) {
+      return {
+        latitude: Number(placeMatch[1]),
+        longitude: Number(placeMatch[2]),
+      };
+    }
+
+    const viewportMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+
+    if (viewportMatch) {
+      return {
+        latitude: Number(viewportMatch[1]),
+        longitude: Number(viewportMatch[2]),
+      };
+    }
+
+    return {
+      latitude: 0,
+      longitude: 0,
+    };
+  }
+
   const onSubmit = async (data: AnnouncementPostFormValues) => {
     setIsSubmitting(true);
 
@@ -75,6 +101,9 @@ export default function CreateAnnouncementForm() {
     } else if (data.status === "active") {
       scheduledIso = null;
     }
+    const coordinates = getCoordinatesFromGoogleMapsUrl(
+      data.googleMapUrl || "",
+    );
 
     const payload: CreateAnnouncementPayload = {
       title: data.title,
@@ -90,8 +119,8 @@ export default function CreateAnnouncementForm() {
       location: {
         locationName: data.locationName,
         googleMapUrl: data.googleMapUrl || "https://maps.google.com",
-        latitude: 0,
-        longitude: 0,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
       },
       media: data.media.map((item) => ({
         filePath: item.filePath,
@@ -108,10 +137,10 @@ export default function CreateAnnouncementForm() {
       const result = await createAnnouncementAction(workspaceId, payload);
 
       if (result.ok) {
-        alert("Announcement post space element created successfully!");
+        toast.success("Announcement created successfully!");
         router.push(`/group/${workspaceId}`);
       } else {
-        alert(`Creation failed: ${result.error}`);
+        toast.error(`Creation failed: ${result.error}`);
       }
     } catch (err) {
       console.error("Submission failed:", err);
@@ -154,6 +183,7 @@ export default function CreateAnnouncementForm() {
                 icon={FileText}
                 placeholder="Please input the announcement title"
                 {...register("title")}
+                isError={errors.title != null}
               />
               {errors.title && (
                 <p className="text-red-500 text-xs mt-1">
@@ -168,6 +198,7 @@ export default function CreateAnnouncementForm() {
                 icon={HelpCircle}
                 placeholder="E.g., General Announcement, Emergency, Notice"
                 {...register("purpose")}
+                isError={errors.purpose != null}
               />
               {errors.purpose && (
                 <p className="text-red-500 text-xs mt-1">
@@ -182,7 +213,7 @@ export default function CreateAnnouncementForm() {
               </label>
               <select
                 {...register("status")}
-                className="w-full border border-slate-200 hover:border-slate-300 px-4 py-3 rounded-xl md:rounded-2xl text-xs md:text-sm text-secondary font-medium outline-hidden transition-all focus:border-primary shadow-xs cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2327445D%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[10px_10px] bg-[right:1.2rem_center] bg-no-repeat"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
               >
                 <option value="draft">Draft</option>
                 <option value="active">Active</option>
@@ -191,10 +222,11 @@ export default function CreateAnnouncementForm() {
 
             <div>
               <FormInput
-                label="Date"
+                label="Scheduled Event Date"
                 icon={Calendar}
                 type="date"
                 {...register("date")}
+                isError={errors.date != null}
               />
               {errors.date && (
                 <p className="text-red-500 text-xs mt-1">
@@ -209,6 +241,7 @@ export default function CreateAnnouncementForm() {
                 icon={Clock}
                 type="time"
                 {...register("startTime")}
+                isError={errors.startTime != null}
               />
               {errors.startTime && (
                 <p className="text-red-500 text-xs mt-1">
@@ -223,6 +256,7 @@ export default function CreateAnnouncementForm() {
                 icon={Clock}
                 type="time"
                 {...register("endTime")}
+                isError={errors.endTime != null}
               />
               {errors.endTime && (
                 <p className="text-red-500 text-xs mt-1">
@@ -235,8 +269,9 @@ export default function CreateAnnouncementForm() {
               <FormInput
                 label="Location"
                 icon={MapPin}
-                placeholder="Enter address"
+                placeholder="Enter building name or physical address"
                 {...register("locationName")}
+                isError={errors.locationName != null}
               />
               {errors.locationName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -252,6 +287,7 @@ export default function CreateAnnouncementForm() {
                 placeholder="http://maps.google.com/..."
                 type="url"
                 {...register("googleMapUrl")}
+                isError={errors.googleMapUrl != null}
               />
               {errors.googleMapUrl && (
                 <p className="text-red-500 text-xs mt-1">
@@ -263,11 +299,17 @@ export default function CreateAnnouncementForm() {
             {currentStatus === "draft" && (
               <div className="animate-in fade-in slide-in-from-top-1 duration-200">
                 <FormInput
-                  label="Schedule Publish Date"
+                  label="Post Publish Date"
                   icon={Calendar}
                   type="date"
                   {...register("scheduleDate")}
+                  isError={errors.scheduleDate != null}
                 />
+                {errors.scheduleDate && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.scheduleDate.message}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -277,6 +319,7 @@ export default function CreateAnnouncementForm() {
               label="Description"
               placeholder="Describe the mission and scope of this announcement..."
               {...register("description")}
+              isError={errors.description != null}
             />
             {errors.description && (
               <p className="text-red-500 text-xs mt-1">
@@ -295,9 +338,15 @@ export default function CreateAnnouncementForm() {
                   onChange={(mediaItems: PostMediaItem[]) => {
                     field.onChange(mediaItems);
                   }}
+                  isCover={false}
                 />
               )}
             />
+            {errors.media && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.media.message}
+              </p>
+            )}
           </div>
         </div>
       </div>

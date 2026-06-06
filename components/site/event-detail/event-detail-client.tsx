@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Edit, ThumbsUp, MessageCircleMore, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import PriceContentComponent from "../../../components/site/event-detail/price-content";
@@ -11,10 +11,23 @@ import { DiscussionSection } from "../../../components/site/event-detail/discuss
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import PaymentModal from "@/components/site/pop-up/payment/PaymentModal";
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
 import { usePaymentModalStore } from "@/store/usePaymentModalStore";
+import { reactionService } from "../../../service/post-reaction.service";
 import { useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
+
+type PostReactionResponse = {
+  success: boolean;
+  payload: {
+    reactionId: string;
+    type: string;
+    createdAt: string;
+    postId: string;
+    appUserId: string;
+  }[];
+};
 
 type Tab = "details" | "price" | "map";
 type AdminSubTab = "overview" | "discussion";
@@ -25,6 +38,8 @@ interface EventDetailClientProps {
 
 export default function EventDetailClient({ event }: EventDetailClientProps) {
   const { currentUser } = useCurrentUser();
+  const { data: session, status } = useSession();
+
   const isAdminOrOrganizer =
     currentUser?.role === "admin" || currentUser?.role === "organizer";
 
@@ -43,9 +58,52 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
     isLikedByUser: false,
   });
 
-  const mediaList = event?.media && event.media.length > 0
-    ? event.media.map((m: any) => m.filePath || m.url)
-    : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
+  const mediaList =
+    event?.media && event.media.length > 0
+      ? event.media.map((m: any) => m.filePath || m.url)
+      : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
+
+  useEffect(() => {
+    if (session?.error === "RefreshTokenExpired") {
+      signOut({ callbackUrl: "/login" });
+    }
+  }, [session?.error]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    if (!currentUser?.id || !event?.postId || !session?.accessToken) return;
+
+    const fetchUserReaction = async () => {
+      try {
+        const data = (await reactionService.getReactionPost(
+          event.postId,
+          session.accessToken,
+        )) as PostReactionResponse;
+
+        const userReaction = data.payload?.find(
+          (r) => r.appUserId === currentUser.id,
+        );
+
+        if (userReaction) {
+          setSelectedReaction(userReaction.type);
+          setDetailData((prev) => ({
+            ...prev,
+            isLikedByUser: true,
+            likesCount: data.payload.length,
+          }));
+        } else {
+          setDetailData((prev) => ({
+            ...prev,
+            likesCount: data.payload.length,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch post reaction:", err);
+      }
+    };
+
+    fetchUserReaction();
+  }, [currentUser?.id, event?.postId, session?.accessToken, status]);
 
   const handlePrevImage = () => {
     setCurrentImgIndex((prev) => (prev === 0 ? mediaList.length - 1 : prev - 1));
@@ -57,27 +115,62 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
   const activeReaction = REACTIONS.find((r: any) => r.id === selectedReaction);
 
-  const handleLikeToggle = () => {
-    setDetailData((prev) => {
-      const isCurrentlyActive = !!selectedReaction;
+  const handleLikeToggle = async () => {
+    if (!session?.accessToken || !event?.postId) return;
+
+    const isCurrentlyActive = !!selectedReaction;
+
+    setDetailData((prev) => ({
+      ...prev,
+      isLikedByUser: !isCurrentlyActive,
+      likesCount: isCurrentlyActive ? prev.likesCount - 1 : prev.likesCount + 1,
+    }));
+    setSelectedReaction(isCurrentlyActive ? null : "like");
+
+    try {
       if (isCurrentlyActive) {
-        setSelectedReaction(null);
-        return { ...prev, isLikedByUser: false, likesCount: prev.likesCount - 1 };
+        await reactionService.removeReactionPost(event.postId, session.accessToken);
       } else {
-        setSelectedReaction("like");
-        return { ...prev, isLikedByUser: true, likesCount: prev.likesCount + 1 };
+        await reactionService.reactPost(event.postId, "like", session.accessToken);
       }
-    });
+    } catch (err) {
+      console.error("Failed to toggle reaction:", err);
+      setDetailData((prev) => ({
+        ...prev,
+        isLikedByUser: isCurrentlyActive,
+        likesCount: isCurrentlyActive ? prev.likesCount + 1 : prev.likesCount - 1,
+      }));
+      setSelectedReaction(isCurrentlyActive ? "like" : null);
+    }
   };
 
-  const handleReactionSelect = (reactionId: string) => {
+  const handleReactionSelect = async (reactionId: string) => {
+    if (!session?.accessToken || !event?.postId) return;
+
     const wasAlreadyActive = !!selectedReaction;
+    const previousReaction = selectedReaction;
+
     setSelectedReaction(reactionId);
     setDetailData((prev) => ({
       ...prev,
       isLikedByUser: true,
       likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
     }));
+
+    try {
+      if (wasAlreadyActive) {
+        await reactionService.removeReactionPost(event.postId, session.accessToken);
+      }
+      await reactionService.reactPost(event.postId, reactionId, session.accessToken);
+    } catch (err) {
+      console.error("Failed to select reaction:", err);
+      setSelectedReaction(previousReaction);
+      setDetailData((prev) => ({
+        ...prev,
+        isLikedByUser: wasAlreadyActive,
+        likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount - 1,
+      }));
+    }
   };
 
   const formattedCreationDate = event?.createdAt

@@ -74,7 +74,17 @@ export default function StudentProfileForm() {
           setDob(identitySnapshot.dateOfBirth);
           setPhoneNumber(identitySnapshot.phoneNumber);
           if (idData.email) setEmail(idData.email);
-          if (idData.gender) setGender(idData.gender);
+          
+          if (idData.gender) {
+            const rawGender = idData.gender.toUpperCase();
+            if (rawGender === "M" || rawGender === "MALE") {
+              setGender("Male");
+            } else if (rawGender === "F" || rawGender === "FEMALE") {
+              setGender("Female");
+            } else {
+              setGender(idData.gender);
+            }
+          }
         }
 
         if (profileRes.status === "fulfilled" && profileRes.value?.success) {
@@ -84,7 +94,6 @@ export default function StudentProfileForm() {
           setCurrentStatus(p.currentStatus || "studying");
           setProfilePicture(p.profilePicture || "");
           setCvResumeUrl(p.cvResumeUrl || "");
-          setProfileSharingMode(p.profileSharingMode || "PUBLIC");
 
           let parsedSkills: string[] = [];
           if (p.skills && p.skills[0]) {
@@ -128,13 +137,13 @@ export default function StudentProfileForm() {
             currentStatus: (p.currentStatus || "studying").toLowerCase(),
             profilePicture: p.profilePicture || "",
             cvResumeUrl: p.cvResumeUrl || "",
-            profileSharingMode: p.profileSharingMode || "PUBLIC",
             skills: parsedSkills,
             education: parsedEdu.filter(edu => edu.institutionName.trim() !== ""),
             socials: { linkedin: lUrl, github: gUrl, facebook: fUrl, telegram: tUrl }
           });
         }
       } catch (err) {
+        console.error(err);
       }
     };
     loadAllUserData();
@@ -398,7 +407,7 @@ export default function StudentProfileForm() {
             <div className="shrink-0">
               <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                <path d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20+addC29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M16 20H24" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

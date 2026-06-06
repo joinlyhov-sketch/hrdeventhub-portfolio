@@ -86,14 +86,14 @@ export default function HeroSession() {
           transition={{ duration: 1.2, ease: "easeOut", delay: 1 }}
         />
         <motion.div
-          className="absolute inset-4 pointer-events-none z-[14] hidden md:block pt-3 top-[35%]"
+          className="absolute inset-4 pointer-events-none z-[14] hidden xl:block pt-3 top-[25%]"
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1, ease: "easeOut", delay: 1 }}
         >
           <svg
-            className="relative right-37"
-            width="1200"
+            className="relative right-50"
+            width="1300"
             height="430"
             viewBox="0 0 750 439"
             fill="none"
@@ -195,11 +195,11 @@ export default function HeroSession() {
             </defs>
           </svg>
 
-          <div className="absolute bottom-6 top-[0%] text-primary/70 w-[500px] h-[350px] rounded-full flex items-center left-345">
+          <div className="absolute bottom-6 top-[0%] text-primary/70 w-[500px] h-[350px] rounded-full hidden xl:flex items-center left-345">
             <svg
               className="relative right-0"
               width="1500"
-              height="600"
+              height="650"
               viewBox="0 0 433 543"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -366,8 +366,8 @@ export default function HeroSession() {
           </div>
         </motion.div>
 
-        <div className="min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-between px-4 py-6 md:px-12 md:py-10 max-w-7xl mx-auto relative z-[12] text-center">
-          <div className="w-full flex-1 flex flex-col items-center justify-center my-auto ">
+        <div className="min-h-0 lg:min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start px-4 py-6 md:px-12 md:py-10 max-w-7xl mx-auto relative z-[12] text-center">
+          <div className="w-full flex flex-col items-center justify-center mb-4 sm:mb-8 md:mb-12">
             <motion.h2
               className="text-xl sm:text-3xl md:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2"
               variants={fadeUp}
@@ -417,7 +417,7 @@ export default function HeroSession() {
             </motion.p>
           </div>
 
-          <div className="relative w-full top-[-100px] max-w-[1280px] h-full sm:h-[360px] md:h-[480px] flex items-center justify-center px-1 md:px-0 md:overflow-visible">
+          <div className="relative w-full top-[-20px] sm:top-[-40px] md:top-[-80px] lg:top-[-100px] max-w-[1280px] h-[130px] sm:h-[220px] md:h-[320px] lg:h-[480px] flex items-center justify-center px-1 md:px-0 md:overflow-visible">
             <motion.div
               className="absolute left-[-2%] sm:left-[-1%] md:left-[-3%] w-[32%] md:w-[33%] translate-y-4 sm:translate-y-8 md:translate-y-16 z-30"
               variants={slideInLeft}
@@ -472,7 +472,6 @@ export default function HeroSession() {
             </motion.div>
           </div>
         </div>
-
         <motion.div
           className="w-full max-w-6xl mx-auto border-t border-border/60 pt-8 md:pt-10 mt-10 md:mt-16 z-10 px-4 pb-8 md:pb-12"
           variants={stagger}
@@ -537,7 +536,6 @@ export default function HeroSession() {
                 Digital Payment
               </h3>
             </motion.div>
-
             <motion.div
               className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 px-0 sm:px-4 md:px-6"
               variants={featureItem}
