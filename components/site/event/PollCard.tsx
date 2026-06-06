@@ -8,6 +8,7 @@ import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit
 import { Poll } from "@/types/poll";
 import { useSession } from "next-auth/react";
 import { pollService } from "@/service/poll.service";
+import { deletePollAction } from "@/actions/poll.action";
 
 interface PollCardProps {
   role: UserRole;
@@ -29,39 +30,25 @@ function PollItem({
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [hasVoted, setHasVoted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // SWR keeps poll data fresh — revalidates every 5 seconds for near-realtime
   const { data: livePoll, mutate } = useSWR<Poll>(
-    session?.accessToken
-      ? ["poll", initialPoll.pollId, session.accessToken]
-      : null,
+    session?.accessToken ? ["poll", initialPoll.pollId, session.accessToken] : null,
     () => pollService.getById(initialPoll.pollId),
-    {
-      fallbackData: initialPoll,
-      refreshInterval: 5000,
-      revalidateOnFocus: true,
-    }
+    { fallbackData: initialPoll, refreshInterval: 5000, revalidateOnFocus: true }
   );
 
-  // always safe — fallbackData ensures livePoll is never undefined
   const poll = livePoll!;
   const options = poll.options ?? [];
-
-  const totalVotes = options.reduce(
-    (acc, opt) => acc + (opt.voteCount ?? 0),
-    0
-  );
-
+  const totalVotes = options.reduce((acc, opt) => acc + (opt.voteCount ?? 0), 0);
   const isExpired = new Date(poll.closingTime) < new Date();
 
   const handleSelect = (optionId: string) => {
     if (hasVoted || isExpired || isSubmitting) return;
     if (poll.multiSelect) {
       setSelectedOptions((prev) =>
-        prev.includes(optionId)
-          ? prev.filter((id) => id !== optionId)
-          : [...prev, optionId]
+        prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId]
       );
     } else {
       setSelectedOptions([optionId]);
@@ -71,87 +58,68 @@ function PollItem({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedOptions.length === 0 || !session?.accessToken) return;
-
     setIsSubmitting(true);
     setError(null);
-
     try {
-      await pollService.vote(
-        poll.pollId,
-        { optionIds: selectedOptions },
-        session.accessToken
-      );
+      await pollService.vote(poll.pollId, { optionIds: selectedOptions }, session.accessToken);
       setHasVoted(true);
-      // revalidate to get fresh vote counts from server
       mutate();
     } catch (err: any) {
       const message = err?.message?.toLowerCase() ?? "";
-      const isCacheError =
-        message.includes("null") ||
-        message.includes("cache") ||
-        message.includes("redis");
-
-      if (isCacheError) {
-        setHasVoted(true);
-        mutate();
-      } else {
-        console.error("Vote failed:", err);
-        setError("Failed to submit vote. Please try again.");
-      }
+      const isCacheError = message.includes("null") || message.includes("cache") || message.includes("redis");
+      if (isCacheError) { setHasVoted(true); mutate(); }
+      else setError("Failed to submit vote. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirm(`Delete "${poll.title}"? This cannot be undone.`)) return;
+    setIsDeleting(true);
+    try {
+      await deletePollAction(poll.pollId, poll.workspaceId);
+      onDelete();
+    } catch {
+      setError("Failed to delete poll. Please try again.");
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <article className="w-full bg-card rounded-xl p-5 border border-subtle shadow-sm text-foreground">
-      {/* Header */}
+    <article className={`w-full bg-card rounded-xl p-5 border border-subtle shadow-sm text-foreground transition-opacity ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle">
             <BarChart3 size={20} />
           </div>
-          <h2 className="type-subtitle font-bold text-subtle tracking-tight">
-            {poll.title}
-          </h2>
+          <h2 className="type-subtitle font-bold text-subtle tracking-tight">{poll.title}</h2>
         </div>
         {(role === "admin" || role === "organizer") && (
           <EditPostDropDown
             title={poll.title}
-            editUrl={`/event-management/edition/poll`}
-            onDelete={onDelete}
+            editUrl={`/event-management/edition/poll?pollId=${poll.pollId}`}
+            onDelete={handleDelete}
           />
         )}
       </div>
 
-      {/* Closing time */}
       <p className="type-detail-small-medium text-grey-400 mb-4">
         {isExpired
           ? "Poll closed"
           : `Closes: ${new Date(poll.closingTime).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
+              month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit",
             })}`}
       </p>
 
       <form onSubmit={handleSubmit}>
         <fieldset disabled={hasVoted || isExpired || isSubmitting} className="w-full">
-          <legend className="type-desc text-foreground mb-6 block">
-            {poll.description ?? poll.title}
-          </legend>
-
+          <legend className="type-desc text-foreground mb-6 block">{poll.description ?? poll.title}</legend>
           <div className="space-y-3 mb-6">
             {options.map((option) => {
               const isChecked = selectedOptions.includes(option.id);
               const currentVotes = option.voteCount ?? 0;
-              const percentage =
-                totalVotes > 0
-                  ? Math.round((currentVotes / totalVotes) * 100)
-                  : 0;
-
+              const percentage = totalVotes > 0 ? Math.round((currentVotes / totalVotes) * 100) : 0;
               const showResult =
                 poll.showResult === "always" ||
                 (poll.showResult === "after_vote" && hasVoted) ||
@@ -173,7 +141,6 @@ function PollItem({
                       style={{ width: `${percentage}%` }}
                     />
                   )}
-
                   <div className="relative z-10 flex items-center gap-4">
                     <input
                       type={poll.multiSelect ? "checkbox" : "radio"}
@@ -183,34 +150,15 @@ function PollItem({
                       onChange={() => handleSelect(option.id)}
                       className="sr-only"
                     />
-                    <div
-                      className={`${
-                        poll.multiSelect ? "w-5 h-5 rounded-md" : "w-5 h-5 rounded-full"
-                      } border flex items-center justify-center transition-all ${
-                        isChecked ? "border-subtle bg-white" : "border-grey-300 bg-white"
-                      }`}
-                    >
-                      {isChecked && (
-                        <div
-                          className={`${
-                            poll.multiSelect ? "w-2.5 h-2.5 rounded-sm" : "w-2.5 h-2.5 rounded-full"
-                          } bg-subtle`}
-                        />
-                      )}
+                    <div className={`${poll.multiSelect ? "w-5 h-5 rounded-md" : "w-5 h-5 rounded-full"} border flex items-center justify-center transition-all ${isChecked ? "border-subtle bg-white" : "border-grey-300 bg-white"}`}>
+                      {isChecked && <div className={`${poll.multiSelect ? "w-2.5 h-2.5 rounded-sm" : "w-2.5 h-2.5 rounded-full"} bg-subtle`} />}
                     </div>
-                    <span className="type-detail-medium text-foreground">
-                      {option.text}
-                    </span>
+                    <span className="type-detail-medium text-foreground">{option.text}</span>
                   </div>
-
                   {showResult && (
                     <div className="relative z-10 flex items-center gap-2">
-                      <span className="type-detail-small-medium text-grey-500">
-                        ({currentVotes})
-                      </span>
-                      <span className="type-detail-semibold text-subtle">
-                        {percentage}%
-                      </span>
+                      <span className="type-detail-small-medium text-grey-500">({currentVotes})</span>
+                      <span className="type-detail-semibold text-subtle">{percentage}%</span>
                     </div>
                   )}
                 </label>
@@ -219,11 +167,7 @@ function PollItem({
           </div>
         </fieldset>
 
-        {error && (
-          <p className="text-destructive type-detail-small-medium mb-3 text-center">
-            {error}
-          </p>
-        )}
+        {error && <p className="text-destructive type-detail-small-medium mb-3 text-center">{error}</p>}
 
         {!hasVoted && !isExpired ? (
           <button
@@ -239,9 +183,7 @@ function PollItem({
           </button>
         ) : (
           <div className="text-center type-detail-medium text-grey-500">
-            {isExpired
-              ? `Poll closed · ${totalVotes} votes`
-              : `Thank you for voting! Total participants: ${totalVotes}`}
+            {isExpired ? `Poll closed · ${totalVotes} votes` : `Thank you for voting! Total participants: ${totalVotes}`}
           </div>
         )}
       </form>
@@ -253,12 +195,7 @@ export function PollCard({ role, polls, onDeletePoll }: PollCardProps) {
   return (
     <>
       {polls.map((poll) => (
-        <PollItem
-          key={poll.pollId}
-          initialPoll={poll}
-          role={role}
-          onDelete={() => onDeletePoll(poll.pollId)}
-        />
+        <PollItem key={poll.pollId} initialPoll={poll} role={role} onDelete={() => onDeletePoll(poll.pollId)} />
       ))}
     </>
   );
