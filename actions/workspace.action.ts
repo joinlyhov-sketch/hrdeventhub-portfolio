@@ -23,9 +23,7 @@ export async function getAllWorkspacesAction(
 }
 
 export async function createWorkspaceAction(payload: CreateWorkspaceRequest) {
-  const result = await workspaceService.create(payload);
-  revalidateTag("workspaces", "max");
-  return result;
+  return workspaceService.create(payload);
 }
 
 export async function updateWorkspaceAction(

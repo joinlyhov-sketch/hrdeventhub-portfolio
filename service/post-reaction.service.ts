@@ -1,23 +1,22 @@
-
 import { apiGet, apiPost, apiDelete } from "@/libs/api";
 
 export const reactionService = {
   getReactionComment: async (commentId: string, token: string) => {
-    return await apiGet(`/comments/${commentId}/reactions`, {
+    return await apiGet(`/comment/${commentId}/reactions`, {
       authToken: token,
     });
   },
 
   reactComment: async (commentId: string, type: string, token: string) => {
     return await apiPost(
-      `/comments/${commentId}/reactions`,
+      `/comment/${commentId}/reactions`,
       { type },
       { authToken: token },
     );
   },
 
   removeReactionComment: async (commentId: string, token: string) => {
-    return await apiDelete(`/comments/${commentId}/reactions`, {
+    return await apiDelete(`/comment/${commentId}/reactions`, {
       authToken: token,
     });
   },
