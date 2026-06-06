@@ -371,7 +371,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
               <span className="text-md font-medium text-grey-500">
                 {detailData.likesCount}
               </span>
-            </button>
+            </button> 
           </ReactionPopover>
 
           {/* <ReactionSummary payload={reactionPayload} /> */}
