@@ -2,12 +2,24 @@
 
 import { StatCard } from "../../../types/transaction";
 import { StatsCard } from "./StatsCard";
+import { EventItem } from "@/service/event.service";
 
 interface StatsCardsSectionProps {
   stats: StatCard[];
+  events: EventItem[];
 }
 
-export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
+export function StatsCardsSection({ stats, events }: StatsCardsSectionProps) {
+  const totalAttendees = (events || []).reduce((acc, event) => {
+    const count = event.comments ? event.comments.length : 0;
+    return acc + count;
+  }, 0);
+
+  const activeEventsCount = (events || []).filter((event) => {
+    const status = event.status?.toLowerCase();
+    return status === "active" || status === "published" || status === "open";
+  }).length;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <StatsCard
@@ -99,7 +111,7 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
       <StatsCard
         key={3}
         title={"Total Attendee"}
-        value={"24,512"}
+        value={totalAttendees.toLocaleString()}
         customIcon={
           <svg
             width="26"
@@ -130,7 +142,7 @@ export function StatsCardsSection({ stats }: StatsCardsSectionProps) {
       <StatsCard
         key={4}
         title={"Active Events"}
-        value={"850"}
+        value={activeEventsCount.toLocaleString()}
         customIcon={
           <svg
             width="26"

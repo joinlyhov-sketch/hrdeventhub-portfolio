@@ -5,10 +5,13 @@ import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   profileService,
+  SharingMode,
   UpdatePreferencesRequest,
+  UserProfilePayload,
 } from "@/service/profile.service";
-import { UserProfilePayload , SharingMode} from "@/types/profile-types";
 import type { VisibilityMode, SelectiveVisibility } from "./PrivacySettingsClient";
+import { ALL_VISIBLE as ALL_VIS, ALL_HIDDEN as ALL_HID } from "./PrivacySettingsClient";
+
 interface SettingVisibilityModeCardProps {
   profile: UserProfilePayload;
   visibilityMode: VisibilityMode;
@@ -19,6 +22,12 @@ interface SettingVisibilityModeCardProps {
 
 type AccordionKey = "profile" | "contactInfo" | "education" | "socialAccounts";
 
+const SECTION_KEYS: Record<AccordionKey, (keyof SelectiveVisibility)[]> = {
+  profile: ["showProfilePicture", "showBio", "showGender", "showBirthdate", "showGeneration"],
+  contactInfo: ["showEmail", "showPhoneNumber"],
+  education: ["showMajor", "showCurrentStatus", "showCv", "showEducation", "showSkills"],
+  socialAccounts: ["showSocial"],
+};
 
 function uiModeToApiMode(mode: VisibilityMode): SharingMode {
   if (mode === "share_all") return "PUBLIC";
@@ -28,37 +37,91 @@ function uiModeToApiMode(mode: VisibilityMode): SharingMode {
 
 function buildPreferencesPayload(config: SelectiveVisibility): UpdatePreferencesRequest {
   return {
-    showBirthdate: config.profile,
-    showEmail: config.contactInfo,
-    showPhoneNumber: config.contactInfo,
-    showCurrentStatus: config.education,
-    showSocial: config.socialAccounts,
+    showEmail: config.showEmail,
+    showPhoneNumber: config.showPhoneNumber,
+    showBirthdate: config.showBirthdate,
+    showGender: config.showGender,
+    showBio: config.showBio,
+    showProfilePicture: config.showProfilePicture,
+    showMajor: config.showMajor,
+    showCurrentStatus: config.showCurrentStatus,
+    showCv: config.showCv,
+    showEducation: config.showEducation,
+    showSkills: config.showSkills,
+    showSocial: config.showSocial,
+    showGeneration: config.showGeneration,
   };
+}
+
+function sectionState(
+  config: SelectiveVisibility,
+  keys: (keyof SelectiveVisibility)[]
+): "all" | "none" | "mixed" {
+  const values = keys.map((k) => config[k]);
+  if (values.every(Boolean)) return "all";
+  if (values.every((v) => !v)) return "none";
+  return "mixed";
+}
+
+interface FieldToggleItemProps {
+  label: string;
+  value: string;
+  fieldKey: keyof SelectiveVisibility;
+  config: SelectiveVisibility;
+  onToggle: (key: keyof SelectiveVisibility) => void;
+}
+
+function FieldToggleItem({ label, value, fieldKey, config, onToggle }: FieldToggleItemProps) {
+  const isVisible = config[fieldKey];
+  return (
+    <div className="flex items-center justify-between gap-3 py-1.5 px-3 hover:bg-muted/10 transition">
+      <div className="flex flex-col min-w-0">
+        <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mb-0.5">{label}</span>
+        <span className="type-detail text-grey-700 truncate max-w-md">{value}</span>
+      </div>
+      <button
+        type="button"
+        onClick={() => onToggle(fieldKey)}
+        className={`px-2.5 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 cursor-pointer ${
+          isVisible
+            ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+            : "bg-muted border-border text-muted-foreground"
+        }`}
+      >
+        <CheckCircle2 className={`w-3 h-3 ${isVisible ? "opacity-100" : "opacity-40"}`} />
+        <span>{isVisible ? "Visible" : "Hidden"}</span>
+      </button>
+    </div>
+  );
 }
 
 interface SectionRowProps {
   label: string;
   description: string;
   icon: React.ReactNode;
-  configKey: AccordionKey;
-  isVisible: boolean;
+  sectionKey: AccordionKey;
+  config: SelectiveVisibility;
   isOpen: boolean;
-  onToggleVisibility: (key: AccordionKey) => void;
+  onToggleSection: (key: AccordionKey) => void;
   onToggleAccordion: (key: AccordionKey) => void;
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 function SectionRow({
   label,
   description,
   icon,
-  configKey,
-  isVisible,
+  sectionKey,
+  config,
   isOpen,
-  onToggleVisibility,
+  onToggleSection,
   onToggleAccordion,
   children,
 }: SectionRowProps) {
+  const state = sectionState(config, SECTION_KEYS[sectionKey]);
+  const isVisible = state !== "none";
+  const isMixed = state === "mixed";
+
   return (
     <div className="hover:bg-muted/20 transition">
       <div className="p-3">
@@ -66,33 +129,39 @@ function SectionRow({
           <button
             type="button"
             className="flex items-center gap-3 min-w-0 cursor-pointer text-left flex-1"
-            onClick={() => onToggleAccordion(configKey)}
+            onClick={() => onToggleAccordion(sectionKey)}
           >
             <div className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center shrink-0">
               {icon}
             </div>
             <div className="min-w-0">
-              <h4 className="type-subtitle font-semibold text-grey-700">{label}</h4>
-              <span className="type-detail text-muted-foreground">{description}</span>
+              <h4 className="type-subtitle font-semibold text-grey-700 flex items-center gap-2">
+                {label}
+                {isMixed && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600">
+                    Partial
+                  </span>
+                )}
+              </h4>
+              <span className="type-detail text-muted-foreground block truncate">{description}</span>
             </div>
           </button>
 
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => onToggleVisibility(configKey)}
-              className={`px-3 py-1 rounded-md text-[10px] font-medium border transition flex items-center gap-1 cursor-pointer ${
+              onClick={() => onToggleSection(sectionKey)}
+              className={`px-3 py-1 rounded-md text-[10px] font-medium border transition ${
                 isVisible
                   ? "bg-emerald-50 border-emerald-100 text-emerald-600"
                   : "bg-muted border-border text-muted-foreground"
               }`}
             >
-              <CheckCircle2 className={`w-3 h-3 ${isVisible ? "opacity-100" : "opacity-40"}`} />
-              <span>{isVisible ? "Visible" : "Hidden"}</span>
+              {state === "none" ? "Hidden" : "Visible"}
             </button>
             <button
               type="button"
-              onClick={() => onToggleAccordion(configKey)}
+              onClick={() => onToggleAccordion(sectionKey)}
               className="p-1 text-muted-foreground hover:text-secondary rounded cursor-pointer"
             >
               {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -101,59 +170,14 @@ function SectionRow({
         </div>
       </div>
 
-      {/* Accordion content */}
-      {isOpen && children && (
-        <div className="px-4 pb-3 ml-11 animate-in fade-in slide-in-from-top-1 duration-150">
+      {isOpen && (
+        <div className="px-4 pb-3 ml-11 border-t border-border/40 divide-y divide-border/30 animate-in fade-in slide-in-from-top-1 duration-150">
           {children}
         </div>
       )}
     </div>
   );
 }
-function DetailItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-2 py-0.5">
-      <span className="type-detail text-muted-foreground w-24 shrink-0">{label}</span>
-      <span className="type-detail text-grey-700 truncate">{value}</span>
-    </div>
-  );
-}
-
-
-const ProfileIcon = () => (
-  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="44" height="44" rx="22" fill="#1C4D8D" fillOpacity="0.2" />
-    <path d="M22 22C24.7614 22 27 19.7614 27 17C27 14.2386 24.7614 12 22 12C19.2386 12 17 14.2386 17 17C17 19.7614 19.2386 22 22 22Z" stroke="#1C4D8D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M30.59 32C30.59 28.13 26.74 25 22 25C17.26 25 13.41 28.13 13.41 32" stroke="#1C4D8D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const ContactIcon = () => (
-  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="44" height="44" rx="22" fill="#3BC1A8" fillOpacity="0.2" />
-    <path d="M27 29C27 29.53 26.79 30.04 26.41 30.41C26.04 30.79 25.53 31 25 31H14C13.47 31 12.96 30.79 12.59 30.41C12.21 30.04 12 29.53 12 29V21C12 20.65 12.09 20.3 12.27 20C12.44 19.7 12.7 19.44 13 19.27M32 15.5L25.58 19.68C25.26 19.89 24.88 20 24.5 20C24.12 20 23.74 19.89 23.42 19.68L17 15.5M19 13H30C31.1 13 32 13.9 32 15V23C32 24.1 31.1 25 30 25H19C17.9 25 17 24.1 17 23V15C17 13.9 17.9 13 19 13Z" stroke="#3BC1A8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const EducationIcon = () => (
-  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="44" height="44" rx="22" fill="#4663AC" fillOpacity="0.2" />
-    <path d="M22 12L34 18L22 24L10 18L22 12Z" stroke="#4663AC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M14 20.5V27C14 27 16.5 30 22 30C27.5 30 30 27 30 27V20.5" stroke="#4663AC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M34 18V24" stroke="#4663AC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const SocialIcon = () => (
-  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="44" height="44" rx="22" fill="#FF9F2E" fillOpacity="0.2" />
-    <path d="M22 32C27.52 32 32 27.52 32 22C32 16.48 27.52 12 22 12C16.48 12 12 16.48 12 22C12 27.52 16.48 32 22 32Z" stroke="#FF9F2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M18 13H19C17.05 18.84 17.05 25.16 19 31H18" stroke="#FF9F2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M25 13C26.95 18.84 26.95 25.16 25 31" stroke="#FF9F2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M13 26V25C18.84 26.95 25.16 26.95 31 25V26" stroke="#FF9F2E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M13 19C18.84 17.05 25.16 17.05 31 19" stroke="#FF9F2E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
 
 export default function SettingVisibilityModeCard({
   profile,
@@ -174,32 +198,51 @@ export default function SettingVisibilityModeCard({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
   useEffect(() => {
     if (visibilityMode === "share_all") {
-      setSelectiveConfig({ profile: true, contactInfo: true, education: true, socialAccounts: true });
+      setSelectiveConfig({ ...ALL_VIS });
     } else if (visibilityMode === "private") {
-      setSelectiveConfig({ profile: false, contactInfo: false, education: false, socialAccounts: false });
+      setSelectiveConfig({ ...ALL_HID });
     }
-  }, [visibilityMode]);
+  }, [visibilityMode, setSelectiveConfig]);
 
   const toggleAccordion = (key: AccordionKey) => {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
-  const toggleSelectiveField = (key: AccordionKey) => {
-    if (visibilityMode === "private") return; 
 
-    const updated = { ...selectiveConfig, [key]: !selectiveConfig[key] };
-    setSelectiveConfig(updated);
-    const allVisible = Object.values(updated).every(Boolean);
-    const noneVisible = Object.values(updated).every((v) => !v);
-
-    if (allVisible) {
+  const calculateAndSyncMode = (updatedConfig: SelectiveVisibility) => {
+    const vals = Object.values(updatedConfig);
+    if (vals.every(Boolean)) {
       setVisibilityMode("share_all");
-    } else if (noneVisible) {
+    } else if (vals.every((v) => !v)) {
       setVisibilityMode("private");
     } else {
       setVisibilityMode("selective");
     }
+  };
+
+  const toggleField = (fieldKey: keyof SelectiveVisibility) => {
+    if (visibilityMode === "private") return;
+    const nextConfig = { ...selectiveConfig, [fieldKey]: !selectiveConfig[fieldKey] };
+    setSelectiveConfig(nextConfig);
+    calculateAndSyncMode(nextConfig);
+  };
+
+  const toggleSection = (sectionKey: AccordionKey) => {
+    if (visibilityMode === "private") return;
+
+    const keys = SECTION_KEYS[sectionKey];
+    const currentState = sectionState(selectiveConfig, keys);
+    const nextValue = currentState !== "all";
+
+    const nextConfig = { ...selectiveConfig };
+    keys.forEach((k) => {
+      nextConfig[k] = nextValue;
+    });
+
+    setSelectiveConfig(nextConfig);
+    calculateAndSyncMode(nextConfig);
   };
 
   const handleSave = async () => {
@@ -213,13 +256,21 @@ export default function SettingVisibilityModeCard({
     setSaveSuccess(false);
     setIsSaving(true);
 
+    const computedMode = uiModeToApiMode(visibilityMode);
+    const computedPreferences = buildPreferencesPayload(selectiveConfig);
+
     try {
-      const apiMode = uiModeToApiMode(visibilityMode);
-      const modeResult = await profileService.updateSharingMode({ mode: apiMode }, token);
+      const modeResult = await profileService.updateSharingMode(
+        { mode: computedMode },
+        token
+      );
       if (!modeResult?.success) throw new Error("Failed to update sharing mode.");
-      if (visibilityMode === "selective") {
-        const prefPayload = buildPreferencesPayload(selectiveConfig);
-        const prefResult = await profileService.updatePreferences(prefPayload, token);
+
+      if (computedMode === "SELECTIVE") {
+        const prefResult = await profileService.updatePreferences(
+          computedPreferences,
+          token
+        );
         if (!prefResult?.success) throw new Error("Failed to update preferences.");
       }
 
@@ -231,20 +282,16 @@ export default function SettingVisibilityModeCard({
       setIsSaving(false);
     }
   };
-  const isSelective = visibilityMode === "selective";
+
   const isShareAll = visibilityMode === "share_all";
   const isPrivate = visibilityMode === "private";
-
+  const isSelective = visibilityMode === "selective";
   const showCustomizePanel = isShareAll || isSelective;
 
-  const { appUser, generation, education, socialAccount, skills, currentStatus, profilePicture } = profile;
+  const { appUser, generation, education = [], socialAccount = [], skills = [], currentStatus, cvResumeUrl, major } = profile;
+
   const formatDate = (d?: string) =>
     d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "—";
-
-  const linkedinAccount = socialAccount?.find((s) => s.platform === "linkedin");
-  const githubAccount = socialAccount?.find((s) => s.platform === "github");
-  const facebookAccount = socialAccount?.find((s) => s.platform === "facebook");
-  const telegramAccount = socialAccount?.find((s) => s.platform === "telegram");
 
   return (
     <div className="xl:col-span-8 bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-6 duration-500 ease-in-out">
@@ -314,6 +361,7 @@ export default function SettingVisibilityModeCard({
               </div>
               <RadioDot active={isPrivate} />
             </button>
+
             <button
               type="button"
               onClick={() => setVisibilityMode("selective")}
@@ -342,6 +390,7 @@ export default function SettingVisibilityModeCard({
             </button>
           </div>
         </div>
+
         {showCustomizePanel && (
           <div className="bg-card rounded-2xl border border-border shadow-sm p-5 animate-in fade-in duration-200">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2 h-10">
@@ -368,99 +417,152 @@ export default function SettingVisibilityModeCard({
             </div>
 
             <div className="border border-border rounded-2xl overflow-hidden divide-y divide-border">
-
               <SectionRow
                 label="Profile"
                 description="Profile photo, username, bio, gender, generation"
                 icon={<ProfileIcon />}
-                configKey="profile"
-                isVisible={selectiveConfig.profile}
+                sectionKey="profile"
+                config={selectiveConfig}
                 isOpen={expandedSections.profile}
-                onToggleVisibility={toggleSelectiveField}
+                onToggleSection={toggleSection}
                 onToggleAccordion={toggleAccordion}
               >
-                <div className="space-y-1 pt-1">
-                  <DetailItem label="Date of birth" value={formatDate(appUser.dateOfBirth)} />
-                  {appUser.gender && (
-                    <DetailItem label="Gender" value={appUser.gender === "F" ? "Female" : "Male"} />
-                  )}
-                  {generation && (
-                    <DetailItem label="Generation" value={generation.name} />
-                  )}
-                  {profile.bio && (
-                    <DetailItem label="Bio" value={profile.bio} />
-                  )}
-                </div>
+                <FieldToggleItem
+                  label="Profile Picture"
+                  value={profile.profilePicture ? "Uploaded" : "No Photo"}
+                  fieldKey="showProfilePicture"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="Bio"
+                  value={profile.bio || "—"}
+                  fieldKey="showBio"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="Gender Identity"
+                  value={appUser.gender === "F" ? "Female" : appUser.gender === "M" ? "Male" : "—"}
+                  fieldKey="showGender"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="Date of birth"
+                  value={formatDate(appUser.dateOfBirth)}
+                  fieldKey="showBirthdate"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="Generation"
+                  value={generation?.name || "—"}
+                  fieldKey="showGeneration"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
               </SectionRow>
+
               <SectionRow
                 label="Contact Information"
                 description="Email address, phone numbers"
                 icon={<ContactIcon />}
-                configKey="contactInfo"
-                isVisible={selectiveConfig.contactInfo}
+                sectionKey="contactInfo"
+                config={selectiveConfig}
                 isOpen={expandedSections.contactInfo}
-                onToggleVisibility={toggleSelectiveField}
+                onToggleSection={toggleSection}
                 onToggleAccordion={toggleAccordion}
               >
-                <div className="space-y-1 pt-1">
-                  <DetailItem label="Email" value={appUser.email} />
-                  <DetailItem label="Phone" value={appUser.phoneNumber || "—"} />
-                </div>
+                <FieldToggleItem
+                  label="Email"
+                  value={appUser.email}
+                  fieldKey="showEmail"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="Phone"
+                  value={appUser.phoneNumber || "—"}
+                  fieldKey="showPhoneNumber"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
               </SectionRow>
 
-              {/* Education section */}
               <SectionRow
                 label="Education"
                 description="University, major, skills, current status"
                 icon={<EducationIcon />}
-                configKey="education"
-                isVisible={selectiveConfig.education}
+                sectionKey="education"
+                config={selectiveConfig}
                 isOpen={expandedSections.education}
-                onToggleVisibility={toggleSelectiveField}
+                onToggleSection={toggleSection}
                 onToggleAccordion={toggleAccordion}
               >
-                <div className="space-y-1 pt-1">
-                  {education?.map((edu, i) => (
-                    <DetailItem
-                      key={i}
-                      label={edu.institutionAbbreviation || "School"}
-                      value={`${edu.institutionName} — ${edu.degree} (${edu.startYear}${edu.isCurrent ? " · current" : ""})`}
-                    />
-                  ))}
-                  {currentStatus && (
-                    <DetailItem label="Status" value={currentStatus} />
-                  )}
-                  {skills && skills.length > 0 && (
-                    <DetailItem label="Skills" value={skills.join(", ")} />
-                  )}
-                </div>
+                <FieldToggleItem
+                  label="Major"
+                  value={major || "—"}
+                  fieldKey="showMajor"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="Status"
+                  value={currentStatus || "—"}
+                  fieldKey="showCurrentStatus"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="CV / Resume"
+                  value={cvResumeUrl ? "Active CV URL" : "Not Linked"}
+                  fieldKey="showCv"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="Education History"
+                  value={education.length ? education.map((e) => e.institutionAbbreviation || e.institutionName).join(", ") : "—"}
+                  fieldKey="showEducation"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
+                <FieldToggleItem
+                  label="Skills"
+                  value={skills.length ? skills.join(", ") : "—"}
+                  fieldKey="showSkills"
+                  config={selectiveConfig}
+                  onToggle={toggleField}
+                />
               </SectionRow>
+
               <SectionRow
                 label="Social Accounts"
                 description="LinkedIn, GitHub, Facebook, Telegram"
                 icon={<SocialIcon />}
-                configKey="socialAccounts"
-                isVisible={selectiveConfig.socialAccounts}
+                sectionKey="socialAccounts"
+                config={selectiveConfig}
                 isOpen={expandedSections.socialAccounts}
-                onToggleVisibility={toggleSelectiveField}
+                onToggleSection={toggleSection}
                 onToggleAccordion={toggleAccordion}
               >
-                <div className="space-y-1 pt-1">
-                  {linkedinAccount && <DetailItem label="LinkedIn" value={linkedinAccount.url} />}
-                  {githubAccount && <DetailItem label="GitHub" value={githubAccount.url} />}
-                  {facebookAccount && <DetailItem label="Facebook" value={facebookAccount.url} />}
-                  {telegramAccount && <DetailItem label="Telegram" value={telegramAccount.url} />}
-                  {!linkedinAccount && !githubAccount && !facebookAccount && !telegramAccount && (
-                    <span className="type-detail text-muted-foreground">No social accounts linked</span>
-                  )}
-                </div>
+                {socialAccount.length > 0 ? (
+                  <FieldToggleItem
+                    label="Connected Social Accounts"
+                    value={socialAccount.map((s) => s.platform).join(", ")}
+                    fieldKey="showSocial"
+                    config={selectiveConfig}
+                    onToggle={toggleField}
+                  />
+                ) : (
+                  <p className="type-detail text-muted-foreground p-3 italic">No social accounts linked</p>
+                )}
               </SectionRow>
-
             </div>
           </div>
         )}
 
-        {/* ── Private mode message ── */}
         {isPrivate && (
           <div className="bg-card rounded-2xl border border-border shadow-sm p-8 flex flex-col items-center justify-center min-h-[410px] text-center animate-in fade-in duration-200">
             <div className="w-16 h-16 bg-[#E1F1FD] rounded-full flex items-center justify-center mb-4">
@@ -482,8 +584,8 @@ export default function SettingVisibilityModeCard({
             </div>
           </div>
         )}
-
       </div>
+
       <div className="flex flex-col items-end gap-2 mt-4">
         {saveError && (
           <p className="type-detail text-destructive text-xs">{saveError}</p>
@@ -518,3 +620,39 @@ function RadioDot({ active }: { active: boolean }) {
     </div>
   );
 }
+
+const ProfileIcon = () => (
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="44" height="44" rx="22" fill="#1C4D8D" fillOpacity="0.2" />
+    <path d="M22 22C24.7614 22 27 19.7614 27 17C27 14.2386 24.7614 12 22 12C19.2386 12 17 14.2386 17 17C17 19.7614 19.2386 22 22 22Z" stroke="#1C4D8D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M30.59 32C30.59 28.13 26.74 25 22 25C17.26 25 13.41 28.13 13.41 32" stroke="#1C4D8D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ContactIcon = () => (
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="44" height="44" rx="22" fill="#3BC1A8" fillOpacity="0.2" />
+    <path d="M27 29C27 29.53 26.79 30.04 26.41 30.41C26.04 30.79 25.53 31 25 31H14C13.47 31 12.96 30.79 12.59 30.41C12.21 30.04 12 29.53 12 29V21C12 20.65 12.09 20.3 12.27 20" stroke="#3BC1A8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M32 15.5L25.58 19.68C25.26 19.89 24.88 20 24.5 20C24.12 20 23.74 19.89 23.42 19.68L17 15.5M19 13H30C31.1 13 32 13.9 32 15V23C32 24.1 31.1 25 30 25H19C17.9 25 17 24.1 17 23V15C17 13.9 17.9 13 19 13Z" stroke="#3BC1A8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const EducationIcon = () => (
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="44" height="44" rx="22" fill="#4663AC" fillOpacity="0.2" />
+    <path d="M22 12L34 18L22 24L10 18L22 12Z" stroke="#4663AC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M14 20.5V27C14 27 16.5 30 22 30C27.5 30 30 27 30 27V20.5" stroke="#4663AC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M34 18V24" stroke="#4663AC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const SocialIcon = () => (
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="44" height="44" rx="22" fill="#FF9F2E" fillOpacity="0.2" />
+    <path d="M22 32C27.52 32 32 27.52 32 22C32 16.48 27.52 12 22 12C16.48 12 12 16.48 12 22C12 27.52 16.48 32 22 32Z" stroke="#FF9F2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M18 13H19C17.05 18.84 17.05 25.16 19 31H18" stroke="#FF9F2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M25 13C26.95 18.84 26.95 25.16 25 31" stroke="#FF9F2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M13 26V25C18.84 26.95 25.16 26.95 31 25V26" stroke="#FF9F2E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M13 19C18.84 17.05 25.16 17.05 31 19" stroke="#FF9F2E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

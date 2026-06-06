@@ -17,6 +17,7 @@ import {
   ArticlePostFormValues,
 } from "@/schemas/article-schema";
 import { CreateArticlePayload } from "@/types/post-types";
+import { toast } from "sonner";
 
 export default function CreateArticleForm() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function CreateArticleForm() {
     defaultValues: {
       title: "",
       description: "",
-      status: "draft",
+      status: "active",
     },
   });
 
@@ -57,10 +58,10 @@ export default function CreateArticleForm() {
       const result = await createArticleAction(workspaceId, payload);
 
       if (result.ok) {
-        alert("ARTICLE created successfully!");
+        toast.success("ARTICLE created successfully!");
         router.push(`/group/${workspaceId}`);
       } else {
-        alert(`Creation failed: ${result.error}`);
+        toast.error(`Creation failed: ${result.error}`);
       }
     } catch (err) {
       console.error("Submission failed:", err);
@@ -96,6 +97,7 @@ export default function CreateArticleForm() {
                 icon={FileText}
                 placeholder="Please input the article title"
                 {...register("title")}
+                isError={errors.title != null}
               />
               {errors.title && (
                 <p className="text-red-500 text-xs mt-1">
@@ -110,7 +112,7 @@ export default function CreateArticleForm() {
               </label>
               <select
                 {...register("status")}
-                className="w-full bg-white border border-slate-200 hover:border-slate-300 px-4 py-3 rounded-xl md:rounded-2xl text-xs md:text-sm text-secondary font-medium outline-hidden transition-all focus:border-primary shadow-xs cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2327445D%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:10px_10px] bg-[right:1.2rem_center] bg-no-repeat"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
               >
                 <option value="draft">Draft</option>
                 <option value="active">Active</option>
@@ -123,6 +125,7 @@ export default function CreateArticleForm() {
               label="Description"
               placeholder="Describe the mission and scope of this article..."
               {...register("description")}
+              isError={errors.description != null}
             />
             {errors.description && (
               <p className="text-red-500 text-xs mt-1">
