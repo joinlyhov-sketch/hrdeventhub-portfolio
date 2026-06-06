@@ -14,6 +14,7 @@ import {
   REACTIONS,
 } from "@/components/site/pop-up/comment/reaction";
 import { useCommentReaction } from "@/hooks/use-comment-reaction";
+import { ReactionSummary } from "../../event/ReactionSummary";
 
 interface CommentNodeProps {
   comment: Comment;
@@ -187,9 +188,9 @@ function ReplyInput({
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setShowEmoji((v) => !v)}
-              className="text-grey-400 hover:text-grey-600 transition-colors cursor-pointer"
+              className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
             >
-              <Smile size={16} />
+              <Smile size={20} />
             </button>
             {showEmoji && (
               <EmojiPopover
@@ -235,6 +236,7 @@ export function CommentNode({
     likesCount,
     handleLikeToggle,
     handleReactionSelect,
+    reactionPayload,
   } = useCommentReaction(comment.commentId);
 
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
@@ -294,7 +296,7 @@ export function CommentNode({
       </div>
 
       <div className="flex-1 min-w-0 pb-1">
-        <div className="inline-block bg-grey-100 rounded-2xl px-3 py-2 max-w-full">
+        <div className="relative inline-block bg-grey-100 rounded-2xl px-3 py-2 max-w-full">
           <div className="flex items-center gap-2 justify-between">
             <span className="type-detail-semibold text-grey-900 text-sm leading-tight">
               {comment.appUser.firstName} {comment.appUser.lastName}
@@ -355,6 +357,10 @@ export function CommentNode({
               )}
             </p>
           )}
+          
+          <section className="absolute -right-2">
+            <ReactionSummary payload={reactionPayload}/> 
+          </section>
         </div>
 
         <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
@@ -378,11 +384,6 @@ export function CommentNode({
                 <ThumbsUp size={13} />
               )}
               {!activeReaction && "Like"}
-              {likesCount > 0 && (
-                <span className="font-normal text-grey-400">
-                  ({likesCount})
-                </span>
-              )}
             </button>
           </ReactionPopover>
 

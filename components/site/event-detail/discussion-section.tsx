@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Send, Smile } from "lucide-react";
+import { SendHorizontal, Smile } from "lucide-react";
 import { Post } from "@/types/posts";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
@@ -55,7 +55,7 @@ export function DiscussionSection({ event }: DiscussionSectionProps) {
           )}
         </div>
 
-        <div className="flex justify-between items-center bg-grey-100 rounded-2xl pl-4 pr-2 py-2 w-full gap-2">
+        <div className="flex justify-between items-center bg-grey-100 rounded-full pl-4 pr-2 py-2 w-full gap-2">
           <input
             type="text"
             placeholder="Write a comment…"
@@ -68,9 +68,9 @@ export function DiscussionSection({ event }: DiscussionSectionProps) {
           <div className="relative shrink-0">
             <button
               onClick={() => setShowEmoji((v) => !v)}
-              className="text-grey-400 hover:text-grey-600 transition-colors cursor-pointer"
+              className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
             >
-              <Smile size={18} />
+              <Smile size={20} />
             </button>
             {showEmoji && (
               <div className="absolute bottom-full mb-2 right-0 z-50 bg-background border border-border rounded-2xl shadow-lg p-3 w-64">
@@ -92,12 +92,9 @@ export function DiscussionSection({ event }: DiscussionSectionProps) {
           <button
             onClick={handleSubmitComment}
             disabled={!commentInput.trim()}
-            className="disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send
-              size={28}
-              className="bg-primary rounded-full p-1.5 text-primary-foreground cursor-pointer hover:opacity-90 transition-opacity"
-            />
+            <SendHorizontal size={16} className="relative left-[-0.5px]" />
           </button>
         </div>
       </section>

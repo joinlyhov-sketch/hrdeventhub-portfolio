@@ -9,6 +9,7 @@ import {
   Megaphone,
   X,
   MessageCircleMore,
+  Smile,
 } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
@@ -211,6 +212,15 @@ function AnnouncementItem({
     }
   };
 
+  const EMOJI_LIST = [
+  "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
+  "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
+  "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
+  "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
+  ];
+
+  const [showEmoji, setShowEmoji] = useState(false);
+
   return (
     <>
       <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
@@ -341,9 +351,9 @@ function AnnouncementItem({
               >
                 <span className="flex items-center gap-1.5">
                   {activeReaction ? (
-                    <TwemojiImg emoji={activeReaction.emoji} size={18} />
+                    <TwemojiImg emoji={activeReaction.emoji} size={20} />
                   ) : (
-                    <ThumbsUp size={18} />
+                    <ThumbsUp size={20} />
                   )}
                   {activeReaction?.displayText ?? "Like"}
                 </span>
@@ -353,13 +363,13 @@ function AnnouncementItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={18} /> {comments?.length ?? 0}
+              <MessageCircleMore size={20} /> {comments?.length ?? 0}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <Share2 size={18} /> Share
+              <Share2 size={20} /> Share
             </button>
           </section>
 
@@ -393,13 +403,42 @@ function AnnouncementItem({
               onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
               className="w-full bg-transparent border-none py-1.5 type-detail text-grey-900 placeholder:text-grey-400 outline-none"
             />
-            <button
-              onClick={handleSubmitComment}
-              disabled={!commentInput.trim() || isSubmittingComment}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <SendHorizontal size={16} className="relative left-[-0.5px]" />
-            </button>
+
+            <section className="flex items-center gap-x-2">
+              <div className="relative shrink-0">
+                <button
+                  onClick={() => setShowEmoji((v) => !v)}
+                  className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
+                >
+                  <Smile size={20} />
+                </button>
+                {showEmoji && (
+                  <div className="absolute bottom-full mb-2 right-0 z-50 bg-background border border-border rounded-2xl shadow-lg p-3 w-64">
+                    <div className="grid grid-cols-8 gap-1">
+                      {EMOJI_LIST.map((e) => (
+                        <button
+                          key={e}
+                          onClick={() => {
+                            setCommentInput((v) => v + e);
+                            setShowEmoji(false);
+                          }}
+                          className="text-lg hover:scale-125 transition-transform cursor-pointer flex items-center justify-center h-7 w-7"
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handleSubmitComment}
+                disabled={!commentInput.trim() || isSubmittingComment}
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <SendHorizontal size={16} className="relative left-[-0.5px]" />
+              </button>
+            </section>
           </div>
         </div>
 
