@@ -374,7 +374,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
             </button>
           </ReactionPopover>
 
-          <ReactionSummary payload={reactionPayload} />
+          {/* <ReactionSummary payload={reactionPayload} /> */}
 
           <button
             onClick={handleScrollToDiscussion}
