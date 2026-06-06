@@ -1,22 +1,24 @@
 "use server";
 import { workspaceService } from "@/service/workspace.service";
 import { CreateWorkspaceRequest, UpdateWorkspaceRequest } from "@/types/workspace-type/group";
-import { revalidateTag } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/auth";
 
 export async function createWorkspaceAction(payload: CreateWorkspaceRequest) {
-  const result = await workspaceService.create(payload);
-  revalidateTag("workspaces", "max");
-  return result;
+  return workspaceService.create(payload);
 }
 
 export async function updateWorkspaceAction(workspaceId: string, payload: UpdateWorkspaceRequest) {
-  const result = await workspaceService.update(workspaceId, payload);
-  revalidateTag("workspaces", "max");
-  return result;
+  return workspaceService.update(workspaceId, payload);
 }
 
 export async function deleteWorkspaceAction(workspaceId: string) {
-  const result = await workspaceService.remove(workspaceId);
-  revalidateTag("workspaces", "max");
-  return result;
+  return workspaceService.remove(workspaceId);
+}
+
+export async function togglePinWorkspaceAction(workspaceId: string, isPinned: boolean) {
+  const session = await getServerSession(authOptions);
+  const token = session?.accessToken || ""; 
+  
+  return workspaceService.togglePin(workspaceId, isPinned, token);
 }
