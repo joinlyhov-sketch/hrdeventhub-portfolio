@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation"; 
+import { useParams } from "next/navigation";
 
 import { Calendar, CalendarDays, FileText, Megaphone } from "lucide-react";
 
@@ -14,14 +14,12 @@ import ContentTypePopover from "@/components/site/pop-up/contents/pop-over-conte
 import { PopoverItem } from "@/components/site/pop-up/contents/pop-over-content";
 
 interface EventManagementClientProps {
-  events: EventItem[]; 
+  events: EventItem[];
   stats: StatCard[];
 }
 
 const contentMenuOptions: PopoverItem[] = [
-  { label: "Announcement", icon: Megaphone, href: "/event-management/creation/announcement" },
-  { label: "Article", icon: FileText, href: "/event-management/creation/article" },
-  { label: "Event", icon: Calendar, href: "/event-management/creation/event "},
+  { label: "Event", icon: Calendar, href: "/event-management/creation/event " },
 ];
 
 export function EventManagementClient({
@@ -29,14 +27,16 @@ export function EventManagementClient({
   stats,
 }: EventManagementClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   const params = useParams();
 
-  const workspaceId = (params.workspaceId || params.id || params.groupId) as string;
-
+  const workspaceId = (params.workspaceId ||
+    params.id ||
+    params.groupId) as string;
+  console.log("first: ", events);
   return (
     <div className="space-y-6">
-      <StatsCardsSection events={events}  stats={stats} />
+      <StatsCardsSection events={events} stats={stats} />
 
       <div className="bg-background rounded-2xl border border-gray-200 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
@@ -52,14 +52,14 @@ export function EventManagementClient({
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search for events..."
             />
-            <ContentTypePopover items={contentMenuOptions}/>
+            <ContentTypePopover items={contentMenuOptions} />
           </div>
         </div>
 
-        <EventManagementTable 
-          events={events} 
-          searchTerm={searchTerm} 
-          workspaceId={workspaceId} 
+        <EventManagementTable
+          events={events}
+          searchTerm={searchTerm}
+          workspaceId={workspaceId}
         />
       </div>
     </div>

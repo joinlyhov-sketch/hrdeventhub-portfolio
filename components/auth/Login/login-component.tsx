@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { z } from "zod";
 import { motion, Variants } from "framer-motion";
 import { loginAction } from "../../../actions/auth.action";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 
 const itemVars: Variants = {
@@ -24,7 +24,6 @@ const loginSchema = z.object({
 type LoginErrors = Partial<Record<"identifier" | "password", string>>;
 
 export default function LoginComponent() {
-  
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,12 +32,10 @@ export default function LoginComponent() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
 
-  const handleChange = (
-    field: keyof LoginErrors,
-    value: string,
-    setter: (v: string) => void,
-  ) => {
+  const handleChange = (field: keyof LoginErrors, value: string, setter: (v: string) => void) => {
     setter(value);
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
@@ -73,7 +70,7 @@ export default function LoginComponent() {
         return;
       }
       if (res?.ok) {
-        router.push("/group");
+        router.push(redirectUrl ?? "/group");
       }
     });
   };
@@ -87,12 +84,9 @@ export default function LoginComponent() {
     >
       <div className="w-[624px] rounded-[32px] border border-[#dce6f0] bg-[#f9fbff]/80 backdrop-blur-sm p-18 shadow-sm">
         <div className="mb-10 text-center">
-          <h1 className="text-[28px] font-bold tracking-tight text-[#17356f]">
-            Welcome Back !
-          </h1>
+          <h1 className="text-[28px] font-bold tracking-tight text-[#17356f]">Welcome Back !</h1>
           <p className="mt-2 text-[20px] font-semibold text-[#5f6470]">
-            Discover events with{" "}
-            <span className="text-[#1f4f98]">HRD EventHub</span>
+            Discover events with <span className="text-[#1f4f98]">HRD EventHub</span>
           </p>
           <p className="text-[14px] text-[#8a92a6] mt-1">
             Enter your credential to access the website
@@ -107,24 +101,13 @@ export default function LoginComponent() {
           )}
 
           <div className="flex flex-col gap-1">
-            <div
-              className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
-                errors.identifier ? "border-red-400" : "border-[#dce6f0]"
-              }`}
-            >
-              <Mail
-                size={18}
-                color="#b0bac9"
-                strokeWidth={2}
-                className="shrink-0"
-              />
+            <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${errors.identifier ? "border-red-400" : "border-[#dce6f0]"}`}>
+              <Mail size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
               <input
                 type="text"
                 placeholder="Email or Username"
                 value={identifier}
-                onChange={(e) =>
-                  handleChange("identifier", e.target.value, setIdentifier)
-                }
+                onChange={(e) => handleChange("identifier", e.target.value, setIdentifier)}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
               />
             </div>
@@ -132,24 +115,13 @@ export default function LoginComponent() {
           </div>
 
           <div className="flex flex-col gap-1 pt-4">
-            <div
-              className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
-                errors.password ? "border-red-400" : "border-[#dce6f0]"
-              }`}
-            >
-              <Lock
-                size={18}
-                color="#b0bac9"
-                strokeWidth={2}
-                className="shrink-0"
-              />
+            <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${errors.password ? "border-red-400" : "border-[#dce6f0]"}`}>
+              <Lock size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
-                onChange={(e) =>
-                  handleChange("password", e.target.value, setPassword)
-                }
+                onChange={(e) => handleChange("password", e.target.value, setPassword)}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
               />
               <button
@@ -173,11 +145,7 @@ export default function LoginComponent() {
               />
               <span className="text-sm text-[#4d5663]">Remember me</span>
             </label>
-
-            <a
-              href="/reset-password"
-              className="text-sm font-semibold text-[#17356f] underline underline-offset-2"
-            >
+            <a href="/reset-password" className="text-sm font-semibold text-[#17356f] underline underline-offset-2">
               Forgot password?
             </a>
           </div>
@@ -192,10 +160,7 @@ export default function LoginComponent() {
 
           <p className="text-center text-sm text-[#5f6470] pt-2">
             Don&apos;t have an account?{" "}
-            <a
-              href="/sign-up"
-              className="font-semibold text-[#17356f] underline underline-offset-2"
-            >
+            <a href="/sign-up" className="font-semibold text-[#17356f] underline underline-offset-2">
               Sign up
             </a>
           </p>

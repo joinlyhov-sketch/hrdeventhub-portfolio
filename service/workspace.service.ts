@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "@/libs/api";
+import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "@/libs/api";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
 import {
@@ -10,21 +10,20 @@ import {
   UpdateWorkspaceRequest,
   UpdateWorkspaceResponse,
   DeleteWorkspaceResponse,
+  PinWorkspaceResponse,
 } from "@/types/workspace-type/group";
 import {
-  WorkspaceMember,
   WorkspaceMemberResponse,
 } from "@/types/workspace-type/workspace-members";
 
 export const workspaceService = {
-  getAll: async (
-    token: string,
-    page: number = 1,
-    size: number = 100,
-  ): Promise<Workspace[]> => {
+  getAll: async (token: string, page: number = 1, size: number = 100): Promise<Workspace[]> => {
     const response = await apiGet<WorkspaceResponse>(
       `/workspaces?page=${page}&size=${size}`,
-      { authToken: token },
+      {
+        authToken: token,
+        next: { tags: ["workspaces"] },
+      } as any, 
     );
     return response.payload;
   },
@@ -53,7 +52,8 @@ export const workspaceService = {
   getMyWorkspaces: async (token: string): Promise<Workspace[]> => {
     const response = await apiGet<WorkspaceResponse>(`/workspaces/me`, {
       authToken: token,
-    });
+      next: { tags: ["workspaces"] },
+    } as any); 
     return response.payload;
   },
 
@@ -113,5 +113,13 @@ export const workspaceService = {
     return apiDelete<DeleteWorkspaceResponse>(`/workspaces/${workspaceId}`, {
       authToken: token,
     });
+  },
+
+  togglePin: async (workspaceId: string, isPinned: boolean, token: string) => {
+    return apiPatch<PinWorkspaceResponse>(
+      `/workspaces/${workspaceId}/pin?isPinned=${isPinned}`,
+      {},
+      { authToken: token }
+    );
   },
 };

@@ -40,7 +40,7 @@ export const REACTIONS = [
   {
     id: "like",
     label: "Like",
-    emoji: "😊",
+    emoji: "👍",
     displayText: "Like",
     color: "text-blue-500 hover:text-blue-600",
   },

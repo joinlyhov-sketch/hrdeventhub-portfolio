@@ -10,32 +10,48 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/comment-modal/textarea";
 import { Button } from "@/components/ui/button";
-import { X, PenLine, Link2, Settings2, Users2, ChevronDown } from "lucide-react";
+import {
+  X,
+  PenLine,
+  Link2,
+  Settings2,
+  Users2,
+  ChevronDown,
+} from "lucide-react";
 import { useGenerations } from "@/hooks/use-generation";
 import { createWorkspaceAction } from "@/actions/workspace.action";
 import { mutate } from "swr";
 import { z } from "zod";
 
-const createGroupSchema = z.object({
-  groupName: z.string().min(1, "Group name is required."),
-  description: z.string().min(1, "Description is required."),
-  groupType: z.enum(["internal", "external"]),
-  selectedGenerationId: z.string(),
-}).refine(
-  (data) => data.groupType === "external" || data.selectedGenerationId !== "",
-  { message: "Please select a generation.", path: ["selectedGenerationId"] }
-);
+const createGroupSchema = z
+  .object({
+    groupName: z.string().min(1, "Group name is required."),
+    description: z.string().min(1, "Description is required."),
+    groupType: z.enum(["internal", "external"]),
+    selectedGenerationId: z.string(),
+  })
+  .refine(
+    (data) => data.groupType === "external" || data.selectedGenerationId !== "",
+    { message: "Please select a generation.", path: ["selectedGenerationId"] },
+  );
 
-type FormErrors = Partial<Record<"groupName" | "description" | "selectedGenerationId", string>>;
+type FormErrors = Partial<
+  Record<"groupName" | "description" | "selectedGenerationId", string>
+>;
 
 interface CreateGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
+export default function CreateGroupModal({
+  isOpen,
+  onClose,
+}: CreateGroupModalProps) {
   const [groupName, setGroupName] = React.useState("");
-  const [groupType, setGroupType] = React.useState<"internal" | "external">("external");
+  const [groupType, setGroupType] = React.useState<"internal" | "external">(
+    "external",
+  );
   const [selectedGenerationId, setSelectedGenerationId] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [telegramChannelUrl, setTelegramChannelUrl] = React.useState("");
@@ -52,22 +68,30 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
 
   const filteredGenerations = React.useMemo(() => {
     const sorted = [...generations].sort((a, b) =>
-      b.name.localeCompare(a.name, undefined, { numeric: true })
+      b.name.localeCompare(a.name, undefined, { numeric: true }),
     );
     if (!searchQuery.trim()) return sorted;
     return sorted.filter((g) =>
-      g.name.toLowerCase().includes(searchQuery.toLowerCase())
+      g.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [generations, searchQuery]);
 
-  const selectedGeneration = generations.find((g) => g.generationId === selectedGenerationId);
+  const selectedGeneration = generations.find(
+    (g) => g.generationId === selectedGenerationId,
+  );
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (typeContainerRef.current && !typeContainerRef.current.contains(event.target as Node)) {
+      if (
+        typeContainerRef.current &&
+        !typeContainerRef.current.contains(event.target as Node)
+      ) {
         setIsOpenType(false);
       }
-      if (genContainerRef.current && !genContainerRef.current.contains(event.target as Node)) {
+      if (
+        genContainerRef.current &&
+        !genContainerRef.current.contains(event.target as Node)
+      ) {
         setIsOpenGen(false);
       }
     }
@@ -91,7 +115,12 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
   };
 
   const handleCreate = async () => {
-    const result = createGroupSchema.safeParse({ groupName, description, groupType, selectedGenerationId });
+    const result = createGroupSchema.safeParse({
+      groupName,
+      description,
+      groupType,
+      selectedGenerationId,
+    });
     if (!result.success) {
       const fieldErrors: FormErrors = {};
       result.error.issues.forEach((err) => {
@@ -120,7 +149,10 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (message.toLowerCase().includes("already exists")) {
-        setErrors((p) => ({ ...p, groupName: "A group with this name already exists." }));
+        setErrors((p) => ({
+          ...p,
+          groupName: "A group with this name already exists.",
+        }));
       }
     } finally {
       setIsSubmitting(false);
@@ -150,33 +182,48 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
 
         <div className="px-8 py-6 space-y-6 bg-white">
           <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">Group Name</label>
+            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+              Group Name
+            </label>
             <div className="relative flex items-center">
-              <PenLine className="absolute left-4 text-gray-400 pointer-events-none" size={18} />
+              <PenLine
+                className="absolute left-4 text-gray-400 pointer-events-none"
+                size={18}
+              />
               <Input
                 type="text"
                 placeholder="Enter Group Name"
                 value={groupName}
                 onChange={(e) => {
                   setGroupName(e.target.value);
-                  if (errors.groupName) setErrors((p) => ({ ...p, groupName: undefined }));
+                  if (errors.groupName)
+                    setErrors((p) => ({ ...p, groupName: undefined }));
                 }}
                 className={`h-[52px] pl-11 pr-4 rounded-xl border bg-white text-[15px] placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent transition-all ${errors.groupName ? "border-red-400" : "border-blue-100"}`}
               />
             </div>
-            {errors.groupName && <p className="text-red-500 text-[13px]">{errors.groupName}</p>}
+            {errors.groupName && (
+              <p className="text-red-500 text-[13px]">{errors.groupName}</p>
+            )}
           </div>
 
           <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">Group Type</label>
+            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+              Group Type
+            </label>
             <div ref={typeContainerRef} className="relative">
               <div className="relative flex items-center">
-                <Users2 className="absolute left-4 text-gray-400 pointer-events-none z-10" size={18} />
+                <Users2
+                  className="absolute left-4 text-gray-400 pointer-events-none z-10"
+                  size={18}
+                />
                 <div
                   onClick={() => setIsOpenType(!isOpenType)}
                   className="w-full h-[52px] pl-11 pr-10 rounded-xl border border-blue-100 bg-white text-[15px] text-gray-900 flex items-center cursor-pointer select-none transition-all"
                 >
-                  {groupType === "external" ? "External Group" : "Internal Group"}
+                  {groupType === "external"
+                    ? "External Group"
+                    : "Internal Group"}
                 </div>
                 <ChevronDown
                   onClick={() => setIsOpenType(!isOpenType)}
@@ -191,7 +238,10 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
                       setGroupType("external");
                       setSelectedGenerationId("");
                       setSearchQuery("");
-                      setErrors((p) => ({ ...p, selectedGenerationId: undefined }));
+                      setErrors((p) => ({
+                        ...p,
+                        selectedGenerationId: undefined,
+                      }));
                       setIsOpenType(false);
                     }}
                     className={`text-[15px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${groupType === "external" ? "bg-blue-50 text-[#1e3a8a] font-medium" : "text-gray-700 hover:bg-gray-50"}`}
@@ -214,18 +264,31 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
 
           {groupType === "internal" && (
             <div className="space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
-              <label className="text-[17px] font-bold text-[#1e3a8a] block">Generation</label>
+              <label className="text-[17px] font-bold text-[#1e3a8a] block">
+                Generation
+              </label>
               <div ref={genContainerRef} className="relative">
                 <div className="relative flex items-center">
-                  <Settings2 className="absolute left-4 text-gray-400 pointer-events-none z-10" size={18} />
+                  <Settings2
+                    className="absolute left-4 text-gray-400 pointer-events-none z-10"
+                    size={18}
+                  />
                   <Input
                     type="text"
-                    placeholder={selectedGeneration ? selectedGeneration.name : "Search generation..."}
+                    placeholder={
+                      selectedGeneration
+                        ? selectedGeneration.name
+                        : "Search generation..."
+                    }
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
                       setIsOpenGen(true);
-                      if (errors.selectedGenerationId) setErrors((p) => ({ ...p, selectedGenerationId: undefined }));
+                      if (errors.selectedGenerationId)
+                        setErrors((p) => ({
+                          ...p,
+                          selectedGenerationId: undefined,
+                        }));
                     }}
                     onFocus={() => setIsOpenGen(true)}
                     className={`h-[52px] pl-11 pr-10 rounded-xl border bg-white text-[15px] placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent transition-all ${errors.selectedGenerationId ? "border-red-400" : "border-blue-100"}`}
@@ -239,7 +302,9 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
                 {isOpenGen && (
                   <div className="absolute left-0 right-0 mt-1.5 z-50 bg-white border border-blue-100 rounded-xl shadow-xl max-h-[200px] overflow-y-auto unique-scrollbar p-1 animate-in fade-in slide-in-from-top-1 duration-150">
                     {filteredGenerations.length === 0 ? (
-                      <div className="text-[14px] text-gray-400 px-4 py-3 text-center">No generations found.</div>
+                      <div className="text-[14px] text-gray-400 px-4 py-3 text-center">
+                        No generations found.
+                      </div>
                     ) : (
                       filteredGenerations.map((generation) => (
                         <div
@@ -248,7 +313,10 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
                             setSelectedGenerationId(generation.generationId);
                             setSearchQuery("");
                             setIsOpenGen(false);
-                            setErrors((p) => ({ ...p, selectedGenerationId: undefined }));
+                            setErrors((p) => ({
+                              ...p,
+                              selectedGenerationId: undefined,
+                            }));
                           }}
                           className={`text-[15px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${selectedGenerationId === generation.generationId ? "bg-blue-50 text-[#1e3a8a] font-medium" : "text-gray-700 hover:bg-gray-50"}`}
                         >
@@ -259,14 +327,23 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
                   </div>
                 )}
               </div>
-              {errors.selectedGenerationId && <p className="text-red-500 text-[13px]">{errors.selectedGenerationId}</p>}
+              {errors.selectedGenerationId && (
+                <p className="text-red-500 text-[13px]">
+                  {errors.selectedGenerationId}
+                </p>
+              )}
             </div>
           )}
 
           <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">Telegram Channel</label>
+            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+              Telegram Channel
+            </label>
             <div className="relative flex items-center">
-              <Link2 className="absolute left-4 text-gray-400 pointer-events-none" size={18} />
+              <Link2
+                className="absolute left-4 text-gray-400 pointer-events-none"
+                size={18}
+              />
               <Input
                 value={telegramChannelUrl}
                 onChange={(e) => setTelegramChannelUrl(e.target.value)}
@@ -277,17 +354,22 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
           </div>
 
           <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">Description</label>
+            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+              Description
+            </label>
             <Textarea
               placeholder="Describe your group's details..."
               value={description}
               onChange={(e) => {
                 setDescription(e.target.value);
-                if (errors.description) setErrors((p) => ({ ...p, description: undefined }));
+                if (errors.description)
+                  setErrors((p) => ({ ...p, description: undefined }));
               }}
               className={`min-h-[120px] resize-none p-4 rounded-xl border bg-white text-[15px] placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent transition-all ${errors.description ? "border-red-400" : "border-blue-100"}`}
             />
-            {errors.description && <p className="text-red-500 text-[13px]">{errors.description}</p>}
+            {errors.description && (
+              <p className="text-red-500 text-[13px]">{errors.description}</p>
+            )}
           </div>
         </div>
 

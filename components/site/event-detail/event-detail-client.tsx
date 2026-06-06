@@ -28,6 +28,7 @@ import { usePaymentModalStore } from "@/store/usePaymentModalStore";
 import { reactionService } from "../../../service/post-reaction.service";
 import { useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
+import { ReactionSummary } from "../event/ReactionSummary";
 
 type PostReactionResponse = {
   success: boolean;
@@ -372,6 +373,8 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
               </span>
             </button>
           </ReactionPopover>
+
+          {/* <ReactionSummary payload={reactionPayload} /> */}
 
           <button
             onClick={handleScrollToDiscussion}
