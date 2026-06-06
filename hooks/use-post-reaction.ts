@@ -53,7 +53,6 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
 
     const isCurrentlyActive = !!selectedReaction;
 
-    // Optimistic update
     setSelectedReaction(isCurrentlyActive ? null : "like");
     setLikesCount((prev) => (isCurrentlyActive ? prev - 1 : prev + 1));
 
@@ -65,7 +64,6 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
       }
     } catch (err) {
       console.error("Failed to toggle reaction:", err);
-      // Revert on failure
       setSelectedReaction(isCurrentlyActive ? "like" : null);
       setLikesCount((prev) => (isCurrentlyActive ? prev + 1 : prev - 1));
     }
@@ -77,7 +75,6 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
     const wasAlreadyActive = !!selectedReaction;
     const previousReaction = selectedReaction;
 
-    // Optimistic update
     setSelectedReaction(reactionId);
     if (!wasAlreadyActive) setLikesCount((prev) => prev + 1);
 
@@ -88,7 +85,6 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
       await reactionService.reactPost(postId, reactionId, session.accessToken);
     } catch (err) {
       console.error("Failed to select reaction:", err);
-      // Revert on failure
       setSelectedReaction(previousReaction);
       if (!wasAlreadyActive) setLikesCount((prev) => prev - 1);
     }

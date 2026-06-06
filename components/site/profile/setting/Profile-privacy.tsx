@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Eye, Mail, Code, Phone, GraduationCap, Cake, Users } from "lucide-react";
-import { UserProfilePayload , SharingMode} from "@/types/profile-types";
+import { Eye, Mail, Code, Phone, GraduationCap, Cake, Users, BookOpen, FileText } from "lucide-react";
+import { UserProfilePayload } from "@/service/profile.service";
 import { getMediaUrl } from "@/libs/media";
 import type { VisibilityMode, SelectiveVisibility } from "./PrivacySettingsClient";
 
@@ -50,26 +50,32 @@ function getInitials(firstName: string, lastName: string): string {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
 }
 
+function isFieldVisible(
+  visibilityMode: VisibilityMode,
+  config: SelectiveVisibility,
+  field: keyof SelectiveVisibility
+): boolean {
+  if (visibilityMode === "share_all") return true;
+  if (visibilityMode === "private") return false;
+  return config[field];
+}
+
 export default function ProfilePrivacy({ profile, visibilityMode, selectiveConfig }: ProfileCardProps) {
-  const { appUser, profilePicture, generation, skills, currentStatus, socialAccount } = profile;
-  const displayName = `${appUser.firstName} ${appUser.lastName}`.trim();
-  const username = appUser.username.includes("@")
-    ? appUser.username.split("@")[0]
-    : appUser.username;
-  const initials = getInitials(appUser.firstName, appUser.lastName);
+  const { appUser, generation, skills = [], currentStatus, socialAccount = [], profilePicture, bio, major, cvResumeUrl, education = [] } = profile;
+  const displayName = `${appUser.firstName || ""} ${appUser.lastName || ""}`.trim();
+  const username = appUser.username?.includes("@") ? appUser.username.split("@")[0] : appUser.username || "user";
+  const initials = getInitials(appUser.firstName || "", appUser.lastName || "");
   const avatarUrl = profilePicture ? getMediaUrl(profilePicture) : null;
 
-  const linkedinAccount = socialAccount?.find((s) => s.platform === "linkedin" && s.url?.trim());
-  const githubAccount = socialAccount?.find((s) => s.platform === "github" && s.url?.trim());
-  const facebookAccount = socialAccount?.find((s) => s.platform === "facebook" && s.url?.trim());
-  const telegramAccount = socialAccount?.find((s) => s.platform === "telegram" && s.url?.trim());
-  const showAvatar = visibilityMode !== "private" && (visibilityMode === "share_all" || selectiveConfig.profile);
-  const showBirthdate = visibilityMode !== "private" && (visibilityMode === "share_all" || selectiveConfig.profile);
-  const showEmail = visibilityMode !== "private" && (visibilityMode === "share_all" || selectiveConfig.contactInfo);
-  const showPhone = visibilityMode !== "private" && (visibilityMode === "share_all" || selectiveConfig.contactInfo);
-  const showStatus = visibilityMode !== "private" && (visibilityMode === "share_all" || selectiveConfig.education);
-  const showSocials = visibilityMode !== "private" && (visibilityMode === "share_all" || selectiveConfig.socialAccounts);
-  const showGeneration = visibilityMode !== "private";
+  const show = (field: keyof SelectiveVisibility) => isFieldVisible(visibilityMode, selectiveConfig, field);
+
+  const linkedinAccount = socialAccount.find((s) => s.platform === "linkedin" && s.url?.trim());
+  const githubAccount = socialAccount.find((s) => s.platform === "github" && s.url?.trim());
+  const facebookAccount = socialAccount.find((s) => s.platform === "facebook" && s.url?.trim());
+  const telegramAccount = socialAccount.find((s) => s.platform === "telegram" && s.url?.trim());
+
+  const hasAnySocials = show("showSocial") && !!(linkedinAccount || githubAccount || facebookAccount || telegramAccount);
+
   if (visibilityMode === "private") {
     return (
       <>
@@ -103,8 +109,17 @@ export default function ProfilePrivacy({ profile, visibilityMode, selectiveConfi
     );
   }
 
-  const hasAnyPersonalInfo = showEmail || showBirthdate || showPhone || showStatus || showGeneration;
-  const hasAnySocials = showSocials && (linkedinAccount || githubAccount || facebookAccount || telegramAccount);
+  const hasAnyPersonalInfo =
+    show("showEmail") ||
+    show("showBirthdate") ||
+    show("showPhoneNumber") ||
+    show("showGender") ||
+    show("showGeneration") ||
+    show("showCurrentStatus") ||
+    show("showMajor") ||
+    show("showSkills") ||
+    show("showEducation") ||
+    show("showCv");
 
   return (
     <>
@@ -115,7 +130,7 @@ export default function ProfilePrivacy({ profile, visibilityMode, selectiveConfi
 
         <div className="px-4 flex flex-col items-center -mt-16 w-full relative z-10">
           <div className="w-28 h-28 rounded-full border-4 border-card overflow-hidden bg-primary/10 shadow-sm mb-3 flex items-center justify-center shrink-0">
-            {showAvatar && avatarUrl ? (
+            {show("showProfilePicture") && avatarUrl ? (
               <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             ) : (
               <span className="text-2xl font-bold text-primary">{initials}</span>
@@ -128,9 +143,9 @@ export default function ProfilePrivacy({ profile, visibilityMode, selectiveConfi
             <p className="text-[16px] text-secondary mb-3 pb-2.5 border-b border-border">
               @{username}
             </p>
-            {profile.bio && (
+            {show("showBio") && bio && (
               <p className="text-xs text-secondary text-center leading-relaxed font-medium px-4 max-w-md mx-auto italic">
-                &quot;{profile.bio}&quot;
+                &quot;{bio}&quot;
               </p>
             )}
           </div>
@@ -139,26 +154,43 @@ export default function ProfilePrivacy({ profile, visibilityMode, selectiveConfi
           {hasAnyPersonalInfo && (
             <div className="w-full space-y-3">
               <h4 className="type-subtitle-24 text-primary mb-2">Personal Information</h4>
-              {showEmail && (
+              {show("showEmail") && appUser.email && (
                 <InfoRow icon={<Mail size={16} />} text={appUser.email} />
               )}
-              {showBirthdate && (
+              {show("showBirthdate") && appUser.dateOfBirth && (
                 <InfoRow icon={<Cake size={16} />} text={formatDate(appUser.dateOfBirth)} />
               )}
-              {showGeneration && generation && (
+              {show("showGeneration") && generation && (
                 <InfoRow icon={<Users size={16} />} text={generation.name} />
               )}
-              {skills && skills.length > 0 && (
+              {show("showMajor") && major && (
+                <InfoRow icon={<BookOpen size={16} />} text={major} />
+              )}
+              {show("showSkills") && skills.length > 0 && (
                 <InfoRow icon={<Code size={16} />} text={skills.join(", ")} />
               )}
-              {showPhone && (
-                <InfoRow icon={<Phone size={16} />} text={appUser.phoneNumber || "—"} />
+              {show("showPhoneNumber") && appUser.phoneNumber && (
+                <InfoRow icon={<Phone size={16} />} text={appUser.phoneNumber} />
               )}
-              {showStatus && (
-                <InfoRow icon={<GraduationCap size={16} />} text={currentStatus || "Studying"} />
+              {show("showCurrentStatus") && currentStatus && (
+                <InfoRow icon={<GraduationCap size={16} />} text={currentStatus} />
               )}
-              {appUser.gender && (
+              {show("showGender") && appUser.gender && (
                 <InfoRow icon={<GenderIcon gender={appUser.gender} />} text={appUser.gender === "F" ? "Female" : "Male"} />
+              )}
+              {show("showCv") && cvResumeUrl && (
+                <InfoRow icon={<FileText size={16} />} text="CV / Resume available" />
+              )}
+              {show("showEducation") && education.length > 0 && (
+                <div className="space-y-2 pt-1 border-t border-border/50">
+                  {education.map((edu, i) => (
+                    <InfoRow
+                      key={i}
+                      icon={<GraduationCap size={16} />}
+                      text={`${edu.institutionAbbreviation || edu.institutionName} — ${edu.degree}`}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           )}

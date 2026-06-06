@@ -3,7 +3,7 @@
 import { useCurrentUser } from "@/context/user-context";
 import Link from "next/link";
 import Image from "next/image";
-import { Globe, Link2, LockKeyhole } from "lucide-react";
+import { Globe, LockKeyhole } from "lucide-react";
 import GroupDropDown from "../pop-up/action-button/action-button-group";
 import { Workspace } from "@/types/workspace-type/group";
 import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
@@ -38,13 +38,7 @@ export default function GroupCard({ workspace }: GroupCardProps) {
           </span>
 
           <div className="flex items-center gap-2">
-            {currentUser?.role === "admin" ? (
-              <GroupDropDown workspace={workspace} />
-            ) : (
-              <div className="p-2 rounded-full border border-[#FFD7A1] text-[#EFCF8B] hover:scale-110 transition-transform cursor-pointer">
-                <Link2 size={20} />
-              </div>
-            )}
+            <GroupDropDown workspace={workspace} userRole={currentUser?.role} />
           </div>
         </div>
 

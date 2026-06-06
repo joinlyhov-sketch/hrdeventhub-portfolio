@@ -5,6 +5,7 @@ export const announcementPostSchema = z
     title: z.string().min(1, "Announcement title is required"),
     purpose: z.string().min(1, "Purpose field is required"),
     status: z.enum(["active", "draft"]),
+    isPinned: z.boolean().default(false),
     date: z.string().min(1, "Event date selection is required"),
     startTime: z.string().min(1, "Start time parameter selection is required"),
     endTime: z.string().min(1, "End time parameter selection is required"),

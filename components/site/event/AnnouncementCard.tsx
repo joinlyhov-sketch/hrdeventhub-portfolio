@@ -4,15 +4,19 @@ import { useState } from "react";
 import Image from "next/image";
 import {
   ThumbsUp,
-  MessageSquare,
   Share2,
   SendHorizontal,
   Megaphone,
   X,
+  MessageCircleMore,
 } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import {
+  ReactionPopover,
+  REACTIONS,
+  TwemojiImg,
+} from "@/components/site/pop-up/comment/reaction";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
@@ -27,6 +31,7 @@ interface AnnouncementCardProps {
   posts: Post[];
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
+  groupid: string;
 }
 
 function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
@@ -39,7 +44,9 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
 
   return (
     <>
-      <div className={`grid ${gridClass} gap-1 rounded-[12px] overflow-hidden mb-6`}>
+      <div
+        className={`grid ${gridClass} gap-1 rounded-[12px] overflow-hidden mb-6`}
+      >
         {displayImages.map((item, index) => {
           const url = getMediaUrl(item.filePath);
           const isLast = index === 3 && remaining > 0;
@@ -68,7 +75,9 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
               )}
               {isLast && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">+{remaining + 1}</span>
+                  <span className="text-white text-2xl font-bold">
+                    +{remaining + 1}
+                  </span>
                 </div>
               )}
             </div>
@@ -91,11 +100,17 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
             <button
               className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
               disabled={previewIndex === 0}
-              onClick={(e) => { e.stopPropagation(); setPreviewIndex((p) => (p ?? 0) - 1); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewIndex((p) => (p ?? 0) - 1);
+              }}
             >
               ‹
             </button>
-            <div className="relative flex-1 h-[70vh]" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="relative flex-1 h-[70vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
               {getMediaUrl(images[previewIndex]?.filePath) && (
                 <Image
                   src={getMediaUrl(images[previewIndex].filePath)!}
@@ -109,7 +124,10 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
             <button
               className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
               disabled={previewIndex === images.length - 1}
-              onClick={(e) => { e.stopPropagation(); setPreviewIndex((p) => (p ?? 0) + 1); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewIndex((p) => (p ?? 0) + 1);
+              }}
             >
               ›
             </button>
@@ -127,18 +145,24 @@ function AnnouncementItem({
   post,
   role,
   onDelete,
+  groupId,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
+  groupId: string;
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
 
-  const { selectedReaction, likesCount, handleLikeToggle, handleReactionSelect } =
-    usePostReaction(post.postId);
-    
+  const {
+    selectedReaction,
+    likesCount,
+    handleLikeToggle,
+    handleReactionSelect,
+  } = usePostReaction(post.postId);
+
   const [commentInput, setCommentInput] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
@@ -148,7 +172,12 @@ function AnnouncementItem({
   const creator = post.creator;
   const profilePictureUrl = getMediaUrl(creator?.profilePicture);
   const initials = creator?.fullName
-    ? creator.fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? creator.fullName
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "?";
 
   const hasLocation = !!post.location?.locationName;
@@ -171,7 +200,10 @@ function AnnouncementItem({
     setIsSubmittingComment(true);
     try {
       const result = await createCommentAction(post.postId, commentInput);
-      if (result.ok) { setCommentInput(""); await refetch(); }
+      if (result.ok) {
+        setCommentInput("");
+        await refetch();
+      }
     } finally {
       setIsSubmittingComment(false);
     }
@@ -186,14 +218,18 @@ function AnnouncementItem({
               <Megaphone size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-grey-900 leading-tight">Announcement</h4>
-              <p className="text-xs font-medium text-grey-400">{post.createdAt}</p>
+              <h4 className="text-sm font-bold text-grey-900 leading-tight">
+                Announcement
+              </h4>
+              <p className="text-xs font-medium text-grey-400">
+                {post.createdAt}
+              </p>
             </div>
           </div>
           {(role === "admin" || role === "organizer") && (
             <GenericPostDropDown
               title={post.title}
-              editUrl={`/event-management/edition/announcement`}
+              editUrl={`/event-management/edition/announcement?groupId=${groupId}&postId=${post.postId}`}
               onDelete={onDelete}
             />
           )}
@@ -203,18 +239,32 @@ function AnnouncementItem({
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
               {profilePictureUrl ? (
-                <Image src={profilePictureUrl} alt={creator!.fullName} width={48} height={48} className="w-full h-full object-cover rounded-full" />
+                <Image
+                  src={profilePictureUrl}
+                  alt={creator!.fullName}
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover rounded-full"
+                />
               ) : (
-                <span className="type-desc-semibold text-primary uppercase">{initials}</span>
+                <span className="type-desc-semibold text-primary uppercase">
+                  {initials}
+                </span>
               )}
             </div>
             <div>
-              <h3 className="type-desc-semibold text-secondary">{creator?.fullName ?? "—"}</h3>
-              <p className="type-detail-small-medium text-grey-400">{post.createdAt}</p>
+              <h3 className="type-desc-semibold text-secondary">
+                {creator?.fullName ?? "—"}
+              </h3>
+              <p className="type-detail-small-medium text-grey-400">
+                {post.createdAt}
+              </p>
             </div>
           </div>
           {creator?.role && (
-            <span className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}>
+            <span
+              className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+            >
               {creator.role}
             </span>
           )}
@@ -223,34 +273,47 @@ function AnnouncementItem({
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
 
         <ExpandableText text={post.content} />
-        <p className="type-desc text-muted-foreground leading-relaxed mb-4">{post.content}</p>
 
         {hasMetaInfo && (
           <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-4">
             {hasLocation && (
               <p className="type-detail text-grey-500">
-                <span className="type-detail-semibold text-foreground">LOCATION: </span>
-                <a href={post.location!.googleMapUrl} target="_blank" rel="noopener noreferrer" className="hover:underline text-primary">
+                <span className="type-detail-semibold text-foreground">
+                  LOCATION:{" "}
+                </span>
+                <a
+                  href={post.location!.googleMapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline text-primary"
+                >
                   {post.location!.locationName}
                 </a>
               </p>
             )}
             {hasDate && (
               <p className="type-detail text-grey-500">
-                <span className="type-detail-semibold text-foreground">DATE: </span>
-                {post.eventStart}{post.eventEnd && ` — ${post.eventEnd}`}
+                <span className="type-detail-semibold text-foreground">
+                  DATE:{" "}
+                </span>
+                {post.eventStart}
+                {post.eventEnd && ` — ${post.eventEnd}`}
               </p>
             )}
             {hasPurpose && (
               <p className="type-detail text-grey-500">
-                <span className="type-detail-semibold text-foreground">PURPOSE: </span>
+                <span className="type-detail-semibold text-foreground">
+                  PURPOSE:{" "}
+                </span>
                 {post.purpose}
               </p>
             )}
           </div>
         )}
 
-        {post.media && post.media.length > 0 && <MediaGrid media={post.media} />}
+        {post.media && post.media.length > 0 && (
+          <MediaGrid media={post.media} />
+        )}
 
         {post.payment && (
           <div className="mb-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 font-medium">
@@ -261,32 +324,63 @@ function AnnouncementItem({
         )}
 
         <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
-          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
+          <ReactionPopover
+            selectedValue={selectedReaction}
+            onReactionSelect={handleReactionSelect}
+          >
             <button
               onClick={handleLikeToggle}
-              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
+                activeReaction
+                  ? `${activeReaction.color} font-semibold`
+                  : "hover:text-primary"
+              }`}
             >
-              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500" : ""} />
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="type-detail-small-medium font-normal text-grey-400">({likesCount})</span>
+              <span className="flex items-center gap-1.5">
+                {activeReaction ? (
+                  <TwemojiImg emoji={activeReaction.emoji} size={18} />
+                ) : (
+                  <ThumbsUp size={18} />
+                )}
+                {activeReaction?.displayText ?? "Like"}
+              </span>
+              <span className="text-md font-normal text-grey-400">
+                ({likesCount})
+              </span>
             </button>
           </ReactionPopover>
 
-          <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
-            <MessageSquare size={18} /> {comments?.length ?? 0}
+          <button
+            onClick={() => setShowComments(!showComments)}
+            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+          >
+            <MessageCircleMore size={18} /> {comments?.length ?? 0}
           </button>
 
-          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+          >
             <Share2 size={18} /> Share
           </button>
         </div>
 
-        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+        <div
+          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
+        >
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
             {currentUser?.profilePicture ? (
-              <Image src={currentUser.profilePicture} alt={currentUser.name || "profile"} width={40} height={40} className="w-full h-full object-cover rounded-full" />
+              <Image
+                src={currentUser.profilePicture}
+                alt={currentUser.name || "profile"}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover rounded-full"
+              />
             ) : (
-              <span className="type-desc-small-semibold text-primary uppercase">{currentUser?.avatarInitials ?? "?"}</span>
+              <span className="type-desc-small-semibold text-primary uppercase">
+                {currentUser?.avatarInitials ?? "?"}
+              </span>
             )}
           </div>
           <div className="relative grow flex items-center bg-grey-50 rounded-full pr-1.5 pl-6 py-1.5">
@@ -323,7 +417,9 @@ function AnnouncementItem({
               ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-grey-400 type-detail-medium">No comments yet. Be the first to comment!</p>
+                <p className="text-grey-400 type-detail-medium">
+                  No comments yet. Be the first to comment!
+                </p>
               </div>
             )}
           </div>
@@ -339,11 +435,22 @@ function AnnouncementItem({
   );
 }
 
-export function AnnouncementCard({ role, posts, onDeletePost }: AnnouncementCardProps) {
+export function AnnouncementCard({
+  role,
+  posts,
+  onDeletePost,
+  groupid,
+}: AnnouncementCardProps) {
   return (
     <>
       {posts.map((post) => (
-        <AnnouncementItem key={post.postId} post={post} role={role} onDelete={() => onDeletePost(post.postId)} />
+        <AnnouncementItem
+          key={post.postId}
+          post={post}
+          role={role}
+          onDelete={() => onDeletePost(post.postId)}
+          groupId={groupid}
+        />
       ))}
     </>
   );
