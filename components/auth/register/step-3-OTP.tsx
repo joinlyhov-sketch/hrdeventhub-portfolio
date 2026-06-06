@@ -131,7 +131,7 @@ export default function Step3OTP() {
 
   return (
     <motion.div
-      className="flex flex-col gap-5 w-full items-stretch px-15"
+      className="flex flex-col gap-5 w-full items-stretch px-10  "
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -139,12 +139,12 @@ export default function Step3OTP() {
         <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
           Enter Verification Code
         </h2>
-        <p className="mt-2 text-[#6e7580] text-[14px]">
+        <p className="mt-4 text-[#6e7580] text-[14px]">
           We sent a code to your email
         </p>
       </div>
 
-      <div className="flex justify-between gap-3 my-2">
+      <div className="flex justify-between gap-4 my-2">
         {otp.map((digit, index) => (
           <input
             key={index}
@@ -157,7 +157,7 @@ export default function Step3OTP() {
             value={digit}
             onChange={(e) => handleChange(e.target.value, index)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            className="h-14.5 w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
+            className="h-14 w-full border-b-2 border-[#dce6f0] bg-transparent text-center text-2xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] focus:scale-105"
           />
         ))}
       </div>

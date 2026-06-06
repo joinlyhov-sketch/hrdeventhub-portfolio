@@ -16,11 +16,11 @@ export default function ResetPasswordWizard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9 }}
-      className="mx-auto w-[715px] min-h-[600px] flex flex-col rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-10 shadow-sm"
+      className="mx-auto w-[700px] min-h-[600px] flex flex-col justify-between rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] px-10 py-12 shadow-sm"
     >
       <StepIndicator currentStep={step} />
 
-      <div className="w-full flex flex-col items-stretch">
+      <div className="w-full flex flex-col flex-1 justify-center items-stretch my-4">
         <AnimatePresence mode="wait">
           {step === 1 && <IdentifyStep key="step1" />}
           {step === 2 && <VerifyStep key="step2" />}
@@ -28,7 +28,7 @@ export default function ResetPasswordWizard() {
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center justify-center gap-4 mt-8">
+      <div className="flex items-center justify-center gap-4  ">
         <div className="h-[1px] w-[160px] bg-[#dce6f0]" />
         <span className="text-sm text-[#5f6470] whitespace-nowrap">
           Or Back to{" "}
@@ -39,7 +39,7 @@ export default function ResetPasswordWizard() {
             Login
           </button>
         </span>
-        <div className="h-[1px] w-[160px] bg-[#dce6f0]" />
+        <div className="h-[15px] w-[160px] bg-[#dce6f0]" />
       </div>
     </motion.div>
   );
@@ -47,7 +47,7 @@ export default function ResetPasswordWizard() {
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
-    <div className="mb-14 flex items-center justify-center">
+    <div className="flex items-center justify-center">
       {STEP_LABELS.map((label, i) => {
         const stepNum = i + 1;
         const isActive = currentStep >= stepNum;

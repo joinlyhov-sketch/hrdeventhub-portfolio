@@ -155,7 +155,7 @@ export default function VerifyStep() {
             value={otp[i]}
             onChange={(e) => handleChange(e.target.value, i)}
             onKeyDown={(e) => handleKeyDown(e, i)}
-            className="h-14.5 w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
+            className="h-14 w-full border-b-2 border-[#dce6f0] bg-transparent text-center text-2xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] focus:scale-105"
           />
         ))}
       </div>
