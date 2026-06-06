@@ -55,21 +55,20 @@ export default function UserTableClient({
     useState<UserData | null>(null);
 
   const uniqueGenerations = useMemo(() => {
-    const generations = users.map((user) => user.gen).filter(Boolean);
-    return Array.from(new Set(generations)).sort(
-      (a, b) => Number(a) - Number(b),
-    );
+    const generations = users
+      .map((user) => user.generation?.name)
+      .filter(Boolean);
+    return Array.from(new Set(generations)).sort();
   }, [users]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchesSearch =
         user.username.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase()) ||
-        (user.phone && user.phone.includes(search));
+        user.email.toLowerCase().includes(search.toLowerCase());
 
       const matchesGen =
-        selectedGen === "all" || user.gen.toString() === selectedGen;
+        selectedGen === "all" || user.generation?.name === selectedGen;
 
       const matchesStatus =
         selectedStatus === "all" ||
@@ -114,50 +113,68 @@ export default function UserTableClient({
   };
 
   const handleConfirmSuspend = (userId: string | number, reason: string) => {
-  const idString = userId.toString();
+    const idString = userId.toString();
 
-  startTransition(async () => {
-    try {
-      const response = await suspendUserAction(idString, reason);
+    startTransition(async () => {
+      try {
+        const response = await suspendUserAction(idString, reason);
 
-      if (response && response.success) {
-        setUsers((prev) =>
-          prev.map((u) => (u.no === idString ? { ...u, status: "Suspended" } : u))
+        if (response && response.success) {
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.no === idString ? { ...u, status: "Suspended" } : u,
+            ),
+          );
+          setSelectedUserForSuspend(null);
+        } else {
+          console.error(
+            "Backend validation rejected suspension request:",
+            response?.message,
+          );
+          alert(
+            response?.message ||
+              "Server rejected suspension execution request.",
+          );
+        }
+      } catch (err) {
+        console.error(
+          "Network crash executing suspension pipeline action:",
+          err,
         );
-        setSelectedUserForSuspend(null);
-      } else {
-        console.error("Backend validation rejected suspension request:", response?.message);
-        alert(response?.message || "Server rejected suspension execution request.");
       }
-    } catch (err) {
-      console.error("Network crash executing suspension pipeline action:", err);
-    }
-  });
-};
+    });
+  };
 
-  const handleConfirmRoleChange = (userId: string | number, role: string) => {
-    if (
-      role !== "ADMIN" &&
-      role !== "ORGANIZER" &&
-      role !== "ALUMNI" &&
-      role !== "STUDENT"
-    )
-      return;
+  const handleConfirmRoleChange = (
+    userId: string | number,
+    role: "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT",
+  ) => {
     const idString = userId.toString();
 
     startTransition(async () => {
       try {
         const response = await updateUserRoleAction(idString, role);
-        if (response.success) {
+        if (response?.success) {
           setUsers((prev) =>
             prev.map((u) => (u.no === idString ? { ...u, role: role } : u)),
           );
+          setSelectedUserForRole(null);
         }
-        setSelectedUserForRole(null);
       } catch (err) {
-        console.error("Failed to update user role:", err);
+        console.error(err);
       }
     });
+  };
+
+  const handleEditClick = (user: UserData) => {
+    const latestUser = users.find((u) => u.no === user.no);
+    setSelectedUserForRole(latestUser || user);
+  };
+
+  const extractGenNumber = (genName: string | undefined | null) => {
+    if (!genName) return "N/A";
+    const match = genName.match(/\d+/);
+    return match ? match[0] : genName;
   };
 
   return (
@@ -179,7 +196,7 @@ export default function UserTableClient({
         <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <TableHeader>
             <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
-              <TableHead className="px-1 py-3 text-white text-center w-[5%] font-semibold">
+              <TableHead className="px-1 py-3 text-white text-center w-[10%] font-semibold">
                 No.
               </TableHead>
               <TableHead className="px-6 py-3 text-white w-[20%] font-semibold">
@@ -195,12 +212,15 @@ export default function UserTableClient({
                 Gender
               </TableHead>
 
-              <TableHead className="px-1 py-3 text-center text-white w-[14%]">
+              <TableHead className="px-1 py-3 text-center text-white w-[15%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
                       <span className="truncate">
-                        Gen {selectedGen !== "all" ? `(${selectedGen})` : ""}
+                        Gen{" "}
+                        {selectedGen !== "all"
+                          ? `(${selectedGen.replace(/\D/g, "")})`
+                          : ""}
                       </span>
                       <ArrowUp size={16} className="shrink-0" />
                       <ListFilter size={16} className="shrink-0" />
@@ -226,7 +246,7 @@ export default function UserTableClient({
                           value={gen.toString()}
                           className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                         >
-                          Generation {gen}
+                          {extractGenNumber(gen.toString())}
                         </DropdownMenuRadioItem>
                       ))}
                     </DropdownMenuRadioGroup>
@@ -234,7 +254,7 @@ export default function UserTableClient({
                 </DropdownMenu>
               </TableHead>
 
-              <TableHead className="px-1 py-3 text-center text-white w-[14%]">
+              <TableHead className="px-1 py-3 text-center text-white w-[15%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
@@ -275,7 +295,7 @@ export default function UserTableClient({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableHead>
-              <TableHead className="px-1 py-3 text-white w-[12%] font-semibold">
+              <TableHead className="px-1 py-3 text-white w-[15%] font-semibold">
                 Action
               </TableHead>
             </TableRow>
@@ -294,7 +314,7 @@ export default function UserTableClient({
                     key={user.no}
                     user={user}
                     index={sequentialRowNumber}
-                    onEditRole={(u) => setSelectedUserForRole(u)}
+                    onEditRole={handleEditClick}
                     onToggleSuspend={handleActionClick}
                   />
                 );
@@ -334,7 +354,7 @@ export default function UserTableClient({
         <EditRoleModal
           user={selectedUserForRole}
           onClose={() => setSelectedUserForRole(null)}
-          onSave={(id, role) => handleConfirmRoleChange(id, role)}
+          onSave={handleConfirmRoleChange}
         />
       )}
 

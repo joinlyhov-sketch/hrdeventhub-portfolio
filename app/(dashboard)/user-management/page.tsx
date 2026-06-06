@@ -1,19 +1,9 @@
 import { User2 } from "lucide-react";
 import UserTableClient from "@/components/dashboard/user-management/UserTable";
 import { getAllUsersAction } from "@/actions/user.action";
-import { ApiUser, UserData, mapApiUserToUserData } from "@/types/user-management-type/user";
 
 export default async function UserManagementPage() {
-  let initialUsers: UserData[] = [];
-  
-  try {
-    const response: ApiUser[] = await getAllUsersAction();
-    if (Array.isArray(response)) {
-      initialUsers = response.map((user, index) => mapApiUserToUserData(user, index));
-    }
-  } catch (error) {
-    console.error("Failed to load admin dashboard users:", error);
-  }
+  const initialUsers = await getAllUsersAction();
 
   return (
     <div className="w-full max-w-[1400px] mx-auto p-6 bg-white rounded-3xl border border-gray-100 shadow-sm space-y-6">

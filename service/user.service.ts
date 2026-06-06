@@ -59,4 +59,13 @@ export const userService = {
       { authToken: token },
     );
   },
+
+  getUserById: async (userId: string): Promise<SingleUserApiResponse> => {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken;
+
+    return apiGet<SingleUserApiResponse>(`/admin/users/${userId}`, {
+      authToken: token,
+    });
+  },
 };

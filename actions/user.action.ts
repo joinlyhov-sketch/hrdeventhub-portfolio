@@ -1,18 +1,28 @@
 "use server";
 
 import { userService } from "@/service/user.service";
+import { UserData } from "@/types/user-management-type/user";
 import { revalidateTag } from "next/cache";
 
-export async function getAllUsersAction() {
+export async function getAllUsersAction(): Promise<UserData[]> {
   try {
-    return await userService.getAll();
+    const rawUsers = await userService.getAll();
+
+    return rawUsers.map((u) => ({
+      ...u,
+      no: u.appUserId,
+      status: u.active ? "Active" : "Suspended",
+      gen: u.generation?.name || "N/A",
+      phone: u.phoneNumber,
+    }));
   } catch (error) {
-    console.error("Server Action Fetch Error [getAllUsersAction]:", error);
+    console.error("Fetch Error:", error);
     return [];
   }
 }
 
 export async function suspendUserAction(userId: string, reason: string) {
+  console.log("Sending to backend:", { reason });
   try {
     const result = await userService.suspend(userId, { reason });
     revalidateTag("users", "max");
@@ -59,6 +69,19 @@ export async function updateUserRoleAction(
     return {
       success: false,
       message: error.message || "Failed to update role.",
+    };
+  }
+}
+
+export async function getUserByIdAction(userId: string) {
+  try {
+    const result = await userService.getUserById(userId);
+    return result;
+  } catch (error: any) {
+    console.error("Server Action Failure [getUserByIdAction]:", error);
+    return {
+      success: false,
+      message: error.message || "Failed to fetch user.",
     };
   }
 }

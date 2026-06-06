@@ -40,17 +40,27 @@ export default function SuspendModal({
   onConfirm,
 }: SuspendModalProps) {
   const [selectedReason, setSelectedReason] = useState<string>("");
+  const profileSrc =
+    user.profilePicture && user.profilePicture.trim() !== ""
+      ? user.profilePicture
+      : null;
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-4xl p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150">
         <div className="bg-[#F8FAFC] px-8 py-3 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <img
-              src={user.avatar}
-              alt=""
-              className="w-12 h-12 rounded-full object-cover"
-            />
+            {profileSrc ? (
+              <img
+                src={profileSrc}
+                alt={user.username}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-xl font-medium text-white">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div>
               <h4 className="font-bold text-slate-800 text-base">
                 {user.username}
@@ -81,10 +91,10 @@ export default function SuspendModal({
                   {REASON_MAPPING.map((option) => (
                     <SelectItem
                       key={option.value}
-                      value={option.value} 
+                      value={option.value}
                       className="px-6 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
                     >
-                      {option.label} 
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -104,15 +114,19 @@ export default function SuspendModal({
 
           <div className="flex items-center justify-center gap-4 pt-4 w-full">
             <CancelButton onClick={onClose} />
-            
-            <div 
+
+            <div
               className="inline-block shrink-0"
               onMouseDown={(e) => {
                 e.preventDefault();
                 onConfirm(user.no, selectedReason || "OTHER");
               }}
             >
-              <SuspendButton onClick={() => {}} />
+              <SuspendButton onClick={() => {
+                console.log(
+                    `Suspend — User: ${user.username} (ID: ${user.no}) | Reason: ${selectedReason || "OTHER"}`,
+                  );
+              }} />
             </div>
           </div>
         </div>

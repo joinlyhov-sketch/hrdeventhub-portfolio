@@ -24,6 +24,17 @@ export default function UserRow({
     typeof index === "number" && !isNaN(index) ? index + 1 : 1,
   );
 
+  const profileSrc =
+    user.profilePicture && user.profilePicture.trim() !== ""
+      ? user.profilePicture
+      : null;
+
+  const getGenerationNumber = (genName: string | undefined) => {
+    if (!genName) return "N/A";
+    const match = genName.match(/\d+/);
+    return match ? match[0] : genName; 
+  };
+
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
       <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%]">
@@ -31,14 +42,18 @@ export default function UserRow({
       </TableCell>
 
       <TableCell className="px-3 py-3 type-desc text-gray-500 w-[18%]">
-        <div className="flex items-center gap-3 truncate">
-          <Image
-            src={user.avatar}
-            alt={user.username}
-            width={32}
-            height={32}
-            className="w-8 h-8 rounded-full object-cover shrink-0"
-          />
+        <div className="flex items-center gap-2 truncate">
+          {profileSrc ? (
+            <img
+              src={profileSrc}
+              alt={user.username}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[15px] font-medium text-white">
+              {user.username.charAt(0).toUpperCase()}
+            </div>
+          )}
           <span className="truncate">{user.username}</span>
         </div>
       </TableCell>
@@ -48,7 +63,7 @@ export default function UserRow({
       </TableCell>
 
       <TableCell className="px-6 py-3 type-desc text-gray-500 w-[13%] truncate text-center">
-        {user.phone}
+        {user.phoneNumber}
       </TableCell>
 
       <TableCell className="px-6 py-3 type-desc text-gray-500 w-[10%] truncate text-center">
@@ -56,13 +71,13 @@ export default function UserRow({
       </TableCell>
 
       <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] truncate">
-        Gen {user.gen}
+        {getGenerationNumber(user.generation?.name) || "N/A"}
       </TableCell>
 
       <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[15%]">
         <div className="flex items-center justify-center w-full">
           <span
-            className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium shrink-0 min-w-[90px] ${
+            className={`inline-flex items-center justify-center gap-1 px-1.5 py-1 rounded-full text-xs font-medium shrink-0 min-w-[60px] ${
               isActive
                 ? "bg-[#E6F9F1] text-accent"
                 : "bg-[#FEECEB] text-[#EA1D24]"
@@ -76,12 +91,16 @@ export default function UserRow({
         </div>
       </TableCell>
 
-      <TableCell className="px-8 py-3 text-sm w-[10%] text-left">
+      <TableCell className="px-8 py-3 text-sm w-[15%] items-center text-center">
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => onEditRole(user)}
-            className="text-slate-600 hover:text-blue-900 transition-colors cursor-pointer shrink-0"
+            onClick={() => isActive && onEditRole(user)}
+            className={`transition-colors shrink-0 ${
+              isActive
+                ? "text-slate-600 hover:text-blue-900 cursor-pointer"
+                : "opacity-30 cursor-not-allowed"
+            }`}
           >
             <Image src={"/edit.svg"} alt="edit" width={18} height={18} />
           </button>

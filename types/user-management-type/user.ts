@@ -1,4 +1,11 @@
-// types/user-management-type/user.ts
+export interface Generation {
+  generationId: string;
+  name: string;
+  year: string;
+  isCurrent: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface ApiUser {
   appUserId: string;
@@ -9,38 +16,25 @@ export interface ApiUser {
   gender: string;
   dateOfBirth: string;
   phoneNumber: string;
+  profilePicture: string;
+  generation: Generation;
   active: boolean;
   verified: boolean;
   telegramSubscribed: boolean;
-  role?: "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT"; 
   createdAt: string;
   updatedAt: string;
+  role: "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT";
+}
+
+export interface UserData extends ApiUser {
+  no: string; 
+  status: "Active" | "Suspended"; 
+  gen: string;
+  phone: string;
 }
 
 export interface ApiResponse {
+  success: boolean;
+  message: string;
   payload: ApiUser[];
 }
-
-export interface UserData {
-  no: string;         
-  username: string;
-  email: string;
-  phone: string;      
-  gender: string;
-  gen: number;        
-  status: "Active" | "Suspended"; 
-  role: "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT"; 
-  avatar: string;
-}
-
-export const mapApiUserToUserData = (apiUser: ApiUser, index: number): UserData => ({
-  no: apiUser.appUserId,
-  username: apiUser.username || `${apiUser.firstName || ""} ${apiUser.lastName || ""}`.trim() || "Unknown User",
-  email: apiUser.email,
-  phone: apiUser.phoneNumber || "—",
-  gender: apiUser.gender || "Unknown",
-  gen: (index % 3) + 1, 
-  status: apiUser.active ? "Active" : "Suspended",
-  role: apiUser.role || "STUDENT", 
-  avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(apiUser.username || 'User')}`,
-});
