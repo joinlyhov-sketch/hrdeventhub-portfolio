@@ -29,16 +29,11 @@ import { reactionService } from "../../../service/post-reaction.service";
 import { useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
 import { ReactionSummary } from "../event/ReactionSummary";
+import { ReactionItem } from "@/hooks/use-post-reaction";
 
 type PostReactionResponse = {
   success: boolean;
-  payload: {
-    reactionId: string;
-    type: string;
-    createdAt: string;
-    postId: string;
-    appUserId: string;
-  }[];
+  payload: ReactionItem[];
 };
 
 type Tab = "details" | "price" | "map";
@@ -60,6 +55,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const [reactionPayload, setReactionPayload] = useState<ReactionItem[]>([]);
 
   const discussionRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +93,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         )) as PostReactionResponse;
 
         const userReaction = data.payload?.find(
-          (r) => r.appUserId === currentUser.id,
+          (r) => r.reactor.appUserId === currentUser.id,
         );
 
         if (userReaction) {
@@ -113,6 +109,8 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
             likesCount: data.payload.length,
           }));
         }
+
+        setReactionPayload(data.payload ?? []);
       } catch (err) {
         console.error("Failed to fetch post reaction:", err);
       }
@@ -157,6 +155,23 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
     }));
     setSelectedReaction(isCurrentlyActive ? null : "like");
 
+    setReactionPayload((prev) =>
+      isCurrentlyActive
+        ? prev.filter((r) => r.reactor.appUserId !== currentUser?.id)
+        : [
+            ...prev,
+            {
+              reactionId: "temp",
+              type: "like",
+              createdAt: "",
+              postId: event.postId,
+              reactor: {
+                appUserId: currentUser?.id ?? "",
+              }
+            },
+          ],
+    );
+
     try {
       if (isCurrentlyActive) {
         await reactionService.removeReactionPost(
@@ -195,6 +210,21 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       isLikedByUser: true,
       likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
     }));
+    setReactionPayload((prev) => {
+      const without = prev.filter((r) => r.reactor.appUserId !== currentUser?.id);
+      return [
+        ...without,
+        {
+          reactionId: "temp",
+          type: reactionId,
+          createdAt: "",
+          postId: event.postId,
+          reactor: {
+            appUserId: currentUser?.id ?? "",
+          }
+        },
+      ];
+    });
 
     try {
       if (wasAlreadyActive) {
@@ -234,14 +264,14 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
         <section className="flex justify-between items-center">
           <div className="flex items-center gap-x-3">
-            <div className="w-10 h-10 rounded-full bg-grey-200 border border-border flex items-center justify-center font-bold text-primary uppercase">
+            <div className="w-10 h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary uppercase">
               {event?.title?.slice(0, 2) || "EV"}
             </div>
             <div>
-              <p className="type-desc-semibold text-secondary">
+              <p className="text-subtitle font-medium text-secondary">
                 {isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team"}
               </p>
-              <p className="type-detail-small-medium text-muted-foreground">
+              <p className="text-desc-small-semibold font-medium text-muted-foreground">
                 {formattedCreationDate}
               </p>
             </div>
@@ -262,12 +292,12 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           </div>
         </section>
 
-        <h2 className="type-title text-grey-900">
+        <h2 className="type-title text-secondary">
           {event?.title || "Event Detail"}
         </h2>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative group aspect-video md:h-[350px] w-full rounded-xl overflow-hidden bg-grey-50 border border-border">
+          <div className="relative group aspect-video md:h-87.5 w-full rounded-xl overflow-hidden bg-grey-50 border border-border">
             <Image
               unoptimized
               src={mediaList[currentImgIndex]}
@@ -349,47 +379,46 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           </div>
         </section>
 
-        <section className="flex gap-x-6 py-2 border-b border-border text-grey-400 type-detail">
-          <ReactionPopover
-            selectedValue={selectedReaction}
-            onReactionSelect={handleReactionSelect}
-          >
-            <button
-              onClick={handleLikeToggle}
-              className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${
-                activeReaction
-                  ? `${activeReaction.color} font-semibold`
-                  : "hover:text-primary"
-              }`}
-            >
-              {activeReaction ? (
-                <TwemojiImg emoji={activeReaction.emoji} size={18} />
-              ) : (
-                <ThumbsUp size={18} />
-              )}
-              {activeReaction ? activeReaction.displayText : "Like"}
-              <span className="text-md font-medium text-grey-500">
-                {detailData.likesCount}
-              </span>
-            </button>
-          </ReactionPopover>
-
-          <ReactionSummary payload={reactionPayload} />
-
-          <button
-            onClick={handleScrollToDiscussion}
-            className="flex items-center gap-x-1.5 text-grey-500 font-medium hover:text-primary transition-colors cursor-pointer"
-          >
-            <MessageCircleMore size={16} className="text-grey-400" />
-            {detailData.commentsCount}
-          </button>
-
-          <button
-            onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-x-1.5 hover:text-primary cursor-pointer"
-          >
-            <Share2 size={16} /> Share
-          </button>
+        <section className="flex py-2 justify-between items-center border-b border-border text-grey-400 type-detail">
+          <section className="flex items-center justify-between py-2 w-[50%] pr-3">
+            <section className="flex gap-x-6 items-center">
+              <ReactionPopover
+                selectedValue={selectedReaction}
+                onReactionSelect={handleReactionSelect}
+              >
+                <button
+                  onClick={handleLikeToggle}
+                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${
+                    activeReaction
+                      ? `${activeReaction.color} font-semibold`
+                      : "hover:text-primary"
+                  }`}
+                >
+                  {activeReaction ? (
+                    <TwemojiImg emoji={activeReaction.emoji} size={20} />
+                  ) : (
+                    <ThumbsUp size={20} />
+                  )}
+                  {activeReaction ? activeReaction.displayText : "Like"}
+                </button>
+              </ReactionPopover>
+              <button
+                onClick={handleScrollToDiscussion}
+                className="flex items-center gap-x-1.5 text-grey-500 font-medium hover:text-primary transition-colors cursor-pointer"
+              >
+                <MessageCircleMore size={20} className="text-grey-400" />
+                {detailData.commentsCount}
+              </button>
+              <button
+                onClick={() => setIsShareOpen(true)}
+                className="flex items-center gap-x-1.5 hover:text-primary cursor-pointer"
+              >
+                <Share2 size={20} /> Share
+              </button>
+            </section>
+            
+            <ReactionSummary payload={reactionPayload} />
+          </section>
         </section>
 
         {isAdminOrOrganizer ? (

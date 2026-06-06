@@ -3,12 +3,17 @@ import { useSession } from "next-auth/react";
 import { useCurrentUser } from "@/context/user-context";
 import { reactionService } from "@/service/post-reaction.service";
 
-type ReactionItem = {
+export type ReactionItem = {
   reactionId: string;
   type: string;
   createdAt: string;
   postId: string;
-  appUserId: string;
+  reactor: {
+    appUserId: string;
+    firstName?: string;
+    lastName?: string;
+    profileImage?: string;
+  };
 };
 
 type PostReactionResponse = {
@@ -39,7 +44,7 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
         setLikesCount(data.payload.length);
 
         const userReaction = data.payload?.find(
-          (r) => r.appUserId === currentUser.id,
+          (r) => r.reactor.appUserId === currentUser.id,
         );
         if (userReaction) setSelectedReaction(userReaction.type);
       } catch (err) {
@@ -59,8 +64,17 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
     setLikesCount((prev) => (isCurrentlyActive ? prev - 1 : prev + 1));
     setReactionPayload((prev) =>
       isCurrentlyActive
-        ? prev.filter((r) => r.appUserId !== currentUser?.id)
-        : [...prev, { reactionId: "temp", type: "like", createdAt: "", postId, appUserId: currentUser?.id ?? "" }]
+        ? prev.filter((r) => r.reactor.appUserId !== currentUser?.id)
+        : [
+            ...prev,
+            {
+              reactionId: "temp",
+              type: "like",
+              createdAt: "",
+              postId,
+              reactor: { appUserId: currentUser?.id ?? "", firstName: currentUser?.name?.split(" ")[0] ?? "", lastName: currentUser?.name?.split(" ").slice(1).join(" ") ?? "", profileImage: currentUser?.profilePicture ?? "" },
+            },
+          ],
     );
 
     try {
@@ -75,8 +89,17 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
       setLikesCount((prev) => (isCurrentlyActive ? prev + 1 : prev - 1));
       setReactionPayload((prev) =>
         isCurrentlyActive
-          ? [...prev, { reactionId: "temp", type: "like", createdAt: "", postId, appUserId: currentUser?.id ?? "" }]
-          : prev.filter((r) => r.appUserId !== currentUser?.id)
+          ? [
+              ...prev,
+              {
+                reactionId: "temp",
+                type: "like",
+                createdAt: "",
+                postId,
+                reactor: { appUserId: currentUser?.id ?? "", firstName: currentUser?.name?.split(" ")[0] ?? "", lastName: currentUser?.name?.split(" ").slice(1).join(" ") ?? "", profileImage: currentUser?.profilePicture ?? "" },
+              },
+            ]
+          : prev.filter((r) => r.reactor.appUserId !== currentUser?.id),
       );
     }
   };
@@ -89,8 +112,17 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
 
     setSelectedReaction(reactionId);
     setReactionPayload((prev) => {
-      const without = prev.filter((r) => r.appUserId !== currentUser?.id);
-      return [...without, { reactionId: "temp", type: reactionId, createdAt: "", postId, appUserId: currentUser?.id ?? "" }];
+      const without = prev.filter((r) => r.reactor.appUserId !== currentUser?.id);
+      return [
+        ...without,
+        {
+          reactionId: "temp",
+          type: reactionId,
+          createdAt: "",
+          postId,
+          reactor: { appUserId: currentUser?.id ?? "", firstName: currentUser?.name?.split(" ")[0] ?? "", lastName: currentUser?.name?.split(" ").slice(1).join(" ") ?? "", profileImage: currentUser?.profilePicture ?? "" },
+        },
+      ];
     });
     if (!wasAlreadyActive) setLikesCount((prev) => prev + 1);
 
@@ -103,9 +135,18 @@ export function usePostReaction(postId: string, initialLikesCount = 0) {
       console.error("Failed to select reaction:", err);
       setSelectedReaction(previousReaction);
       setReactionPayload((prev) => {
-        const without = prev.filter((r) => r.appUserId !== currentUser?.id);
+        const without = prev.filter((r) => r.reactor.appUserId !== currentUser?.id);
         return previousReaction
-          ? [...without, { reactionId: "temp", type: previousReaction, createdAt: "", postId, appUserId: currentUser?.id ?? "" }]
+          ? [
+              ...without,
+              {
+                reactionId: "temp",
+                type: previousReaction,
+                createdAt: "",
+                postId,
+                reactor: { appUserId: currentUser?.id ?? "", firstName: currentUser?.name?.split(" ")[0] ?? "", lastName: currentUser?.name?.split(" ").slice(1).join(" ") ?? "", profileImage: currentUser?.profilePicture ?? "" },
+              },
+            ]
           : without;
       });
       if (!wasAlreadyActive) setLikesCount((prev) => prev - 1);
