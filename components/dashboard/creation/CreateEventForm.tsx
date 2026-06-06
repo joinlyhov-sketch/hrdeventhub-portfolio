@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller, useWatch, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,23 +14,34 @@ import {
   Link as LinkIcon,
   Layers,
   Target,
+  Building2,
 } from "lucide-react";
 
 import { Breadcrumb } from "../BreadCrumb";
 import { FormInput } from "../FormInput";
 import MediaUpload from "../MediaUpload";
+
 import { Button } from "../../ui/button";
 import { CreationTabs } from "../CreationTab";
 import { FormTextarea } from "../FormTextarea";
 import { createPostAction } from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
 import { CreatePostPayload } from "@/types/post-types";
+import { getAllWorkspacesAction } from "@/actions/workspace.action";
+import SearchableSelect, {
+  SearchableSelectOption,
+} from "@/components/site/event/SearchableSelect";
 
 export default function CreateEventForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const workspaceId = params.get("groupId") || "";
+  const [select, setSelect] = useState(false);
+
+  const urlWorkspaceId = params.get("groupId") || "";
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [workspaces, setWorkspaces] = useState<SearchableSelectOption[]>([]);
+  const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false);
 
   const {
     register,
@@ -53,12 +64,50 @@ export default function CreateEventForm() {
       targetGoal: 0,
       description: "",
       media: [],
+      workspaceId: "",
     },
   });
 
+  const watchedWorkspaceId = useWatch({ control, name: "workspaceId" });
+
+  const activeWorkspaceId: string = (urlWorkspaceId ||
+    watchedWorkspaceId) as string;
+
+  useEffect(() => {
+    async function loadWorkspaces() {
+      if (urlWorkspaceId) return;
+
+      setIsLoadingWorkspaces(true);
+      try {
+        const res = await getAllWorkspacesAction();
+        if (Array.isArray(res)) {
+          const formatted: SearchableSelectOption[] = res.map((ws: any) => ({
+            id: ws.id || ws.workspaceId,
+            label: ws.label || ws.name || ws.title || "Unnamed Workspace",
+          }));
+
+          formatted.sort((a, b) =>
+            a.label.localeCompare(b.label, undefined, {
+              numeric: true,
+              sensitivity: "base",
+            }),
+          );
+
+          setWorkspaces(formatted);
+        }
+      } catch (err) {
+        console.error("Failed to load user operational workspaces:", err);
+        toast.error("Could not load your workspace parameters.");
+      } finally {
+        setIsLoadingWorkspaces(false);
+      }
+    }
+
+    loadWorkspaces();
+  }, [urlWorkspaceId]);
+
   function getCoordinatesFromGoogleMapsUrl(url: string) {
     const placeMatch = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
-
     if (placeMatch) {
       return {
         latitude: Number(placeMatch[1]),
@@ -67,7 +116,6 @@ export default function CreateEventForm() {
     }
 
     const viewportMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-
     if (viewportMatch) {
       return {
         latitude: Number(viewportMatch[1]),
@@ -75,10 +123,7 @@ export default function CreateEventForm() {
       };
     }
 
-    return {
-      latitude: 0,
-      longitude: 0,
-    };
+    return { latitude: 0, longitude: 0 };
   }
 
   const watchedStatus = useWatch({
@@ -88,8 +133,9 @@ export default function CreateEventForm() {
   });
 
   const onSubmit = async (data: EventPostFormValues) => {
-    if (!workspaceId) {
-      alert("Error: Workspace context identification parameters are missing.");
+    if (!urlWorkspaceId && !data.workspaceId) {
+      toast.error("Please select a target workspace destination group!");
+      setSelect(true);
       return;
     }
 
@@ -133,21 +179,17 @@ export default function CreateEventForm() {
       },
     };
 
-    console.log(
-      "PRE-FLIGHT OUTGOING OBJECT VERIFICATION CHECK:",
-      JSON.stringify(payload, null, 2),
-    );
-
     try {
-      const result = await createPostAction(workspaceId, payload);
+      const result = await createPostAction(activeWorkspaceId, payload);
       if (result.ok) {
         toast.success("Event created successfully!");
-        router.push(`/group/${workspaceId}`);
+        router.push(`/group/${activeWorkspaceId}`);
       } else {
         toast.error(`Creation failed: ${result.error}`);
       }
     } catch (err) {
       console.error(err);
+      toast.error("An unexpected runtime error occurred.");
     } finally {
       setIsSubmitting(false);
     }
@@ -155,7 +197,10 @@ export default function CreateEventForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
-      <Breadcrumb label="Event Creation" backHref={`/group/${workspaceId}`} />
+      <Breadcrumb
+        label="Event Creation"
+        backHref={`/group/${activeWorkspaceId || ""}`}
+      />
 
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col grow mb-4">
         <div className="p-5 md:px-1 lg:px-10 border-b border-slate-50">
@@ -166,10 +211,47 @@ export default function CreateEventForm() {
             Fill in the details below to publish your next conference or
             workshop.
           </p>
-          <CreationTabs groupid={workspaceId} />
+          <CreationTabs groupid={activeWorkspaceId || ""} />
         </div>
 
         <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 grow">
+          {!urlWorkspaceId && (
+            <div className="border-slate-200/60 rounded-2xl transition-all animate-in fade-in slide-in-from-top-2 duration-300 ">
+              <label className="flex items-center gap-2 mb-2 tracking-wide text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                Target Workspace Destination
+                <span className="text-red-500">*</span>
+              </label>
+              {isLoadingWorkspaces ? (
+                <div className="text-xs text-slate-500 font-medium animate-pulse py-2">
+                  Querying workspace directories...
+                </div>
+              ) : (
+                <Controller
+                  control={control}
+                  name="workspaceId"
+                  rules={{
+                    required: "Workspace target group selection is required",
+                  }}
+                  render={({ field }) => (
+                    <SearchableSelect
+                      options={workspaces}
+                      value={field.value}
+                      placeholder="Choose your workspace target..." // Clear placeholder direction
+                      icon={<Building2 size={18} />}
+                      error={select}
+                      onChange={(value) => field.onChange(value)}
+                    />
+                  )}
+                />
+              )}
+              {select == true && (
+                <p className="text-red-500 text-xs mt-1">
+                  Please select a target workspace destination group!
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-12 gap-y-5 md:gap-y-6">
             <div>
               <FormInput
@@ -383,7 +465,7 @@ export default function CreateEventForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${workspaceId}`)}
+          onClick={() => router.push(`/group/${activeWorkspaceId}`)}
           className="order-2 sm:order-1 w-full sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
         >
           Cancel
