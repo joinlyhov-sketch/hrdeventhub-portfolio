@@ -3,14 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ThumbsUp, MessageSquare, Share2, SendHorizontal } from "lucide-react";
+import { ThumbsUp, Share2, SendHorizontal, MessageCircleMore } from "lucide-react";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
-import {
-  ReactionPopover,
-  REACTIONS,
-} from "@/components/site/pop-up/comment/reaction";
+import { ReactionPopover, REACTIONS, TwemojiImg } from "@/components/site/pop-up/comment/reaction";
 import { Post } from "@/types/posts";
 import { getMediaUrl } from "@/libs/media";
 import ExpandableText from "./ExpandableText";
@@ -18,6 +15,7 @@ import { usePostReaction } from "@/hooks/use-post-reaction";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
+import { ReactionSummary } from "./ReactionSummary";
 
 interface EventCardProps {
   role: UserRole;
@@ -47,6 +45,7 @@ function EventItem({
     likesCount,
     handleLikeToggle,
     handleReactionSelect,
+    reactionPayload,
   } = usePostReaction(post.postId);
 
   const [commentInput, setCommentInput] = useState("");
@@ -229,41 +228,36 @@ function EventItem({
           </div>
         </div>
 
-        <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
-          <ReactionPopover
-            selectedValue={selectedReaction}
-            onReactionSelect={handleReactionSelect}
-          >
-            <button
-              onClick={handleLikeToggle}
-              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center gap-6 py-4">
+            <ReactionPopover
+              selectedValue={selectedReaction}
+              onReactionSelect={handleReactionSelect}
             >
-              <ThumbsUp
-                size={18}
-                className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
-              />
-              <span>
-                {activeReaction ? activeReaction.displayText : "Like"}
-              </span>
-              <span className="type-detail-small-medium font-normal text-grey-400">
-                ({likesCount})
-              </span>
+              <button
+                onClick={handleLikeToggle}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+              >
+                {activeReaction ? (
+                  <TwemojiImg emoji={activeReaction.emoji} size={18} />
+                ) : (
+                  <ThumbsUp size={18} />
+                )}
+                <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+              </button>
+            </ReactionPopover>
+            <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer">
+              <MessageCircleMore size={18} /> {comments?.length ?? 0 }
             </button>
-          </ReactionPopover>
+            <button
+              onClick={() => setIsShareOpen(true)}
+              className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+            >
+              <Share2 size={18} /> Share
+            </button>
+          </section>
 
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
-          >
-            <MessageSquare size={18} /> {comments?.length ?? 0}
-          </button>
-
-          <button
-            onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
-          >
-            <Share2 size={18} /> Share
-          </button>
+          <ReactionSummary payload={reactionPayload} />
         </div>
 
         <div

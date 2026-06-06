@@ -2,12 +2,18 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ThumbsUp, MessageSquare, Share2, SendHorizontal } from "lucide-react";
+import {
+  ThumbsUp,
+  Share2,
+  SendHorizontal,
+  MessageCircleMore,
+} from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 import {
   ReactionPopover,
   REACTIONS,
+  TwemojiImg,
 } from "@/components/site/pop-up/comment/reaction";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
@@ -16,6 +22,8 @@ import ExpandableText from "./ExpandableText";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
+import { usePostReaction } from "@/hooks/use-post-reaction";
+import { ReactionSummary } from "./ReactionSummary";
 
 interface ArticleCardProps {
   role: UserRole;
@@ -39,8 +47,13 @@ function ArticleItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [likesCount, setLikesCount] = useState(0);
+  const {
+    selectedReaction,
+    likesCount,
+    reactionPayload,
+    handleLikeToggle,
+    handleReactionSelect,
+  } = usePostReaction(post.postId);
   const [commentInput, setCommentInput] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
@@ -57,21 +70,6 @@ function ArticleItem({
         .toUpperCase()
         .slice(0, 2)
     : "?";
-
-  const handleLikeToggle = () => {
-    if (selectedReaction) {
-      setSelectedReaction(null);
-      setLikesCount((p) => p - 1);
-    } else {
-      setSelectedReaction("like");
-      setLikesCount((p) => p + 1);
-    }
-  };
-
-  const handleReactionSelect = (reactionId: string) => {
-    if (!selectedReaction) setLikesCount((p) => p + 1);
-    setSelectedReaction(reactionId);
-  };
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
@@ -137,41 +135,39 @@ function ArticleItem({
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
         <ExpandableText text={post.content} />
 
-        <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
-          <ReactionPopover
-            selectedValue={selectedReaction}
-            onReactionSelect={handleReactionSelect}
-          >
-            <button
-              onClick={handleLikeToggle}
-              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center gap-6 py-4">
+            <ReactionPopover
+              selectedValue={selectedReaction}
+              onReactionSelect={handleReactionSelect}
             >
-              <ThumbsUp
-                size={18}
-                className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
-              />
-              <span>
-                {activeReaction ? activeReaction.displayText : "Like"}
-              </span>
-              <span className="type-detail-small-medium font-normal text-grey-400">
-                ({likesCount})
-              </span>
+              <button
+                onClick={handleLikeToggle}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+              >
+                {activeReaction ? (
+                  <TwemojiImg emoji={activeReaction.emoji} size={18} />
+                ) : (
+                  <ThumbsUp size={18} />
+                )}
+                {activeReaction?.displayText ?? "Like"}
+              </button>
+            </ReactionPopover>
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+            >
+              <MessageCircleMore size={18} /> {comments?.length ?? 0}
             </button>
-          </ReactionPopover>
-
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
-          >
-            <MessageSquare size={18} /> {comments?.length ?? 0}
-          </button>
-
-          <button
-            onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
-          >
-            <Share2 size={18} /> Share
-          </button>
+            <button
+              onClick={() => setIsShareOpen(true)}
+              className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+            >
+              <Share2 size={18} /> Share
+            </button>
+          </section>
+          
+          <ReactionSummary payload={reactionPayload} />
         </div>
 
         <div
