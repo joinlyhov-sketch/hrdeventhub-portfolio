@@ -1,8 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { Edit, ThumbsUp, MessageCircleMore, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Edit,
+  MessageCircleMore,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  ThumbsUp,
+} from "lucide-react";
 import PriceContentComponent from "../../../components/site/event-detail/price-content";
 import MapContentComponent from "../../../components/site/event-detail/map-content";
 import DetailContentComponent from "../../../components/site/event-detail/detail-content";
@@ -12,7 +19,11 @@ import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import PaymentModal from "@/components/site/pop-up/payment/PaymentModal";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import {
+  ReactionPopover,
+  REACTIONS,
+  TwemojiImg,
+} from "@/components/site/pop-up/comment/reaction";
 import { usePaymentModalStore } from "@/store/usePaymentModalStore";
 import { reactionService } from "../../../service/post-reaction.service";
 import { useCurrentUser } from "@/context/user-context";
@@ -49,7 +60,11 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
-  const openPaymentModal = usePaymentModalStore((state) => state.openPaymentModal);
+  const discussionRef = useRef<HTMLDivElement>(null);
+
+  const openPaymentModal = usePaymentModalStore(
+    (state) => state.openPaymentModal,
+  );
 
   const [detailData, setDetailData] = useState({
     id: event?.postId || "det-4401",
@@ -106,11 +121,25 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
   }, [currentUser?.id, event?.postId, session?.accessToken, status]);
 
   const handlePrevImage = () => {
-    setCurrentImgIndex((prev) => (prev === 0 ? mediaList.length - 1 : prev - 1));
+    setCurrentImgIndex((prev) =>
+      prev === 0 ? mediaList.length - 1 : prev - 1,
+    );
   };
 
   const handleNextImage = () => {
-    setCurrentImgIndex((prev) => (prev === mediaList.length - 1 ? 0 : prev + 1));
+    setCurrentImgIndex((prev) =>
+      prev === mediaList.length - 1 ? 0 : prev + 1,
+    );
+  };
+
+  const handleScrollToDiscussion = () => {
+    if (isAdminOrOrganizer) setActiveAdminTab("discussion");
+    setTimeout(() => {
+      discussionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
   };
 
   const activeReaction = REACTIONS.find((r: any) => r.id === selectedReaction);
@@ -129,16 +158,25 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
     try {
       if (isCurrentlyActive) {
-        await reactionService.removeReactionPost(event.postId, session.accessToken);
+        await reactionService.removeReactionPost(
+          event.postId,
+          session.accessToken,
+        );
       } else {
-        await reactionService.reactPost(event.postId, "like", session.accessToken);
+        await reactionService.reactPost(
+          event.postId,
+          "like",
+          session.accessToken,
+        );
       }
     } catch (err) {
       console.error("Failed to toggle reaction:", err);
       setDetailData((prev) => ({
         ...prev,
         isLikedByUser: isCurrentlyActive,
-        likesCount: isCurrentlyActive ? prev.likesCount + 1 : prev.likesCount - 1,
+        likesCount: isCurrentlyActive
+          ? prev.likesCount + 1
+          : prev.likesCount - 1,
       }));
       setSelectedReaction(isCurrentlyActive ? "like" : null);
     }
@@ -159,9 +197,16 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
     try {
       if (wasAlreadyActive) {
-        await reactionService.removeReactionPost(event.postId, session.accessToken);
+        await reactionService.removeReactionPost(
+          event.postId,
+          session.accessToken,
+        );
       }
-      await reactionService.reactPost(event.postId, reactionId, session.accessToken);
+      await reactionService.reactPost(
+        event.postId,
+        reactionId,
+        session.accessToken,
+      );
     } catch (err) {
       console.error("Failed to select reaction:", err);
       setSelectedReaction(previousReaction);
@@ -216,7 +261,9 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           </div>
         </section>
 
-        <h2 className="type-title text-grey-900">{event?.title || "Event Detail"}</h2>
+        <h2 className="type-title text-grey-900">
+          {event?.title || "Event Detail"}
+        </h2>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="relative group aspect-video md:h-[350px] w-full rounded-xl overflow-hidden bg-grey-50 border border-border">
@@ -302,21 +349,42 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         </section>
 
         <section className="flex gap-x-6 py-2 border-b border-border text-grey-400 type-detail">
-          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
+          <ReactionPopover
+            selectedValue={selectedReaction}
+            onReactionSelect={handleReactionSelect}
+          >
             <button
               onClick={handleLikeToggle}
-              className={`flex items-center gap-x-1 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+              className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${
+                activeReaction
+                  ? `${activeReaction.color} font-semibold`
+                  : "hover:text-primary"
+              }`}
             >
-              <ThumbsUp size={16} className={activeReaction?.id === "like" ? "fill-primary stroke-primary" : ""} />
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="text-xs font-normal text-grey-400">({detailData.likesCount})</span>
+              {activeReaction ? (
+                <TwemojiImg emoji={activeReaction.emoji} size={18} />
+              ) : (
+                <ThumbsUp size={18} />
+              )}
+              {activeReaction ? activeReaction.displayText : "Like"}
+              <span className="text-md font-medium text-grey-500">
+                {detailData.likesCount}
+              </span>
             </button>
           </ReactionPopover>
 
-          <span className="flex items-center gap-x-1">
-            <MessageCircleMore size={16} /> {detailData.commentsCount}
-          </span>
-          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-x-1 hover:text-primary cursor-pointer">
+          <button
+            onClick={handleScrollToDiscussion}
+            className="flex items-center gap-x-1.5 text-grey-500 font-medium hover:text-primary transition-colors cursor-pointer"
+          >
+            <MessageCircleMore size={16} className="text-grey-400" />
+            {detailData.commentsCount}
+          </button>
+
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="flex items-center gap-x-1.5 hover:text-primary cursor-pointer"
+          >
             <Share2 size={16} /> Share
           </button>
         </section>
@@ -337,16 +405,26 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
                 Discussion
               </button>
             </section>
-            {activeAdminTab === "overview" ? <AdminOverview /> : <DiscussionSection event={event} />}
+            {activeAdminTab === "overview" ? (
+              <AdminOverview />
+            ) : (
+              <div ref={discussionRef}>
+                <DiscussionSection event={event} />
+              </div>
+            )}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div ref={discussionRef} className="space-y-4">
             <DiscussionSection event={event} />
           </div>
         )}
       </section>
 
-      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} shareUrl={`hrdeventhub.app/events/${detailData.id}`} />
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        shareUrl={`hrdeventhub.app/events/${detailData.id}`}
+      />
       <PaymentModal />
     </>
   );

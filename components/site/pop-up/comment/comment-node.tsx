@@ -9,6 +9,11 @@ import {
   editCommentAction,
   deleteCommentAction,
 } from "@/actions/comment.action";
+import {
+  ReactionPopover,
+  REACTIONS,
+} from "@/components/site/pop-up/comment/reaction";
+import { useCommentReaction } from "@/hooks/use-comment-reaction";
 
 interface CommentNodeProps {
   comment: Comment;
@@ -27,19 +32,41 @@ function timeAgo(dateStr: string): string {
   if (diff < 3600) return `${Math.floor(diff / 60)}m`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
   if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
-function Avatar({ src, alt, initials, size }: { src?: string; alt: string; initials: string; size: number }) {
+function Avatar({
+  src,
+  alt,
+  initials,
+  size,
+}: {
+  src?: string;
+  alt: string;
+  initials: string;
+  size: number;
+}) {
   return (
     <div
       style={{ width: size, height: size, minWidth: size }}
       className="rounded-full bg-[#EBF5FB] overflow-hidden flex items-center justify-center border text-[#3FA6DC] font-semibold shrink-0"
     >
       {src ? (
-        <Image src={src} alt={alt} width={size} height={size} className="w-full h-full object-cover" />
+        <Image
+          src={src}
+          alt={alt}
+          width={size}
+          height={size}
+          className="w-full h-full object-cover"
+        />
       ) : (
-        <span style={{ fontSize: size < 32 ? 10 : 12 }} className="font-bold text-primary uppercase">
+        <span
+          style={{ fontSize: size < 32 ? 10 : 12 }}
+          className="font-bold text-primary uppercase"
+        >
           {initials || "?"}
         </span>
       )}
@@ -54,7 +81,13 @@ const EMOJI_LIST = [
   "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
 ];
 
-function EmojiPopover({ onPick, onClose }: { onPick: (e: string) => void; onClose: () => void }) {
+function EmojiPopover({
+  onPick,
+  onClose,
+}: {
+  onPick: (e: string) => void;
+  onClose: () => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,7 +108,10 @@ function EmojiPopover({ onPick, onClose }: { onPick: (e: string) => void; onClos
           <button
             key={e}
             onMouseDown={(ev) => ev.preventDefault()}
-            onClick={() => { onPick(e); onClose(); }}
+            onClick={() => {
+              onPick(e);
+              onClose();
+            }}
             className="text-lg hover:scale-125 transition-transform cursor-pointer flex items-center justify-center h-7 w-7"
           >
             {e}
@@ -108,24 +144,41 @@ function ReplyInput({
 
   const handleBlur = useCallback(() => {
     setTimeout(() => {
-      if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(document.activeElement)
+      ) {
         if (!showEmoji) onClose();
       }
     }, 150);
   }, [onClose, showEmoji]);
 
   return (
-    <div ref={containerRef} className="flex gap-2 items-start mt-2" onBlur={handleBlur}>
-      <Avatar src={currentUserPicture} alt="Your avatar" initials={currentUserInitials ?? "?"} size={28} />
+    <div
+      ref={containerRef}
+      className="flex gap-2 items-start mt-2"
+      onBlur={handleBlur}
+    >
+      <Avatar
+        src={currentUserPicture}
+        alt="Your avatar"
+        initials={currentUserInitials ?? "?"}
+        size={28}
+      />
       <div className="flex-1">
         <div className="relative flex items-center bg-grey-100 rounded-2xl px-3 py-1.5 gap-2">
           <input
             autoFocus
-            placeholder={targetName ? `Reply to ${targetName}…` : "Write a reply…"}
+            placeholder={
+              targetName ? `Reply to ${targetName}…` : "Write a reply…"
+            }
             value={replyText}
             onChange={(e) => onReplyTextChange(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(); }
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                onSubmit();
+              }
               if (e.key === "Escape") onClose();
             }}
             className="flex-1 bg-transparent outline-none type-detail text-grey-900 placeholder:text-grey-400 text-sm"
@@ -140,7 +193,9 @@ function ReplyInput({
             </button>
             {showEmoji && (
               <EmojiPopover
-                onPick={(emoji) => { onReplyTextChange(replyText + emoji); }}
+                onPick={(emoji) => {
+                  onReplyTextChange(replyText + emoji);
+                }}
                 onClose={() => setShowEmoji(false)}
               />
             )}
@@ -166,7 +221,6 @@ export function CommentNode({
   currentUserId,
   currentUserPicture,
   currentUserInitials,
-  isNested = false,
   onRefetch,
 }: CommentNodeProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -175,7 +229,17 @@ export function CommentNode({
   const [replyText, setReplyText] = useState("");
   const [showReplies, setShowReplies] = useState(false);
 
-  const initials = `${comment.appUser.firstName?.[0] ?? ""}${comment.appUser.lastName?.[0] ?? ""}`.toUpperCase();
+  const {
+    selectedReaction,
+    likesCount,
+    handleLikeToggle,
+    handleReactionSelect,
+  } = useCommentReaction(comment.commentId);
+
+  const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
+
+  const initials =
+    `${comment.appUser.firstName?.[0] ?? ""}${comment.appUser.lastName?.[0] ?? ""}`.toUpperCase();
   const isOwner = currentUserId === comment.appUser.appUserId;
   const hasReplies = comment.replies && comment.replies.length > 0;
   const replyCount = comment.replies?.length ?? 0;
@@ -183,7 +247,11 @@ export function CommentNode({
   const handleEdit = async () => {
     if (!editText.trim()) return;
     const result = await editCommentAction(comment.commentId, editText);
-    if (result.ok) { setEditingId(null); setEditText(""); await onRefetch(); }
+    if (result.ok) {
+      setEditingId(null);
+      setEditText("");
+      await onRefetch();
+    }
   };
 
   const handleDelete = async () => {
@@ -209,7 +277,10 @@ export function CommentNode({
 
   return (
     <div className="flex gap-2.5">
-      <div className="flex flex-col items-center shrink-0" style={{ width: 36 }}>
+      <div
+        className="flex flex-col items-center shrink-0"
+        style={{ width: 36 }}
+      >
         <Avatar
           src={comment.appUser.profilePicture}
           alt={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
@@ -230,12 +301,18 @@ export function CommentNode({
             {isOwner && (
               <div className="flex gap-2 items-center ml-4 shrink-0">
                 <button
-                  onClick={() => { setEditingId(comment.commentId); setEditText(comment.comment); }}
+                  onClick={() => {
+                    setEditingId(comment.commentId);
+                    setEditText(comment.comment);
+                  }}
                   className="text-grey-400 hover:text-primary transition-colors text-xs cursor-pointer"
                 >
                   Edit
                 </button>
-                <button onClick={handleDelete} className="text-grey-400 hover:text-destructive transition-colors cursor-pointer">
+                <button
+                  onClick={handleDelete}
+                  className="text-grey-400 hover:text-destructive transition-colors cursor-pointer"
+                >
                   <Trash2 size={12} />
                 </button>
               </div>
@@ -250,16 +327,30 @@ export function CommentNode({
                 className="w-full bg-white rounded-lg p-2 text-sm border border-grey-200 outline-none resize-none text-grey-900"
               />
               <div className="flex gap-2">
-                <button onClick={handleEdit} className="text-xs bg-primary text-white px-3 py-1 rounded hover:opacity-90 cursor-pointer">Save</button>
-                <button onClick={() => setEditingId(null)} className="text-xs border border-grey-200 px-3 py-1 rounded hover:bg-grey-50 cursor-pointer">Cancel</button>
+                <button
+                  onClick={handleEdit}
+                  className="text-xs bg-primary text-white px-3 py-1 rounded hover:opacity-90 cursor-pointer"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="text-xs border border-grey-200 px-3 py-1 rounded hover:bg-grey-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           ) : (
             <p className="text-sm text-grey-900 leading-normal mt-0.5">
               {comment.comment.split(" ").map((word, i) =>
                 word.startsWith("@") ? (
-                  <span key={i} className="text-blue-600 font-semibold">{word} </span>
-                ) : (word + " ")
+                  <span key={i} className="text-blue-600 font-semibold">
+                    {word}{" "}
+                  </span>
+                ) : (
+                  word + " "
+                ),
               )}
             </p>
           )}
@@ -267,9 +358,32 @@ export function CommentNode({
 
         <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
           <span className="font-normal">{timeAgo(comment.createdAt)}</span>
-          <button className="hover:text-grey-900 transition-colors cursor-pointer">Like</button>
+          <ReactionPopover
+            selectedValue={selectedReaction}
+            onReactionSelect={handleReactionSelect}
+          >
+            <button
+              onClick={handleLikeToggle}
+              className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
+                activeReaction
+                  ? `${activeReaction.color} font-semibold`
+                  : "hover:text-grey-900"
+              }`}
+            >
+              {activeReaction?.displayText ?? "Like"}
+              {likesCount > 0 && (
+                <span className="font-normal text-grey-400">
+                  ({likesCount})
+                </span>
+              )}
+            </button>
+          </ReactionPopover>
+
           <button
-            onClick={() => { setShowReplyInput((v) => !v); setReplyText(""); }}
+            onClick={() => {
+              setShowReplyInput((v) => !v);
+              setReplyText("");
+            }}
             className="hover:text-grey-900 transition-colors cursor-pointer"
           >
             Reply
