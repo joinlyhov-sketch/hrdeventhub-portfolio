@@ -32,7 +32,7 @@ function QuestionField({
   disabled: boolean;
 }) {
   const base =
-    "w-full border border-grey-200 rounded-xl p-4 text-sm text-grey-900 placeholder:text-grey-400 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none disabled:opacity-60";
+    "w-full border border-grey-200 rounded-xl p-4 text-grey-900 placeholder:text-grey-400 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none disabled:opacity-60";
 
   switch (element.type) {
     case "short-text":
@@ -44,6 +44,7 @@ function QuestionField({
           placeholder="Type your answer..."
           disabled={disabled}
           className={base}
+          style={{ fontSize: "16px" }}
         />
       );
 
@@ -56,21 +57,20 @@ function QuestionField({
           placeholder="Type your response here..."
           disabled={disabled}
           className={base}
+          style={{ fontSize: "16px" }}
         />
       );
 
     case "choice":
       return (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {(element.choices ?? []).map((choice) => {
             const isSelected = value === choice;
             return (
               <label
                 key={choice}
-                className={`flex items-center gap-4 border p-4 rounded-xl cursor-pointer transition-all ${
-                  isSelected
-                    ? "border-secondary bg-secondary/[0.04]"
-                    : "border-grey-200 hover:border-grey-300 bg-white"
+                className={`flex items-center gap-3 border p-3 rounded-xl cursor-pointer transition-all ${
+                  isSelected ? "border-[#00366F]" : "border-grey-200 hover:border-grey-300"
                 } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 <input
@@ -84,12 +84,14 @@ function QuestionField({
                 />
                 <div
                   className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
-                    isSelected ? "border-secondary" : "border-grey-300"
+                    isSelected ? "border-[#00366F]" : "border-grey-300"
                   }`}
                 >
-                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-secondary" />}
-                </div>
-                <span className="text-sm font-medium text-grey-700">{choice}</span>
+                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#00366F]" />}
+                </div>              
+                <span className="font-medium text-grey-700" style={{ fontSize: "18px" }}>
+                  {choice}
+                </span>
               </label>
             );
           })}
@@ -103,12 +105,11 @@ function QuestionField({
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
           className={`${base} bg-white`}
+          style={{ fontSize: "16px" }}
         >
           <option value="">— Select an option —</option>
           {(element.choices ?? []).map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
       );
@@ -117,20 +118,17 @@ function QuestionField({
       const max = element.maxRateDescription ?? 5;
       const current = (value as number) ?? 0;
       return (
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-1">
           {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
               type="button"
               disabled={disabled}
-              onClick={() => onChange(n)}
-              className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
-                current === n
-                  ? "bg-secondary text-white shadow-sm"
-                  : "bg-grey-100 text-grey-600 hover:bg-grey-200"
-              } disabled:opacity-60`}
+              onClick={() => onChange(n)}            
+              className="transition-colors disabled:opacity-60 cursor-pointer leading-none"
+              style={{ fontSize: "28px" }}
             >
-              {n}
+              <span className={n <= current ? "text-yellow-400" : "text-grey-200"}>★</span>
             </button>
           ))}
         </div>
@@ -143,7 +141,7 @@ function QuestionField({
       const current = (value as number) ?? min;
       return (
         <div className="space-y-3">
-          <div className="flex justify-between text-xs text-grey-400 font-medium">
+          <div className="flex justify-between font-medium text-grey-400" style={{ fontSize: "14px" }}>
             <span>{element.minRateLabel ?? "Low"}</span>
             <span>{element.maxRateLabel ?? "High"}</span>
           </div>
@@ -156,7 +154,9 @@ function QuestionField({
             onChange={(e) => onChange(Number(e.target.value))}
             className="w-full accent-secondary disabled:opacity-60"
           />
-          <div className="text-center text-sm font-bold text-secondary">{current}</div>
+          <div className="text-center font-bold text-secondary" style={{ fontSize: "18px" }}>
+            {current}
+          </div>
         </div>
       );
     }
@@ -172,11 +172,12 @@ function QuestionField({
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(opt)}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-all ${
+                className={`flex-1 py-3 rounded-xl font-bold border transition-all ${
                   isSelected
                     ? "bg-secondary text-white border-secondary"
                     : "bg-white text-grey-600 border-grey-200 hover:border-grey-300"
                 } disabled:opacity-60`}
+                style={{ fontSize: "18px" }}
               >
                 {opt}
               </button>
@@ -188,17 +189,15 @@ function QuestionField({
     case "matrix": {
       const rows = element.rows ?? [];
       const cols = element.columns ?? [];
-      const matrixVal = ((value as Record<string, string>) ?? {});
+      const matrixVal = (value as Record<string, string>) ?? {};
       return (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full border-collapse" style={{ fontSize: "16px" }}>
             <thead>
               <tr>
                 <th className="p-2 text-left text-grey-400 font-medium" />
                 {cols.map((col) => (
-                  <th key={col} className="p-2 text-center text-grey-600 font-medium">
-                    {col}
-                  </th>
+                  <th key={col} className="p-2 text-center text-grey-600 font-medium">{col}</th>
                 ))}
               </tr>
             </thead>
@@ -236,6 +235,7 @@ function QuestionField({
           placeholder="Type your answer..."
           disabled={disabled}
           className={base}
+          style={{ fontSize: "16px" }}
         />
       );
   }
@@ -260,7 +260,7 @@ export function SurveyCard({
   const [error, setError] = useState<string | null>(null);
 
   const isActiveSafe =
-  (survey as unknown as { active?: boolean }).active ?? survey.isActive ?? true;
+    (survey as unknown as { active?: boolean }).active ?? survey.isActive ?? true;
 
   const isClosed =
     !isActiveSafe ||
@@ -281,16 +281,10 @@ export function SurveyCard({
     setLoadingStatus(true);
     surveyService
       .hasSubmitted(survey.surveyId)
-      .then((has) => {
-        if (!cancelled) setAlreadySubmitted(has);
-      })
+      .then((has) => { if (!cancelled) setAlreadySubmitted(has); })
       .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoadingStatus(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .finally(() => { if (!cancelled) setLoadingStatus(false); });
+    return () => { cancelled = true; };
   }, [survey.surveyId]);
 
   const handleAnswerChange = useCallback((name: string, val: unknown) => {
@@ -300,18 +294,8 @@ export function SurveyCard({
   const currentPage = pages[currentStep - 1];
   const currentElements: SurveyElement[] = currentPage?.elements ?? [];
 
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep((s) => s + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep((s) => s - 1);
-    }
-    setError(null);
-  };
+  const handleNext = () => { if (currentStep < totalSteps) setCurrentStep((s) => s + 1); };
+  const handleBack = () => { if (currentStep > 1) setCurrentStep((s) => s - 1); setError(null); };
 
   const handleSubmit = async () => {
     setError(null);
@@ -337,23 +321,53 @@ export function SurveyCard({
 
   if (!isMatch) return null;
 
+  const SurveyBadge = () => (
+    <span
+      className="font-semibold px-3 py-1 rounded-[10px] uppercase tracking-wider"
+      style={{
+        fontSize: "14px",
+        backgroundColor: "rgba(0, 54, 111, 0.10)",
+        color: "#00366F",
+      }}
+    >
+      Survey
+    </span>
+  );
+
+  const CardHeader = ({
+    badge,
+    showMenu = false,
+  }: {
+    badge: React.ReactNode;
+    showMenu?: boolean;
+  }) => (
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="font-bold leading-tight" style={{ color: "#1C4D8D", fontSize: "34px" }}>
+        {title}
+      </h2>
+      <div className="flex items-center gap-2 shrink-0 ml-4">
+        {badge}
+        {showMenu && (role === "admin" || role === "organizer") && (
+          <EditPostDropDown
+            title={title}
+            editUrl={`/event-management/edition/survey?surveyId=${survey.surveyId}`}
+            onDelete={handleDelete}
+          />
+        )}
+      </div>
+    </div>
+  );
+
   if (submitted || alreadySubmitted) {
     return (
       <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-xl font-bold text-secondary">{title}</h2>
-            <span className="bg-[#EBF5FB] text-[#3FA6DC] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
-              Survey
-            </span>
-          </div>
-        </div>
+        <CardHeader badge={<SurveyBadge />} />
         <div className="py-10 flex flex-col items-center gap-3 text-center">
-          <CheckCircle2 size={48} className="text-green-500" />
-          <p className="text-base font-bold text-grey-800">
+          <CheckCircle2 size={52} className="text-green-500" />
+          <p className="font-bold text-grey-800" style={{ fontSize: "20px" }}>
             {submitted ? "Response Submitted!" : "Already Submitted"}
           </p>
-          <p className="text-sm text-grey-400 max-w-xs">
+          <p className="text-grey-400 max-w-xs" style={{ fontSize: "16px" }}>
             {submitted
               ? "Thank you for completing this survey."
               : "You have already submitted a response for this survey."}
@@ -366,23 +380,24 @@ export function SurveyCard({
   if (isClosed) {
     return (
       <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-xl font-bold text-secondary">{title}</h2>
-            <span className="bg-red-50 text-red-500 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
+        <CardHeader
+          badge={
+            <span
+              className="font-semibold px-3 py-1 rounded-[12px] uppercase tracking-wider"
+              style={{ fontSize: "14px", backgroundColor: "#fef2f2", color: "#ef4444" }}
+            >
               Closed
             </span>
-          </div>
-          {(role === "admin" || role === "organizer") && (
-            <EditPostDropDown
-              title={title}
-              editUrl={`/event-management/edition/survey?surveyId=${survey.surveyId}`}
-              onDelete={handleDelete}
-            />
-          )}
-        </div>
-        <p className="text-sm text-grey-400">{description}</p>
-        <p className="text-sm text-grey-300 mt-4 italic">This survey is no longer accepting responses.</p>
+          }
+          showMenu
+        />
+    
+        <p style={{ color: "#434750", fontSize: "20px" }} className="font-semibold">
+          {description}
+        </p>
+        <p className="text-grey-300 mt-4 italic" style={{ fontSize: "16px" }}>
+          This survey is no longer accepting responses.
+        </p>
       </div>
     );
   }
@@ -390,45 +405,43 @@ export function SurveyCard({
   if (loadingStatus) {
     return (
       <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm animate-pulse">
-        <div className="h-6 bg-grey-100 rounded w-2/3 mb-3" />
-        <div className="h-4 bg-grey-100 rounded w-1/2" />
+        <div className="h-8 bg-grey-100 rounded w-2/3 mb-3" />
+        <div className="h-5 bg-grey-100 rounded w-1/2" />
       </div>
     );
   }
 
   return (
-    <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm text-grey-900">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-baseline gap-3">
-          <h2 className="text-xl font-bold text-secondary">{title}</h2>
-          <span className="bg-[#EBF5FB] text-[#3FA6DC] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
-            Survey
-          </span>
-        </div>
-        {(role === "admin" || role === "organizer") && (
-          <EditPostDropDown
-            title={title}
-            editUrl={`/event-management/edition/survey?surveyId=${survey.surveyId}`}
-            onDelete={handleDelete}
-          />
-        )}
-      </div>
-
-      <p className="text-sm text-grey-500 mb-6">{description}</p>
+    <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
+      <CardHeader badge={<SurveyBadge />} showMenu />
+      
+      <p className="mb-6 font-semibold" style={{ color: "#434750", fontSize: "20px" }}>
+        {description}
+      </p>
 
       {currentPage?.title && currentPage.title !== "Survey Page" && (
-        <p className="text-xs font-semibold text-secondary uppercase tracking-widest mb-5">
+        <p
+          className="font-semibold uppercase tracking-widest mb-5"
+          style={{ color: "#1C4D8D", fontSize: "16px" }}
+        >
           {currentPage.title}
         </p>
       )}
 
       {currentElements.length === 0 ? (
-        <div className="py-10 text-center text-sm text-grey-400">No questions on this page.</div>
+        <div className="py-10 text-center text-grey-400" style={{ fontSize: "16px" }}>
+          No questions on this page.
+        </div>
       ) : (
         <div className="space-y-8">
           {currentElements.map((el) => (
-            <div key={el.name}>
-              <h3 className="text-sm font-semibold text-grey-900 mb-4">{el.title}</h3>
+            <div key={el.name}>              
+              <h3
+                className="font-semibold mb-4 leading-snug"
+                style={{ color: "#1A1C20", fontSize: "24px" }}
+              >
+                {el.title}
+              </h3>
               <QuestionField
                 element={el}
                 value={answers[el.name]}
@@ -441,8 +454,11 @@ export function SurveyCard({
       )}
 
       {error && (
-        <div className="mt-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <AlertCircle size={16} className="shrink-0" />
+        <div
+          className="mt-4 flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3"
+          style={{ fontSize: "16px" }}
+        >
+          <AlertCircle size={18} className="shrink-0" />
           {error}
         </div>
       )}
@@ -453,13 +469,15 @@ export function SurveyCard({
         <button
           onClick={handleBack}
           disabled={currentStep === 1 || submitting}
-          className={`flex items-center gap-2 text-sm font-bold transition-colors select-none ${
-            currentStep === 1
-              ? "text-grey-300 cursor-not-allowed"
-              : "text-secondary hover:text-primary cursor-pointer"
+          className={`flex items-center gap-2 font-bold transition-colors select-none ${
+            currentStep === 1 ? "text-grey-300 cursor-not-allowed" : "cursor-pointer hover:opacity-80"
           }`}
+          style={{
+            fontSize: "18px",
+            color: currentStep !== 1 ? "#434750" : undefined,
+          }}
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={22} />
           <span className="uppercase tracking-wider">
             Step {currentStep} of {totalSteps}
           </span>
@@ -469,7 +487,10 @@ export function SurveyCard({
           <button
             onClick={handleNext}
             disabled={submitting}
-            className="bg-secondary hover:bg-secondary-hover text-white px-8 py-3 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer tracking-wider disabled:opacity-60"
+            className="text-white px-6 py-2.5 rounded-xl font-bold shadow-sm transition-all cursor-pointer tracking-wider disabled:opacity-60"
+            style={{ fontSize: "18px", backgroundColor: "#1C4D8D" }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#163f75")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1C4D8D")}
           >
             Next
           </button>
@@ -477,9 +498,12 @@ export function SurveyCard({
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-secondary hover:bg-secondary-hover text-white px-8 py-3 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer tracking-wider disabled:opacity-60 flex items-center gap-2"
+            className="text-white px-6 py-2.5 rounded-xl font-bold shadow-sm transition-all cursor-pointer tracking-wider disabled:opacity-60 flex items-center gap-2"
+            style={{ fontSize: "18px", backgroundColor: "#1C4D8D" }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#163f75")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1C4D8D")}
           >
-            {submitting && <Loader2 size={16} className="animate-spin" />}
+            {submitting && <Loader2 size={18} className="animate-spin" />}
             {submitting ? "Submitting..." : "Submit"}
           </button>
         )}
