@@ -1,13 +1,14 @@
 import Header from "../../../components/dashboard/header/Header";
 import { StatsCardsSection } from "../../../components/dashboard/transaction-history/StatsCardsSection";
 import { TransactionTableSection } from "../../../components/dashboard/transaction-history/TransactionTableSection";
-import {
-  eventsData,
-  statsData,
-  transactionsData,
-} from "../../../data/transaction";
 
-export default function TransactionHistoryPage() {
+import { getTransactions, getEventSummaries } from "@/actions/transaction.action";
+
+export default async function TransactionHistoryPage() {
+  const [transactions, events] = await Promise.all([
+    getTransactions(),
+    getEventSummaries(),
+  ]);
   return (
     <main className="min-h-screen z-10">
       <Header
@@ -19,8 +20,8 @@ export default function TransactionHistoryPage() {
         {/* <StatsCardsSection stats={statsData} /> */}
 
         <TransactionTableSection
-          transactions={transactionsData}
-          events={eventsData}
+          transactions={transactions}
+          events={events}
         />
       </div>
     </main>
