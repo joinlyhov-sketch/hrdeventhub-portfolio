@@ -1,17 +1,16 @@
 "use client";
-
-import { Search } from "lucide-react";
-
+ 
+import { Search, CheckCircle2 } from "lucide-react";
 interface Step1Props {
   studentName: string;
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
+  setSearchQuery: (v: string) => void;
   availableSkills: string[];
   selectedSkill: string | null;
-  setSelectedSkill: (skill: string) => void;
+  setSelectedSkill: (v: string | null) => void;
 }
-
-export default function Step1({
+ 
+export default function StepFirst({
   studentName,
   searchQuery,
   setSearchQuery,
@@ -19,46 +18,62 @@ export default function Step1({
   selectedSkill,
   setSelectedSkill,
 }: Step1Props) {
-  const filteredSkills = availableSkills.filter((skill) =>
-    skill.toLowerCase().includes(searchQuery.toLowerCase().trim())
+  const firstName = studentName.split(" ")[0];
+  const filtered = availableSkills.filter((s) =>
+    s.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
+ 
   return (
-    <div className="space-y-5">
-      <p className="type-detail-medium text-grey-500 leading-relaxed">
-        Choose which skill you want to endorse for <span className="type-detail-semibold text-secondary">{studentName}</span>. This will
-        be visible on their professional profile.
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-grey-500 leading-relaxed">
+        Select the skill that best reflects{" "}
+        <span className="font-semibold text-secondary">{firstName}</span>'s
+        contribution during your shared event.
       </p>
-
-      <div className="relative w-full">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-grey-400" />
+ 
+      {/* Search */}
+      <div className="relative">
+        <Search
+          size={15}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-grey-400 pointer-events-none"
+        />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search skills..."
-          className="w-full bg-grey-100 border-none rounded-xl py-3.5 pl-11 pr-5 type-detail-medium text-grey-900 placeholder:text-grey-400 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+          className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-xl outline-none focus:border-primary transition-colors text-sm text-secondary placeholder:text-grey-400"
         />
       </div>
-
-      <div className="flex flex-wrap gap-3 pt-2">
-        {filteredSkills.map((skill) => {
-          const isSelected = selectedSkill === skill;
-          return (
-            <button
-              key={skill}
-              type="button"
-              onClick={() => setSelectedSkill(skill)}
-              className={`px-5 py-3 rounded-full type-detail-semibold transition-all cursor-pointer border ${
-                isSelected
-                  ? "bg-primary border-primary text-white shadow-sm"
-                  : "bg-grey-100 border-transparent text-grey-900 hover:bg-grey-200"
-              }`}
-            >
-              {skill}
-            </button>
-          );
-        })}
+ 
+      {/* Skill Grid */}
+      <div className="grid grid-cols-2 gap-2">
+        {filtered.length > 0 ? (
+          filtered.map((skill) => {
+            const active = selectedSkill === skill;
+            return (
+              <button
+                key={skill}
+                type="button"
+                onClick={() => setSelectedSkill(active ? null : skill)}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all cursor-pointer text-left ${
+                  active
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border bg-background text-secondary hover:border-grey-300 hover:bg-grey-50"
+                }`}
+              >
+                <span>{skill}</span>
+                {active && (
+                  <CheckCircle2 size={16} className="text-primary shrink-0 ml-2" />
+                )}
+              </button>
+            );
+          })
+        ) : (
+          <p className="col-span-2 text-sm text-grey-400 text-center py-4">
+            No matching skills found.
+          </p>
+        )}
       </div>
     </div>
   );

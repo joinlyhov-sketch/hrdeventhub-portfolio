@@ -56,17 +56,18 @@ export default function ProfilePage() {
 
     fetchProfile();
   }, [isReady, session?.accessToken, userId, isSelf]);
-  const subjectRole = profile?.roles; 
 
-const titlePrimary = isSelf
-  ? "My"
-  : subjectRole === "ALUMNI"
-  ? "Alumni"
-  : subjectRole === "ADMIN"
-  ? "Admin"
-  : subjectRole === "ORGANIZER"
-  ? "Organizer"
-  : "Student";
+  const subjectRole = profile?.roles;
+
+  const titlePrimary = isSelf
+    ? "My"
+    : subjectRole === "ALUMNI"
+    ? "Alumni"
+    : subjectRole === "ADMIN"
+    ? "Admin"
+    : subjectRole === "ORGANIZER"
+    ? "Organizer"
+    : "Student";
 
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
 
@@ -82,10 +83,7 @@ const titlePrimary = isSelf
 
   return (
     <div className="w-full bg-background z-30">
-     <ProfileHeader
-  description={headerDesc}
-  titlePrimary={titlePrimary}
-/>
+      <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
       <div className="lg:pr-12 lg:pl-12 max-w-420 m-auto">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch">
           <div className="xl:col-span-4 h-full">
@@ -94,6 +92,7 @@ const titlePrimary = isSelf
               profile={profile}
               loading={profileLoading || !isReady}
               profileId={userId}
+              authToken={session?.accessToken ?? ""} 
             />
           </div>
           <div className="xl:col-span-8 h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
