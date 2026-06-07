@@ -1,11 +1,6 @@
 import Header from "../../../components/dashboard/header/Header";
 import { StatsCardsSection } from "../../../components/dashboard/transaction-history/StatsCardsSection";
 import { TransactionTableSection } from "../../../components/dashboard/transaction-history/TransactionTableSection";
-import {
-  // eventsData,
-  statsData,
-  //transactionsData,
-} from "../../../data/transaction";
 
 import { getTransactions, getEventSummaries } from "@/actions/transaction.action";
 
