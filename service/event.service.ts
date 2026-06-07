@@ -96,11 +96,11 @@ export const eventService = {
   getAll: async (
     token: string,
     page: number = 1,
-    size: number = 20
+    size: number = 20,
   ): Promise<EventItem[]> => {
     const response = await apiGet<EventResponse>(
       `/posts/events?page=${page}&size=${size}`,
-      { authToken: token }
+      { authToken: token },
     );
     return response.payload;
   },
@@ -109,12 +109,25 @@ export const eventService = {
     token: string,
     postId: string,
     page: number = 1,
-    size: number = 10
+    size: number = 10,
   ): Promise<Participant[]> => {
     const response = await apiGet<ParticipantResponse>(
       `/posts/${postId}/participants?page=${page}&size=${size}`,
-      { authToken: token }
+      { authToken: token },
     );
     return response.payload || [];
-  }
+  },
+
+  getByWorkspace: async (
+    token: string,
+    workspaceId: string,
+  ): Promise<EventItem[]> => {
+    const response = await apiGet<EventResponse>(
+      `/workspaces/${workspaceId}/post?page=1&size=100`,
+      { authToken: token },
+    );
+    return (response.payload || []).filter(
+      (post) => post.category === "event" && Boolean(post.eventStart),
+    );
+  },
 };
