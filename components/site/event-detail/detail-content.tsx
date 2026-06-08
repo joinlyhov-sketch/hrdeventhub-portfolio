@@ -1,4 +1,8 @@
+"use client";
+import { useEffect, useState } from "react";
 import { CalendarMinus2, Clock, MapPin } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { apiGet } from "@/libs/api";
 
 interface DetailContentProps {
   title?: string;
@@ -6,6 +10,7 @@ interface DetailContentProps {
   eventStart?: string;
   eventEnd?: string;
   locationName?: string;
+  postId?: string;
 }
 
 export default function DetailContentComponent({
@@ -14,18 +19,35 @@ export default function DetailContentComponent({
   eventStart = "",
   eventEnd = "",
   locationName = "",
+  postId,
 }: DetailContentProps) {
-  const parts = eventStart
-    ? eventStart.split(",").map((s) => s.trim())
-    : [];
+  const [joinedCount, setJoinedCount] = useState<number | null>(null);
+  const { data: session } = useSession();
 
-  const dateSegment = parts.length >= 3
-    ? `${parts[1]}, ${parts[2]}`
-    : parts[0] ?? "Date Pending";
+  const fetchRegistrants = async () => {
+    if (!postId || !session?.accessToken) return;
+    try {
+      const data = await apiGet<any>(
+        `/posts/${postId}/participants?page=1&size=100`,
+        { authToken: session.accessToken },
+      );
+      setJoinedCount(data?.payload?.length ?? 0);
+    } catch {
+      setJoinedCount(0);
+    }
+  };
 
-  const timeSegment = parts.length >= 4
-    ? parts[parts.length - 1]
-    : "";
+  useEffect(() => {
+    if (!postId || !session?.accessToken) return;
+    fetchRegistrants();
+  }, [postId, session?.accessToken]);
+
+  const parts = eventStart ? eventStart.split(",").map((s) => s.trim()) : [];
+  const dateSegment =
+    parts.length >= 3
+      ? `${parts[1]}, ${parts[2]}`
+      : (parts[0] ?? "Date Pending");
+  const timeSegment = parts.length >= 4 ? parts[parts.length - 1] : "";
 
   return (
     <section className="flex flex-col justify-between gap-y-3.2 h-full w-full ml-1">
@@ -33,7 +55,9 @@ export default function DetailContentComponent({
         <p className="text-subtitle font-semibold text-secondary">
           {title || "No Title Specified"}
         </p>
-        <p className="text-desc text-grey-500">{content || "No content details provided."}</p>
+        <p className="text-desc text-grey-500">
+          {content || "No content details provided."}
+        </p>
       </section>
 
       <section className="flex flex-col gap-y-2">
@@ -46,7 +70,9 @@ export default function DetailContentComponent({
         <span className="flex items-center gap-x-3">
           <Clock size={18} className="text-grey-500" />
           <p className="text-detail-semibold font-semibold text-grey-700">
-            {timeSegment ? `${timeSegment} - ${eventEnd}` : eventEnd || "Time Pending"}
+            {timeSegment
+              ? `${timeSegment} - ${eventEnd}`
+              : eventEnd || "Time Pending"}
           </p>
         </span>
         <span className="flex items-center gap-x-3">
@@ -60,18 +86,15 @@ export default function DetailContentComponent({
       <section className="flex flex-col gap-y-2">
         <section className="flex items-center gap-x-2.5 pt-2">
           <p className="text-detail text-grey-600">
-            Joined by <span className="font-semibold">0</span> others
+            Joined by{" "}
+            <span className="font-semibold">
+              {joinedCount === null ? "—" : joinedCount}
+            </span>{" "}
+            others
           </p>
-          <section className="flex -space-x-2.5 isolation-auto">
-          </section>
+          <section className="flex -space-x-2.5 isolation-auto" />
         </section>
       </section>
-
-      <div className="w-full bg-gray-50/80 p-3.5 rounded-xl border border-gray-100 text-xs text-gray-500 space-y-1 mt-1 mb-4">
-        <p className="font-semibold text-gray-700">General Information:</p>
-        <p>• Please head directly to the reception counter to sign your name on the physical attendance list.</p>
-        <p>• The schedule might change slightly on the day of the event.</p>
-      </div>
     </section>
   );
 }

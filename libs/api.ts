@@ -2,10 +2,7 @@ import { env } from "./env";
 import { ApiErrorShape, ApiRequestOptions } from "@/types/api-types";
 
 const isBrowser = typeof window !== "undefined";
-const apiBaseUrl = isBrowser
-  ? "https://api.hrdevent.app/api/v5"
-  : env?.NEXT_PUBLIC_API_BASE_URL;
-// const apiBaseUrl = isBrowser ? "/api/v5" : env?.NEXT_PUBLIC_API_BASE_URL;
+const apiBaseUrl = isBrowser ? "/api/v5" : env?.NEXT_PUBLIC_API_BASE_URL;
 
 if (!apiBaseUrl) {
   throw new Error("API base URL is not configured.");

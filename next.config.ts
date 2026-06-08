@@ -25,13 +25,18 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "localhost",
         port: "9090",
-        pathname: "/api/v4/files/**",
+        pathname: "/api/v5/files/**",
       },
       {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "api.dicebear.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.dev.hrdevent.app",
+        pathname: "/api/v5/files/**",
       },
     ],
   },
@@ -43,8 +48,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: "/api/v4/:path*",
-        destination: "https://api.dev.hrdevent.app/api/v4/:path*",
+        source: "/api/v5/:path*",
+        destination: "https://api.hrdevent.app/api/v5/:path*",
       },
     ];
   },
