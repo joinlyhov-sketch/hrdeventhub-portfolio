@@ -163,7 +163,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
               postId: event.postId,
               reactor: {
                 appUserId: currentUser?.id ?? "",
-              }
+              },
             },
           ],
     );
@@ -207,7 +207,9 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
     }));
     setReactionPayload((prev) => {
-      const without = prev.filter((r) => r.reactor.appUserId !== currentUser?.id);
+      const without = prev.filter(
+        (r) => r.reactor.appUserId !== currentUser?.id,
+      );
       return [
         ...without,
         {
@@ -217,7 +219,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           postId: event.postId,
           reactor: {
             appUserId: currentUser?.id ?? "",
-          }
+          },
         },
       ];
     });
@@ -412,7 +414,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
                 <Share2 size={20} /> Share
               </button>
             </section>
-            
+
             <ReactionSummary payload={reactionPayload} />
           </section>
         </section>
