@@ -12,27 +12,27 @@ export const authOptions: NextAuthOptions = {
   providers: [
     Credentials({
       credentials: {
-        identifier: { label: "Email",       type: "email"    },
-        password:   { label: "Password",    type: "password" },
-        rememberMe: { label: "Remember Me", type: "text"     },
+        identifier: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+        rememberMe: { label: "Remember Me", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.identifier || !credentials?.password) return null;
         try {
           const authData = await authService.login({
-            identifier:      credentials.identifier as string,
-            password:   credentials.password   as string,
+            identifier: credentials.identifier as string,
+            password: credentials.password as string,
             rememberMe: credentials.rememberMe === "true",
           });
 
-          const token        = authData.payload.token;
+          const token = authData.payload.token;
           const refreshToken = authData.payload.refreshToken;
 
           if (!token) {
             console.error("Auth payload missing access token", authData);
             return null;
           }
-          
+
           let decoded: { userId?: string; sub?: string; roles?: string } = {};
           const parts = token.split(".");
           if (parts.length === 3) {
@@ -45,10 +45,10 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
-          const userId    = decoded.userId ?? "unknown";
-          const userEmail = decoded.sub    ?? (credentials.identifier as string);
-          const rawRole   = decoded.roles  ?? "STUDENT";
-          
+          const userId = decoded.userId ?? "unknown";
+          const userEmail = decoded.sub ?? (credentials.identifier as string);
+          const rawRole = decoded.roles ?? "STUDENT";
+
           let resolvedRole = "student";
           if (rawRole === "ADMIN") resolvedRole = "admin";
           else if (rawRole === "ORGANIZER") resolvedRole = "organizer";
@@ -74,20 +74,22 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
-        token.id           = user.id;
-        token.email        = user.email;
-        token.role         = user.role;
-        token.accessToken  = user.accessToken;
+        token.id = user.id;
+        token.email = user.email;
+        token.role = user.role;
+        token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
-        token.rememberMe   = user.rememberMe;
-        
+        token.rememberMe = user.rememberMe;
+
         const parts = (user.accessToken as string)?.split(".");
         if (parts?.length === 3) {
           try {
             const decoded = JSON.parse(
-              Buffer.from(parts[1], "base64").toString("utf-8")
+              Buffer.from(parts[1], "base64").toString("utf-8"),
             ) as { exp?: number };
-            token.accessTokenExpiry = decoded.exp ? decoded.exp * 1000 : Date.now() + 24 * 60 * 60 * 1000;
+            token.accessTokenExpiry = decoded.exp
+              ? decoded.exp * 1000
+              : Date.now() + 24 * 60 * 60 * 1000;
           } catch {
             token.accessTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
           }
@@ -100,17 +102,19 @@ export const authOptions: NextAuthOptions = {
 
       if (Date.now() < (token.accessTokenExpiry as number)) {
         return token;
-  }
+      }
 
       try {
-        const refreshed = await authService.refreshToken(token.refreshToken as string);
+        const refreshed = await authService.refreshToken(
+          token.refreshToken as string,
+        );
 
         const parts = refreshed.payload.token?.split(".");
         let newExpiry = Date.now() + 24 * 60 * 60 * 1000;
         if (parts?.length === 3) {
           try {
             const decoded = JSON.parse(
-              Buffer.from(parts[1], "base64").toString("utf-8")
+              Buffer.from(parts[1], "base64").toString("utf-8"),
             ) as { exp?: number };
             newExpiry = decoded.exp ? decoded.exp * 1000 : newExpiry;
           } catch {}
@@ -118,10 +122,10 @@ export const authOptions: NextAuthOptions = {
 
         return {
           ...token,
-          accessToken:       refreshed.payload.token,
-          refreshToken:      refreshed.payload.refreshToken,
+          accessToken: refreshed.payload.token,
+          refreshToken: refreshed.payload.refreshToken,
           accessTokenExpiry: newExpiry,
-          error:             undefined,
+          error: undefined,
         };
       } catch {
         return {
@@ -133,12 +137,12 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id      = token.id;
-        session.user.email   = token.email;
-        session.user.role    = token.role;
-        session.accessToken  = token.accessToken;
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.role = token.role;
+        session.accessToken = token.accessToken;
         session.refreshToken = token.refreshToken;
-        session.error        = token.error;
+        session.error = token.error;
       }
       return session;
     },

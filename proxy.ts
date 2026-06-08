@@ -21,7 +21,9 @@ export async function proxy(req: NextRequest) {
 
   const isLoggedIn = Boolean(token);
   const isExpired = token?.error === "RefreshTokenExpired";
-  const isAuthRoute = authRoutes.some((route) => nextUrl.pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some((route) =>
+    nextUrl.pathname.startsWith(route),
+  );
   const isLandingRoute = nextUrl.pathname === landingRoute;
   const isJoinRoute = nextUrl.pathname.startsWith("/join");
 
@@ -43,6 +45,6 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|images/|fonts/|api/auth).*)",
+    "/((?!_next/static|_next/image|favicon.ico|images/|fonts/|api/auth|api/v4).*)",
   ],
 };
