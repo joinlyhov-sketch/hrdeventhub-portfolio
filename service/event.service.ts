@@ -139,7 +139,6 @@ export const eventService = {
       (post) => post.category === "event" && Boolean(post.eventStart),
     );
   },
-};
   getMyRegistrations: async (
     token: string,
     page: number = 1,
