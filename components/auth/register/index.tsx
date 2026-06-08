@@ -16,7 +16,13 @@ export default function RegisterWizard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9 }}
-      className="mx-auto w-[625px] min-h-[691px] rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-10 shadow-sm overflow-hidden"
+      className="
+        rounded-[20px] sm:rounded-[30px]
+        border border-[#c8d6ee]
+        bg-[#f9fbff]
+        p-5 sm:p-8 md:p-10
+        shadow-sm overflow-hidden
+      "
     >
       <StepIndicator currentStep={step} />
 
@@ -43,7 +49,7 @@ export default function RegisterWizard() {
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
-    <div className="mb-14 flex items-center justify-center">
+    <div className="mb-10 sm:mb-14 flex items-center justify-center">
       {registerStep.map((label, i) => {
         const stepNum = i + 1;
         const isActive = currentStep >= stepNum;
@@ -52,9 +58,9 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 
         return (
           <div key={stepNum} className="flex items-center">
-            <div className="relative flex flex-col items-center w-10">
+            <div className="relative flex flex-col items-center w-8 sm:w-10">
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-500 z-10 ${
+                className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-semibold transition-all duration-500 z-10 ${
                   isActive
                     ? "bg-[#24529a] text-white shadow-lg shadow-blue-900/20"
                     : "bg-[#f0f2f5] text-[#94a3b8]"
@@ -64,7 +70,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               </div>
 
               <span
-                className={`absolute top-12 whitespace-nowrap text-[13px] font-medium transition-colors duration-300 ${
+                className={`absolute top-10 sm:top-12 whitespace-nowrap text-[10px] sm:text-[13px] font-medium transition-colors duration-300 ${
                   isActive ? "text-[#17356f]" : "text-[#94a3b8]"
                 }`}
               >
@@ -73,7 +79,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
             </div>
 
             {!isLast && (
-              <div className="relative h-[1.5px] w-16 bg-[#e2e8f0] mx-1">
+              <div className="relative h-[1.5px] w-10 sm:w-16 bg-[#e2e8f0] mx-1">
                 <motion.div
                   initial={{ width: "0%" }}
                   animate={{ width: isCompleted ? "100%" : "0%" }}

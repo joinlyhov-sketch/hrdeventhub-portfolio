@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle, Lock } from "lucide-react";
 import { Button } from "../../ui/button";
 import PollHeader from "../survey/PollHeader";
 import PollOptionsList from "./creation/PollOptionsList";
@@ -35,13 +35,17 @@ export default function PollForm({
   const [description, setDescription] = useState(
     initialData?.description ?? "",
   );
-  const [options, setOptions] = useState<string[]>(
-    initialData?.options?.map((o) => o.text) ?? [
-      "Option 1",
-      "Option 2",
-      "Option 3",
-    ],
+  const [lockedOptions, setLockedOptions] = useState<
+    Array<{ id: string; text: string }>
+  >(
+    isEditMode
+      ? (initialData?.options ?? []).map((o) => ({ id: o.id, text: o.text }))
+      : [],
   );
+  const [newOptions, setNewOptions] = useState<string[]>(
+    isEditMode ? [] : ["Option 1", "Option 2", "Option 3"],
+  );
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -85,21 +89,25 @@ export default function PollForm({
     if (resolvedId) setWorkspaceIdState(resolvedId);
   }, [searchParams, workspaceId, isEditMode]);
 
-  const handleOptionTextChange = (index: number, text: string) => {
-    const updatedOptions = [...options];
-    updatedOptions[index] = text;
-    setOptions(updatedOptions);
+  const handleNewOptionChange = (index: number, text: string) => {
+    const updated = [...newOptions];
+    updated[index] = text;
+    setNewOptions(updated);
     setError(null);
   };
 
   const handleAddOption = () => {
-    setOptions([...options, `Option ${options.length + 1}`]);
+    setNewOptions([
+      ...newOptions,
+      `Option ${lockedOptions.length + newOptions.length + 1}`,
+    ]);
     setError(null);
   };
 
-  const handleRemoveOption = (index: number) => {
-    if (options.length > 2) {
-      setOptions(options.filter((_, i) => i !== index));
+  const handleRemoveNewOption = (index: number) => {
+    const minNewOptions = isEditMode ? 0 : 2;
+    if (newOptions.length > minNewOptions) {
+      setNewOptions(newOptions.filter((_, i) => i !== index));
       setError(null);
     }
   };
@@ -133,12 +141,14 @@ export default function PollForm({
       setError("Poll title is required");
       return false;
     }
-    if (options.length < 2) {
+
+    const totalOptions = lockedOptions.length + newOptions.length;
+    if (totalOptions < 2) {
       setError("Poll must have at least 2 options");
       return false;
     }
-    if (options.some((opt) => !opt?.trim())) {
-      setError("All options must have text");
+    if (newOptions.some((opt) => !opt?.trim())) {
+      setError("All new options must have text");
       return false;
     }
     if (!settings.closingDate || !settings.closingTime) {
@@ -166,42 +176,54 @@ export default function PollForm({
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        title: title.trim(),
-        description: description.trim(),
-        options: options.map((opt) => opt.trim()),
-        closingTime: new Date(
-          `${settings.closingDate}T${settings.closingTime}`,
-        ).toISOString(),
-        workspaceId: workspaceIdState,
-        type: "text" as const,
-        multiSelect: settings.multipleSelect,
-        anonymousVoting: settings.anonymousVote,
-        allowAddOptions: settings.addOption,
-        hiddenPoll: settings.hiddenPoll,
-        showResult: settings.showResult,
-      };
-
       if (isEditMode) {
-        await updatePollAction(pollId, payload);
+        await updatePollAction(pollId, {
+          title: title.trim(),
+          description: description.trim(),
+          closingTime: new Date(
+            `${settings.closingDate}T${settings.closingTime}`,
+          ).toISOString(),
+          workspaceId: workspaceIdState,
+          type: "text",
+          multiSelect: settings.multipleSelect,
+          anonymousVoting: settings.anonymousVote,
+          allowAddOptions: settings.addOption,
+          hiddenPoll: settings.hiddenPoll,
+          showResult: settings.showResult,
+          options: lockedOptions.map((o) => o.text),
+          newOptionTexts: newOptions.map((o) => o.trim()).filter(Boolean),
+        });
       } else {
-        await createPollAction(payload);
+        await createPollAction({
+          title: title.trim(),
+          description: description.trim(),
+          options: newOptions.map((o) => o.trim()),
+          closingTime: new Date(
+            `${settings.closingDate}T${settings.closingTime}`,
+          ).toISOString(),
+          workspaceId: workspaceIdState,
+          type: "text",
+          multiSelect: settings.multipleSelect,
+          anonymousVoting: settings.anonymousVote,
+          allowAddOptions: settings.addOption,
+          hiddenPoll: settings.hiddenPoll,
+          showResult: settings.showResult,
+        });
       }
 
       const savedWorkspaceId = workspaceIdState;
       setSuccess(true);
+      console.log(isEditMode ? "Poll updated successfully" : "Poll created successfully");
 
       if (!isEditMode) {
         setTitle("");
         setDescription("");
-        setOptions(["Option 1", "Option 2", "Option 3"]);
+        setNewOptions(["Option 1", "Option 2", "Option 3"]);
       }
 
       setTimeout(() => {
         if (onSuccess) {
           onSuccess();
-        } else if (isEditMode) {
-          router.push(`/group/${workspaceIdState}`);
         } else {
           router.push(`/group/${savedWorkspaceId}`);
         }
@@ -213,6 +235,7 @@ export default function PollForm({
           : `Failed to ${isEditMode ? "update" : "create"} poll`,
       );
       setIsSubmitting(false);
+      
     }
   };
 
@@ -285,14 +308,41 @@ export default function PollForm({
             disabled={isWorkspaceContextLocked}
           />
 
-          <PollOptionsList
-            options={options}
-            onOptionChange={handleOptionTextChange}
-            onAddOption={handleAddOption}
-            onRemoveOption={handleRemoveOption}
-          />
+          <div className="space-y-3">
+            {isEditMode && lockedOptions.length > 0 && (
+              <div className="space-y-2">
+                {lockedOptions.map((opt) => (
+                  <div
+                    key={opt.id}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-grey-100 bg-grey-50 opacity-70 select-none"
+                    title="Existing options cannot be edited"
+                  >
+                    <Lock size={14} className="text-grey-400 shrink-0" />
+                    <span className="text-sm text-foreground flex-1">
+                      {opt.text}
+                    </span>
+                    <span className="text-xs text-grey-400 italic">locked</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <PollOptionsList
+              options={newOptions}
+              onOptionChange={handleNewOptionChange}
+              onAddOption={handleAddOption}
+              onRemoveOption={handleRemoveNewOption}
+            />
+
+            {isEditMode && (
+              <p className="text-xs text-grey-400 mt-1">
+                Existing options are locked. You can only add new options.
+              </p>
+            )}
+          </div>
         </div>
       </div>
+
       <aside className="lg:col-span-3 order-2 lg:order-5 w-full lg:sticky lg:top-24 p-4 flex justify-end">
         <PollSidebar
           settings={settings}

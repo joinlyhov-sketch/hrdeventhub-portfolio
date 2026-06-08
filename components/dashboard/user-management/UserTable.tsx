@@ -199,16 +199,16 @@ export default function UserTableClient({
               <TableHead className="px-1 py-3 text-white text-center w-[10%] font-semibold">
                 No.
               </TableHead>
-              <TableHead className="px-6 py-3 text-white w-[20%] font-semibold">
+              <TableHead className="px-6 py-3 text-white w-[30%] font-semibold">
                 Username
               </TableHead>
-              <TableHead className="px-2 py-3 text-white w-[25%] font-semibold">
+              <TableHead className="px-1 py-3 text-white w-[37%] font-semibold">
                 Email
               </TableHead>
-              <TableHead className="px-6 py-3 text-white w-[20%] font-semibold">
+              <TableHead className="px-6 py-3 text-white w-[25%] font-semibold">
                 Phone
               </TableHead>
-              <TableHead className="px-6 py-3 text-white w-[8%] font-semibold">
+              <TableHead className="px-6 py-3 text-white w-[15%] font-semibold">
                 Gender
               </TableHead>
 
@@ -295,7 +295,7 @@ export default function UserTableClient({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableHead>
-              <TableHead className="px-1 py-3 text-white w-[15%] font-semibold">
+              <TableHead className="px-1 py-3 text-white w-[20%] font-semibold">
                 Action
               </TableHead>
             </TableRow>
