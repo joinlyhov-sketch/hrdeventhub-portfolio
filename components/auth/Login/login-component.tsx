@@ -82,7 +82,7 @@ export default function LoginComponent() {
       animate="visible"
       className="flex items-center justify-center w-full"
     >
-      <div className="w-[624px] rounded-[32px] border border-[#dce6f0] bg-[#f9fbff]/80 backdrop-blur-sm p-18 shadow-sm">
+      <div className="w-[624px] rounded-[32px] border border-[#dce6f0] bg-[#f9fbff]/80 backdrop-blur-sm p-12 shadow-sm">
         <div className="mb-10 text-center">
           <h1 className="text-[28px] font-bold tracking-tight text-[#17356f]">Welcome Back !</h1>
           <p className="mt-2 text-[20px] font-semibold text-[#5f6470]">
