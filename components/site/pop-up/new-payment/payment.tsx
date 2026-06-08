@@ -132,6 +132,7 @@ export function PaymentWizardDialog({ isOpen, onClose, post }: PaymentWizardDial
   };
 
   const handleGenerateQr = async () => {
+    if (!currentUser?.role) return;
     const parsed = parseFloat(donationAmount);
     if (!donationAmount || isNaN(parsed) || parsed <= 0) {
       setDonationAmountError("Please enter a valid donation amount.");
@@ -141,7 +142,11 @@ export function PaymentWizardDialog({ isOpen, onClose, post }: PaymentWizardDial
     setIsGeneratingQr(true);
     setSubmitError(null);
 
-    const result = await generateFlexibleQrAction({ postId: post.postId, amount: parsed });
+    const result = await generateFlexibleQrAction({
+      postId: post.postId,
+      amount: parsed,
+      role: currentUser.role,
+    });
     setIsGeneratingQr(false);
 
     if (result.ok && result.payload) {
@@ -156,10 +161,27 @@ export function PaymentWizardDialog({ isOpen, onClose, post }: PaymentWizardDial
 
   const handleAlumniConfirm = async () => {
     if (isSubmittingRef.current) return;
-    if (!currentUser?.name || !billNo || !requestId) {
+    if (!currentUser?.name || !billNo || !requestId || !currentUser?.role) {
       setSubmitError("Missing payment details. Please go back and try again.");
       return;
     }
+
+    console.log("[PaymentWizard] flexible state before submit:", {
+      flexQrData_billNo: flexQrData?.billNo,
+      flexQrData_requestId: flexQrData?.requestId,
+      stateBillNo: billNo,
+      stateRequestId: requestId,
+    });
+
+    console.log("[PaymentWizard] handleAlumniConfirm — payload being sent:", {
+      billNo,
+      requestId,
+      payerName: currentUser?.name,
+      remark: remark.trim() || "—",
+      amount: flow === "alumni-flexible" ? (flexQrData?.amount ?? parseFloat(donationAmount)) : fixedAmount,
+      postId: post.postId,
+      role: currentUser?.role,
+    });
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -175,6 +197,7 @@ export function PaymentWizardDialog({ isOpen, onClose, post }: PaymentWizardDial
       remark: remark.trim() || "—",
       amount,
       postId: post.postId,
+      role: currentUser.role,
     });
 
     isSubmittingRef.current = false;
@@ -190,6 +213,8 @@ export function PaymentWizardDialog({ isOpen, onClose, post }: PaymentWizardDial
 
   const handleStudentConfirm = async () => {
     if (isSubmittingRef.current) return;
+    if (!currentUser?.role) return;
+
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     setSubmitError(null);
@@ -197,6 +222,7 @@ export function PaymentWizardDialog({ isOpen, onClose, post }: PaymentWizardDial
     const result = await studentRegisterAction({
       postId: post.postId,
       remark: remark.trim() || "—",
+      role: currentUser.role,
     });
 
     isSubmittingRef.current = false;

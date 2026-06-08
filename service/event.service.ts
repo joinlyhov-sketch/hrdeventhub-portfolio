@@ -62,6 +62,7 @@ export interface EventItem {
   createdAt: string;
   updatedAt: string;
   appUserId: string;
+  workspaceId: string;
   location: EventLocation;
   media: EventMedia[];
   payment: EventPayment;
@@ -89,6 +90,7 @@ export interface Participant {
   registeredAt: string;
   remark: string;
   postId: string;
+  post?: EventItem;
   user?: ParticipantUser;
   paymentStatus: string;
 }
@@ -139,6 +141,7 @@ export const eventService = {
       (post) => post.category === "event" && Boolean(post.eventStart),
     );
   },
+
   getMyRegistrations: async (
     token: string,
     page: number = 1,
