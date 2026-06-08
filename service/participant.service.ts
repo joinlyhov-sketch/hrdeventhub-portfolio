@@ -1,20 +1,15 @@
 import { apiPost } from "@/libs/api";
 
-// ─── Request Types ────────────────────────────────────────────────────────────
-
 export interface RegisterParticipantPayload {
   remark: string;
-  billNo: string;
+  billNo: string | null; 
 }
-
-// ─── Response Types ───────────────────────────────────────────────────────────
 
 export interface RegisterParticipantResponse {
   success: boolean;
   message: string;
   status: string;
 }
-
 
 export const participantService = {
   register: async (

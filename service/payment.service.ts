@@ -1,5 +1,6 @@
 import { apiPost, apiGet } from "@/libs/api";
 
+// ─── Notify ───────────────────────────────────────────────────────────────────
 
 export interface PaymentNotifyPayload {
   bill_no: string;
@@ -19,6 +20,28 @@ export interface PaymentNotifyPayload {
   settlement_error_message: string | null;
   remark: string;
   request_id: string;
+}
+
+export interface PaymentNotifyResponse {
+  success: boolean;
+  message: string;
+  status: string;
+}
+
+export interface GenerateQrPayload {
+  postId: string;
+  amount: number;
+  remark: string; 
+}
+
+export interface GenerateQrResponse {
+  billNo: string;
+  accountNo: string;
+  khqrData: string;
+  khqrDataBase64: string;
+  amount: number;
+  currency: string;
+  requestId: string;
 }
 
 export interface Transaction {
@@ -43,7 +66,7 @@ export interface Transaction {
   postId: string;
 }
 
-export interface TransactionsResponse {
+interface TransactionsResponse {
   success: boolean;
   message: string;
   status: string;
@@ -51,11 +74,6 @@ export interface TransactionsResponse {
   timestamp: string;
 }
 
-export interface PaymentNotifyResponse {
-  success: boolean;
-  message: string;
-  status: string;
-}
 
 export const paymentService = {
   notify: async (
@@ -69,6 +87,17 @@ export const paymentService = {
     );
   },
 
+  generateQr: async (
+    payload: GenerateQrPayload,
+    authToken: string,
+  ): Promise<GenerateQrResponse> => {
+    return apiPost<GenerateQrResponse, GenerateQrPayload>(
+      "/payments/qr/generate",
+      payload,
+      { authToken, accept: "*/*" },
+    );
+  },
+
   getMyTransactions: async (authToken: string): Promise<Transaction[]> => {
     const response = await apiGet<TransactionsResponse>(
       "/payments/transactions/me",
@@ -76,7 +105,6 @@ export const paymentService = {
     );
     return response.payload;
   },
-
   getTransactionByBillNo: async (
     billNo: string,
     authToken: string,

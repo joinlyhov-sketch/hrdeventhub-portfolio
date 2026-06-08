@@ -16,7 +16,7 @@ export default function RegisterWizard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9 }}
-      className="mx-auto w-[625px] min-h-[691px] rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-10 shadow-sm overflow-hidden"
+      className="mx-auto w-[590px] min-h-[580px] rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-10 shadow-sm overflow-hidden"
     >
       <StepIndicator currentStep={step} />
 

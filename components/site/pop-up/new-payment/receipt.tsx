@@ -1,14 +1,12 @@
 "use client";
 
-export function ReceiptRow({
-  icon,
-  label,
-  value,
-}: {
+interface ReceiptRowProps {
   icon: React.ReactNode;
   label: string;
   value: string;
-}) {
+}
+
+export function ReceiptRow({ icon, label, value }: ReceiptRowProps) {
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
       <div className="mt-0.5 text-[#1e3a8a] opacity-60 flex-shrink-0">{icon}</div>

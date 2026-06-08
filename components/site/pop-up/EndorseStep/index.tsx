@@ -1,13 +1,20 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
-import { X, Search, CheckCircle2, ChevronDown, Loader2, AlertTriangle } from "lucide-react";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import {
+  X,
+  CheckCircle2,
+  ChevronDown,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { endorsementService } from "@/service/endorse.service";
-import StepFirst from "./StepFirst";
 import StepTwo from "./Step2";
-import StepThree from "./Step3";
- 
- 
+import StepSuccess, { StepFailed } from "./Step3";
+import StepFirst from "./StepFirst";
+import { RegistrationPayloadItem } from "@/types/endorsement";
+
 interface EndorseStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,7 +26,157 @@ interface EndorseStudentModalProps {
   onSuccess?: () => void;
 }
 
- 
+type SubmitResult = "success" | "error" | "duplicate" | null;
+
+function getInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join("");
+}
+
+interface EventDropdownProps {
+  registrations: RegistrationPayloadItem[];
+  selectedPostId: string;
+  onSelect: (postId: string) => void;
+  disabled?: boolean;
+}
+
+function EventDropdown({
+  registrations,
+  selectedPostId,
+  onSelect,
+  disabled,
+}: EventDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedReg = registrations.find((r) => r.postId === selectedPostId);
+  const filtered = registrations.filter((r) =>
+    getEventLabel(r).toLowerCase().includes(query.toLowerCase()),
+  );
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="relative flex items-center">
+        <input
+          type="text"
+          disabled={disabled}
+          placeholder={
+            selectedReg
+              ? getEventLabel(selectedReg)
+              : "Search or select an event…"
+          }
+          value={isOpen ? query : selectedReg ? getEventLabel(selectedReg) : ""}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => {
+            setQuery("");
+            setIsOpen(true);
+          }}
+          className="w-full h-[46px] pl-10 pr-10 bg-background border border-border rounded-xl outline-none focus:border-primary transition-colors text-sm text-secondary placeholder:text-grey-400 disabled:opacity-50 disabled:cursor-not-allowed"
+        />
+        <ChevronDown
+          onClick={() => !disabled && setIsOpen((o) => !o)}
+          className={`absolute right-3.5 text-grey-400 cursor-pointer select-none transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          size={16}
+        />
+      </div>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 mt-1.5 z-50 bg-background border border-border rounded-xl shadow-xl max-h-[200px] overflow-y-auto p-1">
+          {filtered.length === 0 ? (
+            <div className="text-sm text-grey-400 px-4 py-3 text-center">
+              No matching events found.
+            </div>
+          ) : (
+            filtered.map((reg) => {
+              const active = reg.postId === selectedPostId;
+              return (
+                <div
+                  key={reg.postId}
+                  onClick={() => {
+                    onSelect(reg.postId);
+                    setQuery("");
+                    setIsOpen(false);
+                  }}
+                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg cursor-pointer transition-colors text-sm ${
+                    active
+                      ? "bg-primary/5 text-primary font-medium"
+                      : "text-secondary hover:bg-grey-50"
+                  }`}
+                >
+                  <span className="truncate">{getEventLabel(reg)}</span>
+                  {active && (
+                    <CheckCircle2
+                      size={14}
+                      className="text-primary shrink-0 ml-2"
+                    />
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getEventLabel(reg: RegistrationPayloadItem): string {
+  if (reg.postTitle?.trim()) return reg.postTitle.trim();
+  return `Event ${reg.postId.substring(0, 8)}…`;
+}
+
+function StudentAvatar({
+  src,
+  name,
+  size = "md",
+}: {
+  src?: string;
+  name: string;
+  size?: "sm" | "md";
+}) {
+  const dim = size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm";
+  if (src) {
+    return (
+      <div
+        className={`${dim} rounded-full bg-cover bg-center shrink-0`}
+        style={{ backgroundImage: `url(${src})` }}
+      />
+    );
+  }
+  return (
+    <div
+      className={`${dim} rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0`}
+    >
+      <span className="font-bold text-primary tracking-wide">
+        {getInitials(name)}
+      </span>
+    </div>
+  );
+}
+
 const AVAILABLE_SKILLS = [
   "UI Design",
   "Design System",
@@ -28,123 +185,197 @@ const AVAILABLE_SKILLS = [
   "Web Accessibility",
   "Motion Design",
 ];
- 
+
 export default function EndorseStudentModal({
   isOpen,
   onClose,
   studentId,
   postId,
   authToken,
-  studentName = "Chham Kaknika",
-  studentAvatar = "https://i.pravatar.cc/150?u=kaknika",
+  studentName = "Student",
+  studentAvatar,
   onSuccess,
 }: EndorseStudentModalProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [skillQuery, setSkillQuery] = useState("");
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
- 
+
   const [currentPostId, setCurrentPostId] = useState<string>(postId ?? "");
-  const [sharedPostIds, setSharedPostIds] = useState<string[]>([]);
+  const [sharedRegistrations, setSharedRegistrations] = useState<
+    RegistrationPayloadItem[]
+  >([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitResult, setSubmitResult] = useState<SubmitResult>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!isOpen || postId) return;
- 
+
     const fetchMutualEvents = async () => {
       setIsLoadingEvents(true);
-      setError(null);
+      setFetchError(null);
       try {
-        const mutualPostIds = await endorsementService.getMutualPostIds(
+        const regs = await endorsementService.getMutualRegistrations(
           studentId,
-          authToken
+          authToken,
         );
-        setSharedPostIds(mutualPostIds);
+        setSharedRegistrations(regs);
       } catch (err: any) {
-        setError("Unable to load shared event history. Please try again.");
-        console.error("[EndorseModal] getMutualPostIds error:", err);
+        setFetchError("Unable to load shared event history. Please try again.");
+        console.error("[EndorseModal] getMutualRegistrations error:", err);
       } finally {
         setIsLoadingEvents(false);
       }
     };
- 
+
     fetchMutualEvents();
   }, [isOpen, studentId, postId, authToken]);
- 
+
   const handleNextStep = useCallback(() => {
     if (step < 3) setStep((prev) => (prev + 1) as 1 | 2 | 3);
   }, [step]);
- 
+
   const handlePrevStep = useCallback(() => {
     if (step > 1) setStep((prev) => (prev - 1) as 1 | 2 | 3);
   }, [step]);
 
- 
   const handleSubmitEndorsement = async () => {
     const finalPostId = postId ?? currentPostId;
-    if (!selectedSkill || !commentText.trim() || !finalPostId) return;
- 
+    if (!selectedSkill || !commentText.trim() || !finalPostId || isSubmitting)
+      return;
+
     setIsSubmitting(true);
-    setError(null);
+    setSubmitResult(null);
+    setSubmitError(null);
+
     try {
       await endorsementService.create(
-        { skill: selectedSkill, comment: commentText.trim(), studentId, postId: finalPostId },
-        authToken
+        {
+          skill: selectedSkill,
+          comment: commentText.trim(),
+          studentId,
+          postId: finalPostId,
+        },
+        authToken,
       );
-      onSuccess?.();
+
+      setSubmitResult("success");
       setStep(3);
+
+      if (onSuccess) {
+        setTimeout(() => {
+          onSuccess();
+        }, 100);
+      }
     } catch (err: any) {
-      setError(err?.message ?? "Failed to submit endorsement. Please try again.");
+      console.error("[EndorseModal] Submission error caught:", err);
+
+      const msg: string = err?.message || (typeof err === "string" ? err : "");
+      const status = err?.status;
+
+      const isDupe =
+        msg.toLowerCase().includes("already") ||
+        msg.toLowerCase().includes("duplicate") ||
+        status === 409;
+
+      setSubmitResult(isDupe ? "duplicate" : "error");
+      setSubmitError(msg || "Failed to submit endorsement.");
+      setStep(3);
     } finally {
       setIsSubmitting(false);
     }
   };
- 
- 
+
   const handleResetAndClose = useCallback(() => {
     setStep(1);
     setSelectedSkill(null);
     setCommentText("");
-    setSearchQuery("");
-    setError(null);
+    setSkillQuery("");
+    setFetchError(null);
+    setSubmitResult(null);
+    setSubmitError(null);
+    setIsDuplicate(false);
     if (!postId) {
       setCurrentPostId("");
-      setSharedPostIds([]);
+      setSharedRegistrations([]);
     }
     onClose();
   }, [onClose, postId]);
- 
- 
+
+  const handleRetryFromFailed = useCallback(() => {
+    setSubmitResult(null);
+    setSubmitError(null);
+    setStep(2);
+  }, []);
+
   const resolvedPostId = postId ?? currentPostId;
-  const isNextDisabled = !selectedSkill || !resolvedPostId || isLoadingEvents;
+  const noSharedEvents =
+    !postId &&
+    !isLoadingEvents &&
+    sharedRegistrations.length === 0 &&
+    !fetchError;
+
+  const isNextDisabled =
+    !selectedSkill ||
+    !resolvedPostId ||
+    isLoadingEvents ||
+    isCheckingDuplicate ||
+    isDuplicate;
+
   const isSubmitDisabled = !commentText.trim() || isSubmitting;
-  const noSharedEvents = !postId && !isLoadingEvents && sharedPostIds.length === 0;
- 
+
   const stepLabel: Record<1 | 2 | 3, string> = {
-    1: "Step 1 of 3: Reference & Skill Selection",
-    2: "Step 2 of 3: Add a Comment",
-    3: "Step 3 of 3: Done",
+    1: "Step 1 of 3 — Event & Skill",
+    2: "Step 2 of 3 — Add Comment",
+    3:
+      submitResult === "success"
+        ? "Step 3 of 3 — Complete"
+        : "Step 3 of 3 — Result",
   };
- 
-  const dialogTitle = step === 1
-    ? `Endorse ${studentName.split(" ")[0]}`
-    : "Add Endorsement Feedback";
- 
-  // ── Render ────────────────────────────────────────────────────────────────
- 
+
+  const dialogTitle =
+    step === 3
+      ? submitResult === "success"
+        ? "Endorsement Complete"
+        : "Endorsement Failed"
+      : step === 1
+        ? `Endorse ${studentName.split(" ")[0]}`
+        : "Add Endorsement Feedback";
+
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && handleResetAndClose()}>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open) => !open && handleResetAndClose()}
+    >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-grey-900/40 backdrop-blur-xs z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[640px] bg-background rounded-[24px] shadow-xl border border-border z-50 overflow-hidden outline-none flex flex-col">
-
+        <Dialog.Content
+          onPointerDownOutside={(e) => {
+            if (isSubmitting) e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if (isSubmitting) e.preventDefault();
+          }}
+          onEscapeKeyDown={(e) => {
+            if (isSubmitting) e.preventDefault();
+          }}
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[640px] bg-background rounded-[24px] shadow-xl border border-border z-50 overflow-hidden outline-none flex flex-col"
+        >
           <div className="bg-grey-50 border-b border-border p-5 flex items-center justify-between">
             <div className="flex items-center gap-3.5">
-              {step === 1 && (
-                <div
-                  className="w-10 h-10 rounded-full bg-cover bg-center shrink-0"
-                  style={{ backgroundImage: `url(${studentAvatar})` }}
+              {step !== 3 && (
+                <StudentAvatar
+                  src={studentAvatar}
+                  name={studentName}
+                  size="md"
                 />
               )}
               <div className="flex flex-col">
@@ -165,70 +396,80 @@ export default function EndorseStudentModal({
               <X size={20} />
             </button>
           </div>
+
           <div className="p-6 flex flex-col justify-between grow">
             <div className="mb-6">
-              {error && (
-                <div className="mb-4 flex items-start gap-2.5 p-3.5 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
-                  <AlertTriangle size={16} className="shrink-0 mt-0.5" />
-                  <span>{error}</span>
-                </div>
-              )}
- 
-              {step === 1 && !postId && (
-                <div className="mb-5 p-4 bg-grey-50 rounded-2xl border border-border">
-                  <label className="block text-sm font-semibold text-secondary mb-2.5">
-                    Select Shared Platform Event
-                  </label>
- 
-                  {isLoadingEvents ? (
-                    <div className="flex items-center gap-2 text-xs text-grey-400 py-2">
-                      <Loader2 size={13} className="animate-spin" />
-                      <span>Matching mutual registration histories...</span>
-                    </div>
-                  ) : noSharedEvents ? (
-                    <div className="flex items-start gap-2.5 text-sm text-amber-700 bg-amber-50 p-3.5 rounded-xl border border-amber-200 font-medium">
-                      <AlertTriangle size={15} className="shrink-0 mt-0.5" />
-                      <span>
-                        You cannot endorse this student because you haven't both registered
-                        for the same workspace events.
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <select
-                        value={currentPostId}
-                        onChange={(e) => setCurrentPostId(e.target.value)}
-                        className="w-full appearance-none p-3 pr-9 bg-background border border-border rounded-xl outline-none focus:border-primary transition-colors text-sm text-secondary cursor-pointer"
-                      >
-                        <option value="" disabled>
-                          — Choose a mutual event —
-                        </option>
-                        {sharedPostIds.map((pId) => (
-                          <option key={pId} value={pId}>
-                            Shared Event: {pId.substring(0, 8)}…
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown
-                        size={15}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-grey-400 pointer-events-none"
-                      />
+              {step === 1 && (
+                <>
+                  {fetchError && (
+                    <div className="mb-4 flex items-start gap-2.5 p-3.5 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
+                      <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                      <span>{fetchError}</span>
                     </div>
                   )}
-                </div>
+
+                  {isDuplicate && !isCheckingDuplicate && (
+                    <div className="mb-4 flex items-start gap-2.5 p-3.5 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium border border-amber-200">
+                      <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                      <span>
+                        You've already endorsed this student for this event.
+                        Select a different event to continue.
+                      </span>
+                    </div>
+                  )}
+
+                  {!postId && (
+                    <div className="mb-5 p-4 bg-grey-50 rounded-2xl border border-border">
+                      <label className="block text-sm font-semibold text-secondary mb-2.5">
+                        Select Shared Event
+                      </label>
+
+                      {isLoadingEvents ? (
+                        <div className="flex items-center gap-2 text-xs text-grey-400 py-2">
+                          <Loader2 size={13} className="animate-spin" />
+                          <span>Matching mutual registration histories…</span>
+                        </div>
+                      ) : noSharedEvents ? (
+                        <div className="flex items-start gap-2.5 text-sm text-amber-700 bg-amber-50 p-3.5 rounded-xl border border-amber-200 font-medium">
+                          <AlertTriangle
+                            size={15}
+                            className="shrink-0 mt-0.5"
+                          />
+                          <span>
+                            You cannot endorse this student — you haven't both
+                            registered for the same workspace events.
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <EventDropdown
+                            registrations={sharedRegistrations}
+                            selectedPostId={currentPostId}
+                            onSelect={setCurrentPostId}
+                            disabled={isLoadingEvents}
+                          />
+                          {isCheckingDuplicate && (
+                            <div className="flex items-center gap-1.5 mt-2 text-xs text-grey-400">
+                              <Loader2 size={11} className="animate-spin" />
+                              <span>Checking eligibility…</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <StepFirst
+                    studentName={studentName}
+                    skillQuery={skillQuery}
+                    setSkillQuery={setSkillQuery}
+                    availableSkills={AVAILABLE_SKILLS}
+                    selectedSkill={selectedSkill}
+                    setSelectedSkill={setSelectedSkill}
+                  />
+                </>
               )}
- 
-              {step === 1 && (
-                <StepFirst
-                  studentName={studentName}
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  availableSkills={AVAILABLE_SKILLS}
-                  selectedSkill={selectedSkill}
-                  setSelectedSkill={setSelectedSkill}
-                />
-              )}
- 
+
               {step === 2 && (
                 <StepTwo
                   studentName={studentName}
@@ -237,24 +478,38 @@ export default function EndorseStudentModal({
                   setCommentText={setCommentText}
                 />
               )}
- 
-              {step === 3 && (
-                <StepThree
+
+              {step === 3 && submitResult === "success" && (
+                <StepSuccess
                   studentName={studentName}
+                  studentAvatar={studentAvatar}
                   selectedSkill={selectedSkill}
                 />
               )}
+
+              {step === 3 &&
+                (submitResult === "error" || submitResult === "duplicate") && (
+                  <StepFailed
+                    isDuplicate={submitResult === "duplicate"}
+                    studentName={studentName}
+                    selectedSkill={selectedSkill}
+                    onRetry={handleRetryFromFailed}
+                  />
+                )}
             </div>
- 
-            {/* ── Footer Actions ── */}
+
             {step === 3 ? (
               <div className="pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={handleResetAndClose}
-                  className="w-full py-3.5 bg-primary hover:opacity-95 text-white type-desc-semibold rounded-xl transition-opacity cursor-pointer shadow-xs"
+                  className={`w-full py-3.5 text-white type-desc-semibold rounded-xl transition-opacity cursor-pointer shadow-xs ${
+                    submitResult === "success"
+                      ? "bg-primary hover:opacity-95"
+                      : "bg-grey-700 hover:opacity-90"
+                  }`}
                 >
-                  Done
+                  {submitResult === "success" ? "Done" : "Close"}
                 </button>
               </div>
             ) : (
@@ -277,7 +532,7 @@ export default function EndorseStudentModal({
                     Cancel
                   </button>
                 )}
- 
+
                 {step === 1 ? (
                   <button
                     type="button"
@@ -294,8 +549,10 @@ export default function EndorseStudentModal({
                     onClick={handleSubmitEndorsement}
                     className="flex items-center gap-2 px-7 py-3 bg-primary disabled:bg-grey-200 disabled:text-grey-400 text-white type-desc-small-semibold rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed shadow-xs"
                   >
-                    {isSubmitting && <Loader2 size={14} className="animate-spin" />}
-                    {isSubmitting ? "Submitting..." : "Submit"}
+                    {isSubmitting && (
+                      <Loader2 size={14} className="animate-spin" />
+                    )}
+                    {isSubmitting ? "Submitting…" : "Submit"}
                   </button>
                 )}
               </div>

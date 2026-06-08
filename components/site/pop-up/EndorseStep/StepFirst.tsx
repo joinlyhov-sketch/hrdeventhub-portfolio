@@ -1,10 +1,11 @@
 "use client";
  
 import { Search, CheckCircle2 } from "lucide-react";
+
 interface Step1Props {
   studentName: string;
-  searchQuery: string;
-  setSearchQuery: (v: string) => void;
+  skillQuery: string;
+  setSkillQuery: (v: string) => void;
   availableSkills: string[];
   selectedSkill: string | null;
   setSelectedSkill: (v: string | null) => void;
@@ -12,15 +13,15 @@ interface Step1Props {
  
 export default function StepFirst({
   studentName,
-  searchQuery,
-  setSearchQuery,
+  skillQuery,
+  setSkillQuery,
   availableSkills,
   selectedSkill,
   setSelectedSkill,
 }: Step1Props) {
   const firstName = studentName.split(" ")[0];
   const filtered = availableSkills.filter((s) =>
-    s.toLowerCase().includes(searchQuery.toLowerCase())
+    s.toLowerCase().includes(skillQuery.toLowerCase())
   );
  
   return (
@@ -31,7 +32,6 @@ export default function StepFirst({
         contribution during your shared event.
       </p>
  
-      {/* Search */}
       <div className="relative">
         <Search
           size={15}
@@ -39,14 +39,13 @@ export default function StepFirst({
         />
         <input
           type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search skills..."
+          value={skillQuery}
+          onChange={(e) => setSkillQuery(e.target.value)}
+          placeholder="Search skills…"
           className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-xl outline-none focus:border-primary transition-colors text-sm text-secondary placeholder:text-grey-400"
         />
       </div>
  
-      {/* Skill Grid */}
       <div className="grid grid-cols-2 gap-2">
         {filtered.length > 0 ? (
           filtered.map((skill) => {

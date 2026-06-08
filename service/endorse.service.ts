@@ -1,10 +1,11 @@
-
 import { apiPost, apiGet } from "@/libs/api";
 import {
   CreateEndorsementPayload,
   BaseEndorsementResponse,
   FetchRegistrationsResponse,
   RegistrationPayloadItem,
+  EndorsementItem,
+  FetchReceivedEndorsementsResponse,
 } from "@/types/endorsement";
 
 export const endorsementService = {
@@ -40,6 +41,19 @@ export const endorsementService = {
     return response.payload ?? [];
   },
 
+  getMutualRegistrations: async (
+    studentId: string,
+    authToken: string
+  ): Promise<RegistrationPayloadItem[]> => {
+    const [alumniRegs, studentRegs] = await Promise.all([
+      endorsementService.getAlumniRegistrations(authToken),
+      endorsementService.getStudentRegistrations(studentId, authToken),
+    ]);
+
+    const studentPostIds = new Set(studentRegs.map((reg) => reg.postId));
+    return alumniRegs.filter((reg) => studentPostIds.has(reg.postId));
+  },
+
   getMutualPostIds: async (
     studentId: string,
     authToken: string
@@ -54,5 +68,26 @@ export const endorsementService = {
     return alumniRegs
       .map((reg) => reg.postId)
       .filter((postId) => studentPostIds.has(postId));
+  },
+
+  getReceivedEndorsements: async (
+    authToken: string
+  ): Promise<EndorsementItem[]> => {
+    const response = await apiGet<FetchReceivedEndorsementsResponse>(
+      "/endorsements/my-received",
+      { authToken }
+    );
+    return response.payload ?? [];
+  },
+
+  getStudentEndorsementsAsGuest: async (
+    studentId: string,
+    authToken: string
+  ): Promise<EndorsementItem[]> => {
+    const response = await apiGet<FetchReceivedEndorsementsResponse>(
+      `/endorsements/student/${studentId}`,
+      { authToken }
+    );
+    return response.payload ?? [];
   },
 };

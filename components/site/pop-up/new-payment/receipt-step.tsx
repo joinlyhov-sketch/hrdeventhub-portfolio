@@ -12,10 +12,7 @@ interface ReceiptStepProps {
 
 function formatDate(raw: string): string {
   if (!raw || raw.length < 8) return raw;
-  const y = raw.slice(0, 4);
-  const m = raw.slice(4, 6);
-  const d = raw.slice(6, 8);
-  return `${d}/${m}/${y}`;
+  return `${raw.slice(6, 8)}/${raw.slice(4, 6)}/${raw.slice(0, 4)}`;
 }
 
 function formatTime(raw: string): string {
@@ -33,39 +30,22 @@ export function ReceiptStep({ transaction, onClose }: ReceiptStepProps) {
           <CheckCircle2 size={36} className="text-green-500" />
         </div>
         <p className="text-[18px] font-bold text-gray-800">Payment Confirmed!</p>
-        <p className="text-[13px] text-gray-500 text-center">
-          You're now registered for this event.
-        </p>
+        <p className="text-[13px] text-gray-500 text-center">You're now registered for this event.</p>
       </div>
 
       <div className="bg-white rounded-2xl border border-blue-50 shadow-sm px-4 py-2">
         <div className="flex items-center gap-2 py-3 border-b border-gray-50">
           <Receipt size={16} className="text-[#1e3a8a]" />
-          <p className="text-[13px] font-bold text-[#1e3a8a] uppercase tracking-wide">
-            Transaction Receipt
-          </p>
+          <p className="text-[13px] font-bold text-[#1e3a8a] uppercase tracking-wide">Transaction Receipt</p>
         </div>
-
-        <ReceiptRow icon={<Hash size={14} />} label="Bill No." value={transaction.billNo} />
-        <ReceiptRow icon={<User size={14} />} label="Payer" value={transaction.payerName} />
-        <ReceiptRow
-          icon={<CreditCard size={14} />}
-          label="Amount"
-          value={`${transaction.amount.toFixed(2)} ${transaction.currencyCode}`}
-        />
-        <ReceiptRow icon={<Building2 size={14} />} label="Bank" value={transaction.senderBankName} />
-        <ReceiptRow
-          icon={<Calendar size={14} />}
-          label="Transaction Date"
-          value={formatDate(transaction.transactionDate)}
-        />
-        <ReceiptRow
-          icon={<Clock size={14} />}
-          label="Transaction Time"
-          value={formatTime(transaction.transactionTime)}
-        />
+        <ReceiptRow icon={<Hash size={14} />}       label="Bill No."  value={transaction.billNo} />
+        <ReceiptRow icon={<User size={14} />}       label="Payer"     value={transaction.payerName} />
+        <ReceiptRow icon={<CreditCard size={14} />} label="Amount"    value={`${transaction.amount.toFixed(2)} ${transaction.currencyCode}`} />
+        <ReceiptRow icon={<Building2 size={14} />}  label="Bank"      value={transaction.senderBankName} />
+        <ReceiptRow icon={<Calendar size={14} />}   label="Date"      value={formatDate(transaction.transactionDate)} />
+        <ReceiptRow icon={<Clock size={14} />}      label="Time"      value={formatTime(transaction.transactionTime)} />
         {transaction.remark && transaction.remark !== "—" && (
-          <ReceiptRow icon={<Receipt size={14} />} label="Remark" value={transaction.remark} />
+          <ReceiptRow icon={<Receipt size={14} />}  label="Remark"    value={transaction.remark} />
         )}
       </div>
 
