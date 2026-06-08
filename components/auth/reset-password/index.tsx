@@ -16,7 +16,7 @@ export default function ResetPasswordWizard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9 }}
-      className="mx-auto w-[715px] min-h-[600px] flex flex-col rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-10 shadow-sm"
+      className="flex flex-col rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-8 sm:p-10 shadow-sm overflow-hidden"
     >
       <StepIndicator currentStep={step} />
 
@@ -29,7 +29,7 @@ export default function ResetPasswordWizard() {
       </div>
 
       <div className="flex items-center justify-center gap-4 mt-8">
-        <div className="h-[1px] w-[160px] bg-[#dce6f0]" />
+        <div className="h-[1px] w-[80px] sm:w-[160px] bg-[#dce6f0]" />
         <span className="text-sm text-[#5f6470] whitespace-nowrap">
           Or Back to{" "}
           <button
@@ -39,7 +39,7 @@ export default function ResetPasswordWizard() {
             Login
           </button>
         </span>
-        <div className="h-[1px] w-[160px] bg-[#dce6f0]" />
+        <div className="h-[1px] w-[80px] sm:w-[160px] bg-[#dce6f0]" />
       </div>
     </motion.div>
   );
@@ -47,7 +47,7 @@ export default function ResetPasswordWizard() {
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
-    <div className="mb-14 flex items-center justify-center">
+    <div className="mb-10 sm:mb-14 flex items-center justify-center">
       {STEP_LABELS.map((label, i) => {
         const stepNum = i + 1;
         const isActive = currentStep >= stepNum;
@@ -56,9 +56,9 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 
         return (
           <div key={stepNum} className="flex items-center">
-            <div className="relative flex flex-col items-center w-10">
+            <div className="relative flex flex-col items-center w-8 sm:w-10">
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-500 z-10 ${
+                className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-semibold transition-all duration-500 z-10 ${
                   isActive
                     ? "bg-[#24529a] text-white shadow-lg shadow-blue-900/20"
                     : "bg-[#f0f2f5] text-[#94a3b8]"
@@ -68,7 +68,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               </div>
 
               <span
-                className={`absolute top-12 whitespace-nowrap text-[13px] font-medium transition-colors duration-300 ${
+                className={`absolute top-9 sm:top-12 whitespace-nowrap text-[10px] sm:text-[13px] font-medium transition-colors duration-300 ${
                   isActive ? "text-[#17356f]" : "text-[#94a3b8]"
                 }`}
               >
@@ -77,7 +77,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
             </div>
 
             {!isLast && (
-              <div className="relative h-[1.5px] w-16 bg-[#e2e8f0] mx-1">
+              <div className="relative h-[1.5px] w-10 sm:w-16 bg-[#e2e8f0] mx-1">
                 <motion.div
                   initial={{ width: "0%" }}
                   animate={{ width: isCompleted ? "100%" : "0%" }}

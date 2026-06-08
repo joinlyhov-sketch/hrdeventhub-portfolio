@@ -79,28 +79,30 @@ export default function Step1Personal() {
 
   return (
     <motion.div
-      className="flex flex-col gap-5"
+      className="flex flex-col gap-4 sm:gap-5"
       initial="hidden"
       animate="visible"
       exit={{ opacity: 0, x: 20 }}
       variants={itemVars}
     >
-      <div className="mb-5 text-center">
-        <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
+      <div className="mb-3 sm:mb-5 text-center">
+        <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-[-1px] sm:tracking-[-2px] text-[#17356f]">
           Create Your Account
         </h2>
-        <p className="mt-2 text-[#6e7580]">Join HRD EventHub &amp; Get started</p>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-[#6e7580]">
+          Join HRD EventHub &amp; Get started
+        </p>
       </div>
 
       <div className="space-y-1">
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+              className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
                 errors.firstName ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
-              <User size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+              <User size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
               <input
                 placeholder="First Name"
                 value={form.firstName}
@@ -112,11 +114,11 @@ export default function Step1Personal() {
           </div>
           <div className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+              className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
                 errors.lastName ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
-              <User size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+              <User size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
               <input
                 placeholder="Last Name"
                 value={form.lastName}
@@ -128,13 +130,13 @@ export default function Step1Personal() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 pt-4">
+        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
           <div
-            className={`relative flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+            className={`relative flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
               errors.gender ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <User size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <User size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <select
               value={form.gender}
               onChange={(e) => handleChange("gender", e.target.value)}
@@ -151,13 +153,13 @@ export default function Step1Personal() {
           {errors.gender && <FieldError message={errors.gender} />}
         </div>
 
-        <div className="flex flex-col gap-1 pt-4">
+        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
           <div
-            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+            className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
               errors.dateOfBirth ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <Calendar size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <Calendar size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               type="date"
               max={maxDate}
@@ -172,13 +174,13 @@ export default function Step1Personal() {
           {errors.dateOfBirth && <FieldError message={errors.dateOfBirth} />}
         </div>
 
-        <div className="flex flex-col gap-1 pt-4">
+        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
           <div
-            className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+            className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
               errors.phoneNumber ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <Phone size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <Phone size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
             <input
               placeholder="+855  Phone number"
               value={form.phoneNumber}
@@ -195,7 +197,7 @@ export default function Step1Personal() {
 
       <button
         onClick={handleNext}
-        className="mt-3 h-[58px] w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] cursor-pointer"
+        className="mt-2 sm:mt-3 h-[50px] sm:h-[58px] w-full rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] cursor-pointer"
       >
         Next
       </button>
@@ -205,8 +207,8 @@ export default function Step1Personal() {
 
 function FieldError({ message }: { message: string }) {
   return (
-    <p className="flex items-center gap-1.5 text-sm text-red-500 px-1">
-      <AlertCircle size={14} className="shrink-0" />
+    <p className="flex items-center gap-1.5 text-xs sm:text-sm text-red-500 px-1">
+      <AlertCircle size={13} className="shrink-0" />
       {message}
     </p>
   );
