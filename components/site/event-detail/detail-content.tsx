@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useState } from "react";
 import { CalendarMinus2, Clock, MapPin } from "lucide-react";
 
 interface DetailContentProps {
@@ -6,6 +8,7 @@ interface DetailContentProps {
   eventStart?: string;
   eventEnd?: string;
   locationName?: string;
+  postId?: string;
 }
 
 export default function DetailContentComponent({
@@ -57,7 +60,7 @@ export default function DetailContentComponent({
         </span>
       </section>
 
-      <section className="flex flex-col gap-y-2">
+      <section className="flex flex-col gap-y-2 mb-3">
         <section className="flex items-center gap-x-2.5 pt-2">
           <p className="text-detail text-grey-600">
             Joined by <span className="font-semibold">0</span> others
@@ -66,12 +69,6 @@ export default function DetailContentComponent({
           </section>
         </section>
       </section>
-
-      <div className="w-full bg-gray-50/80 p-3.5 rounded-xl border border-gray-100 text-xs text-gray-500 space-y-1 mt-1 mb-4">
-        <p className="font-semibold text-gray-700">General Information:</p>
-        <p>• Please head directly to the reception counter to sign your name on the physical attendance list.</p>
-        <p>• The schedule might change slightly on the day of the event.</p>
-      </div>
     </section>
   );
 }
