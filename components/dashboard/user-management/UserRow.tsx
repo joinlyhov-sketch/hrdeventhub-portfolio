@@ -37,7 +37,7 @@ export default function UserRow({
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
-      <TableCell className="py-3 type-desc text-gray-500 text-center w-[10%]">
+      <TableCell className="py-1 type-desc text-gray-500 text-center w-[10%]">
         {rowDisplayIdentifier}
       </TableCell>
 
