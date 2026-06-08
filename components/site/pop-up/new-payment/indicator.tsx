@@ -2,19 +2,27 @@
 
 import { CheckCircle2 } from "lucide-react";
 
-type Step = "qr" | "remark" | "receipt";
+type AnyStep = "amount" | "qr" | "confirm" | "success" | "receipt";
+type WizardFlow = "student-free" | "alumni-fixed" | "alumni-flexible" | "not-allowed";
 
-const STEPS: { id: Step; label: string }[] = [
-  { id: "qr", label: "Scan & Pay" },
-  { id: "remark", label: "Confirm" },
-  { id: "receipt", label: "Receipt" },
-];
+interface StepIndicatorProps {
+  flow: WizardFlow;
+  current: AnyStep;
+}
 
-export function StepIndicator({ current }: { current: Step }) {
-  const currentIdx = STEPS.findIndex((s) => s.id === current);
+const STEP_LABELS: Record<WizardFlow, { id: AnyStep; label: string }[]> = {
+  "student-free":    [{ id: "confirm", label: "Register" }, { id: "success", label: "Done" }],
+  "alumni-fixed":    [{ id: "qr", label: "Scan & Pay" }, { id: "confirm", label: "Confirm" }, { id: "receipt", label: "Receipt" }],
+  "alumni-flexible": [{ id: "amount", label: "Donate" }, { id: "qr", label: "Scan & Pay" }, { id: "confirm", label: "Confirm" }, { id: "receipt", label: "Receipt" }],
+  "not-allowed":     [],
+};
+
+export function StepIndicator({ flow, current }: StepIndicatorProps) {
+  const steps = STEP_LABELS[flow];
+  const currentIdx = steps.findIndex((s) => s.id === current);
   return (
     <div className="flex items-center justify-center gap-0 px-8 pt-2 pb-4">
-      {STEPS.map((step, idx) => {
+      {steps.map((step, idx) => {
         const isDone = idx < currentIdx;
         const isActive = idx === currentIdx;
         return (
@@ -33,15 +41,15 @@ export function StepIndicator({ current }: { current: Step }) {
               </div>
               <span
                 className={`text-[11px] font-medium whitespace-nowrap transition-colors ${
-                  isActive ? "text-[#1e3a8a]" : isDone ? "text-[#1e3a8a]" : "text-gray-400"
+                  isActive || isDone ? "text-[#1e3a8a]" : "text-gray-400"
                 }`}
               >
                 {step.label}
               </span>
             </div>
-            {idx < STEPS.length - 1 && (
+            {idx < steps.length - 1 && (
               <div
-                className={`w-16 h-[2px] mb-5 mx-1 rounded-full transition-all duration-500 ${
+                className={`w-12 h-[2px] mb-5 mx-1 rounded-full transition-all duration-500 ${
                   isDone ? "bg-[#1e3a8a]" : "bg-gray-100"
                 }`}
               />

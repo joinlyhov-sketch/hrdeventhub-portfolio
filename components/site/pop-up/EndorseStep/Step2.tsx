@@ -36,7 +36,7 @@ export default function StepTwo({ studentName, selectedSkill, commentText, setCo
             if (e.target.value.length <= MAX) setCommentText(e.target.value);
           }}
           rows={5}
-          placeholder={`Describe how ${firstName} demonstrated ${selectedSkill ?? "this skill"}...`}
+          placeholder={`Describe how ${firstName} demonstrated ${selectedSkill ?? "this skill"}…`}
           className="w-full p-4 bg-background border border-border rounded-xl outline-none focus:border-primary transition-colors text-sm text-secondary placeholder:text-grey-400 resize-none leading-relaxed"
         />
         <span
@@ -50,4 +50,3 @@ export default function StepTwo({ studentName, selectedSkill, commentText, setCo
     </div>
   );
 }
- 

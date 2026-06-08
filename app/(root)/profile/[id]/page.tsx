@@ -29,12 +29,11 @@ export default function ProfilePage() {
   const viewMode: ViewMode = !isReady
     ? "student"
     : isSelf
-    ? "self"
-    : (currentUser?.role as ViewMode) ?? "student";
+      ? "self"
+      : ((currentUser?.role as ViewMode) ?? "student");
 
-  const showStudentTabs =
-    isSelf &&
-    (currentUser?.role === "student" || currentUser?.role === "alumni");
+  const showTabs =
+    isSelf || profile?.roles === "STUDENT" || profile?.roles === "ALUMNI";
 
   useEffect(() => {
     if (!isReady || !session?.accessToken) return;
@@ -62,12 +61,12 @@ export default function ProfilePage() {
   const titlePrimary = isSelf
     ? "My"
     : subjectRole === "ALUMNI"
-    ? "Alumni"
-    : subjectRole === "ADMIN"
-    ? "Admin"
-    : subjectRole === "ORGANIZER"
-    ? "Organizer"
-    : "Student";
+      ? "Alumni"
+      : subjectRole === "ADMIN"
+        ? "Admin"
+        : subjectRole === "ORGANIZER"
+          ? "Organizer"
+          : "Student";
 
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
 
@@ -78,31 +77,31 @@ export default function ProfilePage() {
   const headerDesc = !isReady
     ? "Please wait..."
     : isSelf
-    ? "View your profile information, background details, and endorsements."
-    : `You are viewing ${subjectName ?? "this user"}'s profile.`;
+      ? "View your profile information, background details, and endorsements."
+      : `You are viewing ${subjectName ?? "this user"}'s profile.`;
 
   return (
     <div className="w-full bg-background z-30">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
       <div className="lg:pr-12 lg:pl-12 max-w-420 m-auto">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch max-h-[calc(100vh-220px)] xl:h-[680px]">
           <div className="xl:col-span-4 h-full">
             <ProfileCard
               viewMode={!isReady ? null : viewMode}
               profile={profile}
               loading={profileLoading || !isReady}
               profileId={userId}
-              authToken={session?.accessToken ?? ""} 
+              authToken={session?.accessToken ?? ""}
             />
           </div>
-          <div className="xl:col-span-8 h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
-            <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1">
+          <div className="xl:col-span-8 h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6 overflow-hidden">
+            <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1 shrink-0">
               <Tabnav
                 active={activeTab === "BG"}
                 label="Background"
                 onClick={() => setActiveTab("BG")}
               />
-              {showStudentTabs && (
+              {showTabs && (
                 <>
                   <Tabnav
                     active={activeTab === "EV"}
@@ -111,18 +110,30 @@ export default function ProfilePage() {
                   />
                   <Tabnav
                     active={activeTab === "EN"}
-                    label="My Endorsement"
+                    label={isSelf ? "My Endorsement" : "Endorsements"}
                     onClick={() => setActiveTab("EN")}
                   />
                 </>
               )}
             </div>
-            <div className="w-full">
+            <div className="w-full flex-1 min-h-0 overflow-hidden">
               {activeTab === "BG" && (
-                <BackgroundTab profile={profile} loading={profileLoading || !isReady} />
+                <BackgroundTab
+                  profile={profile}
+                  loading={profileLoading || !isReady}
+                />
               )}
-              {activeTab === "EV" && showStudentTabs && <EventTab />}
-              {activeTab === "EN" && showStudentTabs && <EndorsementTabs />}
+
+              {activeTab === "EV" && showTabs && (
+                <EventTab userId={isSelf ? undefined : userId} />
+              )}
+
+              {activeTab === "EN" && showTabs && (
+                <EndorsementTabs
+                  studentId={isSelf ? undefined : userId}
+                  authToken={session?.accessToken ?? ""}
+                />
+              )}
             </div>
           </div>
         </div>

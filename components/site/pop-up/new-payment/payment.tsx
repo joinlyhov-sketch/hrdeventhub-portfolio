@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import QRCode from "qrcode";
 import {
   Dialog,
@@ -9,18 +9,25 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { X, AlertCircle, Loader2 } from "lucide-react";
 import { useCurrentUser } from "@/context/user-context";
 import { useSession } from "next-auth/react";
-import { submitPaymentAction } from "@/actions/payment.action";
-import type { Transaction } from "@/service/payment.service";
-import type { Post } from "@/types/posts";
+import {
+  studentRegisterAction,
+  alumniFixedPaymentAction,
+  generateFlexibleQrAction,
+  alumniFlexiblePaymentAction,
+} from "@/actions/payment.action";
 import { generateBillNo } from "./billno";
-
 import { StepIndicator } from "./indicator";
+import { AmountStep } from "./amount-step";
 import { QrStep } from "./qr-step";
 import { RemarkStep } from "./remark-step";
+import { SuccessStep } from "./success-step";
 import { ReceiptStep } from "./receipt-step";
+import type { Transaction, GenerateQrResponse } from "@/service/payment.service";
+import type { Post } from "@/types/posts";
 
 interface PaymentWizardDialogProps {
   isOpen: boolean;
@@ -28,71 +35,129 @@ interface PaymentWizardDialogProps {
   post: Post;
 }
 
-type Step = "qr" | "remark" | "receipt";
+type UserRole = "student" | "alumni" | "admin" | "organizer";
+type PaymentType = "fixed" | "flexible" | "free";
+type WizardFlow = "student-free" | "alumni-fixed" | "alumni-flexible" | "not-allowed";
+type AnyStep = "amount" | "qr" | "confirm" | "success" | "receipt";
 
-export function PaymentWizardDialog({
-  isOpen,
-  onClose,
-  post,
-}: PaymentWizardDialogProps) {
-  const isSubmittingRef = useRef(false);
+function resolveFlow(role: UserRole, paymentType: PaymentType | null): WizardFlow {
+  if (role !== "student" && role !== "alumni") return "not-allowed";
+  if (role === "student") return "student-free";
+  if (paymentType === "flexible") return "alumni-flexible";
+  return "alumni-fixed";
+}
+
+export function PaymentWizardDialog({ isOpen, onClose, post }: PaymentWizardDialogProps) {
   const { currentUser } = useCurrentUser();
   const { data: session } = useSession();
 
   const payment = post?.payment;
-  const khqrData = payment?.khqrData ?? "";
-  const requestId = payment?.requestId ?? "";
-  const amount = payment?.paymentAmount ?? 0;
+  const paymentType = (payment?.paymentType ?? "fixed") as "fixed" | "flexible";
+  const fixedAmount = payment?.paymentAmount ?? 0;
+  const donationGoal = payment?.donationGoal ?? 0;
+  const amountRaised = payment?.amountRaised ?? 0;
 
-  const [step, setStep] = useState<Step>("qr");
-  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const flow = useMemo(() => {
+    if (!currentUser) return null;
+    return resolveFlow(currentUser.role as UserRole, paymentType);
+  }, [currentUser, paymentType]);
+
+  const initialStep = useMemo((): AnyStep => {
+    if (!flow) return "confirm";
+    const map: Record<WizardFlow, AnyStep> = {
+      "student-free":    "confirm",
+      "alumni-fixed":    "qr",
+      "alumni-flexible": "amount",
+      "not-allowed":     "confirm",
+    };
+    return map[flow];
+  }, [flow]);
+
+  const [step, setStep] = useState<AnyStep>("confirm");
   const [remark, setRemark] = useState("");
-  const [billNo, setBillNo] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
+
+  const [billNo, setBillNo] = useState("");
+  const [requestId, setRequestId] = useState("");
+  const [qrDataUrl, setQrDataUrl] = useState("");
+
+  const [donationAmount, setDonationAmount] = useState("");
+  const [donationAmountError, setDonationAmountError] = useState<string | null>(null);
+  const [flexQrData, setFlexQrData] = useState<GenerateQrResponse | null>(null);
+  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
+
   const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    if (isOpen && currentUser?.name && !billNo) {
-      setBillNo(generateBillNo(currentUser.name));
+    if (flow && isOpen) {
+      setStep(initialStep);
     }
-  }, [isOpen, currentUser?.name, billNo]);
+  }, [flow, isOpen, initialStep]);
 
   useEffect(() => {
-    if (!khqrData) return;
-    QRCode.toDataURL(khqrData, {
+    if (isOpen && flow === "alumni-fixed" && currentUser?.name && !billNo) {
+      const generated = generateBillNo(currentUser.name);
+      setBillNo(generated);
+      setRequestId(payment?.requestId ?? "");
+    }
+  }, [isOpen, flow, currentUser?.name, billNo, payment?.requestId]);
+
+  useEffect(() => {
+    const khqr = flow === "alumni-fixed" ? payment?.khqrData : flexQrData?.khqrData;
+    if (!khqr) return;
+    QRCode.toDataURL(khqr, {
       width: 240,
       margin: 2,
       color: { dark: "#1e3a8a", light: "#ffffff" },
     }).then(setQrDataUrl);
-  }, [khqrData]);
+  }, [flow, payment?.khqrData, flexQrData?.khqrData]);
 
   const handleClose = () => {
     if (isSubmittingRef.current) return;
-    setStep("qr");
     setRemark("");
     setBillNo("");
+    setRequestId("");
+    setQrDataUrl("");
+    setDonationAmount("");
+    setDonationAmountError(null);
+    setFlexQrData(null);
     setSubmitError(null);
     setTransaction(null);
+    setSuccessMessage("");
     setIsSubmitting(false);
     onClose();
   };
 
-  const handleAlreadyPaid = async () => {
+  const handleGenerateQr = async () => {
+    const parsed = parseFloat(donationAmount);
+    if (!donationAmount || isNaN(parsed) || parsed <= 0) {
+      setDonationAmountError("Please enter a valid donation amount.");
+      return;
+    }
+    setDonationAmountError(null);
+    setIsGeneratingQr(true);
+    setSubmitError(null);
+
+    const result = await generateFlexibleQrAction({ postId: post.postId, amount: parsed });
+    setIsGeneratingQr(false);
+
+    if (result.ok && result.payload) {
+      setFlexQrData(result.payload);
+      setBillNo(result.payload.billNo);
+      setRequestId(result.payload.requestId);
+      setStep("qr");
+    } else {
+      setSubmitError(result.error ?? "Failed to generate QR. Please try again.");
+    }
+  };
+
+  const handleAlumniConfirm = async () => {
     if (isSubmittingRef.current) return;
-
-    if (!currentUser?.name) {
-      setSubmitError("User session not found. Please refresh and try again.");
-      return;
-    }
-
-    if (!billNo) {
-      setSubmitError("Bill number not generated yet. Please wait a moment.");
-      return;
-    }
-
-    if (!requestId) {
-      setSubmitError("Payment configuration is missing. Please reload the page.");
+    if (!currentUser?.name || !billNo || !requestId) {
+      setSubmitError("Missing payment details. Please go back and try again.");
       return;
     }
 
@@ -100,99 +165,180 @@ export function PaymentWizardDialog({
     setIsSubmitting(true);
     setSubmitError(null);
 
-    try {
-      const result = await submitPaymentAction({
-        billNo,
-        requestId,
-        payerName: currentUser.name,
-        remark: remark.trim() || "—",
-        amount,
-        postId: post.postId,
-      });
+    const amount = flow === "alumni-flexible" ? (flexQrData?.amount ?? parseFloat(donationAmount)) : fixedAmount;
+    const action = flow === "alumni-flexible" ? alumniFlexiblePaymentAction : alumniFixedPaymentAction;
 
-      if (result.ok && result.payload) {
-        setTransaction(result.payload);
-        setStep("receipt");
-      } else {
-        setSubmitError(result.error ?? "Something went wrong. Please try again.");
-      }
-    } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : "An unexpected error occurred."
-      );
-    } finally {
-      isSubmittingRef.current = false;
-      setIsSubmitting(false);
+    const result = await action({
+      billNo,
+      requestId,
+      payerName: currentUser.name,
+      remark: remark.trim() || "—",
+      amount,
+      postId: post.postId,
+    });
+
+    isSubmittingRef.current = false;
+    setIsSubmitting(false);
+
+    if (result.ok && result.payload) {
+      setTransaction(result.payload);
+      setStep("receipt");
+    } else {
+      setSubmitError(result.error ?? "Something went wrong. Please try again.");
     }
   };
 
-  const stepTitles: Record<Step, { title: string; description: string }> = {
-    qr: {
-      title: "Pay with KHQR",
-      description: "Scan the code with ABA, Wing, or any KHQR-supported app.",
-    },
-    remark: {
-      title: "Almost Done",
-      description: "Review your payment and add an optional note.",
-    },
-    receipt: {
-      title: "Payment Complete",
-      description: "Here's your transaction summary.",
-    },
+  const handleStudentConfirm = async () => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const result = await studentRegisterAction({
+      postId: post.postId,
+      remark: remark.trim() || "—",
+    });
+
+    isSubmittingRef.current = false;
+    setIsSubmitting(false);
+
+    if (result.ok && result.payload) {
+      setSuccessMessage(result.payload.message);
+      setStep("success");
+    } else {
+      setSubmitError(result.error ?? "Registration failed. Please try again.");
+    }
   };
+
+  if (!isOpen) return null;
+
+  if (!currentUser || !flow) {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-[480px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="animate-spin text-blue-300" size={28} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (flow === "not-allowed") {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-[480px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
+          <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-4">
+            <DialogHeader className="space-y-1">
+              <DialogTitle className="text-[22px] font-bold text-[#1e3a8a]">Access Restricted</DialogTitle>
+              <DialogDescription className="text-[14px] text-gray-500">
+                Event registration is only available for students and alumni.
+              </DialogDescription>
+            </DialogHeader>
+            <button onClick={handleClose} className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+              <X size={22} strokeWidth={2.5} />
+            </button>
+          </div>
+          <div className="px-8 py-8 flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+              <AlertCircle size={32} className="text-red-400" />
+            </div>
+            <p className="text-[14px] text-gray-500 text-center">
+              Your account role does not have access to register for events.
+            </p>
+            <Button onClick={handleClose} className="h-[48px] px-8 rounded-xl font-semibold text-[15px] bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white">
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  const displayAmount = flow === "alumni-flexible" ? `$${(flexQrData?.amount ?? 0).toFixed(2)} USD` : `$${fixedAmount.toFixed(2)} USD`;
+  const isStudentFlow = flow === "student-free";
+  const confirmAmount = isStudentFlow ? "Free" : displayAmount;
+  const confirmBillNo = isStudentFlow ? "———" : billNo;
+
+  const stepMeta: Partial<Record<AnyStep, { title: string; description: string }>> = {
+    amount:  { title: "Choose Your Donation", description: "Every contribution brings us closer to the goal." },
+    qr:      { title: "Pay with KHQR", description: "Scan with ABA, Wing, or any KHQR-supported app." },
+    confirm: {
+      title: isStudentFlow ? "Confirm Registration" : "Almost Done",
+      description: isStudentFlow ? "Review your details and confirm your free registration." : "Review your payment and add an optional note.",
+    },
+    success: { title: "Registration Complete", description: "See you at the event!" },
+    receipt: { title: "Payment Complete", description: "Here's your transaction summary." },
+  };
+
+  const meta = stepMeta[step] ?? { title: "Register", description: "" };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[480px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
         <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-4">
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-[22px] font-bold text-[#1e3a8a]">
-              {stepTitles[step].title}
-            </DialogTitle>
-            <DialogDescription className="text-[14px] text-gray-500 font-normal">
-              {stepTitles[step].description}
-            </DialogDescription>
+            <DialogTitle className="text-[22px] font-bold text-[#1e3a8a]">{meta.title}</DialogTitle>
+            <DialogDescription className="text-[14px] text-gray-500 font-normal">{meta.description}</DialogDescription>
           </DialogHeader>
-          <button
-            onClick={handleClose}
-            className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-            aria-label="Close dialog"
-          >
+          <button onClick={handleClose} className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer" aria-label="Close">
             <X size={22} strokeWidth={2.5} />
           </button>
         </div>
 
         <div className="bg-white border-b border-gray-50">
-          <StepIndicator current={step} />
+          <StepIndicator flow={flow} current={step} />
         </div>
 
         <div className="px-8 py-6 bg-white overflow-y-auto max-h-[70vh]">
-          {step === "qr" && (
-            <QrStep
-              amount={amount}
-              qrDataUrl={qrDataUrl}
-              billNo={billNo}
-              onContinue={() => setStep("remark")}
+          {step === "amount" && (
+            <AmountStep
+              donationGoal={donationGoal}
+              amountRaised={amountRaised}
+              donationAmount={donationAmount}
+              donationAmountError={donationAmountError}
+              submitError={submitError}
+              isGeneratingQr={isGeneratingQr}
+              onAmountChange={setDonationAmount}
+              onGenerateQr={handleGenerateQr}
             />
           )}
-
-          {step === "remark" && (
+          {step === "qr" && (
+            <QrStep
+              displayAmount={displayAmount}
+              qrDataUrl={qrDataUrl}
+              billNo={billNo}
+              onContinue={() => setStep("confirm")}
+            />
+          )}
+          {step === "confirm" && (
             <RemarkStep
               post={post}
-              amount={amount}
-              payerName={currentUser?.name}
-              billNo={billNo}
+              isStudentFlow={isStudentFlow}
+              confirmAmount={confirmAmount}
+              payerName={currentUser?.name ?? "—"}
+              confirmBillNo={confirmBillNo}
               remark={remark}
               onRemarkChange={setRemark}
               submitError={submitError}
               isSubmitting={isSubmitting}
               onBack={() => setStep("qr")}
-              onSubmit={handleAlreadyPaid}
+              onSubmit={isStudentFlow ? handleStudentConfirm : handleAlumniConfirm}
             />
           )}
-
+          {step === "success" && (
+            <SuccessStep
+              post={post}
+              successMessage={successMessage}
+              remark={remark}
+              onClose={handleClose}
+            />
+          )}
           {step === "receipt" && (
-            <ReceiptStep transaction={transaction} onClose={handleClose} />
+            <ReceiptStep
+              transaction={transaction}
+              onClose={handleClose}
+            />
           )}
         </div>
       </DialogContent>
