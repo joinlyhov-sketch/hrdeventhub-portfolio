@@ -90,8 +90,6 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
   const FALLBACK =
     "https://images.unsplash.com/photo-1511578314322-379afb476865";
-
-  // Apply transition style imperatively
   useEffect(() => {
     if (trackRef.current) {
       trackRef.current.style.transition = isTransitioning.current
@@ -99,8 +97,6 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         : "none";
     }
   }, [currentImgIndex]);
-
-  // Auto-scroll
   useEffect(() => {
     if (mediaList.length <= 1) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -342,7 +338,6 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         </h2>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Image Slider */}
           <div className="relative group aspect-video md:h-87.5 w-full rounded-xl overflow-hidden bg-grey-50 border border-border">
             <div
               ref={trackRef}

@@ -18,7 +18,7 @@ export default function MapContentComponent({
 }: MapContentProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  const initializingRef = useRef(false); // lock flag
+  const initializingRef = useRef(false); 
   const [geocodeFailed, setGeocodeFailed] = useState(false);
 
   const lat = latitude && latitude !== 0 ? latitude : null;
@@ -30,7 +30,7 @@ export default function MapContentComponent({
       mapInstanceRef.current.invalidateSize();
       return;
     }
-    if (initializingRef.current) return; // already in progress
+    if (initializingRef.current) return; 
     initializingRef.current = true;
 
     const initMap = async (resolvedLat: number, resolvedLng: number) => {
@@ -44,8 +44,6 @@ export default function MapContentComponent({
         iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
-
-      // Final guard after await
       if ((mapRef.current as any)._leaflet_id) return;
 
       const map = L.map(mapRef.current).setView([resolvedLat, resolvedLng], 15);
