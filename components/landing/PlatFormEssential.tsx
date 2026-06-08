@@ -5,9 +5,8 @@ import {
   BadgeDollarSign,
   Bell,
   CalendarHeart,
-  ClipboardCheck,
-  Users,
-  UserRoundCog,
+  Vote,
+  LucideUserRoundKey,
 } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 
@@ -51,7 +50,7 @@ const cards = [
     line: "left-[125px] -translate-x-1/2 -top-[78px] border-l-2",
     card: "left-[425px] top-[428px] rotate-[-265deg]",
     icon: (
-      <UserRoundCog
+      <LucideUserRoundKey
         size={50}
         strokeWidth={2.3}
         className="-rotate-12 text-white"
@@ -80,13 +79,7 @@ const cards = [
     position: "right-[210px] top-[575px]",
     line: "left-[78px] -top-[72px] border-r-2 border-t-2",
     card: "right-[330px] top-[355px] rotate-[28deg]",
-    icon: (
-      <ClipboardCheck
-        size={50}
-        strokeWidth={2.3}
-        className="rotate-44 text-white"
-      />
-    ),
+    icon: <Vote size={50} strokeWidth={2.3} className="rotate-44 text-white" />,
     iconRotate: "right-[68px] top-[50px] rotate-[-72deg]",
   },
   {
@@ -96,27 +89,40 @@ const cards = [
     line: "left-[68px] -top-[78px] border-r-2 border-t-2",
     card: "right-[250px] top-[200px] rotate-[-5deg]",
     icon: (
-      <Users size={52} strokeWidth={2.3} className="rotate-80 text-white" />
+      <svg
+        width="51"
+        height="37"
+        viewBox="0 0 51 37"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="rotate-80 text-white"
+      >
+        <path
+          d="M0.501451 36.7967L0.301381 27.7362C0.273038 26.4527 0.695441 25.3669 1.56859 24.4789C2.44174 23.5909 3.50484 23.133 4.75789 23.1054L12.2192 22.9406C12.9787 22.9238 13.7043 23.0967 14.3961 23.4591C15.0879 23.8215 15.6498 24.319 16.0816 24.9516C17.2153 26.3996 18.5982 27.5211 20.2303 28.316C21.8624 29.1109 23.5898 29.4882 25.4124 29.448C27.273 29.4069 29.001 28.9533 30.5964 28.0871C32.1919 27.2209 33.5049 26.0399 34.5356 24.5441C35.0151 23.8914 35.5829 23.369 36.239 22.9768C36.8952 22.5846 37.584 22.3805 38.3055 22.3646L45.7668 22.1998C47.0578 22.1713 48.1496 22.5816 49.0421 23.4306C49.9346 24.2796 50.395 25.3459 50.4234 26.6295L50.6235 35.69L34.6755 36.0421L34.5618 30.889C33.2536 31.8621 31.836 32.6111 30.309 33.1358C28.782 33.6605 27.1832 33.9413 25.5124 33.9782C23.8797 34.0143 22.2793 33.7947 20.7112 33.3194C19.1431 32.8441 17.6842 32.1493 16.3343 31.2348L16.4494 36.4446L0.501451 36.7967ZM25.3624 27.1828C23.9195 27.2147 22.5452 26.9146 21.2396 26.2824C19.934 25.6503 18.8316 24.7587 17.9324 23.6076C17.2661 22.6781 16.4427 21.9503 15.4624 21.4243C14.482 20.8982 13.4223 20.6478 12.2831 20.673C13.0877 19.2577 14.8289 18.1144 17.507 17.2432C20.185 16.372 22.7201 15.91 25.1123 15.8572C27.5045 15.8044 30.0575 16.154 32.7714 16.9062C35.4853 17.6583 37.2753 18.7236 38.1415 20.102C37.0404 20.1263 36.0022 20.423 35.027 20.9922C34.0519 21.5615 33.252 22.3251 32.6273 23.2831C31.8186 24.5097 30.7758 25.4581 29.499 26.1284C28.2221 26.7987 26.8433 27.1501 25.3624 27.1828ZM6.98615 20.7899C5.08759 20.8318 3.45922 20.2068 2.10105 18.9148C0.742883 17.6229 0.0429577 16.0331 0.0012765 14.1455C-0.0412383 12.2201 0.58762 10.5915 1.88785 9.25973C3.18809 7.92793 4.78748 7.24107 6.68604 7.19915C8.62257 7.15639 10.2602 7.77177 11.599 9.04529C12.9378 10.3188 13.6284 11.9183 13.6709 13.8436C13.7126 15.7312 13.093 17.3502 11.8122 18.7004C10.5314 20.0507 8.92268 20.7472 6.98615 20.7899ZM43.4385 19.985C41.5399 20.0269 39.9116 19.4019 38.5534 18.1099C37.1952 16.8179 36.4953 15.2281 36.4536 13.3405C36.4111 11.4152 37.04 9.7866 38.3402 8.4548C39.6404 7.12301 41.2398 6.43615 43.1384 6.39423C45.0749 6.35147 46.7126 6.96685 48.0514 8.24037C49.3901 9.51389 50.0808 11.1133 50.1233 13.0387C50.165 14.9263 49.5454 16.5452 48.2646 17.8955C46.9837 19.2457 45.375 19.9422 43.4385 19.985ZM25.0623 13.5921C23.1637 13.634 21.5354 13.009 20.1772 11.717C18.819 10.425 18.1191 8.83522 18.0774 6.94761C18.0349 5.02225 18.6637 3.39368 19.964 2.06188C21.2642 0.730085 22.8636 0.0432261 24.7622 0.00130305C26.6987 -0.0414585 28.3364 0.573922 29.6751 1.84744C31.0139 3.12097 31.7045 4.72041 31.747 6.64577C31.7887 8.53337 31.1691 10.1523 29.8883 11.5026C28.6075 12.8528 26.9988 13.5493 25.0623 13.5921Z"
+          fill="#E1F1FD"
+        />
+        
+      </svg>
     ),
     iconRotate: "right-[68px] top-[50px] rotate-[-77deg]",
   },
 ];
 
 const containerVariants: Variants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 2 },
   visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.2 },
+    opacity: 2,
+    transition: { staggerChildren: 0.2, delayChildren: 0.2 },
   },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  hidden: { opacity: 2, y: 10, scale: 1},
   visible: {
-    opacity: 1,
+    opacity: 2,
     y: 0,
     scale: 1,
-    transition: { type: "spring" as const, stiffness: 100, damping: 15 },
+    transition: { damping: 14 },
   },
 };
 
@@ -135,18 +141,18 @@ export default function PlatformEssentials() {
         </p>
       </div>
 
-      <div className="hidden md:flex justify-center items-center w-full overflow-hidden py-4 mt-8">
+      <div className="hidden md:flex justify-center items-center w-full -top-[60px] overflow-hidden py-4 mt-8">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 1 }}
           className="relative w-[1280px] h-[860px] origin-center scale-[0.56] lg:scale-[0.76] xl:scale-[0.9] 2xl:scale-100 my-[-170px] lg:my-[-100px] xl:my-[-40px] 2xl:my-0 transition-all duration-300 shrink-0"
         >
-          <div className="flex justify-center py-4 overflow-visible w-full">
+          <div className="flex justify-center py-4 w-full">
             <div className="relative w-[350px] h-[300px] shrink-0 origin-center scale-[0.8] min-[375px]:scale-[0.9] sm:scale-100 transition-transform">
               <div className="absolute w-[350px] h-[350px] rounded-full border-b-4 -top-[60px] left-0" />
-              <div className="absolute w-[230px] h-[230px] left-[60px] top-0 bg-white rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-slate-100 flex items-center justify-center text-center p-6 transition-transform duration-300 hover:scale-105">
+              <div className="absolute w-[230px] h-[230px] left-[60px] bg-white rounded-full border border-slate-100 flex items-center justify-center text-center p-6 transition-transform duration-300 hover:scale-105">
                 <h2 className="text-center text-[24px] font-black leading-tight text-primary">
                   Core
                   <br />
@@ -247,7 +253,7 @@ export default function PlatformEssentials() {
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
+        viewport={{ once: true, amount: 0.5 }}
         className="md:hidden grid grid-cols-1 gap-6 mt-8 max-w-md mx-auto px-4"
       >
         {cards.map((item, index) => (

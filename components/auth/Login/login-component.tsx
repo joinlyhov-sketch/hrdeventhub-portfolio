@@ -82,13 +82,24 @@ export default function LoginComponent() {
       animate="visible"
       className="flex items-center justify-center w-full"
     >
-      <div className="w-[624px] rounded-[32px] border border-[#dce6f0] bg-[#f9fbff]/80 backdrop-blur-sm p-12 shadow-sm">
-        <div className="mb-10 text-center">
+      <div className="w-full max-w-[624px] rounded-[32px] border border-[#dce6f0] bg-[#f9fbff]/80 backdrop-blur-sm px-6 py-10 sm:px-10 sm:py-12 xl:p-18 shadow-sm">
+
+        <div className="mb-10 text-center hidden md:block">
           <h1 className="text-[28px] font-bold tracking-tight text-[#17356f]">Welcome Back !</h1>
           <p className="mt-2 text-[20px] font-semibold text-[#5f6470]">
             Discover events with <span className="text-[#1f4f98]">HRD EventHub</span>
           </p>
           <p className="text-[14px] text-[#8a92a6] mt-1">
+            Enter your credential to access the website
+          </p>
+        </div>
+
+        <div className="mb-8 text-center md:hidden">
+          <h1 className="text-[22px] font-bold tracking-tight text-[#17356f]">Welcome Back !</h1>
+          <p className="mt-1 text-[15px] font-semibold text-[#5f6470]">
+            Discover events with <span className="text-[#1f4f98]">HRD EventHub</span>
+          </p>
+          <p className="text-[13px] text-[#8a92a6] mt-1">
             Enter your credential to access the website
           </p>
         </div>
