@@ -111,7 +111,7 @@ export default function EditRoleModal({
                 <SelectTrigger className="w-full px-5 py-5 rounded-2xl border border-blue-200 outline-none focus:border-blue-900 text-secondary text-sm transition-colors">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-50 overflow-y-auto">
                   <SelectItem value="ADMIN">ADMIN</SelectItem>
                   <SelectItem value="ORGANIZER">ORGANIZER</SelectItem>
                   <SelectItem value="ALUMNI">ALUMNI</SelectItem>

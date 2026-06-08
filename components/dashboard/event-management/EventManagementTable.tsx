@@ -38,7 +38,7 @@ const getStatusStyles = (status: string): string => {
     case "active":
     case "published":
     case "open":
-      return "bg-[#E6F4EA] text-[#137333]";
+      return "bg-[#E6F9F1] text-accent";
     case "draft":
       return "bg-[#EBF3FF] text-[#1D4ED8]";
     case "cancel":

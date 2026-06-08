@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useMemo, useTransition } from "react";
-import { UserX, ListFilter, ArrowUp, UserRoundCheck } from "lucide-react";
+import {
+  UserX,
+  ListFilter,
+  ArrowUp,
+  ArrowDown,
+  UserRoundCheck,
+} from "lucide-react";
 import Search from "../../site/search/Search";
 import UserRow from "./UserRow";
 import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
@@ -24,7 +30,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "../../ui/drop-down/dropdown-menu";
-
 import {
   suspendUserAction,
   reactivateUserAction,
@@ -43,6 +48,8 @@ export default function UserTableClient({
   const [selectedGen, setSelectedGen] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [genSortAsc, setGenSortAsc] = useState<boolean>(true);
+  const [sortApplied, setSortApplied] = useState<boolean>(false);
   const itemsPerPage = 10;
 
   const [isPending, startTransition] = useTransition();
@@ -62,21 +69,26 @@ export default function UserTableClient({
   }, [users]);
 
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
+    const filtered = users.filter((user) => {
       const matchesSearch =
         user.username.toLowerCase().includes(search.toLowerCase()) ||
         user.email.toLowerCase().includes(search.toLowerCase());
-
       const matchesGen =
         selectedGen === "all" || user.generation?.name === selectedGen;
-
       const matchesStatus =
         selectedStatus === "all" ||
         user.status?.toLowerCase() === selectedStatus.toLowerCase();
-
       return matchesSearch && matchesGen && matchesStatus;
     });
-  }, [users, search, selectedGen, selectedStatus]);
+
+    if (!sortApplied) return filtered;
+
+    return [...filtered].sort((a, b) => {
+      const genA = parseInt(a.generation?.name?.replace(/\D/g, "") || "0", 10);
+      const genB = parseInt(b.generation?.name?.replace(/\D/g, "") || "0", 10);
+      return genSortAsc ? genA - genB : genB - genA;
+    });
+  }, [users, search, selectedGen, selectedStatus, genSortAsc, sortApplied]);
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
@@ -114,11 +126,9 @@ export default function UserTableClient({
 
   const handleConfirmSuspend = (userId: string | number, reason: string) => {
     const idString = userId.toString();
-
     startTransition(async () => {
       try {
         const response = await suspendUserAction(idString, reason);
-
         if (response && response.success) {
           setUsers((prev) =>
             prev.map((u) =>
@@ -127,10 +137,6 @@ export default function UserTableClient({
           );
           setSelectedUserForSuspend(null);
         } else {
-          console.error(
-            "Backend validation rejected suspension request:",
-            response?.message,
-          );
           alert(
             response?.message ||
               "Server rejected suspension execution request.",
@@ -150,7 +156,6 @@ export default function UserTableClient({
     role: "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT",
   ) => {
     const idString = userId.toString();
-
     startTransition(async () => {
       try {
         const response = await updateUserRoleAction(idString, role);
@@ -212,46 +217,70 @@ export default function UserTableClient({
                 Gender
               </TableHead>
 
-              <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%] ">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
-                      <span className="truncate">
-                        Gen{" "}
-                        {selectedGen !== "all"
-                          ? `(${selectedGen.replace(/\D/g, "")})`
-                          : ""}
-                      </span>
-                      <ArrowUp size={16} className="shrink-0" />
-                      <ListFilter size={16} className="shrink-0" />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-0 min-w-[1px]">
-                    <DropdownMenuRadioGroup
-                      value={selectedGen}
-                      onValueChange={(v) => {
-                        setSelectedGen(v);
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <DropdownMenuRadioItem
-                        value="all"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+              <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
+                <div className="flex items-center justify-center gap-1">
+                  <span className="select-none whitespace-nowrap">
+                    Gen{" "}
+                    {selectedGen !== "all"
+                      ? `(${selectedGen.replace(/\D/g, "")})`
+                      : ""}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortApplied(true);
+                      setGenSortAsc((prev) => !prev);
+                      setCurrentPage(1);
+                    }}
+                    className="hover:text-blue-200 cursor-pointer transition-colors shrink-0"
+                  >
+                    {!sortApplied || genSortAsc ? (
+                      <ArrowUp size={16} />
+                    ) : (
+                      <ArrowDown size={16} />
+                    )}
+                  </button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="hover:text-blue-200 cursor-pointer transition-colors shrink-0"
                       >
-                        All
-                      </DropdownMenuRadioItem>
-                      {uniqueGenerations.map((gen) => (
+                        <ListFilter size={16} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="center"
+                      className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[100px]"
+                    >
+                      <DropdownMenuRadioGroup
+                        value={selectedGen}
+                        onValueChange={(v) => {
+                          setSelectedGen(v);
+                          setCurrentPage(1);
+                        }}
+                      >
                         <DropdownMenuRadioItem
-                          key={gen}
-                          value={gen.toString()}
+                          value="all"
                           className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                         >
-                          {extractGenNumber(gen.toString())}
+                          All
                         </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                        {uniqueGenerations.map((gen) => (
+                          <DropdownMenuRadioItem
+                            key={gen}
+                            value={gen.toString()}
+                            className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                          >
+                            {extractGenNumber(gen.toString())}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </TableHead>
 
               <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
@@ -295,6 +324,7 @@ export default function UserTableClient({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableHead>
+
               <TableHead className="px-1 py-3 text-white w-[20%] type-desc-semibold">
                 Action
               </TableHead>
@@ -308,7 +338,6 @@ export default function UserTableClient({
                 const sequentialRowNumber = isNaN(pageOffset)
                   ? idx
                   : pageOffset + idx;
-
                 return (
                   <UserRow
                     key={user.no}
