@@ -33,9 +33,6 @@ export default function AttendeeRow({
   onDeleteAttendee,
 }: AttendeeRowProps) {
   const router = useRouter();
-
-  console.log(`👤 [AttendeeRow #${indexNumber}] Rendering for participant:`, attendee.appUserId, "| Status:", attendee.paymentStatus);
-  
   const getStatusStyles = (status: string) => {
     const normalize = (status || "").toLowerCase().trim();
 

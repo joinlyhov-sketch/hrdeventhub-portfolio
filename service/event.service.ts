@@ -75,12 +75,21 @@ export interface EventResponse {
   payload: EventItem[];
 }
 
+export interface ParticipantUser {
+  appUserId: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  profilePicture: string;
+}
+
 export interface Participant {
+   appUserId: string;
   participantId: string;
   registeredAt: string;
   remark: string;
   postId: string;
-  appUserId: string;
+  user?: ParticipantUser;
   paymentStatus: string;
 }
 
@@ -130,4 +139,29 @@ export const eventService = {
       (post) => post.category === "event" && Boolean(post.eventStart),
     );
   },
+};
+  getMyRegistrations: async (
+    token: string,
+    page: number = 1,
+    size: number = 10
+  ): Promise<Participant[]> => {
+    const response = await apiGet<ParticipantResponse>(
+      `/posts/participants/me?page=${page}&size=${size}`,
+      { authToken: token }
+    );
+    return response.payload || [];
+  },
+
+  getParticipantsByUser: async (
+    token: string,
+    userId: string,
+    page: number = 1,
+    size: number = 10
+  ): Promise<Participant[]> => {
+    const response = await apiGet<ParticipantResponse>(
+      `/posts/participants/user/${userId}?page=${page}&size=${size}`,
+      { authToken: token }
+    );
+    return response.payload || [];
+  }
 };
