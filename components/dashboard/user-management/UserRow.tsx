@@ -37,11 +37,11 @@ export default function UserRow({
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
-      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%]">
+      <TableCell className="py-1 type-desc text-gray-500 text-center w-[10%]">
         {rowDisplayIdentifier}
       </TableCell>
 
-      <TableCell className="px-3 py-3 type-desc text-gray-500 w-[18%]">
+      <TableCell className="px-3 py-3 type-desc text-gray-500 w-[50%]">
         <div className="flex items-center gap-2 truncate">
           {profileSrc ? (
             <img
@@ -91,7 +91,7 @@ export default function UserRow({
         </div>
       </TableCell>
 
-      <TableCell className="px-8 py-3 text-sm w-[15%] items-center text-center">
+      <TableCell className="px-10 py-3 text-sm w-[20%] items-center text-center">
         <div className="flex items-center gap-4">
           <button
             type="button"

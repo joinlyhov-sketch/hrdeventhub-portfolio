@@ -1,10 +1,15 @@
 "use client";
-
-import { motion, Variants } from "framer-motion";
 import { useState } from "react";
+import { motion, Variants } from "framer-motion";
 import { z } from "zod";
 import { useRegisterStore } from "../../../store/useRegisterStore";
-import { User, Calendar, Phone, ChevronDown, AlertCircle } from "lucide-react";
+import { User, Calendar as CalendarIcon, ChevronDown, AlertCircle, Check } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { format, parseISO } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/libs/utils";
+import * as Flags from "country-flag-icons/react/3x2";
 
 const itemVars: Variants = {
   hidden: { opacity: 0, x: -20 },
@@ -31,17 +36,22 @@ const step1Schema = z.object({
   phoneNumber: z
     .string()
     .min(1, "Phone number is required")
-    .regex(/^\d{8,10}$/, "Phone number must be 8–10 digits"),
+    .regex(/^855\d{8,9}$/, "Please enter a valid Cambodian phone number"),
 });
 
 type Step1Errors = Partial<Record<keyof z.infer<typeof step1Schema>, string>>;
+
+const genderOptions = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+];
 
 export default function Step1Personal() {
   const form = useRegisterStore((s) => s.form);
   const updateField = useRegisterStore((s) => s.updateField);
   const setStep = useRegisterStore((s) => s.setStep);
-
   const [errors, setErrors] = useState<Step1Errors>({});
+  const [genderOpen, setGenderOpen] = useState(false);
 
   const handleNext = () => {
     const result = step1Schema.safeParse({
@@ -71,11 +81,27 @@ export default function Step1Personal() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  const currentYear = new Date().getFullYear();
+  const maxBirthYear = currentYear - 18;
+  const minBirthYear = currentYear - 100;
+
   const maxDate = (() => {
     const d = new Date();
-    d.setFullYear(d.getFullYear() - 18);
-    return d.toISOString().split("T")[0];
+    d.setFullYear(maxBirthYear);
+    return d;
   })();
+
+  const startMonth = new Date(minBirthYear, 0);
+  const endMonth = new Date(maxBirthYear, 11);
+
+  const selectedDate = form.dateOfBirth ? parseISO(form.dateOfBirth) : undefined;
+
+  const getDisplayPhoneNumber = () => {
+    if (form.phoneNumber.startsWith("855")) {
+      return form.phoneNumber.slice(3);
+    }
+    return form.phoneNumber;
+  };
 
   return (
     <motion.div
@@ -131,64 +157,124 @@ export default function Step1Personal() {
         </div>
 
         <div className="flex flex-col gap-1 pt-3 sm:pt-4">
-          <div
-            className={`relative flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
-              errors.gender ? "border-red-400" : "border-[#dce6f0]"
-            }`}
-          >
-            <User size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
-            <select
-              value={form.gender}
-              onChange={(e) => handleChange("gender", e.target.value)}
-              className="w-full appearance-none bg-transparent text-sm outline-none text-[#2d3748] cursor-pointer"
+          <Popover open={genderOpen} onOpenChange={setGenderOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={`relative flex items-center gap-3 w-full rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 text-left transition-all outline-none focus:border-[#24529a] cursor-pointer ${
+                  errors.gender ? "border-red-400" : "border-[#dce6f0]"
+                }`}
+              >
+                <User size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+                <span className={cn("text-sm flex-1", form.gender ? "text-[#2d3748]" : "text-[#aab3c0]")}>
+                  {form.gender
+                    ? genderOptions.find((o) => o.value === form.gender)?.label
+                    : "Gender"}
+                </span>
+                <ChevronDown
+                  size={16}
+                  color="#b0bac9"
+                  strokeWidth={2}
+                  className={`transition-transform duration-200 ${genderOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[--radix-popover-trigger-width] p-1.5 rounded-xl sm:rounded-2xl shadow-lg border border-[#dce6f0]"
+              align="start"
+              sideOffset={6}
             >
-              <option value="" disabled className="text-[#aab3c0]">
-                Gender
-              </option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-            <ChevronDown size={16} color="#b0bac9" strokeWidth={2} className="absolute right-4 pointer-events-none" />
-          </div>
+              {genderOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    handleChange("gender", option.value);
+                    setGenderOpen(false);
+                  }}
+                  className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm transition-colors cursor-pointer ${
+                    form.gender === option.value
+                      ? "bg-blue-50 text-[#24529a] font-semibold"
+                      : "text-[#2d3748] hover:bg-gray-50"
+                  }`}
+                >
+                  {option.label}
+                  {form.gender === option.value && (
+                    <Check size={15} className="text-[#24529a]" />
+                  )}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
           {errors.gender && <FieldError message={errors.gender} />}
         </div>
 
         <div className="flex flex-col gap-1 pt-3 sm:pt-4">
-          <div
-            className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
-              errors.dateOfBirth ? "border-red-400" : "border-[#dce6f0]"
-            }`}
-          >
-            <Calendar size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
-            <input
-              type="date"
-              max={maxDate}
-              value={form.dateOfBirth}
-              onChange={(e) => handleChange("dateOfBirth", e.target.value)}
-              className={`w-full bg-transparent text-sm outline-none ${
-                form.dateOfBirth ? "text-[#2d3748]" : "text-[#aab3c0]"
-              }`}
-              suppressHydrationWarning
-            />
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={`flex items-center gap-3 w-full rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 text-left transition-all outline-none focus:border-[#24529a] focus:ring-1 focus:ring-[#24529a] cursor-pointer ${
+                  errors.dateOfBirth ? "border-red-400" : "border-[#dce6f0]"
+                }`}
+              >
+                <CalendarIcon size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+                <span
+                  className={cn(
+                    "text-sm w-full outline-none",
+                    form.dateOfBirth ? "text-[#2d3748]" : "text-[#aab3c0]"
+                  )}
+                >
+                  {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "DD/MM/YYYY"}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 rounded-xl" align="start" sideOffset={6}>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) {
+                    const formattedStr = format(date, "yyyy-MM-dd");
+                    handleChange("dateOfBirth", formattedStr);
+                  }
+                }}
+                disabled={(date) => date > maxDate || date < startMonth}
+                captionLayout="dropdown"
+                startMonth={startMonth}
+                endMonth={endMonth}
+              />
+            </PopoverContent>
+          </Popover>
           {errors.dateOfBirth && <FieldError message={errors.dateOfBirth} />}
         </div>
 
         <div className="flex flex-col gap-1 pt-3 sm:pt-4">
           <div
-            className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
+            className={`flex items-center rounded-xl sm:rounded-2xl border bg-white overflow-hidden transition-all focus-within:border-[#24529a] ${
               errors.phoneNumber ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <Phone size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
-            <input
-              placeholder="+855  Phone number"
-              value={form.phoneNumber}
+            <div className="flex items-center gap-2 bg-gray-50 border-r border-[#dce6f0] h-[50px] sm:h-[54px] px-3 sm:px-4 select-none shrink-0 text-sm font-medium text-gray-500">
+              <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center shadow-sm">
+                <Flags.KH className="w-full h-full object-cover" />
+              </span>
+              <span className="text-[#2d3748] ml-0.5">+855</span>
+            </div>
+            <Input
+              type="tel"
+              placeholder="12 345 678"
+              value={getDisplayPhoneNumber()}
               onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, "");
-                handleChange("phoneNumber", digits);
+                const input = e.target.value.replace(/\D/g, "");
+                if (!input) {
+                  handleChange("phoneNumber", "");
+                  return;
+                }
+                const rawDigits = input.startsWith("0") ? input.slice(1) : input;
+                handleChange("phoneNumber", `855${rawDigits}`);
               }}
-              className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
+              className="w-full border-0 rounded-none bg-transparent h-[50px] sm:h-[54px] text-sm outline-none focus-visible:ring-0 shadow-none placeholder:text-[#aab3c0] text-[#2d3748] px-3 sm:px-4"
             />
           </div>
           {errors.phoneNumber && <FieldError message={errors.phoneNumber} />}

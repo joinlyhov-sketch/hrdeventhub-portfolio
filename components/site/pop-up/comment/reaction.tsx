@@ -12,28 +12,27 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/reaction/toggle-group";
 
-export function TwemojiImg({
-  emoji,
-  size = 18,
-}: {
-  emoji: string;
-  size?: number;
-}) {
+
+export function TwemojiImg({ emoji, size = 18 }: { emoji: string; size?: number }) {
   const codePoint = [...emoji]
-    .map((c) => c.codePointAt(0)!.toString(16).padStart(4, "0"))
+    .map((c) => c.codePointAt(0)!.toString(16))
     .filter((c) => c !== "fe0f")
-    .join("-");
+    .join("-")
 
   return (
     <img
-      src={`https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/${codePoint}.svg`}
+      src={`https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/${codePoint}/color/${codePoint}_color.svg`}
       alt={emoji}
       width={size}
       height={size}
       draggable={false}
       className="select-none inline-block"
+      onError={(e) => {
+        (e.target as HTMLImageElement).src = 
+          `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/${codePoint}.svg`
+      }}
     />
-  );
+  )
 }
 
 export const REACTIONS = [

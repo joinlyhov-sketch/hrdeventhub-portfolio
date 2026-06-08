@@ -18,6 +18,7 @@ export interface PostMedia {
 export interface PostPayment {
   postPaymentId: string;
   paymentType: string;
+  requestId?: string;
   paymentAmount: number;
   donationGoal: number;
   amountRaised: number;

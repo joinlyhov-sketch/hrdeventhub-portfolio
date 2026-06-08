@@ -40,6 +40,14 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "20mb",
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: "/api/v4/:path*",
+        destination: "https://api.dev.hrdevent.app/api/v4/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

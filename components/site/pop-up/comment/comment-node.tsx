@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Trash2, Smile, ThumbsUp } from "lucide-react";
+import { Trash2, Smile, ThumbsUp, SendHorizontal } from "lucide-react";
 import { Comment } from "@/types/comment";
 import {
   createReplyAction,
@@ -76,10 +76,46 @@ function Avatar({
 }
 
 const EMOJI_LIST = [
-  "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
-  "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
-  "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
-  "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
+  "😀",
+  "😂",
+  "😍",
+  "🥰",
+  "😎",
+  "🤔",
+  "😢",
+  "😡",
+  "👍",
+  "👎",
+  "❤️",
+  "🔥",
+  "🎉",
+  "✨",
+  "💯",
+  "🙏",
+  "😭",
+  "🤣",
+  "😊",
+  "😅",
+  "😆",
+  "🥲",
+  "😇",
+  "🤩",
+  "😏",
+  "😒",
+  "😳",
+  "🤯",
+  "😱",
+  "😴",
+  "🤗",
+  "🫡",
+  "🫠",
+  "😬",
+  "🙄",
+  "😤",
+  "🤬",
+  "💀",
+  "👀",
+  "💪",
 ];
 
 function EmojiPopover({
@@ -167,7 +203,7 @@ function ReplyInput({
         size={28}
       />
       <div className="flex-1">
-        <div className="relative flex items-center bg-grey-100 rounded-2xl px-3 py-1.5 gap-2">
+        <div className="relative flex items-center bg-grey-100 rounded-2xl px-3 py-3 gap-2">
           <input
             autoFocus
             placeholder={
@@ -205,9 +241,12 @@ function ReplyInput({
         <div className="flex gap-3 mt-1.5 pl-1">
           <button
             onMouseDown={(e) => e.preventDefault()}
-            onClick={onSubmit}
-            disabled={!replyText.trim()}
-            className="text-xs text-primary font-semibold hover:underline disabled:opacity-40 cursor-pointer"
+            onClick={() => replyText.trim() && onSubmit()}
+            className={`text-xs font-semibold transition-colors cursor-pointer ${
+              replyText.trim()
+                ? "text-primary hover:underline"
+                : "text-grey-300 cursor-not-allowed"
+            }`}
           >
             Reply
           </button>
@@ -230,6 +269,7 @@ export function CommentNode({
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [showReplies, setShowReplies] = useState(false);
+  const [showEditEmoji, setShowEditEmoji] = useState(false);
 
   const {
     selectedReaction,
@@ -295,50 +335,96 @@ export function CommentNode({
         )}
       </div>
 
-      <div className="flex-1 min-w-0 pb-1">
-        <div className="relative inline-block bg-grey-100 rounded-2xl px-3 py-2 max-w-full">
+      <div className="flex-1 w-full pb-1">
+        <div
+          className={`relative bg-grey-100 rounded-2xl px-3 py-2  ${
+            editingId === comment.commentId
+              ? "block w-full bg-transparent p-0!"
+              : "inline-block max-w-full"
+          }`}
+        >
           <div className="flex items-center gap-2 justify-between">
             <span className="type-detail-semibold text-grey-900 text-sm leading-tight">
               {comment.appUser.firstName} {comment.appUser.lastName}
             </span>
             {isOwner && (
-              <div className="flex gap-2 items-center ml-4 shrink-0">
-                <button
-                  onClick={() => {
-                    setEditingId(comment.commentId);
-                    setEditText(comment.comment);
-                  }}
-                  className="text-grey-400 hover:text-primary transition-colors text-xs cursor-pointer"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="text-grey-400 hover:text-destructive transition-colors cursor-pointer"
-                >
-                  <Trash2 size={12} />
-                </button>
+              <div className="flex gap-1.5 items-baseline shrink-0">
+                {editingId !== comment.commentId && (
+                  <section className="flex gap-x-1.5 items-baseline ml-4 shrink-0">
+                    <button
+                      onClick={() => {
+                        setEditingId(comment.commentId);
+                        setEditText(comment.comment);
+                      }}
+                      className="text-grey-400 hover:text-primary transition-colors text-xs cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="text-grey-400 hover:text-destructive transition-colors cursor-pointer"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </section>
+                )}
               </div>
             )}
           </div>
 
           {editingId === comment.commentId ? (
-            <div className="mt-1 space-y-1.5">
-              <textarea
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                className="w-full bg-white rounded-lg p-2 text-sm border border-grey-200 outline-none resize-none text-grey-900"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleEdit}
-                  className="text-xs bg-primary text-white px-3 py-1 rounded hover:opacity-90 cursor-pointer"
-                >
-                  Save
-                </button>
+            <div className="mt-2 space-y-2 w-full">
+              <div className="flex items-center justify-between bg-[#F8F9FA] focus-within:border-grey-200 focus-within:bg-grey-50 rounded-full transition-all py-1.5 pl-4 pr-2 w-full h-11">
+                <input
+                  type="text"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="flex-1 bg-transparent text-sm outline-none text-grey-900 placeholder-grey-400 h-full min-w-0"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (editText.trim()) handleEdit();
+                    }
+                  }}
+                  autoFocus
+                />
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <section className="relative shrink-0">
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => setShowEditEmoji((v) => !v)}
+                      className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
+                    >
+                      <Smile size={20} />
+                    </button>
+                  </section>
+                  {showEditEmoji && (
+                    <EmojiPopover
+                      onPick={(emoji) => setEditText((prev) => prev + emoji)}
+                      onClose={() => setShowEditEmoji(false)}
+                    />
+                  )}
+
+                  <button
+                    onClick={handleEdit}
+                    disabled={!editText.trim()}
+                    className="p-2 bg-primary text-white rounded-full hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all flex items-center justify-center w-8 h-8"
+                    title="Save comment"
+                  >
+                    <SendHorizontal
+                      size={16}
+                      className="relative left-[-0.5px]"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-start pl-4">
                 <button
                   onClick={() => setEditingId(null)}
-                  className="text-xs border border-grey-200 px-3 py-1 rounded hover:bg-grey-50 cursor-pointer"
+                  className="text-xs font-medium text-grey-400 hover:text-grey-900 cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
@@ -357,46 +443,48 @@ export function CommentNode({
               )}
             </p>
           )}
-          
+
           <section className="absolute -right-2">
-            <ReactionSummary payload={reactionPayload}/> 
+            <ReactionSummary payload={reactionPayload} />
           </section>
         </div>
 
-        <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
-          <span className="font-normal">{timeAgo(comment.createdAt)}</span>
+        {editingId !== comment.commentId && (
+          <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
+            <span className="font-normal">{timeAgo(comment.createdAt)}</span>
 
-          <ReactionPopover
-            selectedValue={selectedReaction}
-            onReactionSelect={handleReactionSelect}
-          >
-            <button
-              onClick={handleLikeToggle}
-              className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
-                activeReaction
-                  ? `${activeReaction.color} font-semibold`
-                  : "hover:text-grey-900"
-              }`}
+            <ReactionPopover
+              selectedValue={selectedReaction}
+              onReactionSelect={handleReactionSelect}
             >
-              {activeReaction ? (
-                activeReaction.displayText
-              ) : (
-                <ThumbsUp size={13} />
-              )}
-              {!activeReaction && "Like"}
-            </button>
-          </ReactionPopover>
+              <button
+                onClick={handleLikeToggle}
+                className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
+                  activeReaction
+                    ? `${activeReaction.color} font-semibold`
+                    : "hover:text-grey-900"
+                }`}
+              >
+                {activeReaction ? (
+                  activeReaction.displayText
+                ) : (
+                  <ThumbsUp size={13} />
+                )}
+                {!activeReaction && "Like"}
+              </button>
+            </ReactionPopover>
 
-          <button
-            onClick={() => {
-              setShowReplyInput((v) => !v);
-              setReplyText("");
-            }}
-            className="hover:text-grey-900 transition-colors cursor-pointer"
-          >
-            Reply
-          </button>
-        </div>
+            <button
+              onClick={() => {
+                setShowReplyInput((v) => !v);
+                setReplyText("");
+              }}
+              className="hover:text-grey-900 transition-colors cursor-pointer"
+            >
+              Reply
+            </button>
+          </div>
+        )}
 
         {hasReplies && (
           <button

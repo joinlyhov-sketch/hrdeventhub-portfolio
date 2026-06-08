@@ -16,11 +16,11 @@ export default function ResetPasswordWizard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9 }}
-      className="flex flex-col rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-8 sm:p-10 shadow-sm overflow-hidden"
+      className="mx-auto w-full max-w-[700px] min-h-[600px] flex flex-col justify-between rounded-[30px] border border-[#c8d6ee] bg-[#f9fbff] p-8 sm:p-10 shadow-sm overflow-hidden"
     >
       <StepIndicator currentStep={step} />
 
-      <div className="w-full flex flex-col items-stretch">
+      <div className="w-full flex flex-col flex-1 justify-center items-stretch my-4">
         <AnimatePresence mode="wait">
           {step === 1 && <IdentifyStep key="step1" />}
           {step === 2 && <VerifyStep key="step2" />}

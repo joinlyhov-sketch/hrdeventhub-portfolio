@@ -16,7 +16,7 @@ import DetailContentComponent from "../../../components/site/event-detail/detail
 import { AdminOverview } from "../../../components/site/event-detail/register-table";
 import { DiscussionSection } from "../../../components/site/event-detail/discussion-section";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-import PaymentModal from "@/components/site/pop-up/payment/PaymentModal";
+import { PaymentWizardDialog } from "@/components/site/pop-up/new-payment/payment";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -24,7 +24,6 @@ import {
   REACTIONS,
   TwemojiImg,
 } from "@/components/site/pop-up/comment/reaction";
-import { usePaymentModalStore } from "@/store/usePaymentModalStore";
 import { reactionService } from "../../../service/post-reaction.service";
 import { useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
@@ -53,15 +52,12 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [activeAdminTab, setActiveAdminTab] = useState<AdminSubTab>("overview");
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const [reactionPayload, setReactionPayload] = useState<ReactionItem[]>([]);
 
   const discussionRef = useRef<HTMLDivElement>(null);
-
-  const openPaymentModal = usePaymentModalStore(
-    (state) => state.openPaymentModal,
-  );
 
   const [detailData, setDetailData] = useState({
     id: event?.postId || "det-4401",
@@ -167,7 +163,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
               postId: event.postId,
               reactor: {
                 appUserId: currentUser?.id ?? "",
-              }
+              },
             },
           ],
     );
@@ -211,7 +207,9 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
     }));
     setReactionPayload((prev) => {
-      const without = prev.filter((r) => r.reactor.appUserId !== currentUser?.id);
+      const without = prev.filter(
+        (r) => r.reactor.appUserId !== currentUser?.id,
+      );
       return [
         ...without,
         {
@@ -221,7 +219,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           postId: event.postId,
           reactor: {
             appUserId: currentUser?.id ?? "",
-          }
+          },
         },
       ];
     });
@@ -370,7 +368,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
             {!isAdminOrOrganizer && (
               <button
-                onClick={() => openPaymentModal("register")}
+                onClick={() => setIsPaymentOpen(true)}
                 className="w-full rounded-md py-2.5 type-desc-semibold text-center text-primary-foreground bg-primary hover:opacity-95 transition-opacity cursor-pointer"
               >
                 Register now
@@ -416,7 +414,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
                 <Share2 size={20} /> Share
               </button>
             </section>
-            
+
             <ReactionSummary payload={reactionPayload} />
           </section>
         </section>
@@ -457,7 +455,12 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         onClose={() => setIsShareOpen(false)}
         shareUrl={`hrdeventhub.app/events/${detailData.id}`}
       />
-      <PaymentModal />
+      
+      <PaymentWizardDialog
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        post={event}
+      />
     </>
   );
 }

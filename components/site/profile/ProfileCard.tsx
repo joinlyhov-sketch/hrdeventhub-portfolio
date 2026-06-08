@@ -41,7 +41,8 @@ interface ProfileCardProps {
   viewMode: ViewMode | null;
   profile: UserProfilePayload | null;
   loading: boolean;
-  profileId: string;
+  profileId: string; 
+  authToken: string;  
 }
 
 export default function ProfileCard({
@@ -49,6 +50,7 @@ export default function ProfileCard({
   profile,
   loading,
   profileId,
+  authToken,
 }: ProfileCardProps) {
   const [isEndorseOpen, setIsEndorseOpen] = useState(false);
 
@@ -167,13 +169,17 @@ export default function ProfileCard({
           )}
         </div>
       </div>
-
-      <EndorseStudentModal
-        isOpen={isEndorseOpen}
-        onClose={() => setIsEndorseOpen(false)}
-        studentName={displayName}
-        studentAvatar={profileAvatar || undefined}
-      />
+      {showEndorse && (
+        <EndorseStudentModal
+          isOpen={isEndorseOpen}
+          onClose={() => setIsEndorseOpen(false)}
+          studentId={profileId}      
+          authToken={authToken}    
+          studentName={displayName}
+          studentAvatar={profileAvatar || undefined}
+          onSuccess={() => setIsEndorseOpen(false)}
+        />
+      )}
     </div>
   );
 }

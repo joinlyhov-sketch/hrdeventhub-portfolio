@@ -3,14 +3,14 @@
 import { Participant } from "@/service/event.service";
 import { TableCell, TableRow } from "../../../ui/table";
 import ActionDropdown from "@/components/site/pop-up/action-button/ActionDropdown";
-import { User, Trash2 } from "lucide-react"; 
+import { User, Trash2 } from "lucide-react";
 import { DropdownAction } from "@/components/site/pop-up/action-button/ActionDropdown";
 import { useRouter } from "next/navigation";
 
 interface AttendeeRowProps {
   attendee: Participant;
   indexNumber: number;
-  onViewProfile: (attendee: Participant) => void; 
+  onViewProfile: (attendee: Participant) => void;
   onDeleteAttendee: (id: string) => void;
 }
 
@@ -21,8 +21,18 @@ const formatDate = (dateStr: string): string => {
 
   const day = String(date.getDate()).padStart(2, "0");
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   return `${day} ${months[date.getMonth()]}, ${date.getFullYear()}`;
 };
@@ -33,13 +43,14 @@ export default function AttendeeRow({
   onDeleteAttendee,
 }: AttendeeRowProps) {
   const router = useRouter();
-
-  console.log(`👤 [AttendeeRow #${indexNumber}] Rendering for participant:`, attendee.appUserId, "| Status:", attendee.paymentStatus);
-  
   const getStatusStyles = (status: string) => {
     const normalize = (status || "").toLowerCase().trim();
 
-    if (normalize === "successful" || normalize === "active" || normalize === "free") {
+    if (
+      normalize === "successful" ||
+      normalize === "active" ||
+      normalize === "free"
+    ) {
       return {
         bg: "bg-[#E6F9F1] text-[#00B074]",
         dot: "bg-[#00B074]",
@@ -62,16 +73,16 @@ export default function AttendeeRow({
   const badgeStyle = getStatusStyles(attendee.paymentStatus);
 
   const rowActions: DropdownAction[] = [
-    { 
-      label: "View Profile", 
-      icon: User, 
-      onClick: () => router.push(`/profile/${attendee.participantId}`)
+    {
+      label: "View Profile",
+      icon: User,
+      onClick: () => router.push(`/profile/${attendee.participantId}`),
     },
-    { 
-      label: "Delete", 
-      icon: Trash2, 
-      onClick: () => onDeleteAttendee(attendee.participantId) 
-    }
+    {
+      label: "Delete",
+      icon: Trash2,
+      onClick: () => onDeleteAttendee(attendee.participantId),
+    },
   ];
 
   return (
@@ -83,11 +94,15 @@ export default function AttendeeRow({
       <TableCell className="px-5 py-3 type-desc text-slate-700 font-semibold w-[28%]">
         <div className="flex items-center gap-3 truncate">
           <img
-            src="/placeholder-avatar.png"
-            alt=""
+            src={attendee.user?.profilePicture || "/placeholder-avatar.png"}
+            alt={attendee.user?.username || ""}
             className="w-8 h-8 rounded-full object-cover shrink-0"
           />
-          <span className="truncate">{attendee.appUserId}</span>
+          <span className="truncate">
+            {attendee.user
+              ? `${attendee.user.firstName} ${attendee.user.lastName}`
+              : attendee.appUserId}
+          </span>
         </div>
       </TableCell>
 
@@ -109,7 +124,7 @@ export default function AttendeeRow({
       </TableCell>
 
       <TableCell className="px-6 py-3 type-desc text-center w-[10%]">
-        <ActionDropdown actions={rowActions}/>
+        <ActionDropdown actions={rowActions} />
       </TableCell>
     </TableRow>
   );
