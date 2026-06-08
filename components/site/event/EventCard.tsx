@@ -77,16 +77,6 @@ function EventItem({
         .slice(0, 2)
     : "?";
 
-  // const handleLikeToggle = () => {
-  //   if (selectedReaction) { setSelectedReaction(null); setLikesCount((p) => p - 1); }
-  //   else { setSelectedReaction("like"); setLikesCount((p) => p + 1); }
-  // };
-
-  // const handleReactionSelect = (reactionId: string) => {
-  //   if (!selectedReaction) setLikesCount((p) => p + 1);
-  //   setSelectedReaction(reactionId);
-  // };
-
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
     setIsSubmittingComment(true);
