@@ -38,6 +38,9 @@ export function PaginationDemo({
     onPageChange(page);
   };
 
+  const linkClass =
+    "hover:bg-transparent hover:text-inherit aria-[current=page]:bg-[#F0F3FF]";
+
   const renderPageNumbers = () => {
     const pages = [];
 
@@ -49,7 +52,7 @@ export function PaginationDemo({
               href="#"
               onClick={(e) => handlePageClick(e, i)}
               isActive={currentPage === i}
-              className="hover:bg-transparent hover:text-inherit"
+              className={linkClass}
             >
               {i}
             </PaginationLink>
@@ -65,7 +68,7 @@ export function PaginationDemo({
           href="#"
           onClick={(e) => handlePageClick(e, 1)}
           isActive={currentPage === 1}
-          className="hover:bg-transparent hover:text-inherit"
+          className={linkClass}
         >
           1
         </PaginationLink>
@@ -79,7 +82,7 @@ export function PaginationDemo({
             href="#"
             onClick={(e) => handlePageClick(e, 2)}
             isActive={currentPage === 2}
-            className="hover:bg-transparent hover:text-inherit"
+            className={linkClass}
           >
             2
           </PaginationLink>
@@ -104,7 +107,7 @@ export function PaginationDemo({
             href="#"
             onClick={(e) => handlePageClick(e, totalPages - 1)}
             isActive={currentPage === totalPages - 1}
-            className="hover:bg-transparent hover:text-inherit"
+            className={linkClass}
           >
             {totalPages - 1}
           </PaginationLink>
@@ -117,7 +120,7 @@ export function PaginationDemo({
             href="#"
             onClick={(e) => handlePageClick(e, currentPage)}
             isActive={true}
-            className="hover:bg-transparent hover:text-inherit"
+            className={linkClass}
           >
             {currentPage}
           </PaginationLink>
@@ -137,7 +140,7 @@ export function PaginationDemo({
           href="#"
           onClick={(e) => handlePageClick(e, totalPages)}
           isActive={currentPage === totalPages}
-          className="hover:bg-transparent hover:text-inherit"
+          className={linkClass}
         >
           {totalPages}
         </PaginationLink>

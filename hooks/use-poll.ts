@@ -182,7 +182,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
     mutate,
   } = useSWR<Poll>(
     pollId ? ["poll", pollId] : null,
-    () => pollService.getPoll(pollId).then(recalculatePercentages),
+    () => pollService.getById(pollId).then(recalculatePercentages),
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
@@ -358,7 +358,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
           optionIds,
         };
 
-        const updatedPoll = await pollService.votePoll(pollId, voteRequest);
+        const updatedPoll = await pollService.vote(pollId, voteRequest);
 
         const nextPoll = recalculatePercentages({
           ...updatedPoll,
@@ -452,7 +452,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
           optionIds,
         };
 
-        const updatedPoll = await pollService.votePoll(pollId, voteRequest);
+        const updatedPoll = await pollService.vote(pollId, voteRequest);
 
         const nextPoll = recalculatePercentages({
           ...updatedPoll,

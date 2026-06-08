@@ -1,32 +1,38 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { Edit, ThumbsUp, MessageCircleMore, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Edit,
+  MessageCircleMore,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  ThumbsUp,
+} from "lucide-react";
 import PriceContentComponent from "../../../components/site/event-detail/price-content";
 import MapContentComponent from "../../../components/site/event-detail/map-content";
 import DetailContentComponent from "../../../components/site/event-detail/detail-content";
 import { AdminOverview } from "../../../components/site/event-detail/register-table";
 import { DiscussionSection } from "../../../components/site/event-detail/discussion-section";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-import PaymentModal from "@/components/site/pop-up/payment/PaymentModal";
+import { PaymentWizardDialog } from "@/components/site/pop-up/new-payment/payment";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
-import { usePaymentModalStore } from "@/store/usePaymentModalStore";
+import {
+  ReactionPopover,
+  REACTIONS,
+  TwemojiImg,
+} from "@/components/site/pop-up/comment/reaction";
 import { reactionService } from "../../../service/post-reaction.service";
 import { useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
+import { ReactionSummary } from "../event/ReactionSummary";
+import { ReactionItem } from "@/hooks/use-post-reaction";
 
 type PostReactionResponse = {
   success: boolean;
-  payload: {
-    reactionId: string;
-    type: string;
-    createdAt: string;
-    postId: string;
-    appUserId: string;
-  }[];
+  payload: ReactionItem[];
 };
 
 type Tab = "details" | "price" | "map";
@@ -39,29 +45,68 @@ interface EventDetailClientProps {
 export default function EventDetailClient({ event }: EventDetailClientProps) {
   const { currentUser } = useCurrentUser();
   const { data: session, status } = useSession();
-
   const isAdminOrOrganizer =
     currentUser?.role === "admin" || currentUser?.role === "organizer";
 
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [activeAdminTab, setActiveAdminTab] = useState<AdminSubTab>("overview");
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const [reactionPayload, setReactionPayload] = useState<ReactionItem[]>([]);
 
-  const openPaymentModal = usePaymentModalStore((state) => state.openPaymentModal);
+  const discussionRef = useRef<HTMLDivElement>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [detailData, setDetailData] = useState({
     id: event?.postId || "det-4401",
-    likesCount: 124,
+    likesCount: 0,
     commentsCount: event?.comments?.length || 0,
     isLikedByUser: false,
   });
 
+  const API_BASE =
+    "https://api.dev.hrdevent.app/api/v4/files/preview-file?key=";
+
   const mediaList =
     event?.media && event.media.length > 0
-      ? event.media.map((m: any) => m.filePath || m.url)
+      ? event.media.map((m: any) => {
+          const path = m.filePath || m.url || "";
+          const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+          return url;
+        })
       : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
+
+  const extendedList = [
+    mediaList[mediaList.length - 1],
+    ...mediaList,
+    mediaList[0],
+  ];
+
+  const [currentImgIndex, setCurrentImgIndex] = useState(1);
+  const isTransitioning = useRef(true);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+
+  const FALLBACK =
+    "https://images.unsplash.com/photo-1511578314322-379afb476865";
+  useEffect(() => {
+    if (trackRef.current) {
+      trackRef.current.style.transition = isTransitioning.current
+        ? "transform 500ms ease-in-out"
+        : "none";
+    }
+  }, [currentImgIndex]);
+  useEffect(() => {
+    if (mediaList.length <= 1) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      goToIndex(currentImgIndex + 1);
+    }, 3000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [currentImgIndex, mediaList.length]);
 
   useEffect(() => {
     if (session?.error === "RefreshTokenExpired") {
@@ -81,7 +126,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
         )) as PostReactionResponse;
 
         const userReaction = data.payload?.find(
-          (r) => r.appUserId === currentUser.id,
+          (r) => r.reactor.appUserId === currentUser.id,
         );
 
         if (userReaction) {
@@ -97,6 +142,8 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
             likesCount: data.payload.length,
           }));
         }
+
+        setReactionPayload(data.payload ?? []);
       } catch (err) {
         console.error("Failed to fetch post reaction:", err);
       }
@@ -105,12 +152,32 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
     fetchUserReaction();
   }, [currentUser?.id, event?.postId, session?.accessToken, status]);
 
-  const handlePrevImage = () => {
-    setCurrentImgIndex((prev) => (prev === 0 ? mediaList.length - 1 : prev - 1));
+  const goToIndex = (index: number) => {
+    isTransitioning.current = true;
+    setCurrentImgIndex(index);
   };
 
-  const handleNextImage = () => {
-    setCurrentImgIndex((prev) => (prev === mediaList.length - 1 ? 0 : prev + 1));
+  const handlePrevImage = () => goToIndex(currentImgIndex - 1);
+  const handleNextImage = () => goToIndex(currentImgIndex + 1);
+
+  const handleTransitionEnd = () => {
+    if (currentImgIndex === 0) {
+      isTransitioning.current = false;
+      setCurrentImgIndex(mediaList.length);
+    } else if (currentImgIndex === extendedList.length - 1) {
+      isTransitioning.current = false;
+      setCurrentImgIndex(1);
+    }
+  };
+
+  const handleScrollToDiscussion = () => {
+    if (isAdminOrOrganizer) setActiveAdminTab("discussion");
+    setTimeout(() => {
+      discussionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
   };
 
   const activeReaction = REACTIONS.find((r: any) => r.id === selectedReaction);
@@ -127,18 +194,44 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
     }));
     setSelectedReaction(isCurrentlyActive ? null : "like");
 
+    setReactionPayload((prev) =>
+      isCurrentlyActive
+        ? prev.filter((r) => r.reactor.appUserId !== currentUser?.id)
+        : [
+            ...prev,
+            {
+              reactionId: "temp",
+              type: "like",
+              createdAt: "",
+              postId: event.postId,
+              reactor: {
+                appUserId: currentUser?.id ?? "",
+              },
+            },
+          ],
+    );
+
     try {
       if (isCurrentlyActive) {
-        await reactionService.removeReactionPost(event.postId, session.accessToken);
+        await reactionService.removeReactionPost(
+          event.postId,
+          session.accessToken,
+        );
       } else {
-        await reactionService.reactPost(event.postId, "like", session.accessToken);
+        await reactionService.reactPost(
+          event.postId,
+          "like",
+          session.accessToken,
+        );
       }
     } catch (err) {
       console.error("Failed to toggle reaction:", err);
       setDetailData((prev) => ({
         ...prev,
         isLikedByUser: isCurrentlyActive,
-        likesCount: isCurrentlyActive ? prev.likesCount + 1 : prev.likesCount - 1,
+        likesCount: isCurrentlyActive
+          ? prev.likesCount + 1
+          : prev.likesCount - 1,
       }));
       setSelectedReaction(isCurrentlyActive ? "like" : null);
     }
@@ -156,12 +249,36 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       isLikedByUser: true,
       likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
     }));
+    setReactionPayload((prev) => {
+      const without = prev.filter(
+        (r) => r.reactor.appUserId !== currentUser?.id,
+      );
+      return [
+        ...without,
+        {
+          reactionId: "temp",
+          type: reactionId,
+          createdAt: "",
+          postId: event.postId,
+          reactor: {
+            appUserId: currentUser?.id ?? "",
+          },
+        },
+      ];
+    });
 
     try {
       if (wasAlreadyActive) {
-        await reactionService.removeReactionPost(event.postId, session.accessToken);
+        await reactionService.removeReactionPost(
+          event.postId,
+          session.accessToken,
+        );
       }
-      await reactionService.reactPost(event.postId, reactionId, session.accessToken);
+      await reactionService.reactPost(
+        event.postId,
+        reactionId,
+        session.accessToken,
+      );
     } catch (err) {
       console.error("Failed to select reaction:", err);
       setSelectedReaction(previousReaction);
@@ -188,14 +305,14 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
         <section className="flex justify-between items-center">
           <div className="flex items-center gap-x-3">
-            <div className="w-10 h-10 rounded-full bg-grey-200 border border-border flex items-center justify-center font-bold text-primary uppercase">
+            <div className="w-10 h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary uppercase">
               {event?.title?.slice(0, 2) || "EV"}
             </div>
             <div>
-              <p className="type-desc-semibold text-secondary">
+              <p className="text-subtitle font-medium text-secondary">
                 {isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team"}
               </p>
-              <p className="type-detail-small-medium text-muted-foreground">
+              <p className="text-desc-small-semibold font-medium text-muted-foreground">
                 {formattedCreationDate}
               </p>
             </div>
@@ -216,17 +333,37 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           </div>
         </section>
 
-        <h2 className="type-title text-grey-900">{event?.title || "Event Detail"}</h2>
+        <h2 className="type-title text-secondary">
+          {event?.title || "Event Detail"}
+        </h2>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative group aspect-video md:h-[350px] w-full rounded-xl overflow-hidden bg-grey-50 border border-border">
-            <Image
-              unoptimized
-              src={mediaList[currentImgIndex]}
-              alt={`Banner slider image view ${currentImgIndex + 1}`}
-              fill
-              className="object-cover transition-all duration-300"
-            />
+          <div className="relative group aspect-video md:h-87.5 w-full rounded-xl overflow-hidden bg-grey-50 border border-border">
+            <div
+              ref={trackRef}
+              className="flex h-full"
+              style={{ transform: `translateX(-${currentImgIndex * 100}%)` }}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              {extendedList.map((src, index) => (
+                <div
+                  key={index}
+                  className="relative min-w-full h-full flex-shrink-0"
+                >
+                  <Image
+                    unoptimized
+                    src={imgErrors[src] ? FALLBACK : src}
+                    alt={`Slide ${index}`}
+                    fill
+                    className="object-cover"
+                    onError={() =>
+                      setImgErrors((prev) => ({ ...prev, [src]: true }))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+
             {mediaList.length > 1 && (
               <>
                 <button
@@ -245,7 +382,12 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
                   {mediaList.map((_, index) => (
                     <div
                       key={index}
-                      className={`h-2 w-2 rounded-full transition-all ${index === currentImgIndex ? "bg-white scale-125" : "bg-white/50"}`}
+                      onClick={() => goToIndex(index + 1)}
+                      className={`h-2 w-2 rounded-full transition-all cursor-pointer ${
+                        currentImgIndex === index + 1
+                          ? "bg-white scale-125"
+                          : "bg-white/50"
+                      }`}
                     />
                   ))}
                 </div>
@@ -269,6 +411,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
             <div className="grow pt-4 max-w-full items-stretch min-[1290px]:w-3xl">
               {activeTab === "details" && (
                 <DetailContentComponent
+                  postId={event?.postId}
                   title={event?.title}
                   content={event?.content}
                   eventStart={event?.eventStart}
@@ -292,7 +435,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
             {!isAdminOrOrganizer && (
               <button
-                onClick={() => openPaymentModal("register")}
+                onClick={() => setIsPaymentOpen(true)}
                 className="w-full rounded-md py-2.5 type-desc-semibold text-center text-primary-foreground bg-primary hover:opacity-95 transition-opacity cursor-pointer"
               >
                 Register now
@@ -301,24 +444,46 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           </div>
         </section>
 
-        <section className="flex gap-x-6 py-2 border-b border-border text-grey-400 type-detail">
-          <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
-            <button
-              onClick={handleLikeToggle}
-              className={`flex items-center gap-x-1 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
-            >
-              <ThumbsUp size={16} className={activeReaction?.id === "like" ? "fill-primary stroke-primary" : ""} />
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="text-xs font-normal text-grey-400">({detailData.likesCount})</span>
-            </button>
-          </ReactionPopover>
+        <section className="flex py-2 justify-between items-center border-b border-border text-grey-400 type-detail">
+          <section className="flex items-center justify-between py-2 w-[50%] pr-3">
+            <section className="flex gap-x-6 items-center">
+              <ReactionPopover
+                selectedValue={selectedReaction}
+                onReactionSelect={handleReactionSelect}
+              >
+                <button
+                  onClick={handleLikeToggle}
+                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${
+                    activeReaction
+                      ? `${activeReaction.color} font-semibold`
+                      : "hover:text-primary"
+                  }`}
+                >
+                  {activeReaction ? (
+                    <TwemojiImg emoji={activeReaction.emoji} size={20} />
+                  ) : (
+                    <ThumbsUp size={20} />
+                  )}
+                  {activeReaction ? activeReaction.displayText : "Like"}
+                </button>
+              </ReactionPopover>
+              <button
+                onClick={handleScrollToDiscussion}
+                className="flex items-center gap-x-1.5 text-grey-500 font-medium hover:text-primary transition-colors cursor-pointer"
+              >
+                <MessageCircleMore size={20} className="text-grey-400" />
+                {detailData.commentsCount}
+              </button>
+              <button
+                onClick={() => setIsShareOpen(true)}
+                className="flex items-center gap-x-1.5 hover:text-primary cursor-pointer"
+              >
+                <Share2 size={20} /> Share
+              </button>
+            </section>
 
-          <span className="flex items-center gap-x-1">
-            <MessageCircleMore size={16} /> {detailData.commentsCount}
-          </span>
-          <button onClick={() => setIsShareOpen(true)} className="flex items-center gap-x-1 hover:text-primary cursor-pointer">
-            <Share2 size={16} /> Share
-          </button>
+            <ReactionSummary payload={reactionPayload} />
+          </section>
         </section>
 
         {isAdminOrOrganizer ? (
@@ -337,17 +502,32 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
                 Discussion
               </button>
             </section>
-            {activeAdminTab === "overview" ? <AdminOverview /> : <DiscussionSection event={event} />}
+            {activeAdminTab === "overview" ? (
+              <AdminOverview />
+            ) : (
+              <div ref={discussionRef}>
+                <DiscussionSection event={event} />
+              </div>
+            )}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div ref={discussionRef} className="space-y-4">
             <DiscussionSection event={event} />
           </div>
         )}
       </section>
 
-      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} shareUrl={`hrdeventhub.app/events/${detailData.id}`} />
-      <PaymentModal />
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        shareUrl={`hrdeventhub.app/events/${detailData.id}`}
+      />
+      
+      <PaymentWizardDialog
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        post={event}
+      />
     </>
   );
 }

@@ -37,7 +37,6 @@ export default function VerifyStep() {
       setSecondsLeft(remaining);
       if (remaining <= 0) window.clearInterval(timer);
     }, 1000);
-
     return () => window.clearInterval(timer);
   }, [otpExpiresAt]);
 
@@ -116,9 +115,7 @@ export default function VerifyStep() {
         setError(result.error);
         return;
       }
-      setResendMessage(
-        result.message ?? "Verification OTP successfully resent.",
-      );
+      setResendMessage(result.message ?? "Verification OTP successfully resent.");
       storeEmail(email);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
@@ -134,28 +131,28 @@ export default function VerifyStep() {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="flex flex-col gap-5 w-full items-stretch px-15"
+      className="flex flex-col gap-5 w-full items-stretch sm:px-8"
     >
       <div className="mb-5 text-center">
-        <h2 className="text-[28px] font-bold text-[#17356f]">
+        <h2 className="text-[22px] sm:text-[28px] font-bold text-[#17356f]">
           Enter Verification Code
         </h2>
-        <p className="mt-2 text-[#6e7580]">We sent a code to your email</p>
+        <p className="mt-2 text-[14px] sm:text-base text-[#6e7580]">
+          We sent a code to your email
+        </p>
       </div>
 
-      <div className="flex justify-between gap-3 my-2">
+      <div className="flex justify-between gap-2 sm:gap-3 my-2">
         {[...Array(6)].map((_, i) => (
           <input
             key={i}
-            ref={(el) => {
-              inputs.current[i] = el;
-            }}
+            ref={(el) => { inputs.current[i] = el; }}
             type="text"
             maxLength={1}
             value={otp[i]}
             onChange={(e) => handleChange(e.target.value, i)}
             onKeyDown={(e) => handleKeyDown(e, i)}
-            className="h-14.5 w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
+            className="h-11 sm:h-14 w-full rounded-xl sm:rounded-2xl border border-[#dce6f0] bg-white text-center text-lg sm:text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
           />
         ))}
       </div>
@@ -192,7 +189,7 @@ export default function VerifyStep() {
       <button
         onClick={handleVerify}
         disabled={isPending}
-        className="mt-3 h-14.5 w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+        className="mt-3 h-[50px] sm:h-[58px] w-full rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
       >
         {isPending ? "Verifying..." : "Submit"}
       </button>

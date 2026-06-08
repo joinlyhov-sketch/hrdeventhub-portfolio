@@ -12,16 +12,20 @@ const authRoutes = [
   "/reset-password",
   "/verify-otp",
   "/group-preview",
+  "/join",
 ];
 
 export async function proxy(req: NextRequest) {
   const { nextUrl } = req;
   const token = await getToken({ req, secret: env?.NEXTAUTH_SECRET });
 
-  const isLoggedIn    = Boolean(token);
-  const isExpired     = token?.error === "RefreshTokenExpired";
-  const isAuthRoute   = authRoutes.some((route) => nextUrl.pathname.startsWith(route));
+  const isLoggedIn = Boolean(token);
+  const isExpired = token?.error === "RefreshTokenExpired";
+  const isAuthRoute = authRoutes.some((route) =>
+    nextUrl.pathname.startsWith(route),
+  );
   const isLandingRoute = nextUrl.pathname === landingRoute;
+  const isJoinRoute = nextUrl.pathname.startsWith("/join");
 
   if (isExpired && !isAuthRoute) {
     return NextResponse.redirect(new URL("/login", nextUrl.origin));
@@ -32,6 +36,7 @@ export async function proxy(req: NextRequest) {
   }
 
   if (isLoggedIn && !isExpired && (isAuthRoute || isLandingRoute)) {
+    if (isJoinRoute) return NextResponse.next();
     return NextResponse.redirect(new URL("/group", nextUrl.origin));
   }
 
@@ -40,6 +45,6 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|images/|fonts/|api/auth).*)",
+    "/((?!_next/static|_next/image|favicon.ico|images/|fonts/|api/auth|api/v5).*)",
   ],
 };

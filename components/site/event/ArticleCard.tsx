@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ThumbsUp, MessageSquare, Share2, SendHorizontal } from "lucide-react";
+import {
+  ThumbsUp,
+  Share2,
+  SendHorizontal,
+  MessageCircleMore,
+  Smile,
+} from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 import {
   ReactionPopover,
   REACTIONS,
+  TwemojiImg,
 } from "@/components/site/pop-up/comment/reaction";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
@@ -16,6 +23,8 @@ import ExpandableText from "./ExpandableText";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
+import { usePostReaction } from "@/hooks/use-post-reaction";
+import { ReactionSummary } from "./ReactionSummary";
 
 interface ArticleCardProps {
   role: UserRole;
@@ -39,8 +48,13 @@ function ArticleItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [likesCount, setLikesCount] = useState(0);
+  const {
+    selectedReaction,
+    likesCount,
+    reactionPayload,
+    handleLikeToggle,
+    handleReactionSelect,
+  } = usePostReaction(post.postId);
   const [commentInput, setCommentInput] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
@@ -58,21 +72,6 @@ function ArticleItem({
         .slice(0, 2)
     : "?";
 
-  const handleLikeToggle = () => {
-    if (selectedReaction) {
-      setSelectedReaction(null);
-      setLikesCount((p) => p - 1);
-    } else {
-      setSelectedReaction("like");
-      setLikesCount((p) => p + 1);
-    }
-  };
-
-  const handleReactionSelect = (reactionId: string) => {
-    if (!selectedReaction) setLikesCount((p) => p + 1);
-    setSelectedReaction(reactionId);
-  };
-
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
     setIsSubmittingComment(true);
@@ -86,6 +85,15 @@ function ArticleItem({
       setIsSubmittingComment(false);
     }
   };
+
+  const EMOJI_LIST = [
+  "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
+  "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
+  "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
+  "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
+  ];
+
+  const [showEmoji, setShowEmoji] = useState(false);
 
   return (
     <>
@@ -137,41 +145,39 @@ function ArticleItem({
         <h2 className="type-title text-primary mb-2">{post.title}</h2>
         <ExpandableText text={post.content} />
 
-        <div className="flex items-center gap-6 py-4 border-b border-border type-detail-medium text-grey-500">
-          <ReactionPopover
-            selectedValue={selectedReaction}
-            onReactionSelect={handleReactionSelect}
-          >
-            <button
-              onClick={handleLikeToggle}
-              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center gap-6 py-4">
+            <ReactionPopover
+              selectedValue={selectedReaction}
+              onReactionSelect={handleReactionSelect}
             >
-              <ThumbsUp
-                size={18}
-                className={activeReaction?.id === "like" ? "fill-blue-500" : ""}
-              />
-              <span>
-                {activeReaction ? activeReaction.displayText : "Like"}
-              </span>
-              <span className="type-detail-small-medium font-normal text-grey-400">
-                ({likesCount})
-              </span>
+              <button
+                onClick={handleLikeToggle}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+              >
+                {activeReaction ? (
+                  <TwemojiImg emoji={activeReaction.emoji} size={20} />
+                ) : (
+                  <ThumbsUp size={20} />
+                )}
+                {activeReaction?.displayText ?? "Like"}
+              </button>
+            </ReactionPopover>
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+            >
+              <MessageCircleMore size={20} /> {comments?.length ?? 0}
             </button>
-          </ReactionPopover>
+            <button
+              onClick={() => setIsShareOpen(true)}
+              className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+            >
+              <Share2 size={20} /> Share
+            </button>
+          </section>
 
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
-          >
-            <MessageSquare size={18} /> {comments?.length ?? 0}
-          </button>
-
-          <button
-            onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
-          >
-            <Share2 size={18} /> Share
-          </button>
+          <ReactionSummary payload={reactionPayload} />
         </div>
 
         <div
@@ -201,13 +207,42 @@ function ArticleItem({
               onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
               className="w-full bg-transparent border-none py-1.5 type-detail text-grey-900 placeholder:text-grey-400 outline-none"
             />
-            <button
-              onClick={handleSubmitComment}
-              disabled={!commentInput.trim() || isSubmittingComment}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <SendHorizontal size={16} className="relative left-[-0.5px]" />
-            </button>
+
+            <section className="flex items-center gap-x-2">
+              <div className="relative shrink-0">
+                <button
+                  onClick={() => setShowEmoji((v) => !v)}
+                  className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
+                >
+                  <Smile size={20} />
+                </button>
+                {showEmoji && (
+                  <div className="absolute bottom-full mb-2 right-0 z-50 bg-background border border-border rounded-2xl shadow-lg p-3 w-64">
+                    <div className="grid grid-cols-8 gap-1">
+                      {EMOJI_LIST.map((e) => (
+                        <button
+                          key={e}
+                          onClick={() => {
+                            setCommentInput((v) => v + e);
+                            setShowEmoji(false);
+                          }}
+                          className="text-lg hover:scale-125 transition-transform cursor-pointer flex items-center justify-center h-7 w-7"
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handleSubmitComment}
+                disabled={!commentInput.trim() || isSubmittingComment}
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <SendHorizontal size={16} className="relative left-[-0.5px]" />
+              </button>
+            </section>
           </div>
         </div>
 

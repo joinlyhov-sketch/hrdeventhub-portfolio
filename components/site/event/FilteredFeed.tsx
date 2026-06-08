@@ -176,14 +176,14 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
           />
         )}
 
-        {/* {isCategoryActive("poll") && filteredPolls.length > 0 && (
+        {isCategoryActive("poll") && filteredPolls.length > 0 && (
           <PollCard
             role={role}
             polls={filteredPolls}
             searchQuery={searchQuery}
             onDeletePoll={(pollId) => console.log("delete poll", pollId)}
           />
-        )} */}
+        )}
 
         {isCategoryActive("survey") &&
           chronologicalSurveys.map((survey) => (

@@ -1,20 +1,32 @@
-import React from "react";
-import PollForm from "@/components/feedback/poll/creation/PollForm";
+import { getPollAction } from "@/actions/poll.action";
 import { FeedbackBreadcrumb } from "@/components/dashboard/FeedbackBreadcrumb";
+import PollForm from "@/components/feedback/poll/PollForm";
 
-export default function PollEditPage() {
+interface Props {
+  searchParams: Promise<{ pollId?: string }>;
+}
+
+export default async function EditPollPage({ searchParams }: Props) {
+  const { pollId } = await searchParams;
+
+  if (!pollId) {
+    return (
+      <div className="p-8 text-center text-grey-400">
+        No poll selected for editing.
+      </div>
+    );
+  }
+
+  const poll = await getPollAction(pollId);
+
   return (
-    <div className="w-full max-w-420 mx-auto">
-      <FeedbackBreadcrumb label="Survey Creation" />
-      <PollForm />
+    <div className="w-full max-w-5xl mx-auto py-8 px-4">
+      <FeedbackBreadcrumb label="Poll Editing" />
+      <PollForm
+        pollId={poll.pollId}
+        initialData={poll}
+        workspaceId={poll.workspaceId}
+      />
     </div>
-    // <main className="p-6">
-    //   <FeedbackBreadcrumb label="Poll Edition" />
-    //   <div className="max-w-420 mx-auto flex flex-col lg:flex-row gap-8 items-start">
-    //     <div className="flex-1 w-full">
-    //
-    //     </div>
-    //   </div>
-    // </main>
   );
 }
