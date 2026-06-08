@@ -261,7 +261,7 @@ export function TransactionTable({
                   </TableCell>
                   <TableCell className="flex justify-center">
                     <Link
-                      href={"/transaction-history/1"}
+                      href={`/transaction-history/${transaction.uuid}`}
                       className="p-3 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <span className="flex justify-end">

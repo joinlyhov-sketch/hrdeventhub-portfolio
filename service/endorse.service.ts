@@ -1,9 +1,10 @@
-import { apiPost, apiGet, apiDelete } from "@/libs/api";
-import { 
-  CreateEndorsementPayload, 
-  BaseEndorsementResponse, 
-  FetchEndorsementsResponse,
-  EndorsementPayload
+
+import { apiPost, apiGet } from "@/libs/api";
+import {
+  CreateEndorsementPayload,
+  BaseEndorsementResponse,
+  FetchRegistrationsResponse,
+  RegistrationPayloadItem,
 } from "@/types/endorsement";
 
 export const endorsementService = {
@@ -18,24 +19,40 @@ export const endorsementService = {
     );
   },
 
-  getByStudentId: async (
+  getAlumniRegistrations: async (
+    authToken: string
+  ): Promise<RegistrationPayloadItem[]> => {
+    const response = await apiGet<FetchRegistrationsResponse>(
+      "/posts/participants/me?page=1&size=100",
+      { authToken }
+    );
+    return response.payload ?? [];
+  },
+
+  getStudentRegistrations: async (
     studentId: string,
     authToken: string
-  ): Promise<EndorsementPayload[]> => {
-    const response = await apiGet<FetchEndorsementsResponse>(
-      `/endorsements/student/${studentId}`,
+  ): Promise<RegistrationPayloadItem[]> => {
+    const response = await apiGet<FetchRegistrationsResponse>(
+      `/posts/participants/user/${studentId}?page=1&size=100`,
       { authToken }
     );
-    return response.payload;
+    return response.payload ?? [];
   },
-  
-  delete: async (
-    endorsementId: string,
+
+  getMutualPostIds: async (
+    studentId: string,
     authToken: string
-  ): Promise<BaseEndorsementResponse> => {
-    return apiDelete<BaseEndorsementResponse>(
-      `/endorsements/${endorsementId}`,
-      { authToken }
-    );
-  }
+  ): Promise<string[]> => {
+    const [alumniRegs, studentRegs] = await Promise.all([
+      endorsementService.getAlumniRegistrations(authToken),
+      endorsementService.getStudentRegistrations(studentId, authToken),
+    ]);
+
+    const studentPostIds = new Set(studentRegs.map((reg) => reg.postId));
+
+    return alumniRegs
+      .map((reg) => reg.postId)
+      .filter((postId) => studentPostIds.has(postId));
+  },
 };

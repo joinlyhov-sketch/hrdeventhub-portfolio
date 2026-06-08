@@ -27,6 +27,12 @@ const nextConfig: NextConfig = {
         port: "9090",
         pathname: "/api/v4/files/**",
       },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   experimental: {

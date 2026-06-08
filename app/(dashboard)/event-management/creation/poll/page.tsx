@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
-import PollForm from "@/components/feedback/poll/creation/PollForm";
+import PollForm from "@/components/feedback/poll/PollForm";
 import { FeedbackBreadcrumb } from "@/components/dashboard/FeedbackBreadcrumb";
 
 export default async function PollCreatePage() {

@@ -1,54 +1,89 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation"; 
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
-import { Button } from "../../../ui/button";
-import PollHeader from "../../survey/PollHeader";
-import PollOptionsList from "./PollOptionsList";
-import PollSidebar, { PollSettings } from "./PollSidebar";
-import WorkspaceSelector from "../../survey/WorkspaceSelector";
-import { pollService } from "@/service/poll.service";
+import { Button } from "../../ui/button";
+import PollHeader from "../survey/PollHeader";
+import PollOptionsList from "./creation/PollOptionsList";
+import PollSidebar, { PollSettings } from "./creation/PollSidebar";
+import WorkspaceSelector from "../survey/WorkspaceSelector";
+import {
+  createPollAction,
+  updatePollAction,
+} from "../../../actions/poll.action";
+import { Poll } from "@/types/poll";
 
 interface PollFormProps {
   workspaceId?: string;
   onSuccess?: () => void;
+  initialData?: Poll;
+  pollId?: string;
 }
 
-export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
+export default function PollForm({
+  workspaceId,
+  onSuccess,
+  initialData,
+  pollId,
+}: PollFormProps) {
+  const isEditMode = !!pollId && !!initialData;
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [options, setOptions] = useState(["Option 1", "Option 2", "Option 3"]);
+  const [title, setTitle] = useState(initialData?.title ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
+  const [options, setOptions] = useState<string[]>(
+    initialData?.options?.map((o) => o.text) ?? [
+      "Option 1",
+      "Option 2",
+      "Option 3",
+    ],
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [workspaceIdState, setWorkspaceIdState] = useState("");
-  const [settings, setSettings] = useState<PollSettings>({
-    multipleSelect: false,
-    anonymousVote: false,
-    addOption: false,
-    hiddenPoll: false,
-    showResult: "afterVote",
-    closingDate: "",
-    closingTime: "",
+  const [workspaceIdState, setWorkspaceIdState] = useState(
+    initialData?.workspaceId ?? workspaceId ?? "",
+  );
+  const [settings, setSettings] = useState<PollSettings>(() => {
+    if (initialData) {
+      const dt = initialData.closingTime
+        ? new Date(initialData.closingTime)
+            .toISOString()
+            .slice(0, 16)
+            .split("T")
+        : ["", ""];
+      return {
+        multipleSelect: initialData.multiSelect ?? false,
+        anonymousVote: initialData.anonymousVoting ?? false,
+        addOption: initialData.allowAddOptions ?? false,
+        hiddenPoll: initialData.hiddenPoll ?? false,
+        showResult: initialData.showResult ?? "afterVote",
+        closingDate: dt[0],
+        closingTime: dt[1] ?? "",
+      };
+    }
+    return {
+      multipleSelect: false,
+      anonymousVote: false,
+      addOption: false,
+      hiddenPoll: false,
+      showResult: "afterVote",
+      closingDate: "",
+      closingTime: "",
+    };
   });
 
-
   useEffect(() => {
+    if (isEditMode) return;
     const urlQueryId =
       searchParams.get("groupId") || searchParams.get("groupid");
     const resolvedId = urlQueryId || workspaceId;
-
-    console.log("--- Syncing Poll Workspace Context ---");
-    console.log("Final Resolved Workspace ID Target:", resolvedId);
-
-    if (resolvedId) {
-      setWorkspaceIdState(resolvedId);
-    }
-  }, [searchParams, workspaceId]);
+    if (resolvedId) setWorkspaceIdState(resolvedId);
+  }, [searchParams, workspaceId, isEditMode]);
 
   const handleOptionTextChange = (index: number, text: string) => {
     const updatedOptions = [...options];
@@ -94,7 +129,7 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
       : "";
 
   const validateForm = (): boolean => {
-    if (!title || !title.trim()) {
+    if (!title?.trim()) {
       setError("Poll title is required");
       return false;
     }
@@ -102,7 +137,7 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
       setError("Poll must have at least 2 options");
       return false;
     }
-    if (options.some((opt) => !opt || !opt.trim())) {
+    if (options.some((opt) => !opt?.trim())) {
       setError("All options must have text");
       return false;
     }
@@ -110,7 +145,6 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
       setError("Closing date and time are required");
       return false;
     }
-
     if (
       new Date(`${settings.closingDate}T${settings.closingTime}`) <= new Date()
     ) {
@@ -128,12 +162,11 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
     e.preventDefault();
     setError(null);
     setSuccess(false);
-
     if (!validateForm()) return;
     setIsSubmitting(true);
 
     try {
-      const request = {
+      const payload = {
         title: title.trim(),
         description: description.trim(),
         options: options.map((opt) => opt.trim()),
@@ -141,7 +174,7 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
           `${settings.closingDate}T${settings.closingTime}`,
         ).toISOString(),
         workspaceId: workspaceIdState,
-        type: "text",
+        type: "text" as const,
         multiSelect: settings.multipleSelect,
         anonymousVoting: settings.anonymousVote,
         allowAddOptions: settings.addOption,
@@ -149,27 +182,42 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
         showResult: settings.showResult,
       };
 
-      await pollService.createPoll(request);
+      if (isEditMode) {
+        await updatePollAction(pollId, payload);
+      } else {
+        await createPollAction(payload);
+      }
 
       const savedWorkspaceId = workspaceIdState;
       setSuccess(true);
-      setTitle("");
-      setDescription("");
-      setOptions(["Option 1", "Option 2", "Option 3"]);
+
+      if (!isEditMode) {
+        setTitle("");
+        setDescription("");
+        setOptions(["Option 1", "Option 2", "Option 3"]);
+      }
 
       setTimeout(() => {
         if (onSuccess) {
           onSuccess();
+        } else if (isEditMode) {
+          router.push(`/group/${workspaceIdState}`);
         } else {
           router.push(`/group/${savedWorkspaceId}`);
         }
-      }, 1500);
+      }, 1000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create poll");
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Failed to ${isEditMode ? "update" : "create"} poll`,
+      );
       setIsSubmitting(false);
     }
   };
+
   const isWorkspaceContextLocked =
+    isEditMode ||
     !!searchParams.get("groupId") ||
     !!searchParams.get("groupid") ||
     !!workspaceId;
@@ -190,10 +238,16 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
             >
               {isSubmitting && <Loader2 size={14} className="animate-spin" />}
               {success
-                ? "Poll Created!"
+                ? isEditMode
+                  ? "Poll Updated!"
+                  : "Poll Created!"
                 : isSubmitting
-                  ? "Posting..."
-                  : "Post Poll"}
+                  ? isEditMode
+                    ? "Saving..."
+                    : "Posting..."
+                  : isEditMode
+                    ? "Save Changes"
+                    : "Post Poll"}
             </Button>
           </div>
 
@@ -208,7 +262,9 @@ export default function PollForm({ workspaceId, onSuccess }: PollFormProps) {
             <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
               <CheckCircle size={18} className="text-green-600 shrink-0" />
               <p className="text-sm text-green-700">
-                Poll created successfully! Redirecting...
+                {isEditMode
+                  ? "Poll updated successfully!"
+                  : "Poll created successfully! Redirecting..."}
               </p>
             </div>
           )}
