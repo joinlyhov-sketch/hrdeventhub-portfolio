@@ -196,23 +196,23 @@ export default function UserTableClient({
         <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
           <TableHeader>
             <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
-              <TableHead className="px-1 py-3 text-white text-center w-[10%] font-semibold">
+              <TableHead className="px-1 py-3 text-white text-center w-[10%] type-desc-semibold">
                 No.
               </TableHead>
-              <TableHead className="px-6 py-3 text-white w-[30%] font-semibold">
+              <TableHead className="px-6 py-3 text-white w-[30%] type-desc-semibold">
                 Username
               </TableHead>
-              <TableHead className="px-1 py-3 text-white w-[37%] font-semibold">
+              <TableHead className="px-1 py-3 text-white w-[37%] type-desc-semibold">
                 Email
               </TableHead>
-              <TableHead className="px-6 py-3 text-white w-[25%] font-semibold">
+              <TableHead className="px-6 py-3 text-white w-[25%] type-desc-semibold">
                 Phone
               </TableHead>
-              <TableHead className="px-6 py-3 text-white w-[15%] font-semibold">
+              <TableHead className="px-6 py-3 text-white w-[15%] type-desc-semibold">
                 Gender
               </TableHead>
 
-              <TableHead className="px-1 py-3 text-center text-white w-[15%]">
+              <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%] ">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
@@ -254,7 +254,7 @@ export default function UserTableClient({
                 </DropdownMenu>
               </TableHead>
 
-              <TableHead className="px-1 py-3 text-center text-white w-[15%]">
+              <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
@@ -295,7 +295,7 @@ export default function UserTableClient({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableHead>
-              <TableHead className="px-1 py-3 text-white w-[20%] font-semibold">
+              <TableHead className="px-1 py-3 text-white w-[20%] type-desc-semibold">
                 Action
               </TableHead>
             </TableRow>

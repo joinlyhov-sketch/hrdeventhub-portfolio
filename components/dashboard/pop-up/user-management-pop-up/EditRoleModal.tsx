@@ -63,7 +63,7 @@ export default function EditRoleModal({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-[32px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+      <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-[32px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150 [&>button]:top-9 [&>button]:hover:text-slate-900 [&>button]:-translate-y-1/2 [&>button]:!bg-transparent [&>button]:focus:ring-0">
         <div className="bg-[#F8FAFC] px-8 py-3 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
             {profileSrc ? (
@@ -85,7 +85,6 @@ export default function EditRoleModal({
             </div>
           </div>
         </div>
-
         <div className="p-5 space-y-5 text-center">
           <DialogHeader className="space-y-1.5 text-center">
             <DialogTitle className="text-2xl font-bold text-primary">
