@@ -84,6 +84,7 @@ export interface ParticipantUser {
 }
 
 export interface Participant {
+   appUserId: string;
   participantId: string;
   registeredAt: string;
   remark: string;
