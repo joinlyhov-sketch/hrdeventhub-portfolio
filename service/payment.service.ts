@@ -1,7 +1,5 @@
 import { apiPost, apiGet } from "@/libs/api";
 
-// ─── Notify ───────────────────────────────────────────────────────────────────
-
 export interface PaymentNotifyPayload {
   bill_no: string;
   transaction_id: number;
@@ -75,22 +73,29 @@ interface TransactionsResponse {
   timestamp: string;
 }
 
+export interface BankCredentialPayload {
+  accountName: string;
+  accountNo: string;
+  clientId: string;
+  clientSecret: string;
+}
+
+export interface BankCredentialResponse {
+  success: boolean;
+  message: string;
+  status: string;
+}
 
 export const paymentService = {
-  notify: async (
-  payload: PaymentNotifyPayload,
-): Promise<PaymentNotifyResponse> => {
-  return apiPost<PaymentNotifyResponse, PaymentNotifyPayload>(
-    "/payments/notify",
-    payload,
-    { accept: "*/*" },  
-  );
-},
+  notify: async (payload: PaymentNotifyPayload): Promise<PaymentNotifyResponse> => {
+    return apiPost<PaymentNotifyResponse, PaymentNotifyPayload>(
+      "/payments/notify",
+      payload,
+      { accept: "*/*" },  
+    );
+  },
 
-  generateQr: async (
-    payload: GenerateQrPayload,
-    authToken: string,
-  ): Promise<GenerateQrResponse> => {
+  generateQr: async (payload: GenerateQrPayload, authToken: string): Promise<GenerateQrResponse> => {
     return apiPost<GenerateQrResponse, GenerateQrPayload>(
       "/payments/qr/generate",
       payload,
@@ -105,6 +110,7 @@ export const paymentService = {
     );
     return response.payload;
   },
+
   getAllTransactions: async (authToken: string): Promise<Transaction[]> => {
     const response = await apiGet<TransactionsResponse>(
       "/payments/transactions",
@@ -112,11 +118,17 @@ export const paymentService = {
     );
     return response.payload || [];
   },
-  getTransactionByBillNo: async (
-    billNo: string,
-    authToken: string,
-  ): Promise<Transaction | undefined> => {
+
+  getTransactionByBillNo: async (billNo: string, authToken: string): Promise<Transaction | undefined> => {
     const transactions = await paymentService.getMyTransactions(authToken);
     return transactions.find((t) => t.billNo === billNo);
+  },
+
+  connectBankCredential: async (payload: BankCredentialPayload, authToken: string): Promise<BankCredentialResponse> => {
+    return apiPost<BankCredentialResponse, BankCredentialPayload>(
+      "/payments/credential",
+      payload,
+      { authToken, accept: "application/json" },
+    );
   },
 };

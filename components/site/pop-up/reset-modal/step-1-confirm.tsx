@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useState, TransitionStartFunction } from "react";
-import { resendOtpAction } from "@/actions/auth.action";
+import { forgotPasswordAction } from "@/actions/auth.action";
 import { useResetPasswordStore } from "@/store/useResetPasswordStore";
 
 interface StepProps {
@@ -25,7 +25,7 @@ export default function ConfirmStep({ startTransition, isPending }: StepProps) {
     }
 
     startTransition(async () => {
-      const result = await resendOtpAction(email);
+      const result = await forgotPasswordAction(email);
       if (result?.error) {
         setError(result.error);
         return;
