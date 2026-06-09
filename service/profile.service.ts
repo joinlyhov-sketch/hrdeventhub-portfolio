@@ -136,7 +136,7 @@ export const profileService = {
   },
 
   updatePreferences: async (payload: UpdatePreferencesRequest, token: string): Promise<any> => {
-    return await apiPut<any>("/profile/me/preferences", payload, { authToken: token });
+    return await apiPatch<any>("/profile/me/preferences", payload, { authToken: token });
   },
   getProfileById: async (id: string, token: string): Promise<UserProfileResponse> => {
 return await apiGet<UserProfileResponse>(`/profile/${id}`, { authToken: token });
