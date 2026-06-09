@@ -457,26 +457,22 @@
 }
 
 .calendar-card-dayGridMonth .fc-daygrid-day-bottom {
-  min-height: 1.25rem;
+  min-height: 0;
+  height: 0;
   margin-top: 0 !important;
-  flex: 0 0 1.25rem;
+  flex: 0 0 0;
   overflow: visible;
 }
 
 .calendar-card-dayGridMonth .fc-daygrid-more-link {
-  display: inline-flex;
-  align-items: center;
-  height: 1.25rem;
-  margin-top: 0.0625rem;
-  padding: 0 0.4375rem;
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--primary) 8%, var(--background));
-  color: var(--primary);
-  font-size: 0.625rem;
-  font-weight: 700;
-  line-height: 1;
-  position: relative;
-  z-index: 5;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.calendar-card-dayGridMonth
+  .fc-daygrid-day:has(.fc-daygrid-more-link)
+  .fc-daygrid-day-frame {
+  cursor: pointer;
 }
 
 .calendar-card-dayGridMonth .fc-daygrid-day:has(.calendar-data-event) {
@@ -651,9 +647,12 @@
   box-shadow: none !important;
 }
 
-.calendar-card-timeGridWeek .fc-timegrid-col-frame,
 .calendar-card-timeGridWeek .fc-timegrid-now-indicator-container {
   overflow: visible !important;
+}
+
+.calendar-card-timeGridWeek .fc-timegrid-col-frame {
+  overflow: hidden !important;
 }
 
 .calendar-card-timeGridWeek .fc-timegrid-col:last-child,
@@ -722,10 +721,10 @@
 }
 
 .calendar-card-timeGridWeek .fc-timegrid-event {
-  min-height: 2.75rem !important;
-  border-radius: 6px !important;
+  min-height: 0 !important;
+  border-radius: 4px !important;
   overflow: hidden !important;
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 8%, transparent) !important;
+  box-shadow: none !important;
 }
 
 .calendar-card-timeGridWeek .fc-timegrid-more-link {
@@ -860,8 +859,12 @@
 
 .calendar-card-timeGridDay .fc-timegrid-slots,
 .calendar-card-timeGridDay .fc-timegrid-col,
-.calendar-card-timeGridDay .fc-timegrid-col-frame,
 .calendar-card-timeGridDay .fc-timegrid-slot-lane {
+  background: var(--card) !important;
+}
+
+.calendar-card-timeGridDay .fc-timegrid-col-frame {
+  overflow: hidden !important;
   background: var(--card) !important;
 }
 
@@ -981,7 +984,7 @@
   height: 100%;
   padding: 0.5rem 0.625rem;
   border-left: 4px solid currentColor;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
@@ -1065,15 +1068,50 @@
 
 /* Day Events */
 .calendar-card-timeGridDay .fc-timegrid-event {
-  min-height: 4.5rem !important;
+  min-height: 0 !important;
+  border-radius: 4px !important;
   overflow: hidden !important;
+  box-shadow: none !important;
 }
 
 .calendar-card-timeGridDay .day-event-box {
   height: 100% !important;
-  min-height: 100% !important;
+  min-height: 0 !important;
   padding: 0.75rem 1rem !important;
   overflow: hidden !important;
+}
+
+.calendar-card-timeGridWeek .event-box-continues-next-day,
+.calendar-card-timeGridDay .event-box-continues-next-day {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 0 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-left-width: 3px;
+  border-radius: 4px 4px 0 0;
+}
+
+.calendar-card-timeGridWeek .event-box-continues-next-day .event-title,
+.calendar-card-timeGridDay .event-box-continues-next-day .event-title {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.6875rem !important;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-card-timeGridWeek .event-box-continues-next-day .event-time,
+.calendar-card-timeGridDay .event-box-continues-next-day .event-time {
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 0.625rem !important;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .calendar-card-timeGridDay .event-title {

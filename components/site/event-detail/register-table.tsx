@@ -310,7 +310,7 @@ export function AdminOverview({ event, workspaceId }: AdminOverviewProps) {
       },
       {
         title: "Today",
-        value: `+${todayCount}`,
+        value: todayCount > 0 ? `+${todayCount}` : "0",
         iconName: "UserRoundCheck",
         colorKey: "subtle",
       },
