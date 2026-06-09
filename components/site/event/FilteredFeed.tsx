@@ -12,7 +12,7 @@ import { useCurrentUser } from "@/context/user-context";
 import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
 import { useWorkspacePolls } from "@/hooks/use-workspace-polls";
 import { useWorkspaceSurveys } from "@/hooks/use-workspace-surveys";
-import { deletePostAction, updatePostAction } from "@/actions/post.action";
+import { deletePostAction, togglePinAction } from "@/actions/post.action";
 import { Post } from "@/types/posts";
 
 interface FilteredFeedProps {
@@ -54,11 +54,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     );
 
     try {
-      const response = await updatePostAction(groupid, postId, {
-        ...targetPost,
-        pinned: nextPinState,
-        isPinned: nextPinState,
-      } as any);
+      const response = await togglePinAction(groupid, postId, nextPinState);
 
       if (!response || !response.ok) {
         mutate();
