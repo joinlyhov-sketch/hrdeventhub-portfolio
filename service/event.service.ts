@@ -71,7 +71,6 @@ export interface EventItem {
   media: EventMedia[];
   payment: EventPayment;
   comments: EventComment[];
-  workspaceId: string;
 }
 
 export interface EventResponse {

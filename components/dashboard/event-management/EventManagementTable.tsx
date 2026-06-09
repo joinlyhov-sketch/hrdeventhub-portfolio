@@ -102,19 +102,19 @@ export function EventManagementTable({
   const [activeEvent, setActiveEvent] = useState<{
     id: string;
     title: string;
-    groudId: string;
+    groudId: string | undefined;
   } | null>(null);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [closeEventData, setCloseEventData] = useState<{
     id: string;
     title: string;
-    groupId: string;
+    groupId: string | undefined;
   } | null>(null);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [publishEventData, setPublishEventData] = useState<{
     id: string;
     title: string;
-    groupId: string;
+    groupId: string | undefined;
   } | null>(null);
 
   const itemsPerPage = 10;
@@ -368,7 +368,8 @@ export function EventManagementTable({
                       if (!eventWorkspaceId) return;
                       router.push(
                         `/event-management/edition/event?groupId=${groupId}&postId=${event.postId}&admin=true`,
-                      ),
+                      );
+                    },
                   },
                   {
                     label: "Delete",
