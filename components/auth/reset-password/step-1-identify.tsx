@@ -35,15 +35,14 @@ export default function IdentifyStep() {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="flex flex-col gap-5 w-full items-stretch px-15"
+      className="flex flex-col gap-5 w-full items-stretch sm:px-8"
     >
       <div className="mb-5 text-center">
-        <h2 className="text-[28px] font-bold text-[#17356f]">
+        <h2 className="text-[22px] sm:text-[28px] font-bold text-[#17356f]">
           Reset Password
         </h2>
-        <p className="mt-2 text-[#6e7580] text-[16px]">
-          We&apos;ll help you get back in. Enter your email to receive a <br></br>reset
-          link.
+        <p className="mt-2 text-[#6e7580] text-[14px] sm:text-[16px]">
+          We&apos;ll help you get back in. Enter your email to receive a reset link.
         </p>
       </div>
 
@@ -67,7 +66,7 @@ export default function IdentifyStep() {
       <button
         onClick={handleSubmit}
         disabled={isPending}
-        className="mt-3 h-[48px] w-full rounded-2xl bg-[#24529a] text-lg text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+        className="mt-3 h-[48px] sm:h-[58px] w-full rounded-2xl bg-[#24529a] text-base sm:text-lg text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
       >
         {isPending ? "Sending..." : "Send Reset Link"}
       </button>

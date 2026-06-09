@@ -44,7 +44,6 @@ import { PublishEventModal } from "../publish-event-modal";
 interface EventManagementTableProps {
   events: EventItem[];
   searchTerm: string;
-  workspaceId: string;
 }
 
 const getStatusStyles = (status: string): string => {
@@ -52,7 +51,7 @@ const getStatusStyles = (status: string): string => {
     case "active":
     case "published":
     case "open":
-      return "bg-[#E6F4EA] text-[#137333]";
+      return "bg-[#E6F9F1] text-accent";
     case "draft":
       return "bg-[#EBF3FF] text-[#1D4ED8]";
     case "cancel":
@@ -94,7 +93,7 @@ export function EventManagementTable({
   searchTerm,
 }: EventManagementTableProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
@@ -178,8 +177,6 @@ export function EventManagementTable({
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredEvents.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredEvents, currentPage]);
-  console.log("paginatedEvents:", JSON.stringify(paginatedEvents[3]));
-
   const handleDeleteExecute = async (
     groupId: string | undefined,
     postId: string | undefined,
@@ -360,12 +357,15 @@ export function EventManagementTable({
                 const groupId = event.workspaceId;
                 const absoluteIndex =
                   (currentPage - 1) * itemsPerPage + index + 1;
+                const eventWorkspaceId =
+                  event.sourceWorkspaceId || event.workspaceId;
 
                 const currentItemActions: DropdownAction[] = [
                   {
                     label: "Update",
                     icon: Pencil,
-                    onClick: () =>
+                    onClick: () => {
+                      if (!eventWorkspaceId) return;
                       router.push(
                         `/event-management/edition/event?groupId=${groupId}&postId=${event.postId}&admin=true`,
                       ),
@@ -460,9 +460,7 @@ export function EventManagementTable({
                     </TableCell>
 
                     <TableCell className="text-center text-secondary type-desc">
-                      {event.comments
-                        ? event.comments.length.toLocaleString()
-                        : "0"}
+                      {(event.attendeeCount ?? 0).toLocaleString()}
                     </TableCell>
 
                     <TableCell className="text-center">

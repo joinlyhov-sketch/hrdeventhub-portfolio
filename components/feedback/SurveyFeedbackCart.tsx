@@ -19,6 +19,7 @@ import { Survey } from "../../types/survey";
 import { Poll } from "@/types/poll";
 import { surveyService } from "../../service/survey.service";
 import { getAllPollsAction } from "../../actions/poll.action";
+import { pollService } from "../../service/poll.service";
 import { format, isAfter } from "date-fns";
 
 export type FeedbackItem = {
@@ -84,25 +85,43 @@ export default function SurveyFeedbackFeature() {
           }),
         );
 
-        const mappedPolls: FeedbackItem[] = pollsData.map((poll) => {
-          const voteCount =
-            poll.options?.reduce(
-              (sum, opt: any) => sum + (opt.votes || 0),
-              0,
-            ) || 0;
-          const dbIsActive =
-            (poll as any).active ?? (poll as any).isActive ?? true;
+        const mappedPolls: FeedbackItem[] = await Promise.all(
+          pollsData.map(async (poll) => {
+            let voteCount = 0;
+            try {
+              const fullPoll = await pollService.getById(poll.pollId);
+              voteCount =
+                (fullPoll as any).totalVotes ??
+                (fullPoll as any).voteCount ??
+                fullPoll.options?.reduce(
+                  (sum, opt) =>
+                    sum + (opt.voteCount ?? (opt as any).votes ?? 0),
+                  0,
+                ) ??
+                0;
+            } catch {
+              voteCount =
+                poll.options?.reduce(
+                  (sum, opt) =>
+                    sum + (opt.voteCount ?? (opt as any).votes ?? 0),
+                  0,
+                ) ?? 0;
+            }
 
-          return {
-            id: poll.pollId,
-            type: "poll",
-            title: poll.title || "Untitled Poll",
-            closingTime: poll.closingTime || null,
-            isActive: dbIsActive,
-            totalResponses: voteCount,
-            targetUrl: `/polls/${poll.pollId}`,
-          };
-        });
+            const dbIsActive =
+              (poll as any).active ?? (poll as any).isActive ?? true;
+
+            return {
+              id: poll.pollId,
+              type: "poll" as const,
+              title: poll.title || "Untitled Poll",
+              closingTime: poll.closingTime || null,
+              isActive: dbIsActive,
+              totalResponses: voteCount,
+              targetUrl: `/polls/${poll.pollId}`,
+            };
+          }),
+        );
 
         const combined = [...mappedSurveys, ...mappedPolls];
         setFeedbacks(combined);
@@ -175,7 +194,6 @@ export default function SurveyFeedbackFeature() {
   return (
     <div className="w-full max-w-full block box-border clear-both">
       <section className="w-full max-w-full rounded-2xl box-border block overflow-hidden">
-
         <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
           <Search
             value={search}

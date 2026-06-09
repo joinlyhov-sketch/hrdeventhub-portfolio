@@ -16,7 +16,9 @@ export default function AuthLayout({
 }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f5f7fc] text-[#16356f]">
-      <AuthLayoutMotion />
+      <div className="hidden md:flex">
+        <AuthLayoutMotion />
+      </div>
 
       <div className="absolute left-[13%] top-[69%] h-16 w-16 bg-[#e3ebf8]" />
       <div className="absolute left-[26%] bottom-[10%] h-28 w-28 bg-[#dce6f4]" />

@@ -64,6 +64,7 @@ export interface Transaction {
   createdAt: string;
   appUserId: string;
   postId: string;
+  username?: string;
 }
 
 interface TransactionsResponse {
@@ -77,15 +78,14 @@ interface TransactionsResponse {
 
 export const paymentService = {
   notify: async (
-    payload: PaymentNotifyPayload,
-    authToken: string,
-  ): Promise<PaymentNotifyResponse> => {
-    return apiPost<PaymentNotifyResponse, PaymentNotifyPayload>(
-      "/payments/notify",
-      payload,
-      { authToken, accept: "*/*" },
-    );
-  },
+  payload: PaymentNotifyPayload,
+): Promise<PaymentNotifyResponse> => {
+  return apiPost<PaymentNotifyResponse, PaymentNotifyPayload>(
+    "/payments/notify",
+    payload,
+    { accept: "*/*" },  
+  );
+},
 
   generateQr: async (
     payload: GenerateQrPayload,
@@ -104,6 +104,13 @@ export const paymentService = {
       { authToken, accept: "*/*" },
     );
     return response.payload;
+  },
+  getAllTransactions: async (authToken: string): Promise<Transaction[]> => {
+    const response = await apiGet<TransactionsResponse>(
+      "/payments/transactions",
+      { authToken, accept: "*/*" },
+    );
+    return response.payload || [];
   },
   getTransactionByBillNo: async (
     billNo: string,

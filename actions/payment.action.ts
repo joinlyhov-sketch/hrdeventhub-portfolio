@@ -53,6 +53,7 @@ const STATIC_BANK_FIELDS = {
 export interface StudentRegisterInput {
   postId: string;
   remark: string;
+  role: string;
 }
 
 export async function studentRegisterAction(
@@ -62,10 +63,10 @@ export async function studentRegisterAction(
 
   try {
     const session = await getServerSession(authOptions);
-    console.log("[Role check] raw session role:", session?.user?.role);
-
     const token = session?.accessToken as string | undefined;
-    const role = (session?.user?.role as string | undefined)?.toLowerCase();
+    const role = input.role?.toLowerCase();
+
+    console.log("[Role check] input.role:", input.role, "→ normalized:", role);
 
     if (!token) {
       logError("Auth", "No access token");
@@ -133,6 +134,7 @@ export interface AlumniFixedPaymentInput {
   remark: string;
   amount: number;
   postId: string;
+  role: string;
 }
 
 export async function alumniFixedPaymentAction(
@@ -145,14 +147,15 @@ export async function alumniFixedPaymentAction(
     amount: input.amount,
     requestId: input.requestId,
     remark: input.remark,
+    role: input.role,
   });
 
   try {
     const session = await getServerSession(authOptions);
-    console.log("[Role check] raw session role:", session?.user?.role);
-
     const token = session?.accessToken as string | undefined;
-    const role = (session?.user?.role as string | undefined)?.toLowerCase();
+    const role = input.role?.toLowerCase();
+
+    console.log("[Role check] input.role:", input.role, "→ normalized:", role);
 
     if (!token) {
       logError("Auth", "No access token");
@@ -182,7 +185,7 @@ export async function alumniFixedPaymentAction(
     logStep("Step 1 — POST /payments/notify", notifyPayload);
 
     try {
-      const notifyRes = await paymentService.notify(notifyPayload, token);
+      const notifyRes = await paymentService.notify(notifyPayload);
       logStep("Step 1 — notify response", notifyRes);
     } catch (err) {
       logError("Step 1 — notify FAILED", err);
@@ -268,6 +271,7 @@ export async function alumniFixedPaymentAction(
 export interface GenerateFlexibleQrInput {
   postId: string;
   amount: number;
+  role: string;
 }
 
 export async function generateFlexibleQrAction(
@@ -277,10 +281,10 @@ export async function generateFlexibleQrAction(
 
   try {
     const session = await getServerSession(authOptions);
-    console.log("[Role check] raw session role:", session?.user?.role);
-
     const token = session?.accessToken as string | undefined;
-    const role = (session?.user?.role as string | undefined)?.toLowerCase();
+    const role = input.role?.toLowerCase();
+
+    console.log("[Role check] input.role:", input.role, "→ normalized:", role);
 
     if (!token) {
       logError("Auth", "No access token");
