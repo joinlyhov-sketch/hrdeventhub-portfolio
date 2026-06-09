@@ -15,6 +15,7 @@ import { profileService } from "@/service/profile.service";
 import { getIdentityMeAction, updateIdentityMeAction, updateProfileMeAction } from "@/actions/profile.action";
 import { useRouter } from "next/navigation";
 import ResetPasswordModal from "../../pop-up/reset-modal/ResetPasswordModal";
+import ConnectBankModal from "@/components/site/pop-up/payment/WebillConnectModal";
 
 interface CurrentUser {
   name: string;
@@ -24,6 +25,7 @@ interface CurrentUser {
 
 export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [isResetOpen, setIsResetOpen] = useState(false);
+  const [isBankOpen, setIsBankOpen] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -123,7 +125,6 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           setBio(profileSnapshot.bio);
         }
       } catch (err) {
-        console.error(err);
       }
     };
     loadAllUserData();
@@ -406,7 +407,6 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
             />
           </div>
 
-          {/* --- Connected External Channels Segment --- */}
           <div className="border-t border-border pt-5 space-y-4">
             <h3 className="type-detail-semibold text-secondary text-base">
               Connected Networks
@@ -514,6 +514,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           </button>
         </div>
       </div>
+      
       <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-4 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
           <div>
@@ -530,9 +531,12 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               Manage WeBill Information for room payment
             </p>
           </div>
-          <button className="bg-action text-white px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity">
+          <button 
+            onClick={() => setIsBankOpen(true)}
+            className="bg-action text-white px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
+          >
             <Link2 className="w-4 h-4" />
-            Disconnect WeBill365
+            Connect WeBill365
           </button>
         </div>
 
@@ -553,9 +557,14 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           </div>
         </div>
       </div>
+      
       <ResetPasswordModal 
         isOpen={isResetOpen} 
         onClose={() => setIsResetOpen(false)} 
+      />
+      <ConnectBankModal 
+        isOpen={isBankOpen}
+        onClose={() => setIsBankOpen(false)}
       />
     </div>
   );

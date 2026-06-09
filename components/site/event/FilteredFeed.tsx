@@ -12,7 +12,7 @@ import { useCurrentUser } from "@/context/user-context";
 import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
 import { useWorkspacePolls } from "@/hooks/use-workspace-polls";
 import { useWorkspaceSurveys } from "@/hooks/use-workspace-surveys";
-import { deletePostAction } from "@/actions/post.action";
+import { deletePostAction, updatePostAction } from "@/actions/post.action";
 import { Post } from "@/types/posts";
 
 interface FilteredFeedProps {
@@ -23,19 +23,51 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
   const { currentUser } = useCurrentUser();
   const role = currentUser?.role ?? "student";
 
-  const { posts, isLoading: postsLoading, mutate } = useWorkspacePosts(groupid);
-  const { polls, isLoading: pollsLoading } = useWorkspacePolls(groupid);
+  const { posts = [], isLoading: postsLoading, mutate } = useWorkspacePosts(groupid);
+  const { polls = [], isLoading: pollsLoading } = useWorkspacePolls(groupid);
   const {
-    surveys,
+    surveys = [],
     isLoading: surveysLoading,
     mutate: mutateSurveys,
   } = useWorkspaceSurveys(groupid);
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [surveyVisibility, setSurveyVisibility] = useState<
-    Record<string, boolean>
-  >({});
+
+  const pinnedCount = useMemo(
+    () => posts.filter((p) => p.pinned).length,
+    [posts]
+  );
+
+  const handleTogglePin = async (postId: string, currentPinStatus: boolean) => {
+    const nextPinState = !currentPinStatus;
+
+    const targetPost = posts.find((p) => p.postId === postId);
+    if (!targetPost) return;
+
+    await mutate(
+      (current) =>
+        current?.map((p) =>
+          p.postId === postId ? { ...p, pinned: nextPinState, isPinned: nextPinState } : p
+        ) ?? [],
+      { revalidate: false }
+    );
+
+    try {
+      const response = await updatePostAction(groupid, postId, {
+        ...targetPost,
+        pinned: nextPinState,
+        isPinned: nextPinState,
+      } as any);
+
+      if (!response || !response.ok) {
+        mutate();
+      }
+    } catch (error) {
+      console.error("Failed to toggle pin status:", error);
+      mutate();
+    }
+  };
 
   const handleDeletePost = async (postId: string) => {
     mutate(
@@ -118,8 +150,6 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     });
   }, [surveys]);
 
-  const anySurveyVisible = Object.values(surveyVisibility).some(Boolean);
-
   const isCategoryActive = (type: string) =>
     !activeFilter || activeFilter === type;
 
@@ -127,9 +157,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     (!isCategoryActive("event") || filtered.event.length === 0) &&
     (!isCategoryActive("announcement") || filtered.announcement.length === 0) &&
     (!isCategoryActive("poll") || filteredPolls.length === 0) &&
-    (!isCategoryActive("survey") ||
-      !anySurveyVisible ||
-      surveys.length === 0) &&
+    (!isCategoryActive("survey") || chronologicalSurveys.length === 0) &&
     (!isCategoryActive("article") || filtered.article.length === 0);
 
   const pinnedPosts = useMemo(
@@ -175,6 +203,8 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
             searchQuery={searchQuery}
             onDeletePost={handleDeletePost}
             groupid={groupid}
+            pinnedCount={pinnedCount}
+            onTogglePin={handleTogglePin}
           />
         )}
 
@@ -205,12 +235,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
               survey={survey}
               role={role}
               searchQuery={searchQuery}
-              onVisibilityChange={(visible) =>
-                setSurveyVisibility((prev) => ({
-                  ...prev,
-                  [survey.surveyId]: visible,
-                }))
-              }
+              onVisibilityChange={() => {}}
               onDelete={handleDeleteSurvey}
             />
           ))}
