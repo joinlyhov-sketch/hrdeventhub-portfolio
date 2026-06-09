@@ -26,7 +26,6 @@ const nextConfig: NextConfig = {
         hostname: "localhost",
         port: "9090",
         pathname: "/api/v5/files/**",
-        pathname: "/api/v5/files/**",
       },
       {
         protocol: "https",
