@@ -108,7 +108,7 @@ function ArticleItem({
                   alt={creator?.fullName ?? "User"}
                   width={48}
                   height={48}
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-cover rounded-full border-2 border-primary"
                 />
               ) : (
                 <span className="type-desc-semibold text-primary uppercase">

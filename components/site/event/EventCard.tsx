@@ -113,7 +113,7 @@ function EventItem({
                   alt={creator!.fullName}
                   width={48}
                   height={48}
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-cover rounded-full border-2 border-primary"
                 />
               ) : (
                 <span className="type-desc-semibold text-primary uppercase">
@@ -133,7 +133,7 @@ function EventItem({
           <div className="flex items-center gap-2">
             {creator?.role && (
               <span
-                className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+                className={`type-desc-small-semibold px-4 py-3 rounded-xl uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-primary" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
               >
                 {creator.role}
               </span>
@@ -152,7 +152,7 @@ function EventItem({
 
         <ExpandableText text={post.content} />
 
-        <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-6">
+        <div className="bg-grey-50 rounded-[6px] p-4 space-y-3 mb-6 border-l-5 border-primary">
           {post.location && (
             <p className="type-detail text-grey-500">
               <span className="type-detail-semibold text-foreground">
@@ -368,7 +368,7 @@ function EventItem({
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`https://hrdeventhub.app/group/${groupid}/event/${post.postId}`}
+        postId={post.postId}
       />
     </>
   );

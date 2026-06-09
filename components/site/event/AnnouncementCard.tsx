@@ -28,6 +28,7 @@ import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
+import { createPortal } from "react-dom";
 
 interface AnnouncementCardProps {
   role: UserRole;
@@ -88,58 +89,62 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
         })}
       </div>
 
-      {previewIndex !== null && (
-        <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
-          onClick={() => setPreviewIndex(null)}
-        >
-          <button
-            className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full"
+      {previewIndex !== null &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center"
+            style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
             onClick={() => setPreviewIndex(null)}
           >
-            <X size={24} />
-          </button>
-          <div className="flex items-center gap-4 px-4 w-full max-w-4xl">
             <button
-              className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
-              disabled={previewIndex === 0}
-              onClick={(e) => {
-                e.stopPropagation();
-                setPreviewIndex((p) => (p ?? 0) - 1);
-              }}
+              className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full"
+              onClick={() => setPreviewIndex(null)}
             >
-              ‹
+              <X size={24} />
             </button>
-            <div
-              className="relative flex-1 h-[70vh]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {getMediaUrl(images[previewIndex]?.filePath) && (
-                <Image
-                  src={getMediaUrl(images[previewIndex].filePath)!}
-                  alt={`preview-${previewIndex}`}
-                  fill
-                  className="object-contain"
-                  sizes="100vw"
-                />
-              )}
+            <div className="flex items-center gap-4 px-4 w-full max-w-4xl">
+              <button
+                className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
+                disabled={previewIndex === 0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewIndex((p) => (p ?? 0) - 1);
+                }}
+              >
+                ‹
+              </button>
+              <div
+                className="relative flex-1 h-[70vh]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {getMediaUrl(images[previewIndex]?.filePath) && (
+                  <Image
+                    src={getMediaUrl(images[previewIndex].filePath)!}
+                    alt={`preview-${previewIndex}`}
+                    fill
+                    className="object-contain"
+                    sizes="100vw"
+                  />
+                )}
+              </div>
+              <button
+                className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
+                disabled={previewIndex === images.length - 1}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewIndex((p) => (p ?? 0) + 1);
+                }}
+              >
+                ›
+              </button>
             </div>
-            <button
-              className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
-              disabled={previewIndex === images.length - 1}
-              onClick={(e) => {
-                e.stopPropagation();
-                setPreviewIndex((p) => (p ?? 0) + 1);
-              }}
-            >
-              ›
-            </button>
-          </div>
-          <div className="absolute bottom-4 text-white text-sm">
-            {previewIndex + 1} / {images.length}
-          </div>
-        </div>
-      )}
+            <div className="absolute bottom-4 text-white text-sm">
+              {previewIndex + 1} / {images.length}
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
@@ -189,16 +194,6 @@ function AnnouncementItem({
   const hasPurpose = !!post.purpose;
   const hasMetaInfo = hasLocation || hasDate || hasPurpose;
 
-  // const handleLikeToggle = () => {
-  //   if (selectedReaction) { setSelectedReaction(null); setLikesCount((p) => p - 1); }
-  //   else { setSelectedReaction("like"); setLikesCount((p) => p + 1); }
-  // };
-
-  // const handleReactionSelect = (reactionId: string) => {
-  //   if (!selectedReaction) setLikesCount((p) => p + 1);
-  //   setSelectedReaction(reactionId);
-  // };
-
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
     setIsSubmittingComment(true);
@@ -232,11 +227,8 @@ function AnnouncementItem({
             </div>
             <div>
               <h3 className="type-desc-semibold text-secondary">
-                {creator?.fullName ?? "—"}
+                Announcement
               </h3>
-              <p className="text-desc-small-semibold text-grey-500">
-                {formatEventDate(post.createdAt ?? "")}
-              </p>
             </div>
           </div>
           {(role === "admin" || role === "organizer") && (
@@ -257,7 +249,7 @@ function AnnouncementItem({
                   alt={creator!.fullName}
                   width={48}
                   height={48}
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-cover rounded-full border-2 border-primary"
                 />
               ) : (
                 <span className="type-desc-semibold text-primary uppercase">
@@ -269,8 +261,8 @@ function AnnouncementItem({
               <h3 className="type-desc-semibold text-secondary">
                 {creator?.fullName ?? "—"}
               </h3>
-              <p className="type-detail-small-medium text-grey-400">
-                {post.createdAt}
+              <p className="text-desc-small-semibold text-grey-500">
+                {formatEventDate(post.createdAt ?? "")}
               </p>
             </div>
           </div>
@@ -288,7 +280,7 @@ function AnnouncementItem({
         <ExpandableText text={post.content} />
 
         {hasMetaInfo && (
-          <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-4">
+          <div className="bg-grey-50 rounded-[6px] p-4 space-y-3 mb-6 border-l-5 border-primary">
             {hasLocation && (
               <p className="type-detail text-grey-500">
                 <span className="type-detail-semibold text-foreground">

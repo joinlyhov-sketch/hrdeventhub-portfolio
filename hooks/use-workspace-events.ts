@@ -6,16 +6,37 @@ import { eventService } from "@/service/event.service";
 
 type UserRole = "admin" | "student" | "alumni" | "organizer";
 
-export function useWorkspaceEvents(workspaceId?: string, role?: UserRole) {
+const normalizeRole = (role?: string): UserRole | undefined => {
+  const normalized = role?.toLowerCase();
+  if (
+    normalized === "admin" ||
+    normalized === "student" ||
+    normalized === "alumni" ||
+    normalized === "organizer"
+  ) {
+    return normalized;
+  }
+
+  return undefined;
+};
+
+export function useWorkspaceEvents(workspaceId?: string, role?: string) {
   const { data: session } = useSession();
   const token = session?.accessToken as string | undefined;
-  const shouldFetch = Boolean(token && (role === "admin" || workspaceId));
+  const normalizedRole = normalizeRole(role || session?.user?.role);
+  const shouldFetch = Boolean(
+    token && (normalizedRole === "admin" || workspaceId),
+  );
+  const cacheKey =
+    normalizedRole === "admin"
+      ? ["calendar-events", "admin-platform-all-v2", token]
+      : ["calendar-events", "workspace", workspaceId, token];
 
   const { data, error, isLoading, mutate } = useSWR(
-    shouldFetch ? ["calendar-events", role ?? "workspace", workspaceId, token] : null,
+    shouldFetch ? cacheKey : null,
     () => {
-      if (role === "admin") {
-        return eventService.getAll(token!, 1, 100);
+      if (normalizedRole === "admin") {
+        return eventService.getAllPlatformEvents(token!);
       }
 
       return eventService.getByWorkspace(token!, workspaceId!);
