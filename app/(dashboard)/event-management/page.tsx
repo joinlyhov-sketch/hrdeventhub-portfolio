@@ -17,8 +17,6 @@ export default async function EventManagementPage() {
   } catch (error) {
     console.error("Failed to fetch events for management table:", error);
   }
-  console.log("events: ", events);
-
   return (
     <main className="min-h-screen max-w-420 mx-auto">
       <EventManagementClient events={events} stats={eventManagementStats} />

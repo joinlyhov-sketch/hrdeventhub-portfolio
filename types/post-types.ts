@@ -1,8 +1,8 @@
+import { ArticlePayload } from "./article-types";
+
 export interface PostLocation {
   locationName: string;
   googleMapUrl: string;
-  latitude: number;
-  longitude: number;
 }
 
 export interface PostMediaItem {
@@ -11,6 +11,7 @@ export interface PostMediaItem {
 }
 
 export interface PostPayment {
+  paymentType?: "fixed" | "flexible";
   paymentAmount: number;
   donationGoal: number;
 }
@@ -36,6 +37,7 @@ export interface CreatePostResponse {
   message: string;
   status: string;
   timestamp: string;
+  payload?: ArticlePayload;
 }
 
 export interface FileUploadBackendResponse {
@@ -49,8 +51,6 @@ export interface FileUploadBackendResponse {
 export interface AnnouncementLocationPayload {
   locationName: string;
   googleMapUrl: string;
-  latitude: number;
-  longitude: number;
 }
 
 export interface AnnouncementMediaPayload {
@@ -76,8 +76,13 @@ export interface CreateAnnouncementResponse {
   success: boolean;
   message: string;
   status: string;
-  payload: string;
+  payload: Comment[] | Post[];
   timestamp: string;
+  postId: string;
+}
+
+export interface Post {
+  postId: string;
 }
 
 export interface ServerActionResponse<T> {
@@ -98,7 +103,7 @@ export interface CreateArticleBackendResponse {
   success: boolean;
   message: string;
   status: string;
-  payload: string;
+  payload?: ArticlePayload;
   timestamp: string;
 }
 
@@ -251,3 +256,170 @@ export interface ApiResponseActionWrapper {
   error?: string;
   data?: UpdateArticleResponsePayload;
 }
+
+export interface BackendPostPayload {
+  postId: string;
+  category: string;
+  title: string;
+  content: string;
+  purpose: string;
+  scheduledAt: string;
+  status: "draft" | "active" | string;
+  expiresAt: string;
+  eventStart?: string;
+  eventEnd?: string;
+  createdAt: string;
+  updatedAt: string;
+  appUserId: string;
+  mentionedUserIds?: { userIds: string[] };
+  location?: {
+    locationId: string;
+    locationName: string;
+    googleMapUrl: string;
+    latitude: number;
+    longitude: number;
+  };
+  media?: Array<{
+    mediaId: string;
+    fileName: string;
+    filePath: string;
+    fileType: string;
+    isCover: boolean;
+    createdAt: string;
+  }>;
+  payment?: {
+    postPaymentId: string;
+    paymentType: string;
+    paymentAmount: number;
+    donationGoal: number;
+    amountRaised: number;
+    createdAt: string;
+    updatedAt: string;
+    khqrData?: string;
+    khqrDataBase64?: string;
+  };
+  pinned: boolean;
+  published: boolean;
+}
+
+export interface ApiResponseWrapper<T> {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: T;
+  timestamp: string;
+}
+
+export interface AnnouncementCreator {
+  userId: string;
+  fullName: string;
+  profilePicture: string;
+  role: string;
+}
+
+export interface AnnouncementPost {
+  postId: string;
+  workspaceId: string;
+  appUserId: string;
+  category: string;
+  title: string;
+  content: string;
+  purpose: string;
+
+  eventStart: string;
+  eventEnd: string;
+  scheduledAt: string | null;
+  expiresAt: string;
+
+  status: "draft" | "active" | "closed";
+  published: boolean;
+  pinned: boolean;
+
+  createdAt: string;
+  updatedAt: string;
+
+  creator: AnnouncementCreator;
+
+  media: unknown[];
+  comments: unknown[];
+}
+
+export interface CreateAnnouncementResponseV2 {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: AnnouncementPost;
+  timestamp: string;
+}
+
+export interface ChangeEventStatusPayload {
+  status: "draft" | "active" | "closed";
+  reason: string;
+}
+
+export interface LocationInfo {
+  locationId: string;
+  locationName: string;
+  googleMapUrl: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface MediaItem {
+  mediaId: string;
+  filePath: string;
+  isCover: boolean;
+  createdAt: string;
+}
+
+export interface PaymentInfo {
+  postPaymentId: string;
+  paymentType: "fixed" | "free" | "donation"; // Adjusted based on common configurations, expand as needed
+  paymentAmount: number;
+  donationGoal: number;
+  amountRaised: number;
+  createdAt: string;
+  updatedAt: string;
+  paymentAccId: string;
+}
+
+export interface CreatorInfo {
+  userId: string;
+  fullName: string;
+  profilePicture: string;
+  role: "ADMIN" | "STAFF" | "VISITOR";
+}
+
+export interface PostPayload {
+  postId: string;
+  category: string;
+  title: string;
+  content: string;
+  purpose: string;
+  status: "draft" | "active" | "closed";
+  expiresAt: string;
+  eventStart: string;
+  eventEnd: string;
+  createdAt: string;
+  updatedAt: string;
+  appUserId: string;
+  location: LocationInfo;
+  media: MediaItem[];
+  payment: PaymentInfo;
+  comments: any[];
+  creator: CreatorInfo;
+  workspaceId: string;
+  pinned: boolean;
+  published: boolean;
+}
+
+export interface ChangePostStatusResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: PostPayload;
+  timestamp: string;
+}
+
+export type UpdateArticleResponse = ApiResponseWrapper<BackendPostPayload>;
+export type PublishPostResponse = ApiResponseWrapper<BackendPostPayload>;

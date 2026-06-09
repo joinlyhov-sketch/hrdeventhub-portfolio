@@ -66,6 +66,7 @@ export interface EventItem {
   media: EventMedia[];
   payment: EventPayment;
   comments: EventComment[];
+  workspaceId: string;
 }
 
 export interface EventResponse {
@@ -142,11 +143,11 @@ export const eventService = {
   getMyRegistrations: async (
     token: string,
     page: number = 1,
-    size: number = 10
+    size: number = 10,
   ): Promise<Participant[]> => {
     const response = await apiGet<ParticipantResponse>(
       `/posts/participants/me?page=${page}&size=${size}`,
-      { authToken: token }
+      { authToken: token },
     );
     return response.payload || [];
   },
@@ -155,12 +156,12 @@ export const eventService = {
     token: string,
     userId: string,
     page: number = 1,
-    size: number = 10
+    size: number = 10,
   ): Promise<Participant[]> => {
     const response = await apiGet<ParticipantResponse>(
       `/posts/participants/user/${userId}?page=${page}&size=${size}`,
-      { authToken: token }
+      { authToken: token },
     );
     return response.payload || [];
-  }
+  },
 };

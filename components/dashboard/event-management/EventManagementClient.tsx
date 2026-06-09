@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 
-import { Calendar, CalendarDays, FileText, Megaphone } from "lucide-react";
+import { Calendar, CalendarDays } from "lucide-react";
 
 import { StatsCardsSection } from "../transaction-history/StatsCardsSection";
 import { EventManagementTable } from "./EventManagementTable";
@@ -19,7 +19,11 @@ interface EventManagementClientProps {
 }
 
 const contentMenuOptions: PopoverItem[] = [
-  { label: "Event", icon: Calendar, href: "/event-management/creation/event " },
+  {
+    label: "Event",
+    icon: Calendar,
+    href: "/event-management/creation/event?admin=true",
+  },
 ];
 
 export function EventManagementClient({
@@ -33,7 +37,6 @@ export function EventManagementClient({
   const workspaceId = (params.workspaceId ||
     params.id ||
     params.groupId) as string;
-  console.log("first: ", events);
   return (
     <div className="space-y-6">
       <StatsCardsSection events={events} stats={stats} />

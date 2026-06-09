@@ -2,9 +2,16 @@
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
-import { paymentService, Transaction, GenerateQrResponse } from "@/service/payment.service";
+import {
+  paymentService,
+  Transaction,
+  GenerateQrResponse,
+} from "@/service/payment.service";
 import { participantService } from "@/service/participant.service";
-import { ServerActionResponse } from "@/types/file-types";
+import {
+  ServerActionResponse,
+  ServerActionResponse2,
+} from "@/types/file-types";
 
 function logStep(label: string, data?: unknown) {
   console.log(`\n[Payment] ─── ${label} ───`);
@@ -50,24 +57,30 @@ export interface StudentRegisterInput {
 
 export async function studentRegisterAction(
   input: StudentRegisterInput,
-): Promise<ServerActionResponse<{ message: string }>> {
+): Promise<ServerActionResponse2<{ message: string }>> {
   logStep("studentRegisterAction called", input);
 
   try {
     const session = await getServerSession(authOptions);
     console.log("[Role check] raw session role:", session?.user?.role);
-    
+
     const token = session?.accessToken as string | undefined;
     const role = (session?.user?.role as string | undefined)?.toLowerCase();
 
     if (!token) {
       logError("Auth", "No access token");
-      return { ok: false, error: "Your session has expired. Please log in again." };
+      return {
+        ok: false,
+        error: "Your session has expired. Please log in again.",
+      };
     }
 
     if (role !== "student") {
       logError("Role guard", `Expected student, got: ${role}`);
-      return { ok: false, error: "This registration flow is only available for students." };
+      return {
+        ok: false,
+        error: "This registration flow is only available for students.",
+      };
     }
 
     logStep("POST /posts/${input.postId}/participants", {
@@ -97,14 +110,18 @@ export async function studentRegisterAction(
     return {
       ok: true,
       payload: {
-        message: "You've successfully registered for this event! Check your email for confirmation.",
+        message:
+          "You've successfully registered for this event! Check your email for confirmation.",
       },
     };
   } catch (error) {
     logError("studentRegisterAction — unexpected error", error);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "An unexpected error occurred.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
     };
   }
 }
@@ -120,7 +137,7 @@ export interface AlumniFixedPaymentInput {
 
 export async function alumniFixedPaymentAction(
   input: AlumniFixedPaymentInput,
-): Promise<ServerActionResponse<Transaction>> {
+): Promise<ServerActionResponse2<Transaction>> {
   logStep("alumniFixedPaymentAction called", {
     billNo: input.billNo,
     postId: input.postId,
@@ -139,12 +156,18 @@ export async function alumniFixedPaymentAction(
 
     if (!token) {
       logError("Auth", "No access token");
-      return { ok: false, error: "Your session has expired. Please log in again." };
+      return {
+        ok: false,
+        error: "Your session has expired. Please log in again.",
+      };
     }
 
     if (role !== "alumni") {
       logError("Role guard", `Expected alumni, got: ${role}`);
-      return { ok: false, error: "This payment flow is only available for alumni." };
+      return {
+        ok: false,
+        error: "This payment flow is only available for alumni.",
+      };
     }
 
     const notifyPayload = {
@@ -165,9 +188,10 @@ export async function alumniFixedPaymentAction(
       logError("Step 1 — notify FAILED", err);
       return {
         ok: false,
-        error: err instanceof Error
-          ? `Payment notification failed: ${err.message}`
-          : "Payment notification failed. Please try again.",
+        error:
+          err instanceof Error
+            ? `Payment notification failed: ${err.message}`
+            : "Payment notification failed. Please try again.",
       };
     }
 
@@ -184,8 +208,14 @@ export async function alumniFixedPaymentAction(
       );
       logStep("Step 2 — register response", registerRes);
     } catch (err) {
-      logError("Step 2 — register FAILED (notify already succeeded — log for reconciliation)", err);
-      console.warn("[Payment] ⚠ billNo for manual reconciliation:", input.billNo);
+      logError(
+        "Step 2 — register FAILED (notify already succeeded — log for reconciliation)",
+        err,
+      );
+      console.warn(
+        "[Payment] ⚠ billNo for manual reconciliation:",
+        input.billNo,
+      );
     }
 
     logStep("Step 3 — GET /payments/transactions/me → filter by billNo", {
@@ -193,31 +223,44 @@ export async function alumniFixedPaymentAction(
     });
 
     try {
-      const transaction = await paymentService.getTransactionByBillNo(input.billNo, token);
+      const transaction = await paymentService.getTransactionByBillNo(
+        input.billNo,
+        token,
+      );
       logStep("Step 3 — matched transaction", transaction ?? "NOT FOUND");
 
       if (!transaction) {
-        console.warn("[Payment] ⚠ No transaction matched billNo:", input.billNo);
+        console.warn(
+          "[Payment] ⚠ No transaction matched billNo:",
+          input.billNo,
+        );
         return {
           ok: false,
-          error: "Payment submitted, but receipt not found. Check your transaction history.",
+          error:
+            "Payment submitted, but receipt not found. Check your transaction history.",
         };
       }
 
-      logStep("✓ alumniFixedPaymentAction complete", { transactionId: transaction.id });
+      logStep("✓ alumniFixedPaymentAction complete", {
+        transactionId: transaction.id,
+      });
       return { ok: true, payload: transaction };
     } catch (err) {
       logError("Step 3 — getTransactionByBillNo FAILED", err);
       return {
         ok: false,
-        error: "Payment submitted, but we couldn't load your receipt. Check your transaction history.",
+        error:
+          "Payment submitted, but we couldn't load your receipt. Check your transaction history.",
       };
     }
   } catch (error) {
     logError("alumniFixedPaymentAction — unexpected error", error);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "An unexpected error occurred.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
     };
   }
 }
@@ -229,7 +272,7 @@ export interface GenerateFlexibleQrInput {
 
 export async function generateFlexibleQrAction(
   input: GenerateFlexibleQrInput,
-): Promise<ServerActionResponse<GenerateQrResponse>> {
+): Promise<ServerActionResponse2<GenerateQrResponse>> {
   logStep("generateFlexibleQrAction called", input);
 
   try {
@@ -241,15 +284,25 @@ export async function generateFlexibleQrAction(
 
     if (!token) {
       logError("Auth", "No access token");
-      return { ok: false, error: "Your session has expired. Please log in again." };
+      return {
+        ok: false,
+        error: "Your session has expired. Please log in again.",
+      };
     }
 
     if (role !== "alumni") {
       logError("Role guard", `Expected alumni, got: ${role}`);
-      return { ok: false, error: "This payment flow is only available for alumni." };
+      return {
+        ok: false,
+        error: "This payment flow is only available for alumni.",
+      };
     }
 
-    const qrPayload = { postId: input.postId, amount: input.amount, remark: "" };
+    const qrPayload = {
+      postId: input.postId,
+      amount: input.amount,
+      remark: "",
+    };
     logStep("POST /payments/qr/generate", qrPayload);
 
     try {
@@ -266,34 +319,39 @@ export async function generateFlexibleQrAction(
       logError("QR generate FAILED", err);
       return {
         ok: false,
-        error: err instanceof Error
-          ? `QR generation failed: ${err.message}`
-          : "Failed to generate payment QR. Please try again.",
+        error:
+          err instanceof Error
+            ? `QR generation failed: ${err.message}`
+            : "Failed to generate payment QR. Please try again.",
       };
     }
   } catch (error) {
     logError("generateFlexibleQrAction — unexpected error", error);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "An unexpected error occurred.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
     };
   }
 }
 
 export async function alumniFlexiblePaymentAction(
   input: AlumniFixedPaymentInput,
-): Promise<ServerActionResponse<Transaction>> {
+): Promise<ServerActionResponse2<Transaction>> {
   return alumniFixedPaymentAction(input);
 }
 
 export async function getMyTransactionsAction(): Promise<
-  ServerActionResponse<Transaction[]>
+  ServerActionResponse2<Transaction[]>
 > {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
 
-    if (!token) return { ok: false, error: "Authorization session has expired." };
+    if (!token)
+      return { ok: false, error: "Authorization session has expired." };
 
     logStep("getMyTransactionsAction — GET /payments/transactions/me");
     const transactions = await paymentService.getMyTransactions(token);
@@ -304,7 +362,10 @@ export async function getMyTransactionsAction(): Promise<
     logError("getMyTransactionsAction", error);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Failed to fetch transactions.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch transactions.",
     };
   }
 }

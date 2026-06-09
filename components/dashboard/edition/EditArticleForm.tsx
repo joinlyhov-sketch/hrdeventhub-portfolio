@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useWatch, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { FileText, Layers, Pin } from "lucide-react";
+import { FileText, Pin } from "lucide-react";
 
 import { Breadcrumb } from "../BreadCrumb";
 import { FormInput } from "../FormInput";
@@ -18,7 +18,10 @@ import {
 } from "@/schemas/article-schema";
 import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
 import { UpdateArticlePayload } from "@/types/post-types";
-import { updateArticleAction } from "@/actions/post.action";
+import {
+  publishDraftPostAction,
+  updateArticleAction,
+} from "@/actions/post.action";
 
 export default function EditArticleForm() {
   const router = useRouter();
@@ -85,14 +88,24 @@ export default function EditArticleForm() {
 
     try {
       const result = await updateArticleAction(workspaceId, postId, payload);
+
       if (result.ok) {
-        toast.success("Article updated successfully!");
+        if (data.status === "active") {
+          await publishDraftPostAction(workspaceId, postId);
+        }
+        toast.success(
+          data.status === "active"
+            ? "Article updated and published successfully!"
+            : "Article changes saved as draft successfully!",
+        );
         router.push(`/group/${workspaceId}`);
       } else {
         if (result.errors) {
-          result.errors.forEach((err) => toast.error(err.message));
+          result.errors.forEach((err) => {
+            toast.error(err.message);
+          });
         } else {
-          toast.error(`Update error: ${result.error}`);
+          toast.error(`Update failed: ${result.error}`);
         }
       }
     } catch (err) {
@@ -126,7 +139,11 @@ export default function EditArticleForm() {
             Fill in the details below to update your workspace article instance
             information.
           </p>
-          <EditionTabs groupId={workspaceId} postId={postId} />
+          <EditionTabs
+            category={article?.category}
+            groupId={workspaceId}
+            postId={postId}
+          />
         </div>
 
         <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 grow">
@@ -146,11 +163,11 @@ export default function EditArticleForm() {
               )}
             </div>
 
-            <div className="flex flex-col w-full text-sm">
-              <label className="flex items-center gap-2 mb-2 font-semibold text-gray-700">
-                <Layers size={18} className="text-slate-400" /> Form Status
-                Target
+            <div className="flex flex-col gap-1.5 w-full text-sm">
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                Visibility Status
               </label>
+
               <select
                 {...register("status")}
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
@@ -161,8 +178,8 @@ export default function EditArticleForm() {
             </div>
           </div>
 
-          <div className="w-full text-sm">
-            <label className="block mb-2 font-semibold text-gray-700 tracking-wide">
+          <div className="flex flex-col gap-1.5 w-full text-sm">
+            <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
               Featured Display
             </label>
             <label
@@ -198,7 +215,7 @@ export default function EditArticleForm() {
                   <span className="font-bold text-gray-800 text-sm tracking-tight transition-colors group-hover:text-gray-900">
                     Pin this article
                   </span>
-                  <span className="text-xs text-gray-500 font-medium mt-0.5 max-w-[280px] sm:max-w-md leading-relaxed">
+                  <span className="text-xs text-gray-500 font-medium mt-0.5 max-w-70 sm:max-w-md leading-relaxed">
                     Keep this article fixed at the very top of your workspace
                     community timeline dashboard.
                   </span>
