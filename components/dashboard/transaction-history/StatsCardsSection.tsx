@@ -1,19 +1,38 @@
 "use client";
 
-import { StatCard } from "../../../types/transaction";
 import { StatsCard } from "./StatsCard";
 import { EventItem } from "@/service/event.service";
+import { Transaction } from "@/service/payment.service";
 
 interface StatsCardsSectionProps {
-  stats: StatCard[];
   events: EventItem[];
+  transactions?: Transaction[];
 }
 
-export function StatsCardsSection({ stats, events }: StatsCardsSectionProps) {
-  const totalAttendees = (events || []).reduce((acc, event) => {
-    const count = event.comments ? event.comments.length : 0;
-    return acc + count;
-  }, 0);
+const isSuccessfulTransaction = (status?: string) => {
+  const normalized = status?.toLowerCase();
+  return normalized === "0" || normalized === "successful" || normalized === "success";
+};
+
+export function StatsCardsSection({
+  events,
+  transactions = [],
+}: StatsCardsSectionProps) {
+  const totalAttendees = (events || []).reduce(
+    (acc, event) => acc + (event.attendeeCount ?? 0),
+    0,
+  );
+
+  const pendingPaymentCount = (events || []).reduce(
+    (acc, event) => acc + (event.pendingPaymentCount ?? 0),
+    0,
+  );
+
+  const totalDonations = transactions
+    .filter((transaction) =>
+      isSuccessfulTransaction(transaction.settlementStatus),
+    )
+    .reduce((total, transaction) => total + transaction.amount, 0);
 
   const activeEventsCount = (events || []).filter((event) => {
     const status = event.status?.toLowerCase();
@@ -25,7 +44,7 @@ export function StatsCardsSection({ stats, events }: StatsCardsSectionProps) {
       <StatsCard
         key={1}
         title="Pending Payment"
-        value="42"
+        value={pendingPaymentCount.toLocaleString()}
         color="text-action"
         bgColor={"bg-action/10"}
         customIcon={
@@ -80,7 +99,10 @@ export function StatsCardsSection({ stats, events }: StatsCardsSectionProps) {
       <StatsCard
         key={2}
         title={"Total Donations"}
-        value={"124,50"}
+        value={totalDonations.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}
         customIcon={
           <svg
             width="26"

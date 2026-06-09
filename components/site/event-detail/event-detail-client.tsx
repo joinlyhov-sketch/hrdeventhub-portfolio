@@ -40,9 +40,13 @@ type AdminSubTab = "overview" | "discussion";
 
 interface EventDetailClientProps {
   event: Post;
+  workspaceId: string;
 }
 
-export default function EventDetailClient({ event }: EventDetailClientProps) {
+export default function EventDetailClient({
+  event,
+  workspaceId,
+}: EventDetailClientProps) {
   const { currentUser } = useCurrentUser();
   const { data: session, status } = useSession();
   const isAdminOrOrganizer =
@@ -503,7 +507,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
               </button>
             </section>
             {activeAdminTab === "overview" ? (
-              <AdminOverview />
+              <AdminOverview event={event} workspaceId={workspaceId} />
             ) : (
               <div ref={discussionRef}>
                 <DiscussionSection event={event} />
@@ -518,10 +522,10 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       </section>
 
       <ShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/events/${detailData.id}`}
-      />
+  isOpen={isShareOpen}
+  onClose={() => setIsShareOpen(false)}
+  postId={event?.postId}
+/>
       
       <PaymentWizardDialog
         isOpen={isPaymentOpen}
