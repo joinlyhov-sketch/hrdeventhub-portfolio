@@ -14,6 +14,7 @@ import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
 import { getIdentityMeAction, updateIdentityMeAction, updateProfileMeAction } from "@/actions/profile.action";
 import { useRouter } from "next/navigation";
+import ResetPasswordModal from "../../pop-up/reset-modal/ResetPasswordModal";
 
 interface CurrentUser {
   name: string;
@@ -22,6 +23,7 @@ interface CurrentUser {
 }
 
 export default function AdminProfileForm({ user }: { user: CurrentUser }) {
+  const [isResetOpen, setIsResetOpen] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -270,9 +272,14 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           </div>
         </div>
         
-        <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity">
+       <div>
+        <button
+          onClick={() => setIsResetOpen(true)}
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
+        >
           Change Password
         </button>
+      </div>
       </div>
       <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-6 w-full">
         <h2 className="type-subtitle text-secondary border-b border-border pb-2">
@@ -546,6 +553,10 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           </div>
         </div>
       </div>
+      <ResetPasswordModal 
+        isOpen={isResetOpen} 
+        onClose={() => setIsResetOpen(false)} 
+      />
     </div>
   );
 }

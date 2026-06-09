@@ -2,9 +2,20 @@
 
 import React, { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ListFilter, Pencil, Trash2, UserX, XCircle } from "lucide-react";
+import {
+  Globe,
+  ListFilter,
+  Pencil,
+  Trash2,
+  UserX,
+  XCircle,
+} from "lucide-react";
 import { EventItem } from "@/service/event.service";
-import { deletePostAction } from "@/actions/post.action";
+import {
+  changePostStatusAction,
+  deletePostAction,
+  publishDraftPostAction,
+} from "@/actions/post.action";
 import { DeleteEventModal } from "@/components/dashboard/delete-event-modal";
 import {
   Table,
@@ -26,6 +37,9 @@ import Link from "next/link";
 import ActionDropdown, {
   DropdownAction,
 } from "@/components/site/pop-up/action-button/ActionDropdown";
+import { toast } from "sonner";
+import { CloseEventModal } from "../close-event-model";
+import { PublishEventModal } from "../publish-event-modal";
 
 interface EventManagementTableProps {
   events: EventItem[];
@@ -88,7 +102,19 @@ export function EventManagementTable({
   const [activeEvent, setActiveEvent] = useState<{
     id: string;
     title: string;
-    workspaceId?: string;
+    groudId: string | undefined;
+  } | null>(null);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [closeEventData, setCloseEventData] = useState<{
+    id: string;
+    title: string;
+    groupId: string | undefined;
+  } | null>(null);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [publishEventData, setPublishEventData] = useState<{
+    id: string;
+    title: string;
+    groupId: string | undefined;
   } | null>(null);
 
   const itemsPerPage = 10;
@@ -151,16 +177,17 @@ export function EventManagementTable({
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredEvents.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredEvents, currentPage]);
-
-  const handleDeleteExecute = async () => {
-    if (!activeEvent?.workspaceId) return;
-    const { id, workspaceId } = activeEvent;
+  const handleDeleteExecute = async (
+    groupId: string | undefined,
+    postId: string | undefined,
+  ) => {
+    console.log("show groupID: ", closeEventData);
+    if (!groupId || !postId) return;
 
     await new Promise<void>((resolve, reject) => {
       startTransition(async () => {
         try {
-          await deletePostAction(workspaceId, id);
-          router.refresh();
+          await deletePostAction(groupId, postId);
           resolve();
         } catch (err) {
           reject(err);
@@ -169,10 +196,51 @@ export function EventManagementTable({
     });
   };
 
-  const handleCancelRequest = (id: string) => {
-    console.log(
-      `Canceling event with ID: ${id}. Left placeholder state intact.`,
-    );
+  const handlePublishExecute = async (groupId: string, postId: string) => {
+    return new Promise<void>((resolve, reject) => {
+      startTransition(async () => {
+        try {
+          const result = await publishDraftPostAction(groupId, postId);
+          if (result.ok) {
+            toast.success("Published event live successfully!");
+            router.refresh();
+            resolve();
+          } else {
+            toast.error(`Error publishing event: ${result.error}`);
+            reject(new Error(result.error));
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error("An unexpected execution exception occurred.");
+          reject(err);
+        }
+      });
+    });
+  };
+
+  const handleCloseExecute = async (
+    groupId: string,
+    postId: string,
+    reason: string,
+  ) => {
+    startTransition(async () => {
+      try {
+        const result = await changePostStatusAction(groupId, postId, {
+          status: "closed",
+          reason: reason,
+        });
+
+        if (result.ok) {
+          toast.success("Closed event successfully!");
+          router.refresh();
+        } else {
+          toast.error(`Error closing event: ${result.error}`);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("An unexpected execution exception occurred.");
+      }
+    });
   };
 
   const dateLabels: Record<string, string> = {
@@ -187,10 +255,10 @@ export function EventManagementTable({
 
   return (
     <div className="space-y-6">
-      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-[580px] bg-white">
-        <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
+      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-145 bg-white">
+        <Table className="w-full text-left border-collapse min-w-250 table-fixed">
           <TableHeader>
-            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
+            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-13">
               <TableHead className="px-5 py-3 text-center text-white type-desc-semibold w-[6%]">
                 No.
               </TableHead>
@@ -209,7 +277,7 @@ export function EventManagementTable({
                       <ListFilter size={16} className="shrink-0" />
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[150px]">
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-37.5">
                     <DropdownMenuRadioGroup
                       value={selectedDateRange}
                       onValueChange={(val) => {
@@ -244,7 +312,7 @@ export function EventManagementTable({
                       <ListFilter size={16} className="shrink-0" />
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[130px]">
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-32.5">
                     <DropdownMenuRadioGroup
                       value={selectedStatus}
                       onValueChange={(val) => {
@@ -259,10 +327,10 @@ export function EventManagementTable({
                         All
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem
-                        value="open"
+                        value="active"
                         className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                       >
-                        Open
+                        Active
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem
                         value="closed"
@@ -286,6 +354,7 @@ export function EventManagementTable({
           <TableBody>
             {paginatedEvents.length > 0 ? (
               paginatedEvents.map((event, index) => {
+                const groupId = event.workspaceId;
                 const absoluteIndex =
                   (currentPage - 1) * itemsPerPage + index + 1;
                 const eventWorkspaceId =
@@ -298,7 +367,7 @@ export function EventManagementTable({
                     onClick: () => {
                       if (!eventWorkspaceId) return;
                       router.push(
-                        `/event-management/edition/event?groupId=${eventWorkspaceId}&postId=${event.postId}`,
+                        `/event-management/edition/event?groupId=${groupId}&postId=${event.postId}&admin=true`,
                       );
                     },
                   },
@@ -309,17 +378,41 @@ export function EventManagementTable({
                       setActiveEvent({
                         id: event.postId,
                         title: event.title,
-                        workspaceId: eventWorkspaceId,
+                        groudId: groupId,
                       });
                       setIsDeleteModalOpen(true);
                     },
                   },
-                  {
-                    label: "Cancel",
-                    icon: XCircle,
-                    onClick: () => handleCancelRequest(event.postId),
-                  },
                 ];
+                if (event.status?.toLowerCase() != "active") {
+                  currentItemActions.push({
+                    label: "Public",
+                    icon: Globe,
+                    onClick: () => {
+                      setPublishEventData({
+                        id: event.postId,
+                        title: event.title,
+                        groupId: groupId,
+                      });
+                      setIsPublishModalOpen(true);
+                    },
+                  });
+                }
+
+                if (event.status?.toLowerCase() !== "closed") {
+                  currentItemActions.push({
+                    label: "Close",
+                    icon: XCircle,
+                    onClick: () => {
+                      setCloseEventData({
+                        id: event.postId,
+                        title: event.title,
+                        groupId: groupId,
+                      });
+                      setIsCloseModalOpen(true);
+                    },
+                  });
+                }
 
                 return (
                   <TableRow
@@ -415,7 +508,44 @@ export function EventManagementTable({
           setActiveEvent(null);
         }}
         eventTitle={activeEvent?.title || ""}
-        onConfirm={handleDeleteExecute}
+        onConfirm={() =>
+          handleDeleteExecute(activeEvent?.groudId, activeEvent?.id)
+        }
+      />
+
+      <CloseEventModal
+        isOpen={isCloseModalOpen}
+        onClose={() => {
+          setIsCloseModalOpen(false);
+          setCloseEventData(null);
+        }}
+        eventTitle={closeEventData?.title || ""}
+        onConfirm={async (reason) => {
+          if (closeEventData?.groupId && closeEventData?.id) {
+            await handleCloseExecute(
+              closeEventData.groupId,
+              closeEventData.id,
+              reason,
+            );
+          }
+        }}
+      />
+
+      <PublishEventModal
+        isOpen={isPublishModalOpen}
+        onClose={() => {
+          setIsPublishModalOpen(false);
+          setPublishEventData(null);
+        }}
+        eventTitle={publishEventData?.title || ""}
+        onConfirm={async () => {
+          if (publishEventData?.groupId && publishEventData?.id) {
+            await handlePublishExecute(
+              publishEventData.groupId,
+              publishEventData.id,
+            );
+          }
+        }}
       />
     </div>
   );

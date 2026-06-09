@@ -4,20 +4,25 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, Eye } from "lucide-react";
+import { FileText } from "lucide-react";
 
 import { Breadcrumb } from "../BreadCrumb";
 import { FormInput } from "../FormInput";
 import { CreationTabs } from "../CreationTab";
 import { FormTextarea } from "../FormTextarea";
 import { Button } from "../../ui/button";
-import { createArticleAction } from "@/actions/post.action";
+import {
+  createArticleAction,
+  publishDraftPostAction,
+} from "@/actions/post.action";
 import {
   articlePostSchema,
   ArticlePostFormValues,
 } from "@/schemas/article-schema";
 import { CreateArticlePayload } from "@/types/post-types";
 import { toast } from "sonner";
+import { ServerActionResponse2 } from "@/types/file-types";
+import { CreateArticleResponseV2 } from "@/types/article-types";
 
 export default function CreateArticleForm() {
   const router = useRouter();
@@ -45,7 +50,7 @@ export default function CreateArticleForm() {
       title: data.title,
       content: data.description,
       status: data.status,
-      isPublished: data.status === "active",
+      isPublished: false,
       isPinned: false,
     };
 
@@ -55,10 +60,20 @@ export default function CreateArticleForm() {
     );
 
     try {
-      const result = await createArticleAction(workspaceId, payload);
+      const result: ServerActionResponse2<CreateArticleResponseV2> =
+        await createArticleAction(workspaceId, payload);
+      const generatedPostId = result.payload?.payload?.postId;
 
       if (result.ok) {
-        toast.success("ARTICLE created successfully!");
+        if (data.status === "active" && generatedPostId) {
+          await publishDraftPostAction(workspaceId, generatedPostId);
+        }
+
+        toast.success(
+          data.status === "active"
+            ? "ARTICLE created and published successfully!"
+            : "ARTICLE draft saved successfully!",
+        );
         router.push(`/group/${workspaceId}`);
       } else {
         toast.error(`Creation failed: ${result.error}`);
@@ -107,8 +122,8 @@ export default function CreateArticleForm() {
             </div>
 
             <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-[#27445D] font-bold text-xs md:text-sm flex items-center gap-2">
-                <Eye size={16} className="text-[#497D74]" /> Status
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                Visibility Status
               </label>
               <select
                 {...register("status")}
@@ -142,7 +157,7 @@ export default function CreateArticleForm() {
           variant="outline"
           disabled={isSubmitting}
           onClick={() => router.push(`/group/${workspaceId}`)}
-          className="order-2 sm:order-1 w-full sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl hover:text-primary hover:border-primary transition-all active:scale-95 text-sm shadow-sm"
+          className="order-2 sm:order-1 w-full hover:bg-transparent sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl hover:text-primary hover:border-primary transition-all active:scale-95 text-sm shadow-sm"
         >
           Cancel
         </Button>

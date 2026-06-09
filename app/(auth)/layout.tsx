@@ -3,7 +3,7 @@ import AuthLayoutMotion from "../../components/auth/auth-layout-motion";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title:{
+  title: {
     default: "Event Hub",
     template: "%s | HRD Event Hub",
   },
