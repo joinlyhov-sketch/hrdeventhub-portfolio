@@ -64,6 +64,7 @@ export interface Transaction {
   createdAt: string;
   appUserId: string;
   postId: string;
+  username?: string;
 }
 
 interface TransactionsResponse {
@@ -103,6 +104,13 @@ export const paymentService = {
       { authToken, accept: "*/*" },
     );
     return response.payload;
+  },
+  getAllTransactions: async (authToken: string): Promise<Transaction[]> => {
+    const response = await apiGet<TransactionsResponse>(
+      "/payments/transactions",
+      { authToken, accept: "*/*" },
+    );
+    return response.payload || [];
   },
   getTransactionByBillNo: async (
     billNo: string,

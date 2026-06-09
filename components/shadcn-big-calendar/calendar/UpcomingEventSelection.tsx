@@ -72,6 +72,7 @@ export default function UpcomingEventSection({ workspaceId, role }: Props) {
                 const startDate = new Date(event.eventStart);
                 const endDate = new Date(event.eventEnd);
                 const hasEndDate = !Number.isNaN(endDate.getTime());
+                const eventWorkspaceId = event.sourceWorkspaceId || workspaceId;
 
                 return (
                   <article key={event.postId} className="upcoming-event-card">
@@ -102,9 +103,9 @@ export default function UpcomingEventSection({ workspaceId, role }: Props) {
                       </div>
                     </div>
 
-                    {workspaceId && (
+                    {eventWorkspaceId && (
                       <Link
-                        href={`/group/${workspaceId}/event/${event.postId}`}
+                        href={`/group/${eventWorkspaceId}/event/${event.postId}`}
                         className="upcoming-event-link"
                       >
                         View Detail

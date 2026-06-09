@@ -8,16 +8,21 @@ import { GetWorkspacesParams } from "@/types/workspace-type/group";
 type UserRole = "admin" | "student" | "alumni" | "organizer";
 
 export function useWorkspaces(
-  paramsOrRole: GetWorkspacesParams | UserRole = {},
+  paramsOrRole: GetWorkspacesParams | UserRole | null = {},
 ) {
   const { data: session } = useSession();
   const token = session?.accessToken as string | undefined;
   const role =
     typeof paramsOrRole === "string" ? paramsOrRole : undefined;
-  const params = typeof paramsOrRole === "string" ? {} : paramsOrRole;
+  const params =
+    typeof paramsOrRole === "string" || paramsOrRole === null
+      ? {}
+      : paramsOrRole;
 
   const { data, error, isLoading, mutate } = useSWR(
-    token ? ["workspaces", role ?? "admin-list", params, token] : null,
+    token && paramsOrRole !== null
+      ? ["workspaces", role ?? "admin-list", params, token]
+      : null,
     async () => {
       if (role && role !== "admin") {
         const workspaces = await workspaceService.getMyWorkspaces(token!);

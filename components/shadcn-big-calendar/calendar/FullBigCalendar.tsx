@@ -117,6 +117,7 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
       events.flatMap((event) => {
         const start = new Date(event.eventStart);
         if (Number.isNaN(start.getTime())) return [];
+        const eventWorkspaceId = event.sourceWorkspaceId || workspaceId;
 
         const parsedEnd = new Date(event.eventEnd);
         const end =
@@ -130,8 +131,8 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
             title: event.title,
             start: start.toISOString(),
             end: end.toISOString(),
-            url: workspaceId
-              ? `/group/${workspaceId}/event/${event.postId}`
+            url: eventWorkspaceId
+              ? `/group/${eventWorkspaceId}/event/${event.postId}`
               : undefined,
             extendedProps: {
               location: event.location?.locationName ?? "",
@@ -211,7 +212,9 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
   }, [view]);
 
   useEffect(() => {
-    updateWeekNowIndicator();
+    const initialUpdateFrame = window.requestAnimationFrame(
+      updateWeekNowIndicator,
+    );
 
     const interval = window.setInterval(updateWeekNowIndicator, 60 * 1000);
     let scrollers: HTMLElement[] = [];
@@ -229,6 +232,7 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
     window.addEventListener("resize", updateWeekNowIndicator);
 
     return () => {
+      window.cancelAnimationFrame(initialUpdateFrame);
       window.cancelAnimationFrame(scrollListenerFrame);
       window.clearInterval(interval);
       scrollers.forEach((scroller) => {
