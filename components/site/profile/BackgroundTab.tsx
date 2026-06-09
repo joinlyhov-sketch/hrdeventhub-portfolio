@@ -36,8 +36,24 @@ export default function BackgroundTab({ profile, loading }: BackgroundTabProps) 
     profile.cvResumeUrl.trim() !== ""
   );
 
-  const handleDownloadCV = () => {
-    if (hasResume && profile.cvResumeUrl) {
+  const handleDownloadCV = async (e: React.MouseEvent) => {
+    if (!hasResume || !profile.cvResumeUrl) return;
+    
+    try {
+      const response = await fetch(profile.cvResumeUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `CV_${profile.appUser?.firstName || "User"}_Resume.pdf`;
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
       window.open(profile.cvResumeUrl, "_blank", "noopener,noreferrer");
     }
   };

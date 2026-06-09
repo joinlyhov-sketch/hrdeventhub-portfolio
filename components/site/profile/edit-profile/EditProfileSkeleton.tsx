@@ -18,12 +18,8 @@ const Sk = ({
 export default function EditProfileSkeleton() {
   return (
     <div className="w-full flex flex-col gap-4 animate-pulse">
-      {/* MAIN CARD */}
       <div className="w-full border border-border rounded-2xl p-6 flex flex-col gap-5 bg-white dark:bg-transparent">
-        {/* Section Title */}
         <Sk className="h-6 w-40 rounded-md" />
-
-        {/* Avatar + First Name / Last Name / Username */}
         <div className="flex items-end gap-5">
           <Sk className="w-20 h-20 rounded-full shrink-0" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
@@ -35,8 +31,6 @@ export default function EditProfileSkeleton() {
             ))}
           </div>
         </div>
-
-        {/* Date of Birth / Current Status / Gender */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[{ w: "w-24" }, { w: "w-28" }, { w: "w-32" }].map((f, i) => (
             <div key={i} className="flex flex-col gap-1.5">
@@ -45,8 +39,6 @@ export default function EditProfileSkeleton() {
             </div>
           ))}
         </div>
-
-        {/* Phone Number / Email */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[{ w: "w-28" }, { w: "w-36" }].map((f, i) => (
             <div key={i} className="flex flex-col gap-1.5">
@@ -55,16 +47,12 @@ export default function EditProfileSkeleton() {
             </div>
           ))}
         </div>
-
-        {/* Profile Bio */}
         <div className="flex flex-col gap-1.5">
           <Sk className="h-3.5 w-20" />
           <Sk className="w-full h-24 rounded-xl" />
         </div>
 
         <hr className="border-border" />
-
-        {/* Social Accounts */}
         <Sk className="h-5 w-36 rounded-md" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -86,8 +74,6 @@ export default function EditProfileSkeleton() {
             </div>
           ))}
         </div>
-
-        {/* Save Button */}
         <div className="flex justify-end mt-1">
           <Sk className="h-10 w-32 rounded-xl" />
         </div>

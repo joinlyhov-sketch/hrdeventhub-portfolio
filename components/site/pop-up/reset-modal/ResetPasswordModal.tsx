@@ -4,8 +4,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, X } from "lucide-react";
 import { useTransition, useEffect } from "react";
-import { useResetPasswordStore } from "@/store/useResetPasswordStore";
-import { useCurrentUser } from "@/context/user-context"; 
+import { useResetPasswordStore } from "@/store/useResetPasswordAdminStore";
+import { useCurrentUser } from "@/context/user-context";
 import ConfirmStep from "./step-1-confirm";
 import VerifyStep from "./step-2-verify";
 import NewPasswordStep from "./step-3-new-password";
@@ -23,54 +23,48 @@ const STEP_LABELS = [
 
 export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordModalProps) {
   const step = useResetPasswordStore((s) => s.step);
-  const resetStore = useResetPasswordStore((s) => s.reset);
-  const storeEmail = useResetPasswordStore((s) => s.storeEmail);
+  const reset = useResetPasswordStore((s) => s.reset);
+  const setEmail = useResetPasswordStore((s) => s.setEmail);
   const [isPending, startTransition] = useTransition();
   const { currentUser, isLoading } = useCurrentUser();
 
   useEffect(() => {
-    if (isOpen && currentUser?.email) {
-      storeEmail(currentUser.email);
+    if (isOpen) {
+      reset();
+      if (currentUser?.email) {
+        setEmail(currentUser.email);
+      }
     }
-  }, [isOpen, currentUser, storeEmail]);
+  }, [isOpen]);
 
-  const handleResetAndClose = () => {
-    resetStore();
-    useResetPasswordStore.setState({ step: 1 });
+  const handleClose = () => {
+    reset();
     onClose();
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && handleResetAndClose()}>
+    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50" />
-        
+
         <Dialog.Content
-          onPointerDownOutside={(e) => {
-            if (isPending) e.preventDefault();
-          }}
-          onInteractOutside={(e) => {
-            if (isPending) e.preventDefault();
-          }}
-          onEscapeKeyDown={(e) => {
-            if (isPending) e.preventDefault();
-          }}
+          onPointerDownOutside={(e) => { if (isPending) e.preventDefault(); }}
+          onInteractOutside={(e) => { if (isPending) e.preventDefault(); }}
+          onEscapeKeyDown={(e) => { if (isPending) e.preventDefault(); }}
           className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[640px] bg-[#f9fbff] rounded-[24px] shadow-xl border border-[#c8d6ee] z-50 overflow-hidden outline-none flex flex-col min-h-[500px]"
         >
           <div className="bg-slate-50/50 border-b border-[#dce6f0] p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3.5">
-              <div className="flex flex-col">
-                <Dialog.Title className="text-lg font-bold text-[#17356f] tracking-tight">
-                  Reset Account Password
-                </Dialog.Title>
-                <p className="text-xs font-semibold text-[#24529a] tracking-wide mt-0.5">
-                  {STEP_LABELS[step - 1] || "Security Verification"}
-                </p>
-              </div>
+            <div className="flex flex-col">
+              <Dialog.Title className="text-lg font-bold text-[#17356f] tracking-tight">
+                Reset Account Password
+              </Dialog.Title>
+              <p className="text-xs font-semibold text-[#24529a] tracking-wide mt-0.5">
+                {STEP_LABELS[step - 1] ?? "Security Verification"}
+              </p>
             </div>
             <button
               disabled={isPending}
-              onClick={handleResetAndClose}
+              onClick={handleClose}
               className="text-[#94a3b8] hover:text-[#17356f] p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50"
               aria-label="Close modal"
             >
@@ -94,7 +88,7 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
                     <VerifyStep key="step2" startTransition={startTransition} isPending={isPending} />
                   )}
                   {step === 3 && (
-                    <NewPasswordStep key="step3" startTransition={startTransition} isPending={isPending} handleClose={handleResetAndClose} />
+                    <NewPasswordStep key="step3" startTransition={startTransition} isPending={isPending} handleClose={handleClose} />
                   )}
                 </AnimatePresence>
               )}
@@ -111,9 +105,7 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
                   />
                 ))}
               </div>
-              <span className="text-xs text-[#6e7580]">
-                Step {step} of 3
-              </span>
+              <span className="text-xs text-[#6e7580]">Step {step} of 3</span>
             </div>
           </div>
         </Dialog.Content>
