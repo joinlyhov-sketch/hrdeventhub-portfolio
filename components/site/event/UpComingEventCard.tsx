@@ -71,7 +71,7 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
           time: displayTime,
           variant: index % 2 === 0 ? "blue" : "green",
         };
-      });
+      }).slice(0, 3);
   }, [posts]);
 
   if (isLoading) {

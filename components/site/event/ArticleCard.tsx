@@ -25,6 +25,7 @@ import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { usePostReaction } from "@/hooks/use-post-reaction";
 import { ReactionSummary } from "./ReactionSummary";
+import { formatEventDate } from "@/libs/format-date";
 
 interface ArticleCardProps {
   role: UserRole;
@@ -116,11 +117,11 @@ function ArticleItem({
               )}
             </div>
             <div>
-              <h3 className="type-detail-semibold text-secondary">
+              <h3 className="type-desc-semibold text-secondary">
                 {creator?.fullName ?? "—"}
               </h3>
-              <p className="type-detail-small-medium text-grey-400">
-                {post.createdAt}
+              <p className="text-desc-small-semibold text-grey-500">
+                {formatEventDate(post.createdAt ?? "")}
               </p>
             </div>
           </div>

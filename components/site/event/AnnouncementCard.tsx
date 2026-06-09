@@ -27,6 +27,7 @@ import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { ReactionSummary } from "./ReactionSummary";
+import { formatEventDate } from "@/libs/format-date";
 
 interface AnnouncementCardProps {
   role: UserRole;
@@ -230,11 +231,11 @@ function AnnouncementItem({
               <Megaphone size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-grey-900 leading-tight">
-                Announcement
-              </h4>
-              <p className="text-xs font-medium text-grey-400">
-                {post.createdAt}
+              <h3 className="type-desc-semibold text-secondary">
+                {creator?.fullName ?? "—"}
+              </h3>
+              <p className="text-desc-small-semibold text-grey-500">
+                {formatEventDate(post.createdAt ?? "")}
               </p>
             </div>
           </div>

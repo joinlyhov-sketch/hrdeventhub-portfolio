@@ -26,6 +26,7 @@ import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { ReactionSummary } from "./ReactionSummary";
+import { formatEventDate } from "@/libs/format-date";
 
 interface EventCardProps {
   role: UserRole;
@@ -124,8 +125,8 @@ function EventItem({
               <h3 className="type-desc-semibold text-secondary">
                 {creator?.fullName ?? "—"}
               </h3>
-              <p className="type-detail-small-medium text-grey-400">
-                {post.createdAt}
+              <p className="text-desc-small-semibold text-grey-500">
+                {formatEventDate(post.createdAt ?? "")}
               </p>
             </div>
           </div>
@@ -367,7 +368,7 @@ function EventItem({
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/events/${post.postId}`}
+        shareUrl={`https://hrdeventhub.app/group/${groupid}/event/${post.postId}`}
       />
     </>
   );
