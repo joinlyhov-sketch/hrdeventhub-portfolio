@@ -10,9 +10,16 @@ interface StatsCardsSectionProps {
 }
 
 const isSuccessfulTransaction = (status?: string) => {
-  const normalized = status?.toLowerCase();
-  return normalized === "0" || normalized === "successful" || normalized === "success";
+  const normalized = status?.trim().toLowerCase();
+  return (
+    normalized === "0" ||
+    normalized === "successful" ||
+    normalized === "success"
+  );
 };
+
+const isActiveEvent = (event: EventItem) =>
+  event.status?.trim().toLowerCase() === "active";
 
 export function StatsCardsSection({
   events,
@@ -34,10 +41,7 @@ export function StatsCardsSection({
     )
     .reduce((total, transaction) => total + transaction.amount, 0);
 
-  const activeEventsCount = (events || []).filter((event) => {
-    const status = event.status?.toLowerCase();
-    return status === "active" || status === "published" || status === "open";
-  }).length;
+  const activeEventsCount = (events || []).filter(isActiveEvent).length;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
