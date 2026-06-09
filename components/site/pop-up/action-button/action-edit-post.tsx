@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { SquarePen, Trash2, MoreVertical, Pin, PinOff } from "lucide-react";
@@ -17,9 +18,9 @@ interface GenericPostDropDownProps {
   title: string;
   editUrl: string;
   onDelete: () => Promise<void> | void;
-  isPinned: boolean;
-  pinnedCount: number;
-  onTogglePin: (currentPinStatus: boolean) => Promise<void> | void;
+  isPinned?: boolean;
+  pinnedCount?: number;
+  onTogglePin?: (currentPinStatus: boolean) => Promise<void> | void;
 }
 
 export default function GenericPostDropDown({
@@ -34,13 +35,20 @@ export default function GenericPostDropDown({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  const hasPinFeature = onTogglePin !== undefined;
+
   const handleTogglePin = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isPinned && pinnedCount >= MAX_PINNED) return;
+    if (!hasPinFeature) return;
+    
+    const currentPinned = isPinned ?? false;
+    const currentCount = pinnedCount ?? 0;
+    
+    if (!currentPinned && currentCount >= MAX_PINNED) return;
 
     startTransition(async () => {
       try {
-        await onTogglePin(isPinned);
+        await onTogglePin(currentPinned);
       } catch (error) {
         console.error("[togglePin] Failed:", error);
       }
@@ -63,22 +71,24 @@ export default function GenericPostDropDown({
           align="end"
         >
           <DropdownMenuGroup className="flex flex-col gap-1">
-            <DropdownMenuItem
-              onClick={handleTogglePin}
-              disabled={isPending || (!isPinned && pinnedCount >= MAX_PINNED)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-action hover:bg-action/10 focus:bg-action/10 hover:text-action focus:text-action cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPinned ? (
-                <>
-                  <PinOff size={16} className="stroke-action" /> Unpin
-                </>
-              ) : (
-                <>
-                  <Pin size={16} className="stroke-action" />{" "}
-                  {pinnedCount >= MAX_PINNED ? "Pin limit reached" : "Pin Post"}
-                </>
-              )}
-            </DropdownMenuItem>
+            {hasPinFeature && (
+              <DropdownMenuItem
+                onClick={handleTogglePin}
+                disabled={isPending || (!(isPinned ?? false) && (pinnedCount ?? 0) >= MAX_PINNED)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-action hover:bg-action/10 focus:bg-action/10 hover:text-action focus:text-action cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPinned ? (
+                  <>
+                    <PinOff size={16} className="stroke-action" /> Unpin
+                  </>
+                ) : (
+                  <>
+                    <Pin size={16} className="stroke-action" />{" "}
+                    {(pinnedCount ?? 0) >= MAX_PINNED ? "Pin limit reached" : "Pin Post"}
+                  </>
+                )}
+              </DropdownMenuItem>
+            )}
 
             <DropdownMenuItem
               onClick={(e) => {
