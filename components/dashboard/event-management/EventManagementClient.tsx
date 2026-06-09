@@ -11,6 +11,7 @@ import { Transaction } from "@/service/payment.service";
 import Search from "../../site/search/Search";
 import ContentTypePopover from "@/components/site/pop-up/contents/pop-over-content";
 import { PopoverItem } from "@/components/site/pop-up/contents/pop-over-content";
+import { useParams } from "next/navigation";
 
 interface EventManagementClientProps {
   events: EventItem[];
