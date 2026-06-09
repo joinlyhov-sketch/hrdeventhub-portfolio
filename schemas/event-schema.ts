@@ -27,10 +27,7 @@ export const eventPostSchema = z
       .number()
       .min(1, "Price at least 1$ and cannot be negative value"),
 
-    targetGoal: z.coerce
-      .number()
-      .min(10, "Target goal at least 10$ cannot be negative value")
-      .optional(),
+    targetGoal: z.coerce.number().optional(),
 
     description: z
       .string()
@@ -45,6 +42,8 @@ export const eventPostSchema = z
       )
       .min(1, "Please upload at least one image"),
     workspaceId: z.string().optional(),
+
+    paymentType: z.enum(["fixed", "flexible"]),
   })
   .superRefine((data, ctx) => {
     const today = new Date();

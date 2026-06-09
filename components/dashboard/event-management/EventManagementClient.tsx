@@ -18,7 +18,11 @@ interface EventManagementClientProps {
 }
 
 const contentMenuOptions: PopoverItem[] = [
-  { label: "Event", icon: Calendar, href: "/event-management/creation/event " },
+  {
+    label: "Event",
+    icon: Calendar,
+    href: "/event-management/creation/event?admin=true",
+  },
 ];
 
 export function EventManagementClient({
@@ -27,6 +31,11 @@ export function EventManagementClient({
 }: EventManagementClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
+  const params = useParams();
+
+  const workspaceId = (params.workspaceId ||
+    params.id ||
+    params.groupId) as string;
   return (
     <div className="space-y-6">
       <StatsCardsSection

@@ -9,11 +9,11 @@ import {
   deleteCommentService,
   replyCommentService,
 } from "@/service/comment.service";
-import { ServerActionResponse } from "@/types/file-types";
+import { ServerActionResponse2 } from "@/types/file-types";
 import { Comment } from "@/types/comment";
 export async function getCommentsAction(
   postId: string,
-): Promise<ServerActionResponse<Comment[]>> {
+): Promise<ServerActionResponse2<Comment[]>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
@@ -57,7 +57,7 @@ export async function getCommentsAction(
 export async function createCommentAction(
   postId: string,
   comment: string,
-): Promise<ServerActionResponse<boolean>> {
+): Promise<ServerActionResponse2<boolean>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
@@ -101,7 +101,7 @@ export async function createCommentAction(
 export async function editCommentAction(
   commentId: string,
   comment: string,
-): Promise<ServerActionResponse<boolean>> {
+): Promise<ServerActionResponse2<boolean>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
@@ -147,7 +147,7 @@ export async function editCommentAction(
  */
 export async function deleteCommentAction(
   commentId: string,
-): Promise<ServerActionResponse<boolean>> {
+): Promise<ServerActionResponse2<boolean>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
@@ -191,7 +191,7 @@ export async function deleteCommentAction(
 export async function createReplyAction(
   commentId: string,
   reply: string,
-): Promise<ServerActionResponse<Comment>> {
+): Promise<ServerActionResponse2<Comment>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
