@@ -16,7 +16,7 @@ import DetailContentComponent from "../../../components/site/event-detail/detail
 import { AdminOverview } from "../../../components/site/event-detail/register-table";
 import { DiscussionSection } from "../../../components/site/event-detail/discussion-section";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-import PaymentModal from "@/components/site/pop-up/payment/PaymentModal";
+import { PaymentWizardDialog } from "@/components/site/pop-up/new-payment/payment";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -24,7 +24,6 @@ import {
   REACTIONS,
   TwemojiImg,
 } from "@/components/site/pop-up/comment/reaction";
-import { usePaymentModalStore } from "@/store/usePaymentModalStore";
 import { reactionService } from "../../../service/post-reaction.service";
 import { useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
@@ -41,39 +40,77 @@ type AdminSubTab = "overview" | "discussion";
 
 interface EventDetailClientProps {
   event: Post;
+  workspaceId: string;
 }
 
-export default function EventDetailClient({ event }: EventDetailClientProps) {
+export default function EventDetailClient({
+  event,
+  workspaceId,
+}: EventDetailClientProps) {
   const { currentUser } = useCurrentUser();
   const { data: session, status } = useSession();
-
   const isAdminOrOrganizer =
     currentUser?.role === "admin" || currentUser?.role === "organizer";
 
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [activeAdminTab, setActiveAdminTab] = useState<AdminSubTab>("overview");
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const [reactionPayload, setReactionPayload] = useState<ReactionItem[]>([]);
 
   const discussionRef = useRef<HTMLDivElement>(null);
-
-  const openPaymentModal = usePaymentModalStore(
-    (state) => state.openPaymentModal,
-  );
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [detailData, setDetailData] = useState({
     id: event?.postId || "det-4401",
-    likesCount: 124,
+    likesCount: 0,
     commentsCount: event?.comments?.length || 0,
     isLikedByUser: false,
   });
 
+  const API_BASE =
+    "https://api.dev.hrdevent.app/api/v4/files/preview-file?key=";
+
   const mediaList =
     event?.media && event.media.length > 0
-      ? event.media.map((m: any) => m.filePath || m.url)
+      ? event.media.map((m: any) => {
+          const path = m.filePath || m.url || "";
+          const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+          return url;
+        })
       : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
+
+  const extendedList = [
+    mediaList[mediaList.length - 1],
+    ...mediaList,
+    mediaList[0],
+  ];
+
+  const [currentImgIndex, setCurrentImgIndex] = useState(1);
+  const isTransitioning = useRef(true);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+
+  const FALLBACK =
+    "https://images.unsplash.com/photo-1511578314322-379afb476865";
+  useEffect(() => {
+    if (trackRef.current) {
+      trackRef.current.style.transition = isTransitioning.current
+        ? "transform 500ms ease-in-out"
+        : "none";
+    }
+  }, [currentImgIndex]);
+  useEffect(() => {
+    if (mediaList.length <= 1) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      goToIndex(currentImgIndex + 1);
+    }, 3000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [currentImgIndex, mediaList.length]);
 
   useEffect(() => {
     if (session?.error === "RefreshTokenExpired") {
@@ -119,16 +156,22 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
     fetchUserReaction();
   }, [currentUser?.id, event?.postId, session?.accessToken, status]);
 
-  const handlePrevImage = () => {
-    setCurrentImgIndex((prev) =>
-      prev === 0 ? mediaList.length - 1 : prev - 1,
-    );
+  const goToIndex = (index: number) => {
+    isTransitioning.current = true;
+    setCurrentImgIndex(index);
   };
 
-  const handleNextImage = () => {
-    setCurrentImgIndex((prev) =>
-      prev === mediaList.length - 1 ? 0 : prev + 1,
-    );
+  const handlePrevImage = () => goToIndex(currentImgIndex - 1);
+  const handleNextImage = () => goToIndex(currentImgIndex + 1);
+
+  const handleTransitionEnd = () => {
+    if (currentImgIndex === 0) {
+      isTransitioning.current = false;
+      setCurrentImgIndex(mediaList.length);
+    } else if (currentImgIndex === extendedList.length - 1) {
+      isTransitioning.current = false;
+      setCurrentImgIndex(1);
+    }
   };
 
   const handleScrollToDiscussion = () => {
@@ -167,7 +210,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
               postId: event.postId,
               reactor: {
                 appUserId: currentUser?.id ?? "",
-              }
+              },
             },
           ],
     );
@@ -211,7 +254,9 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
     }));
     setReactionPayload((prev) => {
-      const without = prev.filter((r) => r.reactor.appUserId !== currentUser?.id);
+      const without = prev.filter(
+        (r) => r.reactor.appUserId !== currentUser?.id,
+      );
       return [
         ...without,
         {
@@ -221,7 +266,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           postId: event.postId,
           reactor: {
             appUserId: currentUser?.id ?? "",
-          }
+          },
         },
       ];
     });
@@ -298,13 +343,31 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="relative group aspect-video md:h-87.5 w-full rounded-xl overflow-hidden bg-grey-50 border border-border">
-            <Image
-              unoptimized
-              src={mediaList[currentImgIndex]}
-              alt={`Banner slider image view ${currentImgIndex + 1}`}
-              fill
-              className="object-cover transition-all duration-300"
-            />
+            <div
+              ref={trackRef}
+              className="flex h-full"
+              style={{ transform: `translateX(-${currentImgIndex * 100}%)` }}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              {extendedList.map((src, index) => (
+                <div
+                  key={index}
+                  className="relative min-w-full h-full flex-shrink-0"
+                >
+                  <Image
+                    unoptimized
+                    src={imgErrors[src] ? FALLBACK : src}
+                    alt={`Slide ${index}`}
+                    fill
+                    className="object-cover"
+                    onError={() =>
+                      setImgErrors((prev) => ({ ...prev, [src]: true }))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+
             {mediaList.length > 1 && (
               <>
                 <button
@@ -323,7 +386,12 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
                   {mediaList.map((_, index) => (
                     <div
                       key={index}
-                      className={`h-2 w-2 rounded-full transition-all ${index === currentImgIndex ? "bg-white scale-125" : "bg-white/50"}`}
+                      onClick={() => goToIndex(index + 1)}
+                      className={`h-2 w-2 rounded-full transition-all cursor-pointer ${
+                        currentImgIndex === index + 1
+                          ? "bg-white scale-125"
+                          : "bg-white/50"
+                      }`}
                     />
                   ))}
                 </div>
@@ -347,6 +415,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
             <div className="grow pt-4 max-w-full items-stretch min-[1290px]:w-3xl">
               {activeTab === "details" && (
                 <DetailContentComponent
+                  postId={event?.postId}
                   title={event?.title}
                   content={event?.content}
                   eventStart={event?.eventStart}
@@ -370,7 +439,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
 
             {!isAdminOrOrganizer && (
               <button
-                onClick={() => openPaymentModal("register")}
+                onClick={() => setIsPaymentOpen(true)}
                 className="w-full rounded-md py-2.5 type-desc-semibold text-center text-primary-foreground bg-primary hover:opacity-95 transition-opacity cursor-pointer"
               >
                 Register now
@@ -416,7 +485,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
                 <Share2 size={20} /> Share
               </button>
             </section>
-            
+
             <ReactionSummary payload={reactionPayload} />
           </section>
         </section>
@@ -438,7 +507,7 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
               </button>
             </section>
             {activeAdminTab === "overview" ? (
-              <AdminOverview />
+              <AdminOverview event={event} workspaceId={workspaceId} />
             ) : (
               <div ref={discussionRef}>
                 <DiscussionSection event={event} />
@@ -453,11 +522,16 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
       </section>
 
       <ShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/events/${detailData.id}`}
+  isOpen={isShareOpen}
+  onClose={() => setIsShareOpen(false)}
+  postId={event?.postId}
+/>
+      
+      <PaymentWizardDialog
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        post={event}
       />
-      <PaymentModal />
     </>
   );
 }

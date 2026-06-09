@@ -55,7 +55,7 @@ export default async function EventDetailPage({ params }: PageProps) {
           {eventData.title}
         </span>
       </section>
-      <EventDetailClient event={eventData} />
+      <EventDetailClient event={eventData} workspaceId={groupid} />
     </section>
   );
 }

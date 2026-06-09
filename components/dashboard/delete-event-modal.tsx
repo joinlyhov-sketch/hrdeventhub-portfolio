@@ -21,7 +21,12 @@ interface DeleteEventModalProps {
   onConfirm: () => Promise<void>;
 }
 
-export function DeleteEventModal({ isOpen, onClose, eventTitle, onConfirm }: DeleteEventModalProps) {
+export function DeleteEventModal({
+  isOpen,
+  onClose,
+  eventTitle,
+  onConfirm,
+}: DeleteEventModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,10 +72,13 @@ export function DeleteEventModal({ isOpen, onClose, eventTitle, onConfirm }: Del
         <div className="px-8 py-6 bg-white space-y-3">
           <p className="text-[15px] text-gray-600 leading-relaxed">
             Are you sure you want to permanently remove{" "}
-            <span className="font-semibold text-gray-900">&apos;{eventTitle}&apos;</span>? 
-            All standard student analytics, interactions, and metrics tied to this post will be erased from the workspace.
+            <span className="font-semibold text-gray-900">
+              &apos;{eventTitle}&apos;
+            </span>
+            ? All standard student analytics, interactions, and metrics tied to
+            this post will be erased from the workspace.
           </p>
-          
+
           {error && (
             <div className="p-3 text-xs bg-destructive/10 text-destructive rounded-lg font-mono">
               {error}

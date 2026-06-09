@@ -32,10 +32,6 @@ export default function ProfilePage() {
     ? "self"
     : (currentUser?.role as ViewMode) ?? "student";
 
-  const showStudentTabs =
-    isSelf &&
-    (currentUser?.role === "student" || currentUser?.role === "alumni");
-
   useEffect(() => {
     if (!isReady || !session?.accessToken) return;
 
@@ -56,19 +52,36 @@ export default function ProfilePage() {
 
     fetchProfile();
   }, [isReady, session?.accessToken, userId, isSelf]);
-  const subjectRole = profile?.roles; 
 
-const titlePrimary = isSelf
-  ? "My"
-  : subjectRole === "ALUMNI"
-  ? "Alumni"
-  : subjectRole === "ADMIN"
-  ? "Admin"
-  : subjectRole === "ORGANIZER"
-  ? "Organizer"
-  : "Student";
+  const subjectRole = profile?.roles ? String(profile.roles).toUpperCase() : "";
+  const viewerRole = currentUser?.role ? String(currentUser.role).toUpperCase() : "";
+
+  const showEventTab = isReady && (
+    (isSelf && (viewerRole === "STUDENT" || viewerRole === "ALUMNI")) ||
+    (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI"))
+  );
+
+  const showEndorsementTab = isReady && (
+    (isSelf && viewerRole === "STUDENT") ||
+    (!isSelf && subjectRole === "STUDENT")
+  );
+
+  const titlePrimary = isSelf
+    ? "My"
+    : subjectRole === "ALUMNI"
+    ? "Alumni"
+    : subjectRole === "ADMIN"
+    ? "Admin"
+    : subjectRole === "ORGANIZER"
+    ? "Organizer"
+    : "Student";
 
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
+
+  useEffect(() => {
+    if (activeTab === "EV" && !showEventTab) setActiveTab("BG");
+    if (activeTab === "EN" && !showEndorsementTab) setActiveTab("BG");
+  }, [activeTab, showEventTab, showEndorsementTab]);
 
   const subjectName = profile
     ? `${profile.appUser.firstName} ${profile.appUser.lastName}`.trim()
@@ -82,48 +95,52 @@ const titlePrimary = isSelf
 
   return (
     <div className="w-full bg-background z-30">
-     <ProfileHeader
-  description={headerDesc}
-  titlePrimary={titlePrimary}
-/>
+      <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
       <div className="lg:pr-12 lg:pl-12 max-w-420 m-auto">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch max-h-[calc(100vh-220px)] xl:h-[680px]">
           <div className="xl:col-span-4 h-full">
             <ProfileCard
               viewMode={!isReady ? null : viewMode}
               profile={profile}
               loading={profileLoading || !isReady}
               profileId={userId}
+              authToken={session?.accessToken ?? ""} 
             />
           </div>
-          <div className="xl:col-span-8 h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6">
-            <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1">
+          <div className="xl:col-span-8 h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6 overflow-hidden">
+            <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1 shrink-0">
               <Tabnav
                 active={activeTab === "BG"}
                 label="Background"
                 onClick={() => setActiveTab("BG")}
               />
-              {showStudentTabs && (
-                <>
-                  <Tabnav
-                    active={activeTab === "EV"}
-                    label="Participated Event"
-                    onClick={() => setActiveTab("EV")}
-                  />
-                  <Tabnav
-                    active={activeTab === "EN"}
-                    label="My Endorsement"
-                    onClick={() => setActiveTab("EN")}
-                  />
-                </>
+              {showEventTab && (
+                <Tabnav
+                  active={activeTab === "EV"}
+                  label="Participated Event"
+                  onClick={() => setActiveTab("EV")}
+                />
+              )}
+              {showEndorsementTab && (
+                <Tabnav
+                  active={activeTab === "EN"}
+                  label={isSelf ? "My Endorsement" : "Endorsements"}
+                  onClick={() => setActiveTab("EN")}
+                />
               )}
             </div>
-            <div className="w-full">
+            <div className="w-full flex-1 min-h-0 overflow-hidden">
               {activeTab === "BG" && (
                 <BackgroundTab profile={profile} loading={profileLoading || !isReady} />
               )}
-              {activeTab === "EV" && showStudentTabs && <EventTab />}
-              {activeTab === "EN" && showStudentTabs && <EndorsementTabs />}
+              {activeTab === "EV" && showEventTab && (
+                <EventTab userId={userId} />
+              )}
+              {activeTab === "EN" && showEndorsementTab && (
+                <EndorsementTabs  
+                  studentId={isSelf ? undefined : userId} 
+                />
+              )}
             </div>
           </div>
         </div>

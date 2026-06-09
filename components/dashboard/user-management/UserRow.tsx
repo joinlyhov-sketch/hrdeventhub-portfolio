@@ -32,16 +32,16 @@ export default function UserRow({
   const getGenerationNumber = (genName: string | undefined) => {
     if (!genName) return "N/A";
     const match = genName.match(/\d+/);
-    return match ? match[0] : genName; 
+    return match ? match[0] : genName;
   };
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
-      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%]">
+      <TableCell className="py-1 type-desc text-gray-500 text-center w-[10%]">
         {rowDisplayIdentifier}
       </TableCell>
 
-      <TableCell className="px-3 py-3 type-desc text-gray-500 w-[18%]">
+      <TableCell className="px-3 py-3 type-desc text-gray-500 w-[50%]">
         <div className="flex items-center gap-2 truncate">
           {profileSrc ? (
             <img
@@ -50,11 +50,14 @@ export default function UserRow({
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[15px] font-medium text-white">
-              {user.username.charAt(0).toUpperCase()}
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[15px] font-medium text-white shrink-0">
+              {user.firstName?.charAt(0).toUpperCase()}
+              {user.lastName?.charAt(0).toUpperCase()}
             </div>
           )}
-          <span className="truncate">{user.username}</span>
+          <span className="truncate">
+            {user ? `${user.firstName} ${user.lastName}` : "User"}
+          </span>
         </div>
       </TableCell>
 
@@ -91,7 +94,7 @@ export default function UserRow({
         </div>
       </TableCell>
 
-      <TableCell className="px-8 py-3 text-sm w-[15%] items-center text-center">
+      <TableCell className="px-10 py-3 text-sm w-[20%] items-center text-center">
         <div className="flex items-center gap-4">
           <button
             type="button"

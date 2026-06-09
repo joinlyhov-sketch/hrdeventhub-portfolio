@@ -246,7 +246,7 @@ export default function PlatformEssentials() {
               }}
             >
               <div className="absolute w-[350px] h-[350px] rounded-full border-b-4 -top-[60px] left-0" />
-              <div className="absolute w-[230px] h-[230px] left-[60px] top-0 bg-white rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-slate-100 flex items-center justify-center text-center p-6 transition-transform duration-300 hover:scale-105">
+              <div className="absolute w-[230px] h-[230px] left-[60px] bg-white rounded-full border border-slate-100 flex items-center justify-center text-center p-6 transition-transform duration-300 hover:scale-105">
                 <h2 className="text-center text-[24px] font-black leading-tight text-primary">
                   Core
                   <br />
@@ -297,7 +297,7 @@ export default function PlatformEssentials() {
         variants={mobileContainerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
+        viewport={{ once: true, amount: 0.5 }}
         className="md:hidden grid grid-cols-1 gap-6 mt-8 max-w-md mx-auto px-4"
       >
         {cards.map((item, index) => (

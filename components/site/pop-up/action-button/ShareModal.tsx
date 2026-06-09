@@ -37,7 +37,7 @@ export default function ShareModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={true}
-        className="max-w-[540px] w-full rounded-3xl border-none bg-white p-8 shadow-2xl gap-0"
+        className="max-w-[min(540px,90vw)] w-full rounded-3xl border-none bg-white p-8 shadow-2xl gap-0"
       >
         <DialogHeader className="mb-6">
           <DialogTitle className="text-[28px] font-bold text-[#0f172a]">

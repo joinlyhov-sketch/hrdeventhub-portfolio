@@ -32,7 +32,7 @@ export default function ActionDropdown({ actions }: ActionDropdownProps) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="flex flex-col justify-center w-20 h-25 bg-card gap-10"
+        className="flex flex-col justify-center w-20 h-auto bg-card gap-10"
         align="start"
       >
         <DropdownMenuGroup>
