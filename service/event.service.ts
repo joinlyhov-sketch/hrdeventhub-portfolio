@@ -51,6 +51,11 @@ export interface EventComment {
 
 export interface EventItem {
   postId: string;
+  workspaceId?: string;
+  sourceWorkspaceId?: string;
+  sourceWorkspaceName?: string;
+  attendeeCount?: number;
+  pendingPaymentCount?: number;
   category: string;
   title: string;
   content: string;
@@ -81,7 +86,15 @@ export interface ParticipantUser {
   username: string;
   firstName: string;
   lastName: string;
+  email?: string;
+  gender?: string;
+  phoneNumber?: string;
   profilePicture: string;
+  generation?: {
+    generationId?: string;
+    name?: string;
+    year?: string;
+  };
 }
 
 export interface Participant {
@@ -103,6 +116,19 @@ export interface ParticipantResponse {
   timestamp: string;
 }
 
+interface WorkspaceSummary {
+  workspaceId: string;
+  name: string;
+}
+
+interface WorkspaceResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: WorkspaceSummary[];
+  timestamp: string;
+}
+
 export const eventService = {
   getAll: async (
     token: string,
@@ -116,6 +142,98 @@ export const eventService = {
     return response.payload;
   },
 
+  getAllPlatformEvents: async (token: string): Promise<EventItem[]> => {
+    const pageSize = 100;
+    const eventsById = new Map<string, EventItem>();
+
+    for (let page = 1; page <= 100; page += 1) {
+      const pageEvents = await eventService.getAll(token, page, pageSize);
+      let newEventCount = 0;
+
+      pageEvents.forEach((event) => {
+        if (!eventsById.has(event.postId)) newEventCount += 1;
+
+        eventsById.set(event.postId, {
+          ...event,
+          sourceWorkspaceId:
+            event.sourceWorkspaceId || event.workspaceId,
+        });
+      });
+
+      if (pageEvents.length < pageSize || newEventCount === 0) break;
+    }
+
+    return Array.from(eventsById.values()).sort((a, b) => {
+      const aTime = new Date(a.eventStart).getTime();
+      const bTime = new Date(b.eventStart).getTime();
+
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return aTime - bTime;
+    });
+  },
+
+  getAllPlatformEventsWithAttendees: async (
+    token: string,
+  ): Promise<EventItem[]> => {
+    const events = await eventService.getAllPlatformEvents(token);
+
+    return Promise.all(
+      events.map(async (event) => {
+        try {
+          const participantStats = await eventService.getParticipantStats(
+            token,
+            event.postId,
+          );
+
+          return {
+            ...event,
+            attendeeCount: participantStats.total,
+            pendingPaymentCount: participantStats.pendingPayment,
+          };
+        } catch (error) {
+          console.error("Failed to fetch attendee count:", error);
+          return {
+            ...event,
+            attendeeCount: event.attendeeCount ?? 0,
+            pendingPaymentCount: event.pendingPaymentCount ?? 0,
+          };
+        }
+      }),
+    );
+  },
+
+  getAllWorkspaceEvents: async (token: string): Promise<EventItem[]> => {
+    const workspaceResponse = await apiGet<WorkspaceResponse>(
+      "/workspaces?page=1&size=100",
+      { authToken: token },
+    );
+
+    const workspaceEvents = await Promise.all(
+      (workspaceResponse.payload || []).map(async (workspace) => {
+        const events = await eventService.getByWorkspace(
+          token,
+          workspace.workspaceId,
+        );
+
+        return events.map((event) => ({
+          ...event,
+          sourceWorkspaceId: workspace.workspaceId,
+          sourceWorkspaceName: workspace.name,
+        }));
+      }),
+    );
+
+    return workspaceEvents.flat().sort((a, b) => {
+      const aTime = new Date(a.eventStart).getTime();
+      const bTime = new Date(b.eventStart).getTime();
+
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return aTime - bTime;
+    });
+  },
+
   getParticipants: async (
     token: string,
     postId: string,
@@ -127,6 +245,56 @@ export const eventService = {
       { authToken: token },
     );
     return response.payload || [];
+  },
+
+  getParticipantCount: async (
+    token: string,
+    postId: string,
+  ): Promise<number> => {
+    const stats = await eventService.getParticipantStats(token, postId);
+    return stats.total;
+  },
+
+  getParticipantStats: async (
+    token: string,
+    postId: string,
+  ): Promise<{ total: number; pendingPayment: number }> => {
+    const pageSize = 100;
+    let total = 0;
+    let pendingPayment = 0;
+
+    for (let page = 1; page <= 100; page += 1) {
+      const participants = await eventService.getParticipants(
+        token,
+        postId,
+        page,
+        pageSize,
+      );
+
+      total += participants.length;
+      pendingPayment += participants.filter((participant) =>
+        eventService.isPendingParticipantPayment(participant.paymentStatus),
+      ).length;
+
+      if (participants.length < pageSize) break;
+    }
+
+    return { total, pendingPayment };
+  },
+
+  isPendingParticipantPayment: (status?: string): boolean => {
+    const normalized = status?.trim().toLowerCase();
+    if (!normalized) return false;
+
+    return [
+      "1",
+      "pending",
+      "unpaid",
+      "failed",
+      "fail",
+      "not_paid",
+      "not paid",
+    ].includes(normalized);
   },
 
   getByWorkspace: async (
