@@ -30,7 +30,6 @@ import ActionDropdown, {
 interface EventManagementTableProps {
   events: EventItem[];
   searchTerm: string;
-  workspaceId: string;
 }
 
 const getStatusStyles = (status: string): string => {
@@ -78,10 +77,9 @@ const formatDate = (dateStr: string): string => {
 export function EventManagementTable({
   events,
   searchTerm,
-  workspaceId,
 }: EventManagementTableProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
@@ -90,10 +88,10 @@ export function EventManagementTable({
   const [activeEvent, setActiveEvent] = useState<{
     id: string;
     title: string;
+    workspaceId?: string;
   } | null>(null);
 
   const itemsPerPage = 10;
-  console.log("workspaceId table:", workspaceId);
   const filteredEvents = useMemo(() => {
     return (events || []).filter((event) => {
       const matchesSearch = event.title
@@ -155,12 +153,13 @@ export function EventManagementTable({
   }, [filteredEvents, currentPage]);
 
   const handleDeleteExecute = async () => {
-    if (!activeEvent || !workspaceId) return;
+    if (!activeEvent?.workspaceId) return;
+    const { id, workspaceId } = activeEvent;
 
     await new Promise<void>((resolve, reject) => {
       startTransition(async () => {
         try {
-          await deletePostAction(workspaceId, activeEvent.id);
+          await deletePostAction(workspaceId, id);
           router.refresh();
           resolve();
         } catch (err) {
@@ -289,21 +288,29 @@ export function EventManagementTable({
               paginatedEvents.map((event, index) => {
                 const absoluteIndex =
                   (currentPage - 1) * itemsPerPage + index + 1;
+                const eventWorkspaceId =
+                  event.sourceWorkspaceId || event.workspaceId;
 
                 const currentItemActions: DropdownAction[] = [
                   {
                     label: "Update",
                     icon: Pencil,
-                    onClick: () =>
+                    onClick: () => {
+                      if (!eventWorkspaceId) return;
                       router.push(
-                        `/event-management/edition/event?groupId=${workspaceId}&postId=${event.postId}`,
-                      ),
+                        `/event-management/edition/event?groupId=${eventWorkspaceId}&postId=${event.postId}`,
+                      );
+                    },
                   },
                   {
                     label: "Delete",
                     icon: Trash2,
                     onClick: () => {
-                      setActiveEvent({ id: event.postId, title: event.title });
+                      setActiveEvent({
+                        id: event.postId,
+                        title: event.title,
+                        workspaceId: eventWorkspaceId,
+                      });
                       setIsDeleteModalOpen(true);
                     },
                   },
@@ -361,9 +368,7 @@ export function EventManagementTable({
                     </TableCell>
 
                     <TableCell className="text-center text-secondary type-desc">
-                      {event.comments
-                        ? event.comments.length.toLocaleString()
-                        : "0"}
+                      {(event.attendeeCount ?? 0).toLocaleString()}
                     </TableCell>
 
                     <TableCell className="text-center">

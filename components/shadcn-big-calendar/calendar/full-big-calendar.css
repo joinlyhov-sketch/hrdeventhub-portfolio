@@ -79,7 +79,7 @@
   height: 3rem;
   display: flex;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1.05px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--background);
 }
@@ -95,7 +95,7 @@
 .calendar-view-tabs button.active {
   background: var(--background);
   color: var(--primary);
-  border: 1px solid var(--primary);
+  border: 1.05px solid var(--primary);
   border-radius: var(--radius-lg);
   font-weight: var(--fw-desc-semibold);
 }
