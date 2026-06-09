@@ -26,6 +26,7 @@ import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { ReactionSummary } from "./ReactionSummary";
+import { formatEventDate } from "@/libs/format-date";
 
 interface EventCardProps {
   role: UserRole;
@@ -33,6 +34,8 @@ interface EventCardProps {
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
   groupid: string;
+  pinnedCount: number;
+  onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
 }
 
 function EventItem({
@@ -40,11 +43,15 @@ function EventItem({
   role,
   onDelete,
   groupid,
+  pinnedCount,
+  onTogglePin,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupid: string;
+  pinnedCount: number;
+  onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -92,10 +99,10 @@ function EventItem({
   };
 
   const EMOJI_LIST = [
-  "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
-  "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
-  "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
-  "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
+    "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
+    "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
+    "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
+    "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
   ];
 
   const [showEmoji, setShowEmoji] = useState(false);
@@ -112,7 +119,7 @@ function EventItem({
                   alt={creator!.fullName}
                   width={48}
                   height={48}
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-cover rounded-full border-2 border-primary"
                 />
               ) : (
                 <span className="type-desc-semibold text-primary uppercase">
@@ -124,15 +131,15 @@ function EventItem({
               <h3 className="type-desc-semibold text-secondary">
                 {creator?.fullName ?? "—"}
               </h3>
-              <p className="type-detail-small-medium text-grey-400">
-                {post.createdAt}
+              <p className="text-desc-small-semibold text-grey-500">
+                {formatEventDate(post.createdAt ?? "")}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {creator?.role && (
               <span
-                className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+                className={`type-desc-small-semibold px-4 py-3 rounded-xl uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-primary" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
               >
                 {creator.role}
               </span>
@@ -142,6 +149,9 @@ function EventItem({
                 title={post.title}
                 editUrl={`/event-management/edition/event?groupId=${groupid}&postId=${post.postId}`}
                 onDelete={onDelete}
+                isPinned={post.pinned ?? false}
+                pinnedCount={pinnedCount}
+                onTogglePin={(currentStatus) => onTogglePin(post.postId, currentStatus)}
               />
             )}
           </div>
@@ -151,7 +161,7 @@ function EventItem({
 
         <ExpandableText text={post.content} />
 
-        <div className="bg-grey-50 rounded-[12px] p-4 space-y-3 mb-6">
+        <div className="bg-grey-50 rounded-[6px] p-4 space-y-3 mb-6 border-l-5 border-primary">
           {post.location && (
             <p className="type-detail text-grey-500">
               <span className="type-detail-semibold text-foreground">
@@ -365,10 +375,10 @@ function EventItem({
       </div>
 
       <ShareModal
-  isOpen={isShareOpen}
-  onClose={() => setIsShareOpen(false)}
-  postId={post.postId}
-/>
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        postId={post.postId}
+      />
     </>
   );
 }
@@ -378,6 +388,8 @@ export function EventCard({
   posts,
   onDeletePost,
   groupid,
+  pinnedCount,
+  onTogglePin,
 }: EventCardProps) {
   return (
     <>
@@ -388,6 +400,8 @@ export function EventCard({
           role={role}
           onDelete={() => onDeletePost(post.postId)}
           groupid={groupid}
+          pinnedCount={pinnedCount}
+          onTogglePin={onTogglePin}
         />
       ))}
     </>
