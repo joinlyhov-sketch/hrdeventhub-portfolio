@@ -365,10 +365,10 @@ function EventItem({
       </div>
 
       <ShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/events/${post.postId}`}
-      />
+  isOpen={isShareOpen}
+  onClose={() => setIsShareOpen(false)}
+  postId={post.postId}
+/>
     </>
   );
 }

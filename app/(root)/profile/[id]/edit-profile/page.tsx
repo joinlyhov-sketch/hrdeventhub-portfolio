@@ -24,10 +24,10 @@ export default function ProfilePage() {
           description="Update your profile information and manage your account settings."
         />
         <div className="max-w-420 m-auto w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12">
-          {currentUser.role === "student" ? (
-            <StudentProfileForm />
-          ) : (
+          {currentUser.role === "admin"   ? (
             <AdminProfileForm user={currentUser} />
+          ) : (
+             <StudentProfileForm />
           )}
         </div>
       </div>

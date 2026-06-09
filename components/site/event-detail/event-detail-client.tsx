@@ -522,10 +522,10 @@ export default function EventDetailClient({
       </section>
 
       <ShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/events/${detailData.id}`}
-      />
+  isOpen={isShareOpen}
+  onClose={() => setIsShareOpen(false)}
+  postId={event?.postId}
+/>
       
       <PaymentWizardDialog
         isOpen={isPaymentOpen}

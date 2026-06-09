@@ -67,7 +67,6 @@ export interface EventItem {
   createdAt: string;
   updatedAt: string;
   appUserId: string;
-  workspaceId: string;
   location: EventLocation;
   media: EventMedia[];
   payment: EventPayment;
