@@ -34,11 +34,11 @@ export default function AttendeeTableClient({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  console.log("🔍 [AttendeeTableClient] Rendered with initialAttendees prop length:", initialAttendees.length);
-  console.log("📊 [AttendeeTableClient] Current active internal state tracking:", attendees);
+  console.log("[AttendeeTableClient] Rendered with initialAttendees prop length:", initialAttendees.length);
+  console.log("[AttendeeTableClient] Current active internal state tracking:", attendees);
 
   useEffect(() => {
-    console.log("🔄 [AttendeeTableClient] initialAttendees prop changed! New data:", initialAttendees);
+    console.log("[AttendeeTableClient] initialAttendees prop changed! New data:", initialAttendees);
     setAttendees(initialAttendees);
   }, [initialAttendees]);
 
@@ -69,7 +69,7 @@ export default function AttendeeTableClient({
       return matchesStatus && matchesSearch;
     });
 
-    console.log(`🎯 [AttendeeTableClient] Filtering calculation complete. Matches: ${result.length} out of ${attendees.length}`);
+    console.log(`[AttendeeTableClient] Filtering calculation complete. Matches: ${result.length} out of ${attendees.length}`);
     return result;
   }, [attendees, search, statusFilter]);
 

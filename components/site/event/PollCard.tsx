@@ -31,6 +31,7 @@ function PollItem({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const [localVoted, setLocalVoted] = useState(false);
   const [justVoted, setJustVoted] = useState(false);
   const [previouslyVotedOptionIds, setPreviouslyVotedOptionIds] = useState<
@@ -39,8 +40,12 @@ function PollItem({
   const [votedTypeSnapshot, setVotedTypeSnapshot] = useState<string | null>(
     null,
   );
-  const [votedOptionsCountSnapshot, setVotedOptionsCountSnapshot] =
-    useState<number>(0);
+  const [votedOptionsCountSnapshot, setVotedOptionsCountSnapshot] = useState<
+    number | null
+  >(null);
+  const [persistedVoteCounts, setPersistedVoteCounts] = useState<
+    Record<string, number>
+  >({});
 
   const userId =
     (session?.user as any)?.id ||
@@ -66,90 +71,163 @@ function PollItem({
   }, [initialPoll.pollId]);
 
   useEffect(() => {
-    if (!userId || !initialPoll?.pollId || typeof window === "undefined")
-      return;
+    if (!initialPoll?.pollId || typeof window === "undefined") return;
 
-    const votedKey = `poll_voted_${initialPoll.pollId}_${userId}`;
-    setLocalVoted(localStorage.getItem(votedKey) === "true");
+    const genericVotedKey = `poll_voted_global_${initialPoll.pollId}`;
+    const genericVoted = localStorage.getItem(genericVotedKey) === "true";
 
-    const votedIdsKey = `poll_voted_ids_${initialPoll.pollId}_${userId}`;
-    const rawIds = localStorage.getItem(votedIdsKey);
-    if (rawIds) {
-      try {
-        setPreviouslyVotedOptionIds(new Set(JSON.parse(rawIds)));
-      } catch {}
+    let userVoted = false;
+    if (userId) {
+      const votedKey = `poll_voted_${initialPoll.pollId}_${userId}`;
+      userVoted = localStorage.getItem(votedKey) === "true";
+
+      const votedIdsKey = `poll_voted_ids_${initialPoll.pollId}_${userId}`;
+      const rawIds = localStorage.getItem(votedIdsKey);
+      if (rawIds) {
+        try {
+          setPreviouslyVotedOptionIds(new Set(JSON.parse(rawIds)));
+        } catch {}
+      }
+
+      const typeKey = `poll_type_snapshot_${initialPoll.pollId}_${userId}`;
+      setVotedTypeSnapshot(localStorage.getItem(typeKey));
+
+      const countKey = `poll_options_count_snapshot_${initialPoll.pollId}_${userId}`;
+      const savedCount = localStorage.getItem(countKey);
+      if (savedCount !== null)
+        setVotedOptionsCountSnapshot(parseInt(savedCount, 10));
+
+      const voteCountsKey = `poll_vote_counts_${initialPoll.pollId}_${userId}`;
+      const savedCounts = localStorage.getItem(voteCountsKey);
+      if (savedCounts) {
+        try {
+          setPersistedVoteCounts(JSON.parse(savedCounts));
+        } catch {}
+      }
     }
 
-    const typeKey = `poll_type_snapshot_${initialPoll.pollId}_${userId}`;
-    setVotedTypeSnapshot(localStorage.getItem(typeKey));
-
-    const countKey = `poll_options_count_snapshot_${initialPoll.pollId}_${userId}`;
-    const savedCount = localStorage.getItem(countKey);
-    if (savedCount) {
-      setVotedOptionsCountSnapshot(parseInt(savedCount, 10));
-    }
+    setLocalVoted(userVoted || genericVoted);
   }, [initialPoll.pollId, userId]);
 
-  const poll = livePoll!;
+  const poll = livePoll || initialPoll;
   const rawOptions = poll.options ?? [];
   const isExpired = new Date(poll.closingTime) < new Date();
+
+  useEffect(() => {
+    if (!rawOptions.length || typeof window === "undefined") return;
+    const hasRealCounts = rawOptions.some((opt) => (opt.voteCount ?? 0) > 0);
+    if (!hasRealCounts) return;
+
+    const newCounts: Record<string, number> = {};
+    rawOptions.forEach((opt, idx) => {
+      if ((opt.voteCount ?? 0) > 0) {
+        newCounts[opt.id] = opt.voteCount ?? 0;
+        newCounts[`fallback_idx_${idx}`] = opt.voteCount ?? 0;
+        newCounts[`fallback_text_${opt.text}`] = opt.voteCount ?? 0;
+      }
+    });
+
+    setPersistedVoteCounts((prev) => {
+      const merged = { ...prev, ...newCounts };
+      if (userId) {
+        localStorage.setItem(
+          `poll_vote_counts_${initialPoll.pollId}_${userId}`,
+          JSON.stringify(merged),
+        );
+      }
+      localStorage.setItem(
+        `poll_vote_counts_global_${initialPoll.pollId}`,
+        JSON.stringify(merged),
+      );
+      return merged;
+    });
+  }, [rawOptions, userId, initialPoll.pollId]);
 
   useEffect(() => {
     setSelectedOptions([]);
   }, [poll?.multiSelect]);
 
   const currentPollTypeStr = poll.multiSelect ? "multi" : "single";
-
   const pollTypeHasChangedToSingle =
-    votedTypeSnapshot !== null &&
-    votedTypeSnapshot === "multi" &&
-    currentPollTypeStr === "single";
+    votedTypeSnapshot === "multi" && currentPollTypeStr === "single";
 
   const serverHasVotedFlag = (() => {
-    if (!userId || !rawOptions.length) return false;
+    if (!rawOptions.length) return false;
     if ((poll as any).hasVoted === true || (poll as any).voted === true)
       return true;
     if ((poll as any).votedOptionId || (poll as any).selectedOptionId)
       return true;
-    return rawOptions.some(
-      (opt: any) =>
-        opt.voters?.includes(userId) ||
-        opt.votedUserIds?.includes(userId) ||
-        opt.userVotes?.includes(userId) ||
-        opt.votedUsers?.some(
-          (u: any) => u.id === userId || u === userId || u.userId === userId,
-        ) ||
-        (poll as any).votedUserIds?.includes(userId) ||
-        (poll as any).voters?.includes(userId),
-    );
+
+    if (userId) {
+      return rawOptions.some(
+        (opt: any) =>
+          opt.voters?.includes(userId) ||
+          opt.votedUserIds?.includes(userId) ||
+          opt.userVotes?.includes(userId) ||
+          opt.votedUsers?.some(
+            (u: any) => u.id === userId || u === userId || u.userId === userId,
+          ) ||
+          (poll as any).votedUserIds?.includes(userId) ||
+          (poll as any).voters?.includes(userId),
+      );
+    }
+    return false;
   })();
 
   const hasVoted =
     (localVoted || serverHasVotedFlag) && !pollTypeHasChangedToSingle;
+
   const hasNewOptionsBeenAddedByAdmin =
-    hasVoted && rawOptions.length > votedOptionsCountSnapshot;
+    hasVoted &&
+    !!poll.multiSelect &&
+    votedOptionsCountSnapshot !== null &&
+    rawOptions.length > votedOptionsCountSnapshot;
 
   const canReVote =
     !justVoted &&
-    (pollTypeHasChangedToSingle ||
-      (hasVoted &&
-        !isExpired &&
-        !!poll.multiSelect &&
-        hasNewOptionsBeenAddedByAdmin));
-
+    hasVoted &&
+    !isExpired &&
+    (pollTypeHasChangedToSingle || hasNewOptionsBeenAddedByAdmin);
   const showResult = justVoted || (!canReVote && (hasVoted || isExpired));
 
-  // Client Injection: Re-calculate options array locally if server drops or resets metrics to 0
-  const options = rawOptions.map((opt) => {
+  const options = rawOptions.map((opt, idx) => {
     let currentCount = opt.voteCount ?? 0;
 
-    // Check if the user voted for this item locally or just now via form
-    const wasVotedJustNow = selectedOptions.includes(opt.id) && justVoted;
-    const wasVotedInLocalStorage = previouslyVotedOptionIds.has(opt.id);
-
-    if ((wasVotedJustNow || wasVotedInLocalStorage) && currentCount === 0) {
-      currentCount = 1;
+    if (currentCount === 0) {
+      if (persistedVoteCounts[opt.id] !== undefined) {
+        currentCount = persistedVoteCounts[opt.id];
+      } else if (
+        persistedVoteCounts[`fallback_text_${opt.text}`] !== undefined
+      ) {
+        currentCount = persistedVoteCounts[`fallback_text_${opt.text}`];
+      } else if (persistedVoteCounts[`fallback_idx_${idx}`] !== undefined) {
+        currentCount = persistedVoteCounts[`fallback_idx_${idx}`];
+      } else if (typeof window !== "undefined") {
+        const globalCountsRaw = localStorage.getItem(
+          `poll_vote_counts_global_${initialPoll.pollId}`,
+        );
+        if (globalCountsRaw) {
+          try {
+            const parsed = JSON.parse(globalCountsRaw);
+            if (parsed[opt.id] !== undefined) currentCount = parsed[opt.id];
+            else if (parsed[`fallback_text_${opt.text}`] !== undefined)
+              currentCount = parsed[`fallback_text_${opt.text}`];
+            else if (parsed[`fallback_idx_${idx}`] !== undefined)
+              currentCount = parsed[`fallback_idx_${idx}`];
+          } catch {}
+        }
+      }
     }
+
+    if (justVoted && currentCount === 0) {
+      if (
+        selectedOptions.includes(opt.id) ||
+        previouslyVotedOptionIds.has(opt.id)
+      ) {
+        currentCount = 1;
+      }
+    }
+
     return { ...opt, voteCount: currentCount };
   });
 
@@ -174,9 +252,12 @@ function PollItem({
       return uniqueUsers.size > 0 ? uniqueUsers.size : null;
     })();
 
-  const denominator = poll.multiSelect
+  let denominator = poll.multiSelect
     ? uniqueVotersCount || totalVotesSum
     : totalVotesSum;
+  if (denominator === 0 && hasVoted) {
+    denominator = 1;
+  }
 
   const handleSelect = (optionId: string) => {
     if (isExpired || isSubmitting) return;
@@ -206,7 +287,6 @@ function PollItem({
     const idsToSubmit = pollTypeHasChangedToSingle
       ? selectedOptions
       : selectedOptions.filter((id) => !previouslyVotedOptionIds.has(id));
-
     if (idsToSubmit.length === 0) return;
 
     setIsSubmitting(true);
@@ -219,10 +299,14 @@ function PollItem({
         session.accessToken,
       );
 
-      if (userId) {
-        const updatedVotedIds = new Set(idsToSubmit);
-        const currentTotalOptionsSize = options.length;
+      const updatedVotedIds = new Set([
+        ...previouslyVotedOptionIds,
+        ...idsToSubmit,
+      ]);
+      const currentTotalOptionsSize = options.length;
 
+      localStorage.setItem(`poll_voted_global_${poll.pollId}`, "true");
+      if (userId) {
         localStorage.setItem(`poll_voted_${poll.pollId}_${userId}`, "true");
         localStorage.setItem(
           `poll_voted_ids_${poll.pollId}_${userId}`,
@@ -236,25 +320,60 @@ function PollItem({
           `poll_type_snapshot_${poll.pollId}_${userId}`,
           currentPollTypeStr,
         );
-
-        setLocalVoted(true);
-        setPreviouslyVotedOptionIds(updatedVotedIds);
-        setVotedOptionsCountSnapshot(currentTotalOptionsSize);
-        setVotedTypeSnapshot(currentPollTypeStr);
       }
 
+      setLocalVoted(true);
+      setPreviouslyVotedOptionIds(updatedVotedIds);
+      setVotedOptionsCountSnapshot(currentTotalOptionsSize);
+      setVotedTypeSnapshot(currentPollTypeStr);
       setJustVoted(true);
-      await mutate();
+
+      const freshPoll = await mutate();
+
+      const countsToSave: Record<string, number> = {};
+      const targets = freshPoll?.options || options;
+      targets.forEach((opt: any, idx: number) => {
+        const serverCount = opt.voteCount ?? 0;
+        const persistedCount =
+          persistedVoteCounts[opt.id] ??
+          persistedVoteCounts[`fallback_idx_${idx}`] ??
+          0;
+        const isJustVotedOpt = idsToSubmit.includes(opt.id);
+
+        const finalizedValue =
+          serverCount > 0
+            ? serverCount
+            : persistedCount > 0
+              ? persistedCount
+              : isJustVotedOpt
+                ? 1
+                : 0;
+        countsToSave[opt.id] = finalizedValue;
+        countsToSave[`fallback_idx_${idx}`] = finalizedValue;
+        countsToSave[`fallback_text_${opt.text}`] = finalizedValue;
+      });
+
+      if (userId) {
+        localStorage.setItem(
+          `poll_vote_counts_${poll.pollId}_${userId}`,
+          JSON.stringify(countsToSave),
+        );
+      }
+      localStorage.setItem(
+        `poll_vote_counts_global_${poll.pollId}`,
+        JSON.stringify(countsToSave),
+      );
+      setPersistedVoteCounts(countsToSave);
     } catch (err: any) {
       const message = err?.message?.toLowerCase() ?? "";
-      const isAlreadyVoted =
-        message.includes("already voted") || message.includes("already_voted");
-      const isCacheError =
+      if (
+        message.includes("already voted") ||
+        message.includes("already_voted") ||
         message.includes("null") ||
         message.includes("cache") ||
-        message.includes("redis");
-
-      if (isAlreadyVoted || isCacheError) {
+        message.includes("redis")
+      ) {
+        localStorage.setItem(`poll_voted_global_${poll.pollId}`, "true");
         if (userId) {
           localStorage.setItem(`poll_voted_${poll.pollId}_${userId}`, "true");
           localStorage.setItem(
@@ -265,11 +384,8 @@ function PollItem({
             `poll_type_snapshot_${poll.pollId}_${userId}`,
             currentPollTypeStr,
           );
-          setLocalVoted(true);
-          setVotedOptionsCountSnapshot(options.length);
-          setVotedTypeSnapshot(currentPollTypeStr);
         }
-        setError(null);
+        setLocalVoted(true);
         setJustVoted(true);
         mutate();
       } else {
@@ -281,16 +397,20 @@ function PollItem({
   };
 
   const handleDelete = async () => {
-    setIsDeleting(true);    
+    setIsDeleting(true);
     try {
       await deletePollAction(poll.pollId, poll.workspaceId);
+      localStorage.removeItem(`poll_voted_global_${poll.pollId}`);
+      localStorage.removeItem(`poll_vote_counts_global_${poll.pollId}`);
       if (userId) {
         localStorage.removeItem(`poll_voted_${poll.pollId}_${userId}`);
         localStorage.removeItem(`poll_voted_ids_${poll.pollId}_${userId}`);
-        localStorage.removeItem(`poll_options_count_snapshot_${poll.pollId}_${userId}`);
+        localStorage.removeItem(
+          `poll_options_count_snapshot_${poll.pollId}_${userId}`,
+        );
         localStorage.removeItem(`poll_type_snapshot_${poll.pollId}_${userId}`);
+        localStorage.removeItem(`poll_vote_counts_${poll.pollId}_${userId}`);
       }
-      
       onDelete();
     } catch {
       setError("Failed to delete poll. Please try again.");
@@ -300,9 +420,7 @@ function PollItem({
 
   return (
     <article
-      className={`w-full bg-card rounded-xl p-5 border border-subtle shadow-sm text-foreground transition-opacity ${
-        isDeleting ? "opacity-0 pointer-events-none hidden" : ""
-      }`}
+      className={`w-full bg-card rounded-xl p-5 border border-subtle shadow-sm text-foreground transition-opacity ${isDeleting ? "opacity-0 pointer-events-none hidden" : ""}`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
@@ -336,78 +454,96 @@ function PollItem({
         <form onSubmit={handleSubmit}>
           <div className="space-y-5 mb-4">
             {options.map((option) => {
-              const isChecked = selectedOptions.includes(option.id);
+              const isOldOptionVoted = previouslyVotedOptionIds.has(option.id);
+              const isChecked =
+                isOldOptionVoted || selectedOptions.includes(option.id);
 
               return (
                 <label
                   key={option.id}
-                  className="relative flex items-center justify-between p-4 rounded-xl border border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer transition-all select-none overflow-hidden"
+                  className={`relative flex items-center justify-between p-4 rounded-xl border transition-all select-none overflow-hidden ${
+                    isOldOptionVoted
+                      ? "border-grey-200 bg-grey-100 opacity-70 cursor-not-allowed"
+                      : "border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer"
+                  }`}
                 >
                   <div className="relative z-10 flex items-center gap-4 flex-1 w-full">
                     <input
-                      type="radio"
+                      type="checkbox"
                       name={`poll-${poll.pollId}`}
                       value={option.id}
                       checked={isChecked}
+                      disabled={isOldOptionVoted}
                       onChange={() => handleSelect(option.id)}
                       className="sr-only"
                     />
-                    <div className="w-5 h-5 border flex items-center justify-center shrink-0 transition-all bg-white border-grey-300 rounded-full">
+                    <div
+                      className={`w-5 h-5 border flex items-center justify-center shrink-0 transition-all rounded-md ${
+                        isOldOptionVoted
+                          ? "bg-grey-300 border-grey-400"
+                          : "bg-white border-grey-300"
+                      }`}
+                    >
                       {isChecked && (
-                        <div className="bg-subtle w-2.5 h-2.5 rounded-full" />
+                        <div className="bg-subtle w-2.5 h-2.5 rounded-sm" />
                       )}
                     </div>
                     <span className="type-detail-medium text-foreground">
-                      {option.text}
+                      {option.text}{" "}
+                      {isOldOptionVoted && (
+                        <span className="text-xs text-grey-400 ml-1.5">
+                          (Already Voted)
+                        </span>
+                      )}
                     </span>
                   </div>
                 </label>
               );
             })}
           </div>
-
-          {/* <p className="text-xs text-subtle font-medium mb-4 text-center ">
-            . Please recast your vote.
-          </p> */}
-
           {error && (
             <p className="text-destructive type-detail-small-medium mb-3 text-center">
               {error}
             </p>
           )}
-
           <button
             type="submit"
             disabled={selectedOptions.length === 0 || isSubmitting}
             className={`w-full py-3.5 rounded-xl type-desc-semibold transition-all ${
               selectedOptions.length > 0 && !isSubmitting
                 ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]"
-                : "bg-subtle text-white cursor-not-allowed"
+                : "bg-subtle/40 text-white cursor-not-allowed"
             }`}
           >
-            {isSubmitting ? "Submitting..." : "Vote Now"}
+            {isSubmitting
+              ? "Submitting Additional Votes..."
+              : "Submit New Options"}
           </button>
         </form>
       ) : showResult ? (
         <div className="w-full space-y-6">
           <div className="space-y-5">
             {options.map((option) => {
-              const currentVotes = option.voteCount;
+              const currentVotes = option.voteCount ?? 0;
               const adjustedDenominator = denominator === 0 ? 1 : denominator;
               const percentage = Math.min(
                 Math.round((currentVotes / adjustedDenominator) * 100),
                 100,
               );
-
               return (
                 <div key={option.id} className="w-full select-none">
                   <div className="flex justify-between items-center mb-1.5">
                     <span className="type-detail-medium text-foreground font-medium">
                       {option.text}
                     </span>
-                    <span className="type-detail-semibold text-subtle font-bold">
-                      {percentage}%
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {/* <span className="type-detail-small text-grey-400">
+                        ({currentVotes})
+                      </span> */}
+                      <span className="type-detail-semibold text-subtle font-bold">
+                        {percentage}%
+                      </span>
+                    </div>
                   </div>
                   <div className="w-full h-3 bg-[#e8fbf4] rounded-full overflow-hidden">
                     <div
@@ -459,21 +595,15 @@ function PollItem({
               );
             })}
           </div>
-
           {error && (
             <p className="text-destructive type-detail-small-medium mb-3 text-center">
               {error}
             </p>
           )}
-
           <button
             type="submit"
             disabled={selectedOptions.length === 0 || isSubmitting}
-            className={`w-full py-3.5 rounded-xl type-desc-semibold transition-all ${
-              selectedOptions.length > 0 && !isSubmitting
-                ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]"
-                : "bg-subtle/50 text-white cursor-not-allowed"
-            }`}
+            className={`w-full py-3.5 rounded-xl type-desc-semibold transition-all ${selectedOptions.length > 0 && !isSubmitting ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]" : "bg-subtle/50 text-white cursor-not-allowed"}`}
           >
             {isSubmitting ? "Submitting..." : "Vote Now"}
           </button>

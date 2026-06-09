@@ -144,7 +144,7 @@ export default function CreateArticleForm() {
           onClick={() => router.push(`/group/${workspaceId}`)}
           className="order-2 sm:order-1 w-full hover:bg-transparent sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl hover:text-primary hover:border-primary transition-all active:scale-95 text-sm shadow-sm"
         >
-          Cancel
+          Cancel 
         </Button>
         <Button
           type="submit"
