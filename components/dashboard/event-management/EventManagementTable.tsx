@@ -53,7 +53,7 @@ const getStatusStyles = (status: string): string => {
     case "open":
       return "bg-[#E6F9F1] text-accent";
     case "draft":
-      return "bg-[#EBF3FF] text-[#1D4ED8]";
+      return "bg-gray-100 text-gray-500";
     case "cancel":
     case "closed":
       return "bg-[#FEE2E2] text-[#EF4444]";
@@ -331,6 +331,12 @@ export function EventManagementTable({
                         className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                       >
                         Active
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="draft"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Draft
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem
                         value="closed"
