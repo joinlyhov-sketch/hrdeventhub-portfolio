@@ -19,7 +19,6 @@ export default async function EventManagementPage() {
   } catch (error) {
     console.error("Failed to fetch event management data:", error);
   }
-
   return (
     <main className="min-h-screen max-w-420 mx-auto">
       <EventManagementClient
