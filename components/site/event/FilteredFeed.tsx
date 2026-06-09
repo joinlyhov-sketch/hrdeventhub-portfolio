@@ -25,11 +25,17 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
 
   const { posts, isLoading: postsLoading, mutate } = useWorkspacePosts(groupid);
   const { polls, isLoading: pollsLoading } = useWorkspacePolls(groupid);
-  const { surveys, isLoading: surveysLoading, mutate: mutateSurveys } = useWorkspaceSurveys(groupid);
+  const {
+    surveys,
+    isLoading: surveysLoading,
+    mutate: mutateSurveys,
+  } = useWorkspaceSurveys(groupid);
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [surveyVisibility, setSurveyVisibility] = useState<Record<string, boolean>>({});
+  const [surveyVisibility, setSurveyVisibility] = useState<
+    Record<string, boolean>
+  >({});
 
   const handleDeletePost = async (postId: string) => {
     mutate(
@@ -54,17 +60,21 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
   };
 
   const chronologicalPosts = useMemo(() => {
-    return [...posts].sort((a, b) => {
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return timeB - timeA;
-    });
+    return [...posts]
+      .filter((p) => p.status !== "draft") 
+      .sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
+      });
   }, [posts]);
 
   const postsByCategory = useMemo(
     () => ({
       event: chronologicalPosts.filter((p) => p.category === "event"),
-      announcement: chronologicalPosts.filter((p) => p.category === "announcement"),
+      announcement: chronologicalPosts.filter(
+        (p) => p.category === "announcement",
+      ),
       poll: chronologicalPosts.filter((p) => p.category === "poll"),
       survey: chronologicalPosts.filter((p) => p.category === "survey"),
       article: chronologicalPosts.filter((p) => p.category === "article"),
@@ -117,7 +127,9 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     (!isCategoryActive("event") || filtered.event.length === 0) &&
     (!isCategoryActive("announcement") || filtered.announcement.length === 0) &&
     (!isCategoryActive("poll") || filteredPolls.length === 0) &&
-    (!isCategoryActive("survey") || !anySurveyVisible || surveys.length === 0) &&
+    (!isCategoryActive("survey") ||
+      !anySurveyVisible ||
+      surveys.length === 0) &&
     (!isCategoryActive("article") || filtered.article.length === 0);
 
   const pinnedPosts = useMemo(
@@ -166,15 +178,16 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
           />
         )}
 
-        {isCategoryActive("announcement") && filtered.announcement.length > 0 && (
-          <AnnouncementCard
-            role={role}
-            posts={filtered.announcement}
-            searchQuery={searchQuery}
-            onDeletePost={handleDeletePost}
-            groupid={groupid}
-          />
-        )}
+        {isCategoryActive("announcement") &&
+          filtered.announcement.length > 0 && (
+            <AnnouncementCard
+              role={role}
+              posts={filtered.announcement}
+              searchQuery={searchQuery}
+              onDeletePost={handleDeletePost}
+              groupid={groupid}
+            />
+          )}
 
         {isCategoryActive("poll") && filteredPolls.length > 0 && (
           <PollCard

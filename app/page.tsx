@@ -38,7 +38,7 @@ export default function LandingPage() {
             resources from the KSHRD family.
           </p>
         </div>
-        <div className="mx-auto ">
+        <div className="mx-auto">
           <div className="flex flex-col md:flex-row gap-6 justify-center w-full">
             <div className="w-full md:w-[50%] shrink-0">
               <FeatureCard item={featuredData} />
@@ -50,7 +50,9 @@ export default function LandingPage() {
         </div>
         <PlatformEssentials />
       </div>
-      <Footer />
+      <div className="mx-auto gap-12 w-full">
+        <Footer />
+      </div>
     </>
   );
 }
