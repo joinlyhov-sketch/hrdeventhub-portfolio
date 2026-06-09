@@ -71,7 +71,7 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
           time: displayTime,
           variant: index % 2 === 0 ? "blue" : "green",
         };
-      });
+      }).slice(0, 3);
   }, [posts]);
 
   if (isLoading) {
@@ -95,7 +95,7 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
 
   return (
     <div className="w-full bg-background rounded-[12px] border border-border p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-4 mb-10">
+      <div className="flex items-center justify-between gap-x-4 mb-10">
         <h3 className="type-subtitle font-extrabold text-primary min-w-0 truncate">
           Upcoming Events
         </h3>
@@ -116,7 +116,7 @@ export default function UpComingEventCard({ groupid }: UpComingEventCardProps) {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-6 w-full">
+        <div className="flex flex-col gap-y-2 w-full">
           {upcomingEvents.map((event) => (
             <Link
               key={event.id}
