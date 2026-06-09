@@ -2,17 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  TransitionStartFunction,
-} from "react";
-import {
-  resendOtpAction,
-  verifyForgotPasswordAction,
-} from "@/actions/auth.action";
+import { useCallback, useEffect, useRef, useState, TransitionStartFunction } from "react";
+import { resendOtpAction, verifyForgotPasswordAction } from "@/actions/auth.action";
 import { useResetPasswordStore } from "@/store/useResetPasswordStore";
 
 interface StepProps {
@@ -30,15 +21,14 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
   const storeToken = useResetPasswordStore((s) => s.storeToken);
   const otpExpiresAt = useResetPasswordStore((s) => s.otpExpiresAt);
   const storeEmail = useResetPasswordStore((s) => s.storeEmail);
+  const resetStore = useResetPasswordStore((s) => s.reset);
 
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
-  const [secondsLeft, setSecondsLeft] = useState(() =>
-    secondsFromExpiry(otpExpiresAt),
-  );
+  const [secondsLeft, setSecondsLeft] = useState(() => secondsFromExpiry(otpExpiresAt));
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -86,7 +76,7 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
     const next = [...otp];
     next[index] = value.slice(-1);
     setOtp(next);
-
+    
     const isFilled = next.every((digit) => digit !== "");
     if (isFilled && autoSubmitEnabled && !isPending) {
       submitOtp(next.join(""));
@@ -125,6 +115,8 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
     setError(null);
     setResendMessage(null);
     setAutoSubmitEnabled(true);
+    
+    resetStore();
     useResetPasswordStore.setState({ step: 1 });
   };
 
@@ -145,9 +137,7 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
         {[...Array(6)].map((_, i) => (
           <input
             key={i}
-            ref={(el) => {
-              inputs.current[i] = el;
-            }}
+            ref={(el) => { inputs.current[i] = el; }}
             type="text"
             maxLength={1}
             value={otp[i]}
@@ -159,16 +149,8 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
         ))}
       </div>
 
-      {error && (
-        <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-2 text-xs font-medium text-red-600">
-          {error}
-        </div>
-      )}
-      {resendMessage && (
-        <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-2 text-xs font-medium text-blue-700">
-          {resendMessage}
-        </div>
-      )}
+      {error && <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-2 text-xs font-medium text-red-600">{error}</div>}
+      {resendMessage && <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-2 text-xs font-medium text-blue-700">{resendMessage}</div>}
 
       <div className="text-center text-xs text-[#6e7580]">
         <button
@@ -179,8 +161,7 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
           Resend Code
         </button>
         <span className="ml-2 font-mono">
-          ({Math.floor(secondsLeft / 60)}:
-          {(secondsLeft % 60).toString().padStart(2, "0")})
+          ({Math.floor(secondsLeft / 60)}:{(secondsLeft % 60).toString().padStart(2, "0")})
         </span>
       </div>
 
