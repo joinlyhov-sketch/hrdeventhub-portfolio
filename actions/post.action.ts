@@ -4,15 +4,22 @@ import { authOptions } from "@/libs/auth";
 import { postService } from "@/service/post.service";
 import {
   ApiResponseActionWrapper,
+  ChangeEventStatusPayload,
   CreateAnnouncementPayload,
+  CreateAnnouncementResponseV2,
   CreateArticlePayload,
   CreatePostPayload,
+  CreatePostResponse,
   UpdateArticlePayload,
   UpdateEventPayload,
   UpdatePostActionResponse,
 } from "@/types/post-types";
-import { ServerActionResponse } from "@/types/file-types";
+import {
+  ServerActionResponse,
+  ServerActionResponse2,
+} from "@/types/file-types";
 import { revalidatePath } from "next/cache";
+import { CreateArticleResponseV2 } from "@/types/article-types";
 
 export async function createPostAction(
   workspaceId: string,
@@ -59,7 +66,7 @@ export async function createPostAction(
 export async function createAnnouncementAction(
   workspaceId: string,
   payload: CreateAnnouncementPayload,
-): Promise<ServerActionResponse<boolean>> {
+): Promise<ServerActionResponse<CreateAnnouncementResponseV2>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
@@ -78,7 +85,7 @@ export async function createAnnouncementAction(
     );
 
     if (response.success) {
-      return { ok: true, payload: true };
+      return { ok: true, payload: response };
     }
 
     return {
@@ -100,7 +107,7 @@ export async function createAnnouncementAction(
 export async function createArticleAction(
   workspaceId: string,
   payload: CreateArticlePayload,
-): Promise<ServerActionResponse<boolean>> {
+): Promise<ServerActionResponse2<CreateArticleResponseV2>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
@@ -119,7 +126,7 @@ export async function createArticleAction(
     );
 
     if (response.success) {
-      return { ok: true, payload: true };
+      return { ok: true, payload: response };
     }
 
     return {
@@ -263,7 +270,13 @@ export async function deletePostAction(workspaceId: string, postId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.accessToken) throw new Error("Unauthorized");
 
-  return await postService.delete(workspaceId, postId, session.accessToken);
+  const result = await postService.delete(
+    workspaceId,
+    postId,
+    session.accessToken,
+  );
+  revalidatePath("/event-management");
+  return result;
 }
 
 export async function getPostDetailAction(workspaceId: string, postId: string) {
@@ -271,4 +284,116 @@ export async function getPostDetailAction(workspaceId: string, postId: string) {
   if (!session?.accessToken) throw new Error("Unauthorized");
 
   return await postService.getById(workspaceId, postId, session.accessToken);
+}
+
+export async function publishDraftPostAction(
+  workspaceId: string,
+  postId: string,
+) {
+  try {
+    if (!workspaceId || !postId) {
+      return {
+        ok: false,
+        error: "Required context target parameters missing.",
+      };
+    }
+    const session = await getServerSession(authOptions);
+    if (!session?.accessToken) throw new Error("Unauthorized");
+
+    const response = await postService.publishDraftPost(
+      workspaceId,
+      postId,
+      session.accessToken,
+    );
+
+    if (response.success) {
+      console.log("response :", response);
+      return { ok: true, data: response.payload };
+    }
+
+    return {
+      ok: false,
+      error: response.message || "Failed to publish draft post.",
+    };
+  } catch (error: string | unknown) {
+    console.error("Action error publishing draft:", error);
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Internal network connection issue.",
+    };
+  }
+}
+
+export async function changePostStatusAction(
+  workspaceId: string,
+  postId: string,
+  payload: ChangeEventStatusPayload,
+) {
+  try {
+    if (!workspaceId || !postId) {
+      return {
+        ok: false,
+        error: "Required context target parameters missing.",
+      };
+    }
+    const session = await getServerSession(authOptions);
+    if (!session?.accessToken) throw new Error("Unauthorized");
+
+    const response = await postService.changePostStatus(
+      workspaceId,
+      postId,
+      payload,
+      session.accessToken,
+    );
+
+    if (response.success) {
+      revalidatePath(`/event-management`);
+      return { ok: true, data: response.payload };
+    }
+
+    return {
+      ok: false,
+      error: response.message || "Failed to update event status.",
+    };
+  } catch (error: unknown) {
+    console.error("Action error updating event status:", error);
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Internal network connection issue.",
+    };
+  }
+}
+
+export async function togglePinAction(
+  workspaceId: string,
+  postId: string,
+  pinned: boolean,
+) {
+  try {
+    if (!workspaceId || !postId) {
+      return { ok: false, error: "Missing identity contextual attributes." };
+    }
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+    if (!token) {
+      return { ok: false, error: "Authorization credentials expired or not found." };
+    }
+
+    await postService.togglePin(workspaceId, postId, pinned, token);
+    revalidatePath(`/group/${workspaceId}`);
+
+    return { ok: true };
+  } catch (error: unknown) {
+    console.error("Action error pinning post resource:", error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Internal system endpoint timeout exception.",
+    };
+  }
 }

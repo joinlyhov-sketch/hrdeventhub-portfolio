@@ -1,12 +1,15 @@
 import { apiPost, apiGet, apiDelete, apiPatch } from "@/libs/api";
 import {
+  ChangeEventStatusPayload,
+  ChangePostStatusResponse,
   CreateAnnouncementPayload,
-  CreateAnnouncementResponse,
+  CreateAnnouncementResponseV2,
   CreateArticleBackendResponse,
   CreateArticlePayload,
   CreatePostPayload,
   CreatePostResponse,
   CreatePostSuccessResponse,
+  PublishPostResponse,
   UpdateArticleApiResponse,
   UpdateArticlePayload,
   UpdateEventPayload,
@@ -38,10 +41,10 @@ export const postService = {
     workspaceId: string,
     payload: CreateAnnouncementPayload,
     token?: string,
-  ): Promise<CreateAnnouncementResponse> => {
+  ): Promise<CreateAnnouncementResponseV2> => {
     const path = `/workspaces/${workspaceId}/post/announcement`;
 
-    return apiPost<CreateAnnouncementResponse, CreateAnnouncementPayload>(
+    return apiPost<CreateAnnouncementResponseV2, CreateAnnouncementPayload>(
       path,
       payload,
       {
@@ -119,6 +122,7 @@ export const postService = {
       { authToken },
     );
   },
+
   updateAnnouncementPost: async (
     workspaceId: string,
     postId: string,
@@ -131,6 +135,7 @@ export const postService = {
       { authToken },
     );
   },
+
   UpdateArticlePost: async (
     workspaceId: string,
     postId: string,
@@ -144,6 +149,51 @@ export const postService = {
       payload,
       {
         authToken,
+      },
+    );
+  },
+
+  publishDraftPost: async (
+    workspaceId: string,
+    postId: string,
+    authToken?: string,
+  ): Promise<PublishPostResponse> => {
+    const path = `/workspaces/${workspaceId}/post/${postId}/publish`;
+    return apiPatch<PublishPostResponse, undefined>(path, undefined, {
+      authToken,
+      accept: "*/*",
+    });
+  },
+
+  changePostStatus: async (
+    workspaceId: string,
+    postId: string,
+    payload: ChangeEventStatusPayload,
+    authToken?: string,
+  ): Promise<ChangePostStatusResponse> => {
+    const path = `/workspaces/${workspaceId}/post/${postId}/status`;
+    return apiPatch<ChangePostStatusResponse, ChangeEventStatusPayload>(
+      path,
+      payload,
+      {
+        authToken,
+        accept: "*/*",
+      },
+    );
+  },
+
+  togglePin: async (
+    workspaceId: string,
+    postId: string,
+    pinned: boolean,
+    authToken: string,
+  ): Promise<any> => {
+    return apiPatch<any, undefined>(
+      `/workspaces/${workspaceId}/post/${postId}/pin?pinned=${pinned}`,
+      undefined,
+      {
+        authToken,
+        accept: "*/*",
       },
     );
   },

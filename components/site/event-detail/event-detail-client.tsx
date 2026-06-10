@@ -327,7 +327,9 @@ export default function EventDetailClient({
                 <span className="bg-primary/10 px-6 py-3 rounded-xl text-primary type-desc-small-semibold">
                   Admin
                 </span>
-                <Link href={`/event-management/edition/event`}>
+                <Link
+                  href={`/event-management/edition/event?groupId=${workspaceId}&postId=${event.postId}`}
+                >
                   <span className="flex items-center gap-x-1 border border-border px-6 py-3 rounded-xl text-grey-900 type-desc-small-semibold hover:bg-grey-50 cursor-pointer">
                     <Edit size={16} /> Edit Event
                   </span>
@@ -522,11 +524,11 @@ export default function EventDetailClient({
       </section>
 
       <ShareModal
-  isOpen={isShareOpen}
-  onClose={() => setIsShareOpen(false)}
-  postId={event?.postId}
-/>
-      
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        postId={event?.postId}
+      />
+
       <PaymentWizardDialog
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}

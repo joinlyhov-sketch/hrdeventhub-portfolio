@@ -10,7 +10,6 @@ import {
   Clock,
   MapPin,
   FileText,
-  Layers,
   Target,
   Pin,
   Link as LinkIcon,
@@ -22,7 +21,10 @@ import MediaUpload from "../MediaUpload";
 import { Button } from "../../ui/button";
 import { EditionTabs } from "../EditionTab";
 import { FormTextarea } from "../FormTextarea";
-import { updateAnnouncementAction } from "@/actions/post.action";
+import {
+  publishDraftPostAction,
+  updateAnnouncementAction,
+} from "@/actions/post.action";
 import {
   announcementPostSchema,
   AnnouncementPostFormValues,
@@ -205,7 +207,14 @@ export default function EditAnnouncementForm() {
         payload,
       );
       if (result.ok) {
-        toast.success("Announcement updated successfully!");
+        if (data.status === "active") {
+          await publishDraftPostAction(workspaceId, postId);
+        }
+        toast.success(
+          data.status === "active"
+            ? "Announcement updated and published successfully!"
+            : "Announcement changes saved as draft successfully!",
+        );
         router.push(`/group/${workspaceId}`);
       } else {
         if (result.errors) {
@@ -251,7 +260,11 @@ export default function EditAnnouncementForm() {
             details.
           </p>
 
-          <EditionTabs groupId={workspaceId} postId={postId} />
+          <EditionTabs
+            category={announcement?.category}
+            groupId={workspaceId}
+            postId={postId}
+          />
         </div>
 
         <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 grow">
@@ -362,10 +375,9 @@ export default function EditAnnouncementForm() {
               )}
             </div>
 
-            <div className="flex flex-col w-full text-sm">
-              <label className="flex items-center gap-2 mb-2 font-semibold text-gray-700">
-                <Layers size={18} className="text-slate-400" /> Form Status
-                Target
+            <div className="flex flex-col gap-1.5 w-full text-sm">
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                Visibility Status
               </label>
               <select
                 {...register("status")}
@@ -394,8 +406,8 @@ export default function EditAnnouncementForm() {
             )}
           </div>
 
-          <div className="w-full text-sm">
-            <label className="block mb-2 font-semibold text-gray-700 tracking-wide">
+          <div className="flex flex-col gap-1.5 w-full text-sm">
+            <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
               Featured Display
             </label>
             <label

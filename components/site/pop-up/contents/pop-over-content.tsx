@@ -4,7 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import { LucideIcon, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover/popover";
 
 export interface PopoverItem {
   label: string;
@@ -25,8 +29,8 @@ export default function ContentTypePopover({ items }: ContentTypePopoverProps) {
         <Button
           size="icon"
           className="
-            h-[40px]
-            w-[40px]
+            h-10
+            w-10
             rounded-full
             bg-primary
             text-white

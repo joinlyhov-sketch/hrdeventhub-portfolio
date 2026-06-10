@@ -9,6 +9,7 @@ import { Poll } from "@/types/poll";
 import { useSession } from "next-auth/react";
 import { pollService } from "@/service/poll.service";
 import { deletePollAction } from "@/actions/poll.action";
+import { formatEventDate } from "@/libs/format-date";
 
 interface PollCardProps {
   role: UserRole;
@@ -440,10 +441,10 @@ function PollItem({
         )}
       </div>
 
-      <p className="type-detail-small-medium text-grey-400 mb-4">
+      <p className="text-desc-small-semibold text-grey-500 mb-4">
         {isExpired
           ? "Poll closed"
-          : `Closes: ${new Date(poll.closingTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}`}
+          : `Closes: ${formatEventDate(poll.closingTime)}`}
       </p>
 
       <legend className="type-desc text-foreground mb-6 block">

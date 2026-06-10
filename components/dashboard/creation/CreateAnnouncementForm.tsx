@@ -20,7 +20,10 @@ import MediaUpload from "../MediaUpload";
 import { CreationTabs } from "../CreationTab";
 import { FormTextarea } from "../FormTextarea";
 import { Button } from "../../ui/button";
-import { createAnnouncementAction } from "@/actions/post.action";
+import {
+  createAnnouncementAction,
+  publishDraftPostAction,
+} from "@/actions/post.action";
 import {
   announcementPostSchema,
   AnnouncementPostFormValues,
@@ -61,31 +64,6 @@ export default function CreateAnnouncementForm() {
 
   const currentStatus = watch("status");
 
-  function getCoordinatesFromGoogleMapsUrl(url: string) {
-    const placeMatch = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
-
-    if (placeMatch) {
-      return {
-        latitude: Number(placeMatch[1]),
-        longitude: Number(placeMatch[2]),
-      };
-    }
-
-    const viewportMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-
-    if (viewportMatch) {
-      return {
-        latitude: Number(viewportMatch[1]),
-        longitude: Number(viewportMatch[2]),
-      };
-    }
-
-    return {
-      latitude: 0,
-      longitude: 0,
-    };
-  }
-
   const onSubmit = async (data: AnnouncementPostFormValues) => {
     setIsSubmitting(true);
 
@@ -101,9 +79,6 @@ export default function CreateAnnouncementForm() {
     } else if (data.status === "active") {
       scheduledIso = null;
     }
-    const coordinates = getCoordinatesFromGoogleMapsUrl(
-      data.googleMapUrl || "",
-    );
 
     const payload: CreateAnnouncementPayload = {
       title: data.title,
@@ -119,8 +94,6 @@ export default function CreateAnnouncementForm() {
       location: {
         locationName: data.locationName,
         googleMapUrl: data.googleMapUrl || "https://maps.google.com",
-        latitude: coordinates.latitude,
-        longitude: coordinates.longitude,
       },
       media: data.media.map((item) => ({
         filePath: item.filePath,
@@ -128,16 +101,21 @@ export default function CreateAnnouncementForm() {
       })),
     };
 
-    console.log(
-      "DISPATCHING ANNOUNCEMENT PAYLOAD PRE-FLIGHT VERIFICATION:",
-      JSON.stringify(payload, null, 2),
-    );
-
     try {
       const result = await createAnnouncementAction(workspaceId, payload);
 
       if (result.ok) {
-        toast.success("Announcement created successfully!");
+        const generatedPostId = result.payload?.payload.postId;
+
+        if (data.status === "active" && generatedPostId) {
+          await publishDraftPostAction(workspaceId, generatedPostId);
+        }
+
+        toast.success(
+          data.status === "active"
+            ? "Announcement created and published successfully!"
+            : "Announcement draft saved successfully!",
+        );
         router.push(`/group/${workspaceId}`);
       } else {
         toast.error(`Creation failed: ${result.error}`);

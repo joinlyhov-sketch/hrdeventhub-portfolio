@@ -47,6 +47,7 @@ const MediaUpload = ({
           console.log(newMediaItem);
 
           updatedMediaList = [...updatedMediaList, newMediaItem];
+          toast.success("File upload success!");
         } else {
           toast.error(
             "Upload failed: File size exceeds the 5 MB limit. Please upload a file smaller than 5 MB.",
@@ -104,6 +105,8 @@ const MediaUpload = ({
       if (!response.ok) {
         console.warn("Storage deletion warning from backend:", response.error);
       }
+      toast.success("File delete success!");
+
       console.log("result :", response);
     } catch (err) {
       console.error("Network file destruction pipeline failure:", err);

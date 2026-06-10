@@ -12,7 +12,6 @@ import {
   FileText,
   BadgeDollarSign,
   Link as LinkIcon,
-  Layers,
   Target,
   Building2,
 } from "lucide-react";
@@ -24,9 +23,12 @@ import MediaUpload from "../MediaUpload";
 import { Button } from "../../ui/button";
 import { CreationTabs } from "../CreationTab";
 import { FormTextarea } from "../FormTextarea";
-import { createPostAction } from "@/actions/post.action";
+import {
+  createPostAction,
+  publishDraftPostAction,
+} from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
-import { CreatePostPayload } from "@/types/post-types";
+import { CreatePostPayload, CreatePostResponse } from "@/types/post-types";
 import { getAllWorkspacesAction } from "@/actions/workspace.action";
 import SearchableSelect, {
   SearchableSelectOption,
@@ -36,8 +38,10 @@ export default function CreateEventForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [select, setSelect] = useState(false);
+  const [isFlexible, setIsFlexible] = useState(false);
 
   const urlWorkspaceId = params.get("groupId") || "";
+  const isAdmin = params.get("admin") || "";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [workspaces, setWorkspaces] = useState<SearchableSelectOption[]>([]);
@@ -60,6 +64,7 @@ export default function CreateEventForm() {
       googleMapUrl: "",
       status: "draft",
       scheduleDate: "",
+      paymentType: "fixed",
       price: 0,
       targetGoal: 0,
       description: "",
@@ -106,26 +111,6 @@ export default function CreateEventForm() {
     loadWorkspaces();
   }, [urlWorkspaceId]);
 
-  function getCoordinatesFromGoogleMapsUrl(url: string) {
-    const placeMatch = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
-    if (placeMatch) {
-      return {
-        latitude: Number(placeMatch[1]),
-        longitude: Number(placeMatch[2]),
-      };
-    }
-
-    const viewportMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-    if (viewportMatch) {
-      return {
-        latitude: Number(viewportMatch[1]),
-        longitude: Number(viewportMatch[2]),
-      };
-    }
-
-    return { latitude: 0, longitude: 0 };
-  }
-
   const watchedStatus = useWatch({
     control,
     name: "status",
@@ -133,6 +118,13 @@ export default function CreateEventForm() {
   });
 
   const onSubmit = async (data: EventPostFormValues) => {
+    if (data.paymentType === "flexible" && !Number(data.targetGoal)) {
+      setIsFlexible(true);
+      return;
+    } else {
+      setIsFlexible(false);
+    }
+
     if (!urlWorkspaceId && !data.workspaceId) {
       toast.error("Please select a target workspace destination group!");
       setSelect(true);
@@ -143,17 +135,13 @@ export default function CreateEventForm() {
 
     const startIso = new Date(`${data.date}T${data.startTime}`).toISOString();
     const endIso = new Date(`${data.date}T${data.endTime}`).toISOString();
-
     let scheduledIso: string | null = null;
+
     if (data.status === "draft" && data.scheduleDate) {
       scheduledIso = new Date(`${data.scheduleDate}T00:00:00`).toISOString();
     } else {
       scheduledIso = new Date().toISOString();
     }
-
-    const coordinates = getCoordinatesFromGoogleMapsUrl(
-      data.googleMapUrl || "",
-    );
 
     const payload: CreatePostPayload = {
       title: data.title.trim(),
@@ -161,7 +149,7 @@ export default function CreateEventForm() {
       purpose: data.purpose.trim() || "Community Event",
       eventStart: startIso,
       eventEnd: endIso,
-      scheduledAt: data.status === "active" ? startIso : scheduledIso,
+      scheduledAt: data.status === "active" ? null : scheduledIso,
       expiresAt: endIso,
       isPublished: data.status === "active",
       status: data.status,
@@ -169,11 +157,10 @@ export default function CreateEventForm() {
       location: {
         locationName: data.locationName,
         googleMapUrl: data.googleMapUrl,
-        latitude: coordinates.latitude,
-        longitude: coordinates.longitude,
       },
       media: data.media,
       payment: {
+        paymentType: data.paymentType,
         paymentAmount: Number(data.price),
         donationGoal: Number(data.targetGoal) || 0,
       },
@@ -182,8 +169,22 @@ export default function CreateEventForm() {
     try {
       const result = await createPostAction(activeWorkspaceId, payload);
       if (result.ok) {
-        toast.success("Event created successfully!");
-        router.push(`/group/${activeWorkspaceId}`);
+        const generatedPostId = result.payload?.payload?.postId;
+
+        if (data.status === "active" && generatedPostId) {
+          await publishDraftPostAction(activeWorkspaceId, generatedPostId);
+        }
+
+        toast.success(
+          data.status === "active"
+            ? "Event created and published successfully!"
+            : "Event draft saved successfully!",
+        );
+        if (isAdmin) {
+          router.push(`/event-management`);
+        } else {
+          router.push(`/group/${activeWorkspaceId}`);
+        }
       } else {
         toast.error(`Creation failed: ${result.error}`);
       }
@@ -236,15 +237,18 @@ export default function CreateEventForm() {
                     <SearchableSelect
                       options={workspaces}
                       value={field.value}
-                      placeholder="Choose your workspace target..." // Clear placeholder direction
+                      placeholder="Choose your workspace target..."
                       icon={<Building2 size={18} />}
                       error={select}
-                      onChange={(value) => field.onChange(value)}
+                      onChange={(value) => {
+                        field.onChange(value);
+                        if (value) setSelect(false);
+                      }}
                     />
                   )}
                 />
               )}
-              {select == true && (
+              {select === true && (
                 <p className="text-red-500 text-xs mt-1">
                   Please select a target workspace destination group!
                 </p>
@@ -359,10 +363,9 @@ export default function CreateEventForm() {
               )}
             </div>
 
-            <div className="flex flex-col w-full text-sm">
-              <label className="flex items-center gap-2 mb-2 font-semibold text-gray-700">
-                <Layers size={18} className="text-slate-400" />
-                Form Status Target
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                Visibility Status
               </label>
               <select
                 {...register("status")}
@@ -419,14 +422,27 @@ export default function CreateEventForm() {
                 min={0}
                 step="0.01"
                 {...register("targetGoal")}
-                isError={errors.targetGoal != null}
+                isError={isFlexible}
               />
-              {errors.targetGoal && (
+              {isFlexible && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.targetGoal.message}
+                  Target goal is require with Flexible paymentType
                 </p>
               )}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5 w-full">
+            <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+              Payment Type
+            </label>
+            <select
+              {...register("paymentType")}
+              className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
+            >
+              <option value="fixed">Fixed</option>
+              <option value="flexible">Flexible</option>
+            </select>
           </div>
 
           <div>
