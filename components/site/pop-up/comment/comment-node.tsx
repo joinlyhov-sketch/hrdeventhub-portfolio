@@ -335,9 +335,9 @@ export function CommentNode({
         )}
       </div>
 
-      <div className="flex-1 w-full pb-1">
+      <div className="flex-col w-fit pb-1">
         <div
-          className={`relative bg-grey-100 rounded-2xl px-3 py-2  ${
+          className={`bg-grey-100 rounded-2xl px-3 py-2  ${
             editingId === comment.commentId
               ? "block w-full bg-transparent p-0!"
               : "inline-block max-w-full"
@@ -443,46 +443,39 @@ export function CommentNode({
               )}
             </p>
           )}
-
-          <section className="absolute -right-2">
-            <ReactionSummary payload={reactionPayload} />
-          </section>
         </div>
 
         {editingId !== comment.commentId && (
-          <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
-            <span className="font-normal">{timeAgo(comment.createdAt)}</span>
-
-            <ReactionPopover
-              selectedValue={selectedReaction}
-              onReactionSelect={handleReactionSelect}
-            >
-              <button
-                onClick={handleLikeToggle}
-                className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
-                  activeReaction
-                    ? `${activeReaction.color} font-semibold`
-                    : "hover:text-grey-900"
-                }`}
+          <div className="flex items-center justify-between mt-1 pl-1 text-xs font-semibold text-grey-400 min-w-[180px]">
+            <section className="flex items-center gap-3">
+              <span className="font-normal">{timeAgo(comment.createdAt)}</span>
+              <ReactionPopover
+                selectedValue={selectedReaction}
+                onReactionSelect={handleReactionSelect}
               >
-                {activeReaction ? (
-                  activeReaction.displayText
-                ) : (
-                  <ThumbsUp size={13} />
-                )}
-                {!activeReaction && "Like"}
+                <button
+                  onClick={handleLikeToggle}
+                  className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
+                    activeReaction
+                      ? `${activeReaction.color} font-semibold`
+                      : "hover:text-grey-900"
+                  }`}
+                >
+                  {activeReaction ? activeReaction.displayText : "Like"}
+                </button>
+              </ReactionPopover>
+              <button
+                onClick={() => {
+                  setShowReplyInput((v) => !v);
+                  setReplyText("");
+                }}
+                className="hover:text-grey-900 transition-colors cursor-pointer"
+              >
+                Reply
               </button>
-            </ReactionPopover>
+            </section>
 
-            <button
-              onClick={() => {
-                setShowReplyInput((v) => !v);
-                setReplyText("");
-              }}
-              className="hover:text-grey-900 transition-colors cursor-pointer"
-            >
-              Reply
-            </button>
+            <ReactionSummary payload={reactionPayload} />
           </div>
         )}
 

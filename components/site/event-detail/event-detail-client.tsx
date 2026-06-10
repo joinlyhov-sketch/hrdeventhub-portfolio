@@ -522,10 +522,10 @@ export default function EventDetailClient({
       </section>
 
       <ShareModal
-  isOpen={isShareOpen}
-  onClose={() => setIsShareOpen(false)}
-  postId={event?.postId}
-/>
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        postId={event?.postId}
+      />
       
       <PaymentWizardDialog
         isOpen={isPaymentOpen}
