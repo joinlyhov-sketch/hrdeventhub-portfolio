@@ -49,7 +49,7 @@ export default function MapContentComponent({
       const map = L.map(mapRef.current).setView([resolvedLat, resolvedLng], 15);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
       L.marker([resolvedLat, resolvedLng])
@@ -107,7 +107,7 @@ export default function MapContentComponent({
       {geocodeFailed ? (
         googleMapUrl || locationName ? (
           <iframe
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(locationName || googleMapUrl)}&output=embed`}
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(locationName || googleMapUrl)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
             width="100%"
             style={{ height: "220px", minHeight: "220px", border: 0 }}
             className="rounded-xl"
