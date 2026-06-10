@@ -10,15 +10,31 @@ interface SingleUserApiResponse {
 }
 
 export const userService = {
-  getAll: async (page: number = 1, size: number = 100): Promise<ApiUser[]> => {
+  getAll: async (): Promise<ApiUser[]> => {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken;
+    const pageSize = 100;
 
-    const response = await apiGet<ApiResponse>(
-      `/admin/users?page=${page}&size=${size}`,
+    const firstPage = await apiGet<ApiResponse>(
+      `/admin/users?page=1&size=${pageSize}`,
       { authToken: token },
     );
-    return response.payload || [];
+
+    const firstBatch = firstPage.payload || [];
+
+    if (firstBatch.length < pageSize) {
+      return firstBatch;
+    }
+
+    const remainingPages = await Promise.all(
+      Array.from({ length: 9 }, (_, i) =>
+        apiGet<ApiResponse>(`/admin/users?page=${i + 2}&size=${pageSize}`, {
+          authToken: token,
+        }).then((r) => r.payload || []),
+      ),
+    );
+
+    return [firstBatch, ...remainingPages].flat();
   },
 
   suspend: async (
