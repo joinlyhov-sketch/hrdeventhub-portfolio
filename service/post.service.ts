@@ -15,6 +15,7 @@ import {
   UpdateEventPayload,
 } from "@/types/post-types";
 import { PostsResponse, Post } from "@/types/posts";
+import { FeedItemWrapper, WorkspaceFeedApiResponse } from "@/types/UnifiedFeedItem";
 
 export interface SinglePostResponse {
   success: boolean;
@@ -196,5 +197,17 @@ export const postService = {
         accept: "*/*",
       },
     );
+  },
+  getWorkspaceFeed: async (
+    workspaceId: string,
+    token: string,
+    page: number = 1,
+    size: number = 20,
+  ): Promise<FeedItemWrapper[]> => {
+    const response = await apiGet<WorkspaceFeedApiResponse>(
+      `/workspaces/${workspaceId}/feed?page=${page}&size=${size}`,
+      { authToken: token },
+    );
+    return response.payload;
   },
 };

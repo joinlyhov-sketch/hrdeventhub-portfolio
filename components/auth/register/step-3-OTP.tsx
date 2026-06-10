@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { resendOtpAction, verifyOtpAction } from "../../../actions/auth.action";
 import { useRegisterStore } from "../../../store/useRegisterStore";
+import { LeaveVerificationModal } from "@/components/site/pop-up/leave-verification-modal";
 
 function secondsFromExpiry(expiresAt: number | null): number {
   if (!expiresAt) return 300;
@@ -12,14 +13,14 @@ function secondsFromExpiry(expiresAt: number | null): number {
 }
 
 export default function Step3OTP() {
-  const otpEmail    = useRegisterStore((s) => s.otpEmail);
+  const otpEmail = useRegisterStore((s) => s.otpEmail);
   const otpExpiresAt = useRegisterStore((s) => s.otpExpiresAt);
-  const goToOTP     = useRegisterStore((s) => s.goToOTP);
-  const reset       = useRegisterStore((s) => s.reset);
+  const goToOTP = useRegisterStore((s) => s.goToOTP);
+  const reset = useRegisterStore((s) => s.reset);
 
-  const [otp, setOtp]               = useState(["", "", "", "", "", ""]);
-  const [error, setError]           = useState<string | null>(null);
-  const [success, setSuccess]       = useState<string | null>(null);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
@@ -27,8 +28,10 @@ export default function Step3OTP() {
     secondsFromExpiry(otpExpiresAt),
   );
 
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const router    = useRouter();
+  const router = useRouter();
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -40,13 +43,32 @@ export default function Step3OTP() {
   }, [otpExpiresAt]);
 
   useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
+  useEffect(() => {
     window.history.pushState(null, "", window.location.href);
+
     const handlePopState = () => {
+      setIsLeaveModalOpen(true);
       window.history.pushState(null, "", window.location.href);
     };
+
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  const handleConfirmLeave = () => {
+    localStorage.clear();
+    reset();
+    setIsLeaveModalOpen(false);
+    router.push("/sign-up");
+  };
 
   const submitOtp = useCallback(
     (code: string) => {
@@ -115,7 +137,9 @@ export default function Step3OTP() {
         setError(result.error);
         return;
       }
-      setResendMessage(result.message ?? "Verification OTP successfully resent.");
+      setResendMessage(
+        result.message ?? "Verification OTP successfully resent.",
+      );
       goToOTP(otpEmail);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
@@ -127,79 +151,89 @@ export default function Step3OTP() {
   const seconds = secondsLeft % 60;
 
   return (
-    <motion.div
-      className="flex flex-col gap-4 sm:gap-5 w-full items-stretch sm:px-6"
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <div className="mb-3 sm:mb-5 text-center">
-        <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-[-1px] sm:tracking-[-2px] text-[#17356f]">
-          Enter Verification Code
-        </h2>
-        <p className="mt-1 sm:mt-2 text-sm text-[#6e7580]">
-          We sent a code to your email
-        </p>
-      </div>
-
-      <div className="flex justify-between gap-2 sm:gap-3 my-1 sm:my-2">
-        {otp.map((digit, index) => (
-          <input
-            key={index}
-            ref={(el) => { inputRefs.current[index] = el; }}
-            type="text"
-            inputMode="numeric"
-            maxLength={1}
-            value={digit}
-            onChange={(e) => handleChange(e.target.value, index)}
-            onKeyDown={(e) => handleKeyDown(e, index)}
-            className="
-              h-11 w-full
-              sm:h-14
-              rounded-xl sm:rounded-2xl
-              border border-[#dce6f0] bg-white
-              text-center text-lg sm:text-xl font-bold text-[#24529a]
-              outline-none transition-all focus:border-[#24529a] shadow-sm
-            "
-          />
-        ))}
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
-          {success}
-        </div>
-      )}
-      {resendMessage && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
-          {resendMessage}
-        </div>
-      )}
-
-      <div className="text-center text-sm text-[#6e7580]">
-        <button
-          onClick={handleResend}
-          disabled={secondsLeft > 0}
-          className="font-semibold text-[#17356f] underline underline-offset-2 disabled:text-[#b7c6dc] disabled:no-underline transition-all"
-        >
-          Resend
-        </button>
-        <span className="ml-2">
-          {minutes}:{seconds.toString().padStart(2, "0")}
-        </span>
-      </div>
-
-      <button
-        onClick={handleVerify}
-        disabled={isPending}
-        className="mt-2 sm:mt-3 h-[50px] sm:h-[58px] w-full rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+    <>
+      <motion.div
+        className="flex flex-col gap-4 sm:gap-5 w-full items-stretch sm:px-6"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
       >
-        {isPending ? "Verifying..." : "Submit"}
-      </button>
-    </motion.div>
+        <div className="mb-3 sm:mb-5 text-center">
+          <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-[-1px] sm:tracking-[-2px] text-[#17356f]">
+            Enter Verification Code
+          </h2>
+          <p className="mt-1 sm:mt-2 text-sm text-[#6e7580]">
+            We sent a code to your email
+          </p>
+        </div>
+
+        <div className="flex justify-between gap-2 sm:gap-3 my-1 sm:my-2">
+          {otp.map((digit, index) => (
+            <input
+              key={index}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              type="text"
+              inputMode="numeric"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleChange(e.target.value, index)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              className="
+                h-11 w-full
+                sm:h-14
+                rounded-xl sm:rounded-2xl
+                border border-[#dce6f0] bg-white
+                text-center text-lg sm:text-xl font-bold text-[#24529a]
+                outline-none transition-all focus:border-[#24529a] shadow-sm
+              "
+            />
+          ))}
+        </div>
+
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
+            {success}
+          </div>
+        )}
+        {resendMessage && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+            {resendMessage}
+          </div>
+        )}
+
+        <div className="text-center text-sm text-[#6e7580]">
+          <button
+            onClick={handleResend}
+            disabled={secondsLeft > 0}
+            className="font-semibold text-[#17356f] underline underline-offset-2 disabled:text-[#b7c6dc] disabled:no-underline transition-all"
+          >
+            Resend
+          </button>
+          <span className="ml-2">
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </span>
+        </div>
+
+        <button
+          onClick={handleVerify}
+          disabled={isPending}
+          className="mt-2 sm:mt-3 h-[50px] sm:h-[58px] w-full rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+        >
+          {isPending ? "Verifying..." : "Submit"}
+        </button>
+      </motion.div>
+
+      <LeaveVerificationModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        onConfirm={handleConfirmLeave}
+      />
+    </>
   );
 }

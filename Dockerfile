@@ -25,8 +25,8 @@ ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXTAUTH_URL=$NEXTAUTH_URL
 ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 
-# Run the build ONLY ONCE
-RUN npm run build
+# Keeps Next.js builds stable by keeping memory usage under 1.5GB
+RUN NODE_OPTIONS="--max-old-space-size=1536" npm run build
 
 FROM node:24-alpine AS runner
 WORKDIR /app

@@ -7,7 +7,6 @@ import {
   Calendar,
   CheckCircle2,
   BarChart3,
-  CalendarX,
 } from "lucide-react";
 import type { UserRole } from "@/context/user-context";
 import Search from "../../site/search/Search";
@@ -23,7 +22,6 @@ interface SearchEventProps {
   activeFilter: string | null;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  isEmpty?: boolean;
 }
 
 export default function SearchEvent({
@@ -32,7 +30,6 @@ export default function SearchEvent({
   activeFilter,
   searchQuery,
   onSearchChange,
-  isEmpty = false,
 }: SearchEventProps) {
   const params = useParams();
   const groupId = params.groupid;
@@ -64,10 +61,8 @@ export default function SearchEvent({
     { label: "Poll", icon: BarChart3, href: getCreationRoute("poll") },
   ];
 
-  const isSearchingOrFiltering = searchQuery.trim() !== "" || activeFilter !== null;
-
   return (
-    <div className="w-full mb-8">
+    <div className="w-full">
       <div className="flex items-center gap-2 relative">
         <div className="relative grow">
           <Search
@@ -84,55 +79,6 @@ export default function SearchEvent({
         />
         {role === "admin" && <ContentTypePopover items={contentMenuOptions} />}
       </div>
-
-      {isEmpty && (
-        <div className="p-12 text-center flex flex-col items-center justify-center min-h-65 mt-6 animate-in fade-in zoom-in-95 duration-150">
-          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center text-gray-400 mb-4">
-            <CalendarX size={30} className="text-red-500" />
-          </div>
-
-          {isSearchingOrFiltering ? (
-            <>
-              <h3 className="text-base font-bold text-gray-900 mb-1">
-                No Results Found
-              </h3>
-              <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
-                We couldn&apos;t find any records matching &ldquo;
-                <span className="font-semibold text-gray-800">{searchQuery}</span>
-                &rdquo;
-                {activeFilter && (
-                  <span>
-                    {" "}within the{" "}
-                    <span className="font-semibold text-gray-800">
-                      {activeFilter}
-                    </span>{" "}
-                    category
-                  </span>
-                )}
-                . Please verify your spelling or adjust your options.
-              </p>
-              <button
-                onClick={() => {
-                  onSearchChange("");
-                  onFilterChange(null);
-                }}
-                className="mt-5 text-xs font-bold text-primary hover:text-primary-hover uppercase tracking-wider underline underline-offset-4 cursor-pointer"
-              >
-                Clear Filters & Reset
-              </button>
-            </>
-          ) : (
-            <>
-              <h3 className="text-base font-bold text-gray-900 mb-1">
-                No Posts Available
-              </h3>
-              <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
-                There are currently no announcements, events, or posts published here. Check back later for updates.
-              </p>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }
