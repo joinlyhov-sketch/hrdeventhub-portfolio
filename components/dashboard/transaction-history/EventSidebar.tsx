@@ -20,11 +20,11 @@ interface EventSidebarProps {
 const getStatusBadgeColor = (status: string): string => {
   switch (status) {
     case "Published":
-      return "bg-yellow-100 text-yellow-700";
+      return "bg-yellow-100 text-action";
     case "Active":
-      return "bg-teal-100 text-teal-700";
+      return "bg-[#E6F9F1] text-accent";
     case "Cancel":
-      return "bg-red-100 text-red-700";
+      return "bg-[#FEECEB] text-[#EA1D24]";
     default:
       return "bg-gray-100 text-gray-700";
   }

@@ -22,15 +22,15 @@ interface LogoutModalProps {
 export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent size="sm">
-        <AlertDialogHeader>
-          <AlertDialogMedia className="bg-red-50 text-red-500 rounded-full dark:bg-red-950/50 dark:text-red-400">
-            <LogOut size={22} />
+      <AlertDialogContent size="sm" className="max-w-[380px] rounded-2xl p-6">
+        <AlertDialogHeader className="flex flex-col items-center text-center">
+          <AlertDialogMedia className="bg-red-50 text-red-500 rounded-full p-3 dark:bg-red-950/50 dark:text-red-400 mb-2">
+            <LogOut size={20} />
           </AlertDialogMedia>
-          <AlertDialogTitle className="type-title">
+          <AlertDialogTitle className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
             Log out of HRD EventHub?
           </AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="text-xs text-muted-foreground mt-1 px-2">
             You will need to sign in again to access your admin dashboard.
           </AlertDialogDescription>
         </AlertDialogHeader>
