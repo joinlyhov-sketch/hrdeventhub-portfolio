@@ -10,11 +10,11 @@ import {
   ChevronRight,
   ThumbsUp,
 } from "lucide-react";
-import PriceContentComponent from "../../../components/site/event-detail/price-content";
-import MapContentComponent from "../../../components/site/event-detail/map-content";
-import DetailContentComponent from "../../../components/site/event-detail/detail-content";
-import { AdminOverview } from "../../../components/site/event-detail/register-table";
-import { DiscussionSection } from "../../../components/site/event-detail/discussion-section";
+import PriceContentComponent from "@/components/site/event-detail/price-content";
+import MapContentComponent from "@/components/site/event-detail/map-content";
+import DetailContentComponent from "@/components/site/event-detail/detail-content";
+import { AdminOverview } from "@/components/site/event-detail/register-table";
+import { DiscussionSection } from "@/components/site/event-detail/discussion-section";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import { PaymentWizardDialog } from "@/components/site/pop-up/new-payment/payment";
 import Link from "next/link";
@@ -24,10 +24,11 @@ import {
   REACTIONS,
   TwemojiImg,
 } from "@/components/site/pop-up/comment/reaction";
-import { reactionService } from "../../../service/post-reaction.service";
+import { reactionService } from "@/service/post-reaction.service";
+import { postService } from "@/service/post.service";
 import { useCurrentUser } from "@/context/user-context";
 import { Post } from "@/types/posts";
-import { ReactionSummary } from "../event/ReactionSummary";
+import { ReactionSummary } from "@/components/site/event/ReactionSummary";
 import { ReactionItem } from "@/hooks/use-post-reaction";
 
 type PostReactionResponse = {
@@ -44,7 +45,7 @@ interface EventDetailClientProps {
 }
 
 export default function EventDetailClient({
-  event,
+  event: initialEvent,
   workspaceId,
 }: EventDetailClientProps) {
   const { currentUser } = useCurrentUser();
@@ -52,6 +53,7 @@ export default function EventDetailClient({
   const isAdminOrOrganizer =
     currentUser?.role === "admin" || currentUser?.role === "organizer";
 
+  const [event, setEvent] = useState<Post>(initialEvent);
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [activeAdminTab, setActiveAdminTab] = useState<AdminSubTab>("overview");
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -71,13 +73,11 @@ export default function EventDetailClient({
 
   const API_BASE =
     "https://api.dev.hrdevent.app/api/v4/files/preview-file?key=";
-
   const mediaList =
     event?.media && event.media.length > 0
       ? event.media.map((m: any) => {
           const path = m.filePath || m.url || "";
-          const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-          return url;
+          return path.startsWith("http") ? path : `${API_BASE}${path}`;
         })
       : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
 
@@ -91,9 +91,36 @@ export default function EventDetailClient({
   const isTransitioning = useRef(true);
   const trackRef = useRef<HTMLDivElement>(null);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+  const [avatarError, setAvatarError] = useState(false);
 
   const FALLBACK =
     "https://images.unsplash.com/photo-1511578314322-379afb476865";
+
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.accessToken || !initialEvent?.postId) return;
+
+    const fetchLivePostData = async () => {
+      try {
+        const livePost = await postService.getById(
+          workspaceId,
+          initialEvent.postId,
+          session.accessToken
+        );
+        if (livePost) {
+          setEvent(livePost);
+          setDetailData((prev) => ({
+            ...prev,
+            commentsCount: livePost.comments?.length || 0,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch fresh post info:", err);
+      }
+    };
+
+    fetchLivePostData();
+  }, [workspaceId, initialEvent?.postId, session?.accessToken, status]);
+
   useEffect(() => {
     if (trackRef.current) {
       trackRef.current.style.transition = isTransitioning.current
@@ -101,6 +128,7 @@ export default function EventDetailClient({
         : "none";
     }
   }, [currentImgIndex]);
+
   useEffect(() => {
     if (mediaList.length <= 1) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -129,8 +157,9 @@ export default function EventDetailClient({
           session.accessToken,
         )) as PostReactionResponse;
 
-        const userReaction = data.payload?.find(
-          (r) => r.reactor.appUserId === currentUser.id,
+        const reactions = data?.payload || [];
+        const userReaction = reactions.find(
+          (r) => r?.reactor?.appUserId === currentUser.id || r?.reactor?.appUserId === currentUser.id,
         );
 
         if (userReaction) {
@@ -138,16 +167,18 @@ export default function EventDetailClient({
           setDetailData((prev) => ({
             ...prev,
             isLikedByUser: true,
-            likesCount: data.payload.length,
+            likesCount: reactions.length,
           }));
         } else {
+          setSelectedReaction(null);
           setDetailData((prev) => ({
             ...prev,
-            likesCount: data.payload.length,
+            isLikedByUser: false,
+            likesCount: reactions.length,
           }));
         }
 
-        setReactionPayload(data.payload ?? []);
+        setReactionPayload(reactions);
       } catch (err) {
         console.error("Failed to fetch post reaction:", err);
       }
@@ -309,12 +340,25 @@ export default function EventDetailClient({
       <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
         <section className="flex justify-between items-center">
           <div className="flex items-center gap-x-3">
-            <div className="w-10 h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary uppercase">
-              {event?.title?.slice(0, 2) || "EV"}
-            </div>
+            {event?.creator?.profilePicture && !avatarError ? (
+              <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-secondary">
+                <Image
+                  unoptimized
+                  src={event.creator.profilePicture}
+                  alt={event.creator.fullName || "User Avatar"}
+                  fill
+                  className="object-cover"
+                  onError={() => setAvatarError(true)}
+                />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary uppercase">
+                {event?.creator?.fullName?.slice(0, 2) || "EV"}
+              </div>
+            )}
             <div>
               <p className="text-subtitle font-medium text-secondary">
-                {isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team"}
+                {event?.creator?.fullName || (isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team")}
               </p>
               <p className="text-desc-small-semibold font-medium text-muted-foreground">
                 {formattedCreationDate}
