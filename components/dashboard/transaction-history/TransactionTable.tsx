@@ -33,9 +33,9 @@ interface TransactionTableProps {
 const getStatusColor = (status: string): string => {
   switch (status) {
     case "Successful":
-      return "bg-green-100 text-green-700";
+      return "bg-[#E6F9F1] text-accent";
     case "Failed":
-      return "bg-red-100 text-red-700";
+      return "bg-[#FEECEB] text-[#EA1D24]";
     case "Pending":
       return "bg-yellow-100 text-yellow-700";
     default:
@@ -65,7 +65,6 @@ export function TransactionTable({
     });
   }, [data, searchTerm, selectedStatus]);
 
-  // const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(
     startIndex,
@@ -116,7 +115,45 @@ export function TransactionTable({
             <Search className="absolute left-3 top-2 w-4 h-4 text-gray-400" />
           </div>
           <Button
-            onClick={() => alert("Export Excel Successfully")}
+            onClick={() => {
+              if (filteredData.length === 0) {
+                alert("No transactions to export.");
+                return;
+              }
+
+              const headers = [
+                "ID",
+                "Username",
+                "Amount (USD)",
+                "Status",
+                "Timestamp",
+              ];
+              const rows = filteredData.map((t) => [
+                t.id,
+                t.username,
+                t.amount.toString(),
+                t.status,
+                t.timestamp,
+              ]);
+
+              const csvContent = [headers, ...rows]
+                .map((row) =>
+                  row
+                    .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+                    .join(","),
+                )
+                .join("\n");
+
+              const blob = new Blob([csvContent], {
+                type: "text/csv;charset=utf-8;",
+              });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+              link.click();
+              URL.revokeObjectURL(url);
+            }}
             className="bg-primary hover:bg-primary-hover text-white gap-2 rounded-lg flex items-center cursor-pointer"
           >
             <Download className="w-4 h-4" />
@@ -210,16 +247,22 @@ export function TransactionTable({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage
-                          className="bg-cover object-fill"
-                          src={transaction.avatar}
-                          alt={transaction.username}
-                        />
-                        <AvatarFallback>
-                          {transaction.username.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
+                      {transaction.avatar ? (
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage
+                            className="bg-cover object-fill"
+                            src={transaction.avatar}
+                            alt={transaction.username}
+                          />
+                          <AvatarFallback>
+                            {transaction.username?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[12px] font-medium text-white shrink-0">
+                          {transaction.username?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <span className="type-detail text-gray-700">
                         {transaction.username}
                       </span>

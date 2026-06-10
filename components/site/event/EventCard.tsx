@@ -34,6 +34,8 @@ interface EventCardProps {
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
   groupid: string;
+  pinnedCount: number;
+  onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
 }
 
 function EventItem({
@@ -41,11 +43,15 @@ function EventItem({
   role,
   onDelete,
   groupid,
+  pinnedCount,
+  onTogglePin,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupid: string;
+  pinnedCount: number;
+  onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -93,10 +99,10 @@ function EventItem({
   };
 
   const EMOJI_LIST = [
-  "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
-  "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
-  "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
-  "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
+    "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
+    "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
+    "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
+    "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
   ];
 
   const [showEmoji, setShowEmoji] = useState(false);
@@ -143,6 +149,9 @@ function EventItem({
                 title={post.title}
                 editUrl={`/event-management/edition/event?groupId=${groupid}&postId=${post.postId}`}
                 onDelete={onDelete}
+                isPinned={post.pinned ?? false}
+                pinnedCount={pinnedCount}
+                onTogglePin={(currentStatus) => onTogglePin(post.postId, currentStatus)}
               />
             )}
           </div>
@@ -379,6 +388,8 @@ export function EventCard({
   posts,
   onDeletePost,
   groupid,
+  pinnedCount,
+  onTogglePin,
 }: EventCardProps) {
   return (
     <>
@@ -389,6 +400,8 @@ export function EventCard({
           role={role}
           onDelete={() => onDeletePost(post.postId)}
           groupid={groupid}
+          pinnedCount={pinnedCount}
+          onTogglePin={onTogglePin}
         />
       ))}
     </>

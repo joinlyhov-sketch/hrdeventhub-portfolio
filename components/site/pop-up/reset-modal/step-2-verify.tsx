@@ -2,18 +2,9 @@
 
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  TransitionStartFunction,
-} from "react";
-import {
-  resendOtpAction,
-  verifyForgotPasswordAction,
-} from "@/actions/auth.action";
-import { useResetPasswordStore } from "@/store/useResetPasswordStore";
+import { useCallback, useEffect, useRef, useState, TransitionStartFunction } from "react";
+import { resendOtpAction, verifyForgotPasswordAction } from "@/actions/auth.action";
+import { useResetPasswordStore } from "@/store/useResetPasswordAdminStore";
 
 interface StepProps {
   startTransition: TransitionStartFunction;
@@ -27,18 +18,17 @@ function secondsFromExpiry(expiresAt: number | null): number {
 
 export default function VerifyStep({ startTransition, isPending }: StepProps) {
   const email = useResetPasswordStore((s) => s.email);
-  const storeToken = useResetPasswordStore((s) => s.storeToken);
   const otpExpiresAt = useResetPasswordStore((s) => s.otpExpiresAt);
-  const storeEmail = useResetPasswordStore((s) => s.storeEmail);
+  const advanceToNewPassword = useResetPasswordStore((s) => s.advanceToNewPassword);
+  const advanceToVerify = useResetPasswordStore((s) => s.advanceToVerify);
+  const reset = useResetPasswordStore((s) => s.reset);
 
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
-  const [secondsLeft, setSecondsLeft] = useState(() =>
-    secondsFromExpiry(otpExpiresAt),
-  );
+  const [secondsLeft, setSecondsLeft] = useState(() => secondsFromExpiry(otpExpiresAt));
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -71,12 +61,14 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
           return;
         }
         if (result?.ok && result.token) {
-          storeToken(result.token);
-          useResetPasswordStore.setState({ step: 3 });
+          advanceToNewPassword(result.token);
+          console.log("token received:", result.token);
+advanceToNewPassword(result.token);
         }
       });
+      
     },
-    [email, startTransition, storeToken],
+    [email, startTransition, advanceToNewPassword],
   );
 
   const handleVerify = () => submitOtp(otp.join(""));
@@ -101,8 +93,7 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
   };
 
   const handleResend = () => {
-    if (secondsLeft > 0) return;
-    if (!email) return;
+    if (secondsLeft > 0 || !email) return;
     setError(null);
     setResendMessage(null);
 
@@ -113,7 +104,7 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
         return;
       }
       setResendMessage(result.message ?? "Verification code resent.");
-      storeEmail(email);
+      advanceToVerify(email);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
       inputs.current[0]?.focus();
@@ -125,7 +116,7 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
     setError(null);
     setResendMessage(null);
     setAutoSubmitEnabled(true);
-    useResetPasswordStore.setState({ step: 1 });
+    reset();
   };
 
   return (
@@ -145,9 +136,7 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
         {[...Array(6)].map((_, i) => (
           <input
             key={i}
-            ref={(el) => {
-              inputs.current[i] = el;
-            }}
+            ref={(el) => { inputs.current[i] = el; }}
             type="text"
             maxLength={1}
             value={otp[i]}
@@ -179,8 +168,7 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
           Resend Code
         </button>
         <span className="ml-2 font-mono">
-          ({Math.floor(secondsLeft / 60)}:
-          {(secondsLeft % 60).toString().padStart(2, "0")})
+          ({Math.floor(secondsLeft / 60)}:{(secondsLeft % 60).toString().padStart(2, "0")})
         </span>
       </div>
 

@@ -123,7 +123,7 @@ export function CloseEventModal({
               variant="outline"
               onClick={handleClose}
               disabled={isProcessing}
-              className="h-10 px-5 border border-gray-300 text-gray-700 hover:bg-gray-100 font-medium rounded-lg text-sm transition-colors"
+              className="h-10 px-5 border border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-black font-medium rounded-lg text-sm transition-colors"
             >
               Cancel
             </Button>

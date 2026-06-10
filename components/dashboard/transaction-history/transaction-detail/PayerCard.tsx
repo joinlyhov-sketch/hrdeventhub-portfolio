@@ -28,7 +28,7 @@ export function PayerCard({ payer }: PayerCardProps) {
           </h3>
         </div>
         <Link
-          href={"/profile"}
+          href={`/profile/${payer.id}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex text-primary items-center gap-1.5 text-sm font-semibold type-desc hover:underline"

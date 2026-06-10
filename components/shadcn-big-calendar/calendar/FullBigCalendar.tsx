@@ -16,6 +16,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 import { useWorkspaceEvents } from "@/hooks/use-workspace-events";
 import type { CalendarView, EventTone } from "@/types/calendar";
@@ -58,6 +59,7 @@ function renderEventContent(info: EventContentArg) {
   const startTime = formatEventTime(info.event.start);
   const endTime = formatEventTime(info.event.end);
   const eventTime = endTime ? `${startTime} - ${endTime}` : startTime;
+  const continuesNextDay = Boolean(info.event.end && !info.isEnd);
 
   if (info.view.type === "dayGridMonth") {
     return (
@@ -71,7 +73,11 @@ function renderEventContent(info: EventContentArg) {
 
   if (info.view.type === "timeGridWeek") {
     return (
-      <div className={`event-box week-event-box event-box-${tone}`}>
+      <div
+        className={`event-box week-event-box event-box-${tone} ${
+          continuesNextDay ? "event-box-continues-next-day" : ""
+        }`}
+      >
         <div className="event-title">{info.event.title}</div>
         <div className="event-time">{eventTime}</div>
       </div>
@@ -80,9 +86,13 @@ function renderEventContent(info: EventContentArg) {
 
   if (info.view.type === "timeGridDay") {
     return (
-      <div className={`event-box day-event-box event-box-${tone}`}>
+      <div
+        className={`event-box day-event-box event-box-${tone} ${
+          continuesNextDay ? "event-box-continues-next-day" : ""
+        }`}
+      >
         <div className="event-title">{info.event.title}</div>
-        {location && (
+        {location && !continuesNextDay && (
           <div className="event-location">
             <MapPin size={13} />
             <span>{location}</span>
@@ -110,6 +120,28 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
   const [weekNowIndicatorStyle, setWeekNowIndicatorStyle] =
     useState<CSSProperties>({ display: "none" });
   const { events, isLoading, error } = useWorkspaceEvents(workspaceId, role);
+
+  useEffect(() => {
+    if (isLoading) {
+      toast.loading("Loading calendar events...", {
+        id: "calendar-events",
+      });
+      return;
+    }
+
+    if (error) {
+      toast.error("Failed to load calendar events", {
+        id: "calendar-events",
+      });
+      return;
+    }
+
+    if (events.length > 0) {
+      toast.success("Calendar events loaded successfully", {
+        id: "calendar-events",
+      });
+    }
+  }, [isLoading, error, events]);
 
   const title = useMemo(() => format(currentDate, "MMMM yyyy"), [currentDate]);
   const calendarEvents = useMemo<EventInput[]>(
@@ -297,6 +329,80 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const shell = calendarShellRef.current;
+    if (!shell || view !== "dayGridMonth") return;
+
+    let closeTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const clearCloseTimer = () => {
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = undefined;
+      }
+    };
+
+    const closeMorePopover = () => {
+      shell
+        .querySelector<HTMLElement>(".fc-more-popover .fc-popover-close")
+        ?.click();
+    };
+
+    const schedulePopoverClose = () => {
+      clearCloseTimer();
+      closeTimer = setTimeout(closeMorePopover, 150);
+    };
+
+    const getOverflowDay = (target: EventTarget | null) => {
+      if (!(target instanceof Element)) return null;
+
+      const dayCell = target.closest<HTMLElement>(".fc-daygrid-day");
+      return dayCell?.querySelector(".fc-daygrid-more-link") ? dayCell : null;
+    };
+
+    const isOverflowHoverArea = (target: EventTarget | null) =>
+      target instanceof Element &&
+      Boolean(
+        target.closest(".fc-more-popover") || getOverflowDay(target),
+      );
+
+    const handlePointerOver = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const overflowDay = getOverflowDay(target);
+      const morePopover = target.closest(".fc-more-popover");
+
+      if (overflowDay || morePopover) {
+        clearCloseTimer();
+      }
+
+      if (overflowDay && !shell.querySelector(".fc-more-popover")) {
+        overflowDay
+          .querySelector<HTMLElement>(".fc-daygrid-more-link")
+          ?.click();
+      }
+    };
+
+    const handlePointerOut = (event: PointerEvent) => {
+      if (
+        isOverflowHoverArea(event.target) &&
+        !isOverflowHoverArea(event.relatedTarget)
+      ) {
+        schedulePopoverClose();
+      }
+    };
+
+    shell.addEventListener("pointerover", handlePointerOver);
+    shell.addEventListener("pointerout", handlePointerOut);
+
+    return () => {
+      clearCloseTimer();
+      shell.removeEventListener("pointerover", handlePointerOver);
+      shell.removeEventListener("pointerout", handlePointerOut);
+    };
+  }, [view]);
+
   return (
     <section className="calendar-page-shell">
       <div className="calendar-toolbar">
@@ -378,14 +484,6 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
         ref={calendarShellRef}
         className={`calendar-card calendar-card-${view}`}
       >
-        {isLoading && (
-          <div className="calendar-status">Loading calendar events...</div>
-        )}
-        {error && (
-          <div className="calendar-status calendar-status-error">
-            Failed to load calendar events
-          </div>
-        )}
         <FullCalendar
           key={`calendar-${view}`}
           ref={calendarRef}
@@ -407,9 +505,10 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
           allDaySlot={false}
           dayMaxEvents={view === "dayGridMonth" ? 2 : false}
           dayMaxEventRows={false}
-          moreLinkContent={(args) => `+${args.num} more`}
+          moreLinkClick="popover"
           eventMaxStack={view === "timeGridWeek" ? 2 : undefined}
-          eventMinHeight={view === "timeGridWeek" ? 44 : 36}
+          eventMinHeight={1}
+          eventShortHeight={24}
           slotEventOverlap={false}
           slotDuration="01:00:00"
           scrollTime={

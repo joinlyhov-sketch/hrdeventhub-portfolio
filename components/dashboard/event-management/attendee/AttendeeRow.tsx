@@ -43,6 +43,8 @@ export default function AttendeeRow({
   onDeleteAttendee,
 }: AttendeeRowProps) {
   const router = useRouter();
+  const attendeeUserId = attendee.user?.appUserId || attendee.appUserId;
+
   const getStatusStyles = (status: string) => {
     const normalize = (status || "").toLowerCase().trim();
 
@@ -76,7 +78,10 @@ export default function AttendeeRow({
     {
       label: "View Profile",
       icon: User,
-      onClick: () => router.push(`/profile/${attendee.participantId}`),
+      onClick: () => {
+        if (!attendeeUserId) return;
+        router.push(`/profile/${attendeeUserId}`);
+      },
     },
     {
       label: "Delete",

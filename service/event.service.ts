@@ -97,7 +97,7 @@ export interface ParticipantUser {
 }
 
 export interface Participant {
-  appUserId: string;
+  appUserId?: string;
   participantId: string;
   registeredAt: string;
   remark: string;
@@ -154,8 +154,7 @@ export const eventService = {
 
         eventsById.set(event.postId, {
           ...event,
-          sourceWorkspaceId:
-            event.sourceWorkspaceId || event.workspaceId,
+          sourceWorkspaceId: event.sourceWorkspaceId || event.workspaceId,
         });
       });
 

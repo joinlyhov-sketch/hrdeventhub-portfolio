@@ -3,8 +3,8 @@
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useState, TransitionStartFunction } from "react";
-import { resendOtpAction } from "@/actions/auth.action";
-import { useResetPasswordStore } from "@/store/useResetPasswordStore";
+import { forgotPasswordAction } from "@/actions/auth.action";
+import { useResetPasswordStore } from "@/store/useResetPasswordAdminStore";
 
 interface StepProps {
   startTransition: TransitionStartFunction;
@@ -13,7 +13,7 @@ interface StepProps {
 
 export default function ConfirmStep({ startTransition, isPending }: StepProps) {
   const email = useResetPasswordStore((s) => s.email);
-  const storeEmail = useResetPasswordStore((s) => s.storeEmail);
+  const advanceToVerify = useResetPasswordStore((s) => s.advanceToVerify);
   const [error, setError] = useState<string | null>(null);
 
   const handleSendOtp = () => {
@@ -25,14 +25,12 @@ export default function ConfirmStep({ startTransition, isPending }: StepProps) {
     }
 
     startTransition(async () => {
-      const result = await resendOtpAction(email);
+      const result = await forgotPasswordAction(email);
       if (result?.error) {
         setError(result.error);
         return;
       }
-      
-      storeEmail(email);
-      useResetPasswordStore.setState({ step: 2 });
+      advanceToVerify(email);
     });
   };
 
@@ -46,7 +44,11 @@ export default function ConfirmStep({ startTransition, isPending }: StepProps) {
       <div>
         <h3 className="text-xl font-bold text-[#17356f]">Are you sure?</h3>
         <p className="mt-2 text-sm text-[#6e7580] leading-relaxed">
-          You are initiating a password reset request for <span className="font-semibold text-[#24529a]">{email || "your account"}</span>. We will send a secure 6-digit OTP code to verify your identity.
+          You are initiating a password reset request for{" "}
+          <span className="font-semibold text-[#24529a]">
+            {email || "your account"}
+          </span>
+          . We will send a secure 6-digit OTP code to verify your identity.
         </p>
       </div>
 

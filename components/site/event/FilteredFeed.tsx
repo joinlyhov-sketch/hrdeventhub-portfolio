@@ -9,145 +9,134 @@ import { PollCard } from "./PollCard";
 import { SurveyCard } from "./SurveyCard";
 import { ArticleCard } from "./ArticleCard";
 import { useCurrentUser } from "@/context/user-context";
-import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
-import { useWorkspacePolls } from "@/hooks/use-workspace-polls";
-import { useWorkspaceSurveys } from "@/hooks/use-workspace-surveys";
-import { deletePostAction } from "@/actions/post.action";
-import { Post } from "@/types/posts";
+import { useWorkspaceFeed } from "@/hooks/use-workspace-hook";
+import { deletePostAction, togglePinAction } from "@/actions/post.action";
+import { CalendarX } from "lucide-react";
 
 interface FilteredFeedProps {
   groupid: string;
 }
 
 export default function FilteredFeed({ groupid }: FilteredFeedProps) {
-  const { currentUser } = useCurrentUser();
+  const { currentUser, isLoading: userLoading } = useCurrentUser();
   const role = currentUser?.role ?? "student";
 
-  const { posts, isLoading: postsLoading, mutate } = useWorkspacePosts(groupid);
-  const { polls, isLoading: pollsLoading } = useWorkspacePolls(groupid);
-  const {
-    surveys,
-    isLoading: surveysLoading,
-    mutate: mutateSurveys,
-  } = useWorkspaceSurveys(groupid);
+  const { feedItems = [], isLoading: feedLoading, mutate } = useWorkspaceFeed(groupid, 1, 20);
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [surveyVisibility, setSurveyVisibility] = useState<
-    Record<string, boolean>
-  >({});
+
+  const pinnedCount = useMemo(() => {
+    return feedItems.filter(item => item.type === "POST" && item.data?.pinned).length;
+  }, [feedItems]);
+
+  const handleTogglePin = async (postId: string, currentPinStatus: boolean) => {
+    const nextPinState = !currentPinStatus;
+
+    await mutate(
+      (current) =>
+        current?.map((item) =>
+          item.id === postId || (item.type === "POST" && item.data?.postId === postId)
+            ? { ...item, data: { ...item.data, pinned: nextPinState } }
+            : item
+        ) ?? [],
+      { revalidate: false }
+    );
+
+    try {
+      const response = await togglePinAction(groupid, postId, nextPinState);
+      if (!response || !response.ok) mutate();
+    } catch (error) {
+      console.error(error);
+      mutate();
+    }
+  };
 
   const handleDeletePost = async (postId: string) => {
-    mutate(
-      (current) => current?.filter((p) => p.postId !== postId) ?? [],
-      false,
-    );
+    mutate((current) => current?.filter((item) => item.id !== postId && item.data?.postId !== postId) ?? [], false);
     try {
       await deletePostAction(groupid, postId);
       mutate();
     } catch (error) {
-      console.error("Failed to delete post:", error);
+      console.error(error);
       mutate();
     }
   };
 
   const handleDeleteSurvey = (surveyId: string) => {
-    mutateSurveys(
-      (current) => current?.filter((s) => s.surveyId !== surveyId) ?? [],
-      false,
-    );
-    setTimeout(() => mutateSurveys(), 800);
+    mutate((current) => current?.filter((item) => item.id !== surveyId && item.data?.surveyId !== surveyId) ?? [], false);
+    setTimeout(() => mutate(), 800);
   };
 
-  const chronologicalPosts = useMemo(() => {
-    return [...posts]
-      .filter((p) => p.status !== "draft") 
-      .sort((a, b) => {
-        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return timeB - timeA;
-      });
-  }, [posts]);
-
-  const postsByCategory = useMemo(
-    () => ({
-      event: chronologicalPosts.filter((p) => p.category === "event"),
-      announcement: chronologicalPosts.filter(
-        (p) => p.category === "announcement",
-      ),
-      poll: chronologicalPosts.filter((p) => p.category === "poll"),
-      survey: chronologicalPosts.filter((p) => p.category === "survey"),
-      article: chronologicalPosts.filter((p) => p.category === "article"),
-    }),
-    [chronologicalPosts],
-  );
-
-  const filteredPolls = useMemo(() => {
+  const processedTimeline = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return polls;
-    return polls.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        (p.description ?? "").toLowerCase().includes(q),
-    );
-  }, [polls, searchQuery]);
 
-  const filtered = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return postsByCategory;
-    const filterPosts = (list: Post[]) =>
-      list.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.content.toLowerCase().includes(q),
-      );
-    return {
-      event: filterPosts(postsByCategory.event),
-      announcement: filterPosts(postsByCategory.announcement),
-      poll: filterPosts(postsByCategory.poll),
-      survey: filterPosts(postsByCategory.survey),
-      article: filterPosts(postsByCategory.article),
-    };
-  }, [postsByCategory, searchQuery]);
+    if (!feedItems || feedItems.length === 0) return [];
 
-  const chronologicalSurveys = useMemo(() => {
-    return [...surveys].sort((a, b) => {
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return timeB - timeA;
+    const categoryFiltered = activeFilter
+      ? feedItems.filter((item) => {
+          const itemType = (item.subType || item.type || "").toLowerCase();
+          return itemType === activeFilter.toLowerCase();
+        })
+      : feedItems;
+
+    if (!q) return categoryFiltered;
+
+    return categoryFiltered.filter((item) => {
+      const titleMatch = item.title?.toLowerCase().includes(q);
+      const descMatch = item.description?.toLowerCase().includes(q);
+      
+      const rawContent = item.data?.content;
+      const contentMatch = typeof rawContent === "string" 
+        ? rawContent.toLowerCase().includes(q) 
+        : false;
+
+      return titleMatch || descMatch || contentMatch;
     });
-  }, [surveys]);
+  }, [feedItems, activeFilter, searchQuery]);
 
-  const anySurveyVisible = Object.values(surveyVisibility).some(Boolean);
+  const pinnedPosts = useMemo(() => {
+    return feedItems
+      .filter((item) => item.type === "POST" && item.data?.pinned)
+      .map((item) => item.data);
+  }, [feedItems]);
 
-  const isCategoryActive = (type: string) =>
-    !activeFilter || activeFilter === type;
+  const isFeedEmpty = processedTimeline.length === 0;
+  const isSearchingOrFiltering = searchQuery.trim() !== "" || activeFilter !== null;
+  const isComponentLoading = feedLoading || userLoading;
 
-  const isFeedEmpty =
-    (!isCategoryActive("event") || filtered.event.length === 0) &&
-    (!isCategoryActive("announcement") || filtered.announcement.length === 0) &&
-    (!isCategoryActive("poll") || filteredPolls.length === 0) &&
-    (!isCategoryActive("survey") ||
-      !anySurveyVisible ||
-      surveys.length === 0) &&
-    (!isCategoryActive("article") || filtered.article.length === 0);
-
-  const pinnedPosts = useMemo(
-    () => chronologicalPosts.filter((p) => p.pinned),
-    [chronologicalPosts],
-  );
-
-  const isLoading = postsLoading || pollsLoading || surveysLoading;
-
-  if (isLoading) {
+  if (isComponentLoading) {
     return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="bg-background rounded-xl border border-border p-5 h-48 animate-pulse"
-          />
-        ))}
+      <div className="space-y-5 animate-in fade-in duration-300">
+        <div className="w-full h-11 bg-muted rounded-lg animate-pulse" />
+        
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-background rounded-xl border border-border/60 p-6 space-y-4 shadow-sm relative overflow-hidden"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
+                <div className="space-y-2 grow">
+                  <div className="h-4 bg-muted rounded w-1/4 animate-pulse" />
+                  <div className="h-3 bg-muted rounded w-1/6 animate-pulse" />
+                </div>
+              </div>
+              
+              <div className="space-y-2 pt-2">
+                <div className="h-5 bg-muted rounded w-2/3 animate-pulse" />
+                <div className="h-4 bg-muted rounded w-full animate-pulse" />
+                <div className="h-4 bg-muted rounded w-5/6 animate-pulse" />
+              </div>
+
+              <div className="flex gap-4 pt-2 border-t border-border/40">
+                <div className="h-4 bg-muted rounded w-12 animate-pulse" />
+                <div className="h-4 bg-muted rounded w-12 animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -160,69 +149,130 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
         onFilterChange={setActiveFilter}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        isEmpty={isFeedEmpty}
       />
 
-      {!searchQuery && !isFeedEmpty && (
+      {!searchQuery && pinnedPosts.length > 0 && (
         <PinnedSection posts={pinnedPosts} groupid={groupid} />
       )}
 
       <div className="space-y-4">
-        {isCategoryActive("event") && filtered.event.length > 0 && (
-          <EventCard
-            role={role}
-            posts={filtered.event}
-            searchQuery={searchQuery}
-            onDeletePost={handleDeletePost}
-            groupid={groupid}
-          />
-        )}
+        {isFeedEmpty ? (
+          <div className="p-12 text-center flex flex-col items-center justify-center min-h-65 mt-6 animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center text-gray-400 mb-4">
+              <CalendarX size={30} className="text-red-500" />
+            </div>
 
-        {isCategoryActive("announcement") &&
-          filtered.announcement.length > 0 && (
-            <AnnouncementCard
-              role={role}
-              posts={filtered.announcement}
-              searchQuery={searchQuery}
-              onDeletePost={handleDeletePost}
-              groupid={groupid}
-            />
-          )}
+            {isSearchingOrFiltering ? (
+              <>
+                <h3 className="text-base font-bold text-gray-900 mb-1">
+                  No Results Found
+                </h3>
+                <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                  We couldn&apos;t find any records matching &ldquo;
+                  <span className="font-semibold text-gray-800">{searchQuery}</span>
+                  &rdquo;
+                  {activeFilter && (
+                    <span>
+                      {" "}within the{" "}
+                      <span className="font-semibold text-gray-800">
+                        {activeFilter}
+                    </span>{" "}
+                      category
+                    </span>
+                  )}
+                  . Please verify your spelling or adjust your options.
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveFilter(null);
+                  }}
+                  className="mt-5 text-xs font-bold text-primary hover:text-primary-hover uppercase tracking-wider underline underline-offset-4 cursor-pointer"
+                >
+                  Clear Filters & Reset
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-base font-bold text-gray-900 mb-1">
+                  No Posts Available
+                </h3>
+                <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                  There are currently no announcements, events, or posts published here. Check back later for updates.
+                </p>
+              </>
+            )}
+          </div>
+        ) : (
+          processedTimeline.map((item) => {
+            const resolvedType = (item.subType || item.type || "").toLowerCase();
 
-        {isCategoryActive("poll") && filteredPolls.length > 0 && (
-          <PollCard
-            role={role}
-            polls={filteredPolls}
-            searchQuery={searchQuery}
-            onDeletePoll={(pollId) => console.log("delete poll", pollId)}
-          />
-        )}
+            switch (resolvedType) {
+              case "event":
+                return (
+                  <EventCard
+                    key={item.id}
+                    role={role}
+                    posts={[item.data]}
+                    searchQuery={searchQuery}
+                    onDeletePost={handleDeletePost}
+                    groupid={groupid}
+                    pinnedCount={pinnedCount}
+                    onTogglePin={handleTogglePin}
+                  />
+                );
 
-        {isCategoryActive("survey") &&
-          chronologicalSurveys.map((survey) => (
-            <SurveyCard
-              key={survey.surveyId}
-              survey={survey}
-              role={role}
-              searchQuery={searchQuery}
-              onVisibilityChange={(visible) =>
-                setSurveyVisibility((prev) => ({
-                  ...prev,
-                  [survey.surveyId]: visible,
-                }))
-              }
-              onDelete={handleDeleteSurvey}
-            />
-          ))}
+              case "announcement":
+                return (
+                  <AnnouncementCard
+                    key={item.id}
+                    role={role}
+                    posts={[item.data]}
+                    searchQuery={searchQuery}
+                    onDeletePost={handleDeletePost}
+                    groupid={groupid}
+                  />
+                );
 
-        {isCategoryActive("article") && filtered.article.length > 0 && (
-          <ArticleCard
-            role={role}
-            posts={filtered.article}
-            searchQuery={searchQuery}
-            onDeletePost={handleDeletePost}
-            groupId={groupid}
-          />
+              case "poll":
+                return (
+                  <PollCard
+                    key={item.id}
+                    role={role}
+                    polls={[item.data]}
+                    searchQuery={searchQuery}
+                    onDeletePoll={(pollId) => console.log(pollId)}
+                  />
+                );
+
+              case "survey":
+                return (
+                  <SurveyCard
+                    key={item.id}
+                    survey={item.data}
+                    role={role}
+                    searchQuery={searchQuery}
+                    onVisibilityChange={() => {}}
+                    onDelete={handleDeleteSurvey}
+                  />
+                );
+
+              case "article":
+                return (
+                  <ArticleCard
+                    key={item.id}
+                    role={role}
+                    posts={[item.data]}
+                    searchQuery={searchQuery}
+                    onDeletePost={handleDeletePost}
+                    groupId={groupid}
+                  />
+                );
+
+              default:
+                return null;
+            }
+          })
         )}
       </div>
     </div>

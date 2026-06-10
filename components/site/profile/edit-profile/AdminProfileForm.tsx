@@ -8,13 +8,15 @@ import {
   Cake,
   Link2,
   Camera,
-  Trash2,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
 import { getIdentityMeAction, updateIdentityMeAction, updateProfileMeAction } from "@/actions/profile.action";
+import { uploadFileAction } from "@/actions/file.action";
 import { useRouter } from "next/navigation";
 import ResetPasswordModal from "../../pop-up/reset-modal/ResetPasswordModal";
+import ConnectBankModal from "@/components/site/pop-up/payment/WebillConnectModal";
+import ImageAdjustModal from "@/components/site/profile/ImageAdjustModal"; 
 
 interface CurrentUser {
   name: string;
@@ -24,6 +26,12 @@ interface CurrentUser {
 
 export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [isResetOpen, setIsResetOpen] = useState(false);
+  const [isBankOpen, setIsBankOpen] = useState(false);
+  
+  const [isAdjustOpen, setIsAdjustOpen] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const { data: session } = useSession();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,8 +68,9 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           getIdentityMeAction()
         ]);
 
+        let identityAvatarFallback = null;
         if (identityRes.status === "fulfilled" && identityRes.value) {
-          const idData = identityRes.value.payload || identityRes.value;
+          const idData = (identityRes.value as any).payload || identityRes.value;
           const identitySnapshot = {
             firstName: idData.firstName || "Admin",
             lastName: idData.lastName || "",
@@ -79,6 +88,10 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           
           if (idData.email) setEmail(idData.email);
           
+          if (idData.avatar || idData.profilePicture || idData.avatarUrl) {
+            identityAvatarFallback = idData.avatar || idData.profilePicture || idData.avatarUrl;
+          }
+
           if (idData.gender) {
             const rawGender = idData.gender.toUpperCase();
             if (rawGender === "M" || rawGender === "MALE") {
@@ -91,12 +104,13 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           }
         }
 
-        if (profileRes.status === "fulfilled" && profileRes.value?.success) {
-          const p = profileRes.value.payload as any;
+        if (profileRes.status === "fulfilled" && (profileRes.value as any)?.success) {
+          const p = (profileRes.value as any).payload as any;
           let lUrl = "", gUrl = "", fUrl = "", tUrl = "";
 
-          if (p.avatar) {
-            setAvatarUrl(p.avatar);
+          const resolvedAvatar = p.avatar || p.profilePicture || p.avatarUrl || identityAvatarFallback;
+          if (resolvedAvatar) {
+            setAvatarUrl(resolvedAvatar);
           }
 
           if (p.socialAccount && p.socialAccount.length > 0) {
@@ -115,15 +129,16 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
           const profileSnapshot = {
             bio: p.bio || "",
-            avatar: p.avatar || null,
+            avatar: resolvedAvatar || null,
             socials: { linkedin: lUrl, github: gUrl, facebook: fUrl, telegram: tUrl }
           };
 
           setInitialProfile(profileSnapshot);
           setBio(profileSnapshot.bio);
+        } else if (identityAvatarFallback) {
+          setAvatarUrl(identityAvatarFallback);
         }
       } catch (err) {
-        console.error(err);
       }
     };
     loadAllUserData();
@@ -133,13 +148,41 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     const file = e.target.files?.[0];
     if (file) {
       const localUrl = URL.createObjectURL(file);
-      setAvatarUrl(localUrl);
+      setSelectedImageSrc(localUrl);
+      setIsAdjustOpen(true);
     }
   };
 
-  const handleRemoveAvatar = () => {
-    setAvatarUrl(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const handleSaveCroppedAvatar = async (croppedBlob: Blob) => {
+    setIsAdjustOpen(false);
+    setIsUploading(true);
+    setError(null);
+
+    const localBlobUrl = URL.createObjectURL(croppedBlob);
+    setAvatarUrl(localBlobUrl);
+
+    const dataPayload = new FormData();
+    dataPayload.append("file", croppedBlob, "admin-avatar.jpg");
+
+    try {
+      const result = await uploadFileAction(dataPayload) as any;
+      const fileUrl = result?.payload?.fileUrl || result?.payload?.url || result?.fileUrl || result?.url;
+
+      if (fileUrl) {
+        setAvatarUrl(fileUrl);
+      } else {
+        setError(result?.payload?.error || result?.error || result?.message || "Upload failed.");
+        setAvatarUrl(initialProfile?.avatar || null);
+      }
+    } catch (err: any) {
+      setError(err?.message || "Upload failed.");
+      setAvatarUrl(initialProfile?.avatar || null);
+    } 
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setIsUploading(false);
   };
 
   const handleSaveChanges = () => {
@@ -162,6 +205,8 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     const currentProfilePayload: any = {
       bio: bio.trim(),
       avatar: avatarUrl,
+      profilePicture: avatarUrl,
+      avatarUrl: avatarUrl,
       socialAccount: activeSocials,
     };
 
@@ -235,11 +280,18 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         <div className="flex items-center gap-5">
           <div className="relative group w-20 h-20 shrink-0">
             {avatarUrl ? (
-              <img 
-                src={avatarUrl} 
-                alt="Profile Avatar" 
-                className="w-full h-full object-cover rounded-full border border-border"
-              />
+              <div className="w-full h-full relative rounded-full overflow-hidden">
+                <img 
+                  src={avatarUrl} 
+                  alt="Profile Avatar" 
+                  className="w-full h-full object-cover border border-border"
+                />
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="w-full h-full bg-secondary rounded-full flex items-center justify-center border border-border text-primary-foreground type-subtitle-24 uppercase">
                 {user.avatarInitials || "A"}
@@ -254,21 +306,13 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                 accept="image/*" 
                 onChange={handleAvatarChange} 
                 className="hidden" 
+                disabled={isUploading}
               />
             </label>
           </div>
 
           <div className="space-y-1">
             <h3 className="type-title text-secondary">Admin Profile</h3>
-            {avatarUrl && (
-              <button 
-                type="button"
-                onClick={handleRemoveAvatar}
-                className="text-xs text-destructive flex items-center gap-1 bg-transparent border-0 cursor-pointer p-0 hover:underline"
-              >
-                <Trash2 className="w-3 h-3" /> Remove picture
-              </button>
-            )}
           </div>
         </div>
         
@@ -281,6 +325,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         </button>
       </div>
       </div>
+      
       <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-6 w-full">
         <h2 className="type-subtitle text-secondary border-b border-border pb-2">
           Personal Information
@@ -406,7 +451,6 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
             />
           </div>
 
-          {/* --- Connected External Channels Segment --- */}
           <div className="border-t border-border pt-5 space-y-4">
             <h3 className="type-detail-semibold text-secondary text-base">
               Connected Networks
@@ -507,19 +551,20 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           <button
             type="button"
             onClick={handleSaveChanges}
-            disabled={isPending}
+            disabled={isPending || isUploading}
             className="px-5 py-2 bg-primary text-primary-foreground rounded-md type-detail-semibold hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity disabled:opacity-50"
           >
             {isPending ? "Saving..." : "Save Change"}
           </button>
         </div>
       </div>
+
       <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-4 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
           <div>
             <h3 className="type-subtitle text-secondary flex items-center gap-2">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18.04 13.55C17.62 13.96 17.38 14.55 17.44 15.18C17.53 16.26 18.52 17.05 19.6 17.05H21.5V18.24C21.5 20.31 19.81 22 17.74 22H6.26C4.19 22 2.5 20.31 2.5 18.24V11.51C2.5 9.44001 4.19 7.75 6.26 7.75H17.74C19.81 7.75 21.5 9.44001 21.5 11.51V12.95H19.48C18.92 12.95 18.41 13.17 18.04 13.55Z" stroke="#0F2854" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M18.04 13.55C17.62 13.96 17.38 14.55 17.44 15.18C17.53 16.26 18.52 17.05 19.6 17.05H21.5V18.24C21.5 20.31 19.81 22 17.74 22C6.26 22 2.5 20.31 2.5 18.24V11.51C2.5 9.44001 4.19 7.75 6.26 7.75H17.74C19.81 7.75 21.5 9.44001 21.5 11.51V12.95H19.48C18.92 12.95 18.41 13.17 18.04 13.55Z" stroke="#0F2854" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M2.5 12.4113V7.84132C2.5 6.65132 3.23 5.59128 4.34 5.17128L12.28 2.17128C13.52 1.70128 14.85 2.62131 14.85 3.95131V7.7513" stroke="#0F2854" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M22.5588 13.9731V16.0331C22.5588 16.5831 22.1188 17.0331 21.5588 17.0531H19.5988C18.5188 17.0531 17.5288 16.2631 17.4388 15.1831C17.3788 14.5531 17.6188 13.9631 18.0388 13.5531C18.4088 13.1731 18.9188 12.9531 19.4788 12.9531H21.5588C22.1188 12.9731 22.5588 13.4231 22.5588 13.9731Z" stroke="#0F2854" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M7 12H14" stroke="#0F2854" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -530,15 +575,19 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               Manage WeBill Information for room payment
             </p>
           </div>
-          <button className="bg-action text-white px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity">
+          <button 
+            type="button"
+            onClick={() => setIsBankOpen(true)}
+            className="bg-action text-white px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
+          >
             <Link2 className="w-4 h-4" />
-            Disconnect WeBill365
+            Connect WeBill365
           </button>
         </div>
 
         <div className="flex items-start gap-3 p-4 bg-grey-50 border border-border rounded-2xl w-full">
           <div className="shrink-0 mt-0.5">
-            <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/xl">
               <path d="M22.5 41.25C32.8125 41.25 41.25 32.8125 41.25 22.5C41.25 12.1875 32.8125 3.75 22.5 3.75C12.1875 3.75 3.75 12.1875 3.75 22.5C3.75 32.8125 12.1875 41.25 22.5 41.25Z" stroke="#2A9D8F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M14.5312 22.5016L19.8375 27.8078L30.4688 17.1953" stroke="#2A9D8F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -553,10 +602,24 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           </div>
         </div>
       </div>
+      
       <ResetPasswordModal 
         isOpen={isResetOpen} 
         onClose={() => setIsResetOpen(false)} 
       />
+      <ConnectBankModal 
+        isOpen={isBankOpen}
+        onClose={() => setIsBankOpen(false)}
+      />
+
+      {selectedImageSrc && (
+        <ImageAdjustModal
+          imageSrc={selectedImageSrc}
+          isOpen={isAdjustOpen}
+          onClose={() => setIsAdjustOpen(false)}
+          onSave={handleSaveCroppedAvatar}
+        />
+      )}
     </div>
   );
 }

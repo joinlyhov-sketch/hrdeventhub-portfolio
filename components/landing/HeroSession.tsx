@@ -426,7 +426,7 @@ export default function HeroSession() {
             >
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
                 <img
-                  src="/images/HeroSession1.png"
+                  src="/images/HeroSession1.webp"
                   alt="HRD Student Event Assembly"
                   className="w-full h-auto block rotate-[15deg]"
                 />
@@ -449,7 +449,7 @@ export default function HeroSession() {
               </motion.div>
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
                 <img
-                  src="/images/HeroSession2.png"
+                  src="/images/HeroSession2.webp"
                   alt="HRD Main Event Group Photo"
                   className="w-full h-auto block"
                 />
@@ -464,7 +464,7 @@ export default function HeroSession() {
             >
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
                 <img
-                  src="/images/HeroSession3.png"
+                  src="/images/HeroSession3.webp"
                   alt="HRD Campus Community Event"
                   className="w-full h-auto block rotate-[-20deg]"
                 />

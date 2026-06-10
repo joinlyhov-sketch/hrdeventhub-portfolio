@@ -15,6 +15,7 @@ import {
   UpdateEventPayload,
 } from "@/types/post-types";
 import { PostsResponse, Post } from "@/types/posts";
+import { FeedItemWrapper, WorkspaceFeedApiResponse } from "@/types/UnifiedFeedItem";
 
 export interface SinglePostResponse {
   success: boolean;
@@ -122,6 +123,7 @@ export const postService = {
       { authToken },
     );
   },
+
   updateAnnouncementPost: async (
     workspaceId: string,
     postId: string,
@@ -134,6 +136,7 @@ export const postService = {
       { authToken },
     );
   },
+
   UpdateArticlePost: async (
     workspaceId: string,
     postId: string,
@@ -150,6 +153,7 @@ export const postService = {
       },
     );
   },
+
   publishDraftPost: async (
     workspaceId: string,
     postId: string,
@@ -177,5 +181,33 @@ export const postService = {
         accept: "*/*",
       },
     );
+  },
+
+  togglePin: async (
+    workspaceId: string,
+    postId: string,
+    pinned: boolean,
+    authToken: string,
+  ): Promise<any> => {
+    return apiPatch<any, undefined>(
+      `/workspaces/${workspaceId}/post/${postId}/pin?pinned=${pinned}`,
+      undefined,
+      {
+        authToken,
+        accept: "*/*",
+      },
+    );
+  },
+  getWorkspaceFeed: async (
+    workspaceId: string,
+    token: string,
+    page: number = 1,
+    size: number = 20,
+  ): Promise<FeedItemWrapper[]> => {
+    const response = await apiGet<WorkspaceFeedApiResponse>(
+      `/workspaces/${workspaceId}/feed?page=${page}&size=${size}`,
+      { authToken: token },
+    );
+    return response.payload;
   },
 };

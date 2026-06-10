@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
 import { UserProfilePayload } from "@/types/profile-types";
 import { useParams } from "next/navigation";
+import ProfilePageSkeleton from "@/components/site/profile/ProfilePageSkeleton";
 
 export type ViewMode = "self" | "alumni" | "admin" | "organizer" | "student";
 
@@ -92,7 +93,10 @@ export default function ProfilePage() {
     : isSelf
     ? "View your profile information, background details, and endorsements."
     : `You are viewing ${subjectName ?? "this user"}'s profile.`;
-
+    
+  if(!isReady || profileLoading){
+    return <ProfilePageSkeleton/>
+  }
   return (
     <div className="w-full bg-background z-30">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />

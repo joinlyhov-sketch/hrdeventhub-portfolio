@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useState, TransitionStartFunction } from "react";
 import { z } from "zod";
 import { resetPasswordAction } from "@/actions/auth.action";
-import { useResetPasswordStore } from "@/store/useResetPasswordStore";
+import { useResetPasswordStore } from "@/store/useResetPasswordAdminStore";
 
 interface StepProps {
   startTransition: TransitionStartFunction;
@@ -35,6 +35,7 @@ type NewPasswordErrors = Partial<Record<"password" | "confirmPassword", string>>
 
 export default function NewPasswordStep({ startTransition, isPending, handleClose }: StepProps) {
   const resetToken = useResetPasswordStore((s) => s.resetToken);
+console.log("step 3 resetToken:", resetToken);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

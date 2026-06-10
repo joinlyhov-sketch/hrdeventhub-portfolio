@@ -20,7 +20,6 @@ import {
 } from "@/types/file-types";
 import { revalidatePath } from "next/cache";
 import { CreateArticleResponseV2 } from "@/types/article-types";
-import { ChangeEvent } from "react";
 
 export async function createPostAction(
   workspaceId: string,
@@ -309,7 +308,6 @@ export async function publishDraftPostAction(
 
     if (response.success) {
       console.log("response :", response);
-      // revalidateTag(`workspace-${workspaceId}-posts`);
       return { ok: true, data: response.payload };
     }
 
@@ -368,6 +366,34 @@ export async function changePostStatusAction(
         error instanceof Error
           ? error.message
           : "Internal network connection issue.",
+    };
+  }
+}
+
+export async function togglePinAction(
+  workspaceId: string,
+  postId: string,
+  pinned: boolean,
+) {
+  try {
+    if (!workspaceId || !postId) {
+      return { ok: false, error: "Missing identity contextual attributes." };
+    }
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+    if (!token) {
+      return { ok: false, error: "Authorization credentials expired or not found." };
+    }
+
+    await postService.togglePin(workspaceId, postId, pinned, token);
+    revalidatePath(`/group/${workspaceId}`);
+
+    return { ok: true };
+  } catch (error: unknown) {
+    console.error("Action error pinning post resource:", error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Internal system endpoint timeout exception.",
     };
   }
 }

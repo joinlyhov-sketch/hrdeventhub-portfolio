@@ -6,8 +6,8 @@ import {
   ArrowRight,
   BarChart3,
   Circle,
-  User,
   FileText,
+  Loader2,
 } from "lucide-react";
 import Search from "../site/search/Search";
 import { PopoverItem } from "../site/pop-up/contents/pop-over-content";
@@ -21,6 +21,7 @@ import { surveyService } from "../../service/survey.service";
 import { getAllPollsAction } from "../../actions/poll.action";
 import { pollService } from "../../service/poll.service";
 import { format, isAfter } from "date-fns";
+import { generateSurveyCsv, generatePollCsv } from "../../libs/exportUtils";
 
 export type FeedbackItem = {
   id: string;
@@ -37,7 +38,6 @@ export default function SurveyFeedbackFeature() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -63,26 +63,21 @@ export default function SurveyFeedbackFeature() {
           surveysData.map(async (survey) => {
             let responseCount = 0;
             try {
-              responseCount = await surveyService.countResponses(
-                survey.surveyId,
-              );
+              responseCount = await surveyService.countResponses(survey.surveyId);
             } catch {
               responseCount = 0;
             }
-
-            const dbIsActive =
-              (survey as any).active ?? survey.isActive ?? false;
-
+            const dbIsActive = (survey as any).active ?? survey.isActive ?? false;
             return {
               id: survey.surveyId,
-              type: "survey",
+              type: "survey" as const,
               title: survey.title || "Untitled Survey",
               closingTime: survey.closingTime || null,
               isActive: dbIsActive,
               totalResponses: responseCount,
               targetUrl: `/dashboard/feedback/survey/${survey.surveyId}/responses`,
             };
-          }),
+          })
         );
 
         const mappedPolls: FeedbackItem[] = await Promise.all(
@@ -94,23 +89,18 @@ export default function SurveyFeedbackFeature() {
                 (fullPoll as any).totalVotes ??
                 (fullPoll as any).voteCount ??
                 fullPoll.options?.reduce(
-                  (sum, opt) =>
-                    sum + (opt.voteCount ?? (opt as any).votes ?? 0),
-                  0,
+                  (sum, opt) => sum + (opt.voteCount ?? (opt as any).votes ?? 0),
+                  0
                 ) ??
                 0;
             } catch {
               voteCount =
                 poll.options?.reduce(
-                  (sum, opt) =>
-                    sum + (opt.voteCount ?? (opt as any).votes ?? 0),
-                  0,
+                  (sum, opt) => sum + (opt.voteCount ?? (opt as any).votes ?? 0),
+                  0
                 ) ?? 0;
             }
-
-            const dbIsActive =
-              (poll as any).active ?? (poll as any).isActive ?? true;
-
+            const dbIsActive = (poll as any).active ?? (poll as any).isActive ?? true;
             return {
               id: poll.pollId,
               type: "poll" as const,
@@ -120,17 +110,16 @@ export default function SurveyFeedbackFeature() {
               totalResponses: voteCount,
               targetUrl: `/polls/${poll.pollId}`,
             };
-          }),
+          })
         );
 
-        const combined = [...mappedSurveys, ...mappedPolls];
-        setFeedbacks(combined);
+        setFeedbacks([...mappedSurveys, ...mappedPolls]);
         setError(null);
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load interactive feedback modules.",
+            : "Failed to load interactive feedback modules."
         );
       } finally {
         setLoading(false);
@@ -145,15 +134,11 @@ export default function SurveyFeedbackFeature() {
       const searchLower = (search || "").toLowerCase().trim();
       const titleMatch = item.title.toLowerCase().includes(searchLower);
       const typeMatch = item.type.toLowerCase().includes(searchLower);
-
       const hasExpired = item.closingTime
         ? isAfter(new Date(), new Date(item.closingTime))
         : false;
       const trulyActive = item.isActive && !hasExpired;
-
-      const statusText = trulyActive ? "active" : "closed";
-      const statusMatch = statusText.includes(searchLower);
-
+      const statusMatch = (trulyActive ? "active" : "closed").includes(searchLower);
       return titleMatch || statusMatch || typeMatch;
     });
   }, [feedbacks, search]);
@@ -173,7 +158,7 @@ export default function SurveyFeedbackFeature() {
   if (loading) {
     return (
       <div className="w-full p-8 text-center flex flex-col items-center justify-center min-h-[300px]">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-sm text-muted-foreground font-medium animate-pulse">
           Fetching latest records...
         </p>
@@ -210,10 +195,7 @@ export default function SurveyFeedbackFeature() {
             }`}
           >
             {paginatedFeedbacks.map((item) => (
-              <div
-                key={`${item.type}-${item.id}`}
-                className="w-full block box-border min-w-0"
-              >
+              <div key={`${item.type}-${item.id}`} className="w-full block box-border min-w-0">
                 <FeedbackCard item={item} />
               </div>
             ))}
@@ -229,8 +211,7 @@ export default function SurveyFeedbackFeature() {
                   Feedback data doesn&apos;t exist
                 </p>
                 <p className="text-sm text-slate-400 font-medium">
-                  We couldn&apos;t find any match for your current feedback
-                  search query.
+                  We couldn&apos;t find any match for your current feedback search query.
                 </p>
               </div>
             </div>
@@ -252,6 +233,9 @@ export default function SurveyFeedbackFeature() {
 }
 
 function FeedbackCard({ item }: { item: FeedbackItem }) {
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const formattedDate = item.closingTime
     ? format(new Date(item.closingTime), "MMM dd, yyyy")
     : "No Deadline";
@@ -261,6 +245,44 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
     : false;
   const trulyActive = item.isActive && !hasExpired;
 
+  const handleExport = async () => {
+    setExporting(true);
+    setExportError(null);
+    try {
+      if (item.type === "survey") {
+        const MAX_SIZE = 100;
+        let page = 1;
+        const allResponses = [];
+
+        while (true) {
+          const batch = await surveyService.getResponses(item.id, page, MAX_SIZE);
+          allResponses.push(...batch);
+          if (batch.length < MAX_SIZE) break;
+          page++;
+        }
+
+        await generateSurveyCsv(allResponses, item.title);
+      } else {
+        const fullPoll = await pollService.getById(item.id);
+        
+        let options = [];
+        if (typeof fullPoll.options === "string") {
+          options = JSON.parse(fullPoll.options);
+        } else if (Array.isArray(fullPoll.options)) {
+          options = fullPoll.options;
+        }
+
+        generatePollCsv(options, item.title);
+      }
+    } catch (err) {
+      setExportError(
+        err instanceof Error ? err.message : "Export routine failed to compile files securely."
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <article className="rounded-2xl border border-accent/30 bg-card p-6 h-full w-full box-border flex flex-col justify-between min-w-0 overflow-hidden relative">
       <span className="absolute top-3 left-0 translate-y-[-50%] bg-slate-100 border border-slate-200 text-primary rounded-r-sm px-2 py-0.5 text-[12px] uppercase font-bold tracking-wider shadow-sm">
@@ -268,13 +290,13 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
       </span>
 
       <div className="w-full block">
-        <div className="flex items-center justify-between w-full gap-2">
+        <div className="flex items-center justify-between w-full gap-2 mt-3">
           <StatusBadge isActive={trulyActive} />
           <div className="inline-flex size-12 items-center justify-center rounded-lg bg-accent/20 text-accent shrink-0">
             <Image src="/chart.svg" alt="chart" width={22} height={22} />
           </div>
         </div>
-        <h3 className="type-subtitle text-primary mt-4 break-words line-clamp-2 w-full font-semibold text-lg">
+        <h3 className="type-subtitle text-primary mt-3 break-words line-clamp-2 w-full font-semibold text-lg">
           {item.title}
         </h3>
         <p className="type-desc mt-2 mb-4 text-sm text-muted-foreground">
@@ -284,20 +306,33 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
 
       <div className="w-full block mt-auto">
         <div className="text-center mb-4 w-full">
-          <h1 className="text-3xl font-bold text-primary">
-            {item.totalResponses}
-          </h1>
+          <h1 className="text-3xl font-bold text-primary">{item.totalResponses}</h1>
           <p className="type-desc-semibold text-secondary text-sm">
             {item.type === "poll" ? "Total Votes" : "Total Responses"}
           </p>
         </div>
 
-        <Link href={item.targetUrl} className="w-full block">
-          <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm cursor-pointer">
-            <span>Open Result</span>
-            <ArrowRight size={20} strokeWidth={1.5} />
-          </button>
-        </Link>
+        {exportError && (
+          <p className="text-xs text-red-500 text-center mb-2">{exportError}</p>
+        )}
+
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#FAA136] disabled:bg-[#FAA136] transition-all shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {exporting ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              <span>Exporting...</span>
+            </>
+          ) : (
+            <>
+              <span>Open Result</span>
+              <ArrowRight size={20} strokeWidth={1.5} />
+            </>
+          )}
+        </button>
       </div>
     </article>
   );
@@ -306,7 +341,7 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
 function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <div
-      className={`type-desc-semibold inline-flex items-center rounded-full px-4 py-2 shrink-0 text-xs font-semibold ${
+      className={`type-desc-semibold inline-flex items-center rounded-full px-3 py-1 shrink-0 text-xs font-semibold ${
         isActive
           ? "bg-green-50 text-green-600 border border-green-200"
           : "bg-red-50 text-red-600 border border-red-200"
