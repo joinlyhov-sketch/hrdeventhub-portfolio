@@ -132,7 +132,7 @@ export const profileService = {
   },
 
   updateSharingMode: async (payload: UpdateSharingModeRequest, token: string): Promise<any> => {
-    return await apiPatch<any>("/profile/me/sharing-mode", payload, { authToken: token });
+    return await apiPut<any>("/profile/me/sharing-mode", payload, { authToken: token });
   },
 
   updatePreferences: async (payload: UpdatePreferencesRequest, token: string): Promise<any> => {
