@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
+  productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       {
@@ -44,6 +45,8 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "20mb",
     },
+    cpus: 1, 
+    workerThreads: false,
   },
   async rewrites() {
     return [
