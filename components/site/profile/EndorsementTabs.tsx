@@ -3,41 +3,47 @@
 import { useEffect, useState } from "react";
 import { endorsementService } from "@/service/endorse.service";
 import { EndorsementItem } from "@/types/endorsement";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 interface EndorsementTabsProps {
   studentId?: string;
-  authToken: string;
 }
 
-export default function EndorsementTabs({ studentId, authToken }: EndorsementTabsProps) {
+export default function EndorsementTabs({ studentId }: EndorsementTabsProps) {
+  const { data: session } = useSession();
   const [endorsements, setEndorsements] = useState<EndorsementItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const token = session?.accessToken;
+    if (!token) return;
+
     async function loadEndorsements() {
       try {
         setLoading(true);
         setError(null);
         
         const data = studentId
-          ? await endorsementService.getStudentEndorsementsAsGuest(studentId, authToken)
-          : await endorsementService.getReceivedEndorsements(authToken);
+          ? await endorsementService.getStudentEndorsementsAsGuest(studentId, token!)
+          : await endorsementService.getReceivedEndorsements(token!);
         
-        setEndorsements(data);
+        setEndorsements(data || []);
       } catch (err) {
+        console.error("Error fetching endorsements:", err);
         setError("Failed to load endorsements.");
       } finally {
         setLoading(false);
       }
     }
 
-    if (authToken) {
-      loadEndorsements();
-    } else {
-      setLoading(false);
-    }
-  }, [studentId, authToken]);
+    loadEndorsements();
+  }, [studentId, session?.accessToken]);
+
+  if (!session?.accessToken) {
+    return <div className="p-4 text-muted-foreground">Please sign in to view endorsements.</div>;
+  }
 
   if (loading) {
     return (
@@ -58,30 +64,47 @@ export default function EndorsementTabs({ studentId, authToken }: EndorsementTab
 
   return (
     <div className="h-full overflow-y-auto pr-2 space-y-6 scrollbar-thin scrollbar-thumb-grey-200 scrollbar-track-transparent">
-      {endorsements.map((endorsement) => (
+      {endorsements.map((item) => (
         <div
-          key={endorsement.endorsementId}
+          key={item.endorsementId}
           className="pb-6 border-b border-border last:border-0 last:pb-0"
         >
           <div className="flex justify-between items-start mb-3 gap-4">
             <div className="flex gap-3 items-center">
               <div className="w-10 h-10 rounded-full bg-grey-100 border border-border flex items-center justify-center shrink-0 overflow-hidden relative">
-                <span className="text-xs text-muted-foreground font-mono">ID</span>
+                {item.alumni?.profilePicture ? (
+                  <Image 
+                    src={item.alumni.profilePicture} 
+                    alt={item.alumni?.firstName || "Alumni"} 
+                    fill 
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="text-xs text-muted-foreground uppercase font-semibold">
+                    {item.alumni?.firstName?.charAt(0) || ""}{item.alumni?.lastName?.charAt(0) || "A"}
+                  </span>
+                )}
               </div>
               <div>
                 <p className="type-detail-small-medium text-muted-foreground">
-                  Alumni ID
+                  Endorsed by
                 </p>
-                <p className="type-desc-semibold text-primary truncate max-w-[180px]" title={endorsement.alumniId}>
-                  {endorsement.alumniId}
+                <p className="type-desc-semibold text-primary">
+                  {item.alumni ? `${item.alumni.firstName} ${item.alumni.lastName}` : "Unknown Alumni"}
                 </p>
               </div>
             </div>
             <span className="bg-primary text-grey-100 px-3 py-1 rounded-full type-detail-small-medium shrink-0">
-              {endorsement.skill}
+              {item.skill}
             </span>
           </div>
-          <p className="type-detail text-grey-500 break-words">{`“${endorsement.comment || "No feedback comment provided."}”`}</p>
+          <p className="type-detail text-grey-500 break-words italic">{`“${item.comment || "No feedback comment provided."}”`}</p>
+          
+          {item.post?.title && item.post.title !== "string" && (
+            <p className="mt-2 text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+              Verified via: {item.post.title}
+            </p>
+          )}
         </div>
       ))}
     </div>

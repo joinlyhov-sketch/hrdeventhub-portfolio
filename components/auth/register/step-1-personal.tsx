@@ -105,28 +105,30 @@ export default function Step1Personal() {
 
   return (
     <motion.div
-      className="flex flex-col gap-5"
+      className="flex flex-col gap-4 sm:gap-5"
       initial="hidden"
       animate="visible"
       exit={{ opacity: 0, x: 20 }}
       variants={itemVars}
     >
-      <div className="mb-5 text-center">
-        <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
+      <div className="mb-3 sm:mb-5 text-center">
+        <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-[-1px] sm:tracking-[-2px] text-[#17356f]">
           Create Your Account
         </h2>
-        <p className="mt-2 text-[#6e7580]">Join HRD EventHub &amp; Get started</p>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-[#6e7580]">
+          Join HRD EventHub &amp; Get started
+        </p>
       </div>
 
       <div className="space-y-1">
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+              className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
                 errors.firstName ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
-              <User size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+              <User size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
               <input
                 placeholder="First Name"
                 value={form.firstName}
@@ -138,11 +140,11 @@ export default function Step1Personal() {
           </div>
           <div className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${
+              className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
                 errors.lastName ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
-              <User size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+              <User size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
               <input
                 placeholder="Last Name"
                 value={form.lastName}
@@ -153,16 +155,17 @@ export default function Step1Personal() {
             {errors.lastName && <FieldError message={errors.lastName} />}
           </div>
         </div>
-        <div className="flex flex-col gap-1 pt-4">
+
+        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
           <Popover open={genderOpen} onOpenChange={setGenderOpen}>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`relative flex items-center gap-3 w-full rounded-2xl border bg-white px-4 py-3.5 text-left transition-all outline-none focus:border-[#24529a] cursor-pointer ${
+                className={`relative flex items-center gap-3 w-full rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 text-left transition-all outline-none focus:border-[#24529a] cursor-pointer ${
                   errors.gender ? "border-red-400" : "border-[#dce6f0]"
                 }`}
               >
-                <User size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+                <User size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
                 <span className={cn("text-sm flex-1", form.gender ? "text-[#2d3748]" : "text-[#aab3c0]")}>
                   {form.gender
                     ? genderOptions.find((o) => o.value === form.gender)?.label
@@ -177,7 +180,7 @@ export default function Step1Personal() {
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[--radix-popover-trigger-width] p-1.5 rounded-2xl shadow-lg border border-[#dce6f0]"
+              className="w-[--radix-popover-trigger-width] p-1.5 rounded-xl sm:rounded-2xl shadow-lg border border-[#dce6f0]"
               align="start"
               sideOffset={6}
             >
@@ -205,16 +208,17 @@ export default function Step1Personal() {
           </Popover>
           {errors.gender && <FieldError message={errors.gender} />}
         </div>
-        <div className="flex flex-col gap-1 pt-4">
+
+        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`flex items-center gap-3 w-full rounded-2xl border bg-white px-4 py-4 text-left transition-all outline-none focus:border-[#24529a] focus:ring-1 focus:ring-[#24529a] cursor-pointer ${
+                className={`flex items-center gap-3 w-full rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 text-left transition-all outline-none focus:border-[#24529a] focus:ring-1 focus:ring-[#24529a] cursor-pointer ${
                   errors.dateOfBirth ? "border-red-400" : "border-[#dce6f0]"
                 }`}
               >
-                <CalendarIcon size={18} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+                <CalendarIcon size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
                 <span
                   className={cn(
                     "text-sm w-full outline-none",
@@ -244,13 +248,14 @@ export default function Step1Personal() {
           </Popover>
           {errors.dateOfBirth && <FieldError message={errors.dateOfBirth} />}
         </div>
-        <div className="flex flex-col gap-1 pt-4">
+
+        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
           <div
-            className={`flex items-center rounded-2xl border bg-white overflow-hidden transition-all focus-within:border-[#24529a] ${
+            className={`flex items-center rounded-xl sm:rounded-2xl border bg-white overflow-hidden transition-all focus-within:border-[#24529a] ${
               errors.phoneNumber ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <div className="flex items-center gap-2 bg-gray-50 border-r border-[#dce6f0] h-[54px] px-4 select-none shrink-0 text-sm font-medium text-gray-500">
+            <div className="flex items-center gap-2 bg-gray-50 border-r border-[#dce6f0] h-[50px] sm:h-[54px] px-3 sm:px-4 select-none shrink-0 text-sm font-medium text-gray-500">
               <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center shadow-sm">
                 <Flags.KH className="w-full h-full object-cover" />
               </span>
@@ -269,7 +274,7 @@ export default function Step1Personal() {
                 const rawDigits = input.startsWith("0") ? input.slice(1) : input;
                 handleChange("phoneNumber", `855${rawDigits}`);
               }}
-              className="w-full border-0 rounded-none bg-transparent h-[54px] text-sm outline-none focus-visible:ring-0 shadow-none placeholder:text-[#aab3c0] text-[#2d3748] px-4"
+              className="w-full border-0 rounded-none bg-transparent h-[50px] sm:h-[54px] text-sm outline-none focus-visible:ring-0 shadow-none placeholder:text-[#aab3c0] text-[#2d3748] px-3 sm:px-4"
             />
           </div>
           {errors.phoneNumber && <FieldError message={errors.phoneNumber} />}
@@ -278,17 +283,18 @@ export default function Step1Personal() {
 
       <button
         onClick={handleNext}
-        className="mt-3 h-[58px] w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] cursor-pointer"
+        className="mt-2 sm:mt-3 h-[50px] sm:h-[58px] w-full rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] cursor-pointer"
       >
         Next
       </button>
     </motion.div>
   );
 }
+
 function FieldError({ message }: { message: string }) {
   return (
-    <p className="flex items-center gap-1.5 text-sm text-red-500 px-1">
-      <AlertCircle size={14} className="shrink-0" />
+    <p className="flex items-center gap-1.5 text-xs sm:text-sm text-red-500 px-1">
+      <AlertCircle size={13} className="shrink-0" />
       {message}
     </p>
   );

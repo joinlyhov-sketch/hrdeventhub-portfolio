@@ -3,7 +3,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/auth";
 import { fileService } from "@/service/file.service";
-import { ServerActionResponse } from "@/types/file-types";
+import { ServerActionResponse2 } from "@/types/file-types";
 
 export async function uploadFileAction(formData: FormData) {
   try {
@@ -25,7 +25,7 @@ export async function uploadFileAction(formData: FormData) {
 
 export async function deleteFileAction(
   fileKey: string,
-): Promise<ServerActionResponse<boolean>> {
+): Promise<ServerActionResponse2<boolean>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;

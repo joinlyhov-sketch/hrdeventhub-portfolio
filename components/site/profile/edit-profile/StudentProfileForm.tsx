@@ -7,6 +7,7 @@ import { profileService } from "@/service/profile.service";
 import { getIdentityMeAction, updateIdentityMeAction, updateProfileMeAction } from "@/actions/profile.action";
 import { useRouter } from "next/navigation";
 import { uploadFileAction } from "@/actions/file.action";
+import ImageAdjustModal from "../ImageAdjustModal";
 
 export default function StudentProfileForm() {
   const { data: session } = useSession();
@@ -14,8 +15,11 @@ export default function StudentProfileForm() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const resumeInputRef = useRef<HTMLInputElement>(null);
+const fileInputRef = useRef<HTMLInputElement>(null);
+const resumeInputRef = useRef<HTMLInputElement>(null);
+
+const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
@@ -141,31 +145,42 @@ export default function StudentProfileForm() {
     if (!isUploading) fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsUploading(true);
-    setError(null);
-    const localBlobUrl = URL.createObjectURL(file);
-    setProfilePicture(localBlobUrl);
-    const dataPayload = new FormData();
-    dataPayload.append("file", file);
-    try {
-      const result = await uploadFileAction(dataPayload);
-      if (result.ok && result.payload?.fileUrl) {
-        setProfilePicture(result.payload.fileUrl);
-      } else {
-        setError(result.error || "Profile image upload was rejected by the server.");
-        setProfilePicture(initialProfile?.profilePicture || "");
-      }
-    } catch (err) {
-      setError("A networking issue interrupted the asset transmission.");
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  setError(null);
+  const localBlobUrl = URL.createObjectURL(file);
+  setSelectedImageSrc(localBlobUrl);
+  setIsAdjustModalOpen(true);
+  e.target.value = "";
+};
+
+const handleCroppedImageSave = async (croppedBlob: Blob) => {
+  setIsAdjustModalOpen(false);
+  setIsUploading(true);
+  setError(null);
+
+  const localBlobUrl = URL.createObjectURL(croppedBlob);
+  setProfilePicture(localBlobUrl);
+
+  const dataPayload = new FormData();
+  dataPayload.append("file", croppedBlob, "profile-avatar.jpg");
+
+  try {
+    const result = await uploadFileAction(dataPayload);
+    if (result.ok && result.payload?.fileUrl) {
+      setProfilePicture(result.payload.fileUrl);
+    } else {
+      setError(result.error || "Profile image upload was rejected by the server.");
       setProfilePicture(initialProfile?.profilePicture || "");
-    } finally {
-      setIsUploading(false);
-      e.target.value = "";
     }
-  };
+  } catch (err) {
+    setError("A networking issue interrupted the asset transmission.");
+    setProfilePicture(initialProfile?.profilePicture || "");
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const handleResumeFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -630,6 +645,14 @@ export default function StudentProfileForm() {
           {isPending ? "Saving..." : "Save changes"}
         </button>
       </div>
+   {selectedImageSrc && (
+        <ImageAdjustModal
+          imageSrc={selectedImageSrc}
+          isOpen={isAdjustModalOpen}
+          onClose={() => setIsAdjustModalOpen(false)}
+          onSave={handleCroppedImageSave}
+        />
+      )}
     </div>
   );
 }

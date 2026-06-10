@@ -1,4 +1,4 @@
-import { apiGet, apiPut } from "@/libs/api";
+import { apiGet, apiPatch, apiPut } from "@/libs/api";
 import { UpdateProfileRequest, UpdateProfileResponse } from "@/types/profile-edit-type";
 
 export interface UpdateIdentityRequest {
@@ -120,7 +120,7 @@ export const profileService = {
     payload: UpdateProfileRequest,
     token: string
   ): Promise<UpdateProfileResponse> => {
-    return await apiPut<UpdateProfileResponse>("/profile/me", payload, { authToken: token });
+    return await apiPatch<UpdateProfileResponse>("/profile/me", payload, { authToken: token });
   },
 
   getIdentityMe: async (token: string): Promise<any> => {
@@ -128,7 +128,7 @@ export const profileService = {
   },
 
   updateIdentityMe: async (payload: UpdateIdentityRequest, token: string): Promise<any> => {
-    return await apiPut<any>("/auths/me", payload, { authToken: token });
+    return await apiPatch<any>("/auths/me", payload, { authToken: token });
   },
 
   updateSharingMode: async (payload: UpdateSharingModeRequest, token: string): Promise<any> => {
@@ -136,7 +136,7 @@ export const profileService = {
   },
 
   updatePreferences: async (payload: UpdatePreferencesRequest, token: string): Promise<any> => {
-    return await apiPut<any>("/profile/me/preferences", payload, { authToken: token });
+    return await apiPatch<any>("/profile/me/preferences", payload, { authToken: token });
   },
   getProfileById: async (id: string, token: string): Promise<UserProfileResponse> => {
 return await apiGet<UserProfileResponse>(`/profile/${id}`, { authToken: token });

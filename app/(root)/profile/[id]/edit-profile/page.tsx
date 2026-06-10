@@ -4,14 +4,15 @@ import AdminProfileForm from "@/components/site/profile/edit-profile/AdminProfil
 import StudentProfileForm from "@/components/site/profile/edit-profile/StudentProfileForm";
 import HeaderNoProfile from "@/components/dashboard/header/HeaderNoProfile";
 import { useCurrentUser } from "@/context/user-context";
+import EditProfileSkeleton from "@/components/site/profile/edit-profile/EditProfileSkeleton";
 
 export default function ProfilePage() {
   const { currentUser } = useCurrentUser();
   if (!currentUser) {
     return (
-      <div className="w-full text-center py-12 text-sm text-grey-400">
-        Loading profile data...
-      </div>
+     <div className="max-w-420 m-auto w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12 py-6">
+      <EditProfileSkeleton />
+    </div>
     );
   }
 
@@ -24,10 +25,10 @@ export default function ProfilePage() {
           description="Update your profile information and manage your account settings."
         />
         <div className="max-w-420 m-auto w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12">
-          {currentUser.role === "student" ? (
-            <StudentProfileForm />
-          ) : (
+          {currentUser.role === "admin"   ? (
             <AdminProfileForm user={currentUser} />
+          ) : (
+             <StudentProfileForm />
           )}
         </div>
       </div>

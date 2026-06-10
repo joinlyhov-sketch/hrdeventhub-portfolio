@@ -52,6 +52,7 @@ export interface SurveyResponse {
   closingTime: string;
   createdAt?: string;
   appUserId: string;
+  username: string | null;
   workspaceId: string;
 }
 
@@ -63,6 +64,7 @@ export interface SurveySubmission {
   responseId: string;
   surveyId: string;
   appUserId: string;
+  username: string | null;
   content: Record<string, any>;
   submittedAt: string;
 }

@@ -43,6 +43,8 @@ export default function AttendeeRow({
   onDeleteAttendee,
 }: AttendeeRowProps) {
   const router = useRouter();
+  const attendeeUserId = attendee.user?.appUserId || attendee.appUserId;
+
   const getStatusStyles = (status: string) => {
     const normalize = (status || "").toLowerCase().trim();
 
@@ -76,7 +78,10 @@ export default function AttendeeRow({
     {
       label: "View Profile",
       icon: User,
-      onClick: () => router.push(`/profile/${attendee.participantId}`),
+      onClick: () => {
+        if (!attendeeUserId) return;
+        router.push(`/profile/${attendeeUserId}`);
+      },
     },
     {
       label: "Delete",
@@ -93,11 +98,18 @@ export default function AttendeeRow({
 
       <TableCell className="px-5 py-3 type-desc text-slate-700 font-semibold w-[28%]">
         <div className="flex items-center gap-3 truncate">
-          <img
-            src={attendee.user?.profilePicture || "/placeholder-avatar.png"}
-            alt={attendee.user?.username || ""}
-            className="w-8 h-8 rounded-full object-cover shrink-0"
-          />
+          {attendee.user?.profilePicture ? (
+            <img
+              src={attendee.user.profilePicture}
+              alt={attendee.user.username || ""}
+              className="w-8 h-8 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[15px] font-medium text-white shrink-0">
+              {attendee.user?.firstName?.charAt(0).toUpperCase()}
+              {attendee.user?.lastName?.charAt(0).toUpperCase()}
+            </div>
+          )}
           <span className="truncate">
             {attendee.user
               ? `${attendee.user.firstName} ${attendee.user.lastName}`

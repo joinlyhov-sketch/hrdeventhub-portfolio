@@ -32,7 +32,7 @@ export default function UserRow({
   const getGenerationNumber = (genName: string | undefined) => {
     if (!genName) return "N/A";
     const match = genName.match(/\d+/);
-    return match ? match[0] : genName; 
+    return match ? match[0] : genName;
   };
 
   return (
@@ -50,11 +50,14 @@ export default function UserRow({
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[15px] font-medium text-white">
-              {user.username.charAt(0).toUpperCase()}
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[15px] font-medium text-white shrink-0">
+              {user.firstName?.charAt(0).toUpperCase()}
+              {user.lastName?.charAt(0).toUpperCase()}
             </div>
           )}
-          <span className="truncate">{user.username}</span>
+          <span className="truncate">
+            {user ? `${user.firstName} ${user.lastName}` : "User"}
+          </span>
         </div>
       </TableCell>
 

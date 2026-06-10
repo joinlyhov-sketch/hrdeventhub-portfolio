@@ -19,13 +19,13 @@ export default function Navbar() {
 
   return (
     <>
-      <header className={`fixed top-0 left-2 right-0 z-50 flex justify-center transition-all duration-500 ease-out pointer-events-none ${scrolled ? "pt-4" : "pt-5"}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-500 ease-out pointer-events-none ${scrolled ? "pt-4" : "pt-5"}`}>
         <nav
-          className={`pointer-events-auto transform-gpu transition-all duration-500 ease-out flex items-center justify-between px-8
+          className={`pointer-events-auto transform-gpu transition-all duration-500 ease-out flex items-center justify-between px-8 w-[92%]
           ${
             scrolled
-              ? "w-[92%] max-w-5xl rounded-full bg-white/80 backdrop-blur-md border border-slate-300/40 shadow-lg h-16" 
-              : "w-full max-w-none rounded-none bg-white border-b border-transparent shadow-none h-20" 
+              ? "max-w-5xl rounded-full bg-white/80 backdrop-blur-md border border-slate-300/40 shadow-lg h-16" 
+              : "max-w-5/5 rounded-none bg-white border-b border-transparent shadow-none h-20" 
           }`}
         >
           <Link href="/" className="flex items-center no-underline shrink-0 transition-transform duration-300 active:scale-95">

@@ -12,7 +12,6 @@ import {
   FileText,
   BadgeDollarSign,
   Link as LinkIcon,
-  Layers,
   Target,
   Pin,
 } from "lucide-react";
@@ -23,7 +22,10 @@ import MediaUpload from "../MediaUpload";
 import { Button } from "../../ui/button";
 import { EditionTabs } from "../EditionTab";
 import { FormTextarea } from "../FormTextarea";
-import { updatePostAction } from "@/actions/post.action";
+import {
+  publishDraftPostAction,
+  updatePostAction,
+} from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
 import { UpdateEventPayload } from "@/types/post-types";
 import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
@@ -33,8 +35,10 @@ export default function EditEventForm() {
   const searchParams = useSearchParams();
   const workspaceId = searchParams.get("groupId") || "";
   const postId = searchParams.get("postId") || "";
+  const isAdmin = searchParams.get("admin");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFlexible, setIsFlexible] = useState(false);
   const { posts, isLoading: postsLoading } = useWorkspacePosts(workspaceId);
 
   const event = posts?.find((e) => e.postId === postId);
@@ -57,8 +61,9 @@ export default function EditEventForm() {
       googleMapUrl: "",
       status: "draft",
       scheduleDate: "",
+      paymentType: "fixed",
       price: 0,
-      targetGoal: undefined,
+      targetGoal: 0,
       description: "",
       media: [],
     },
@@ -140,25 +145,31 @@ export default function EditEventForm() {
           ? formatDateForInput(event.scheduledAt)
           : "",
         isPinned: event.pinned ?? false,
+        paymentType: event.payment?.paymentType || "fixed",
         price: event.payment?.paymentAmount || 0,
-        targetGoal: event.payment?.donationGoal || undefined,
+        targetGoal: event.payment?.donationGoal || 0,
         description: event.content || "",
         media:
           event.media?.map((m: { filePath: string; isCover: boolean }) => ({
             filePath: m.filePath,
             isCover: m.isCover || false,
           })) || [],
-      });
+      } as EventPostFormValues);
     }
   }, [event, reset]);
 
   const onSubmit = async (data: EventPostFormValues) => {
-    if (!workspaceId || !postId) {
-      toast.error("Error: Workspace or Event missing key identifier routes.");
+    if (data.paymentType === "flexible" && !Number(data.targetGoal)) {
+      setIsFlexible(true);
       return;
+    } else {
+      setIsFlexible(false);
     }
 
-    setIsSubmitting(true);
+    if (!workspaceId || !postId) {
+      toast.error("Error: Workspace or Event missing identifier paths.");
+      return;
+    }
 
     const startIso = new Date(`${data.date}T${data.startTime}`).toISOString();
     const endIso = new Date(`${data.date}T${data.endTime}`).toISOString();
@@ -170,13 +181,15 @@ export default function EditEventForm() {
       scheduledIso = new Date().toISOString();
     }
 
+    setIsSubmitting(true);
+
     const payload: UpdateEventPayload = {
       title: data.title.trim(),
       content: data.description.trim(),
       purpose: data.purpose.trim() || "Community Event",
       eventStart: startIso,
       eventEnd: endIso,
-      scheduledAt: data.status === "active" ? startIso : scheduledIso,
+      scheduledAt: data.status === "active" ? null : scheduledIso,
       expiresAt: endIso,
       isPublished: data.status === "active",
       status: data.status as "draft" | "active" | "closed",
@@ -187,34 +200,53 @@ export default function EditEventForm() {
       },
       media: data.media,
       payment: {
+        paymentType: data.paymentType,
         paymentAmount: Number(data.price),
         donationGoal: Number(data.targetGoal) || 0,
       },
     };
-
+    console.log(
+      "MATCHED SWAGGER ARTICLE PAYLOAD:",
+      JSON.stringify(payload, null, 2),
+    );
     try {
       const result = await updatePostAction(workspaceId, postId, payload);
+
       if (result.ok) {
-        toast.success("Event updated successfully!");
-        router.push(`/group/${workspaceId}`);
+        if (data.status === "active") {
+          await publishDraftPostAction(workspaceId, postId);
+        }
+
+        toast.success(
+          data.status === "active"
+            ? "Event updated and published successfully!"
+            : "Event changes saved as draft successfully!",
+        );
+        if (isAdmin) {
+          router.push(`/event-management`);
+        } else {
+          router.push(`/group/${workspaceId}`);
+        }
       } else {
         if (result.errors) {
-          result.errors.forEach((err) => {
-            toast.error(err.message);
-          });
+          result.errors.forEach((err) => toast.error(err.message));
         } else {
           toast.error(`Update failed: ${result.error}`);
         }
       }
     } catch (err) {
       console.error(err);
-      toast.error(
-        "An unexpected error occurred during operation updating routines.",
-      );
+      toast.error("An unexpected error occurred during execution routines.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const watchedIsPinned = useWatch({
+    control,
+    name: "isPinned",
+    defaultValue: false,
+  });
 
   if (postsLoading) {
     return (
@@ -223,12 +255,6 @@ export default function EditEventForm() {
       </div>
     );
   }
-
-  const watchedIsPinned = useWatch({
-    control,
-    name: "isPinned",
-    defaultValue: false,
-  });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
@@ -242,7 +268,11 @@ export default function EditEventForm() {
           <p className="text-gray-500 text-xs md:text-sm lg:text-base mt-1">
             Modify the parameters below to update your conference or workshop.
           </p>
-          <EditionTabs groupId={workspaceId} postId={postId} />
+          <EditionTabs
+            category={event?.category}
+            groupId={workspaceId}
+            postId={postId}
+          />
         </div>
 
         <div className="p-5 md:px-1 lg:px-10 space-y-6 md:space-y-8 grow">
@@ -353,10 +383,9 @@ export default function EditEventForm() {
               )}
             </div>
 
-            <div className="flex flex-col w-full text-sm">
-              <label className="flex items-center gap-2 mb-2 font-semibold text-gray-700">
-                <Layers size={18} className="text-slate-400" /> Form Status
-                Target
+            <div className="flex flex-col gap-1.5 w-full text-sm">
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                Visibility Status
               </label>
               <select
                 {...register("status")}
@@ -413,18 +442,32 @@ export default function EditEventForm() {
                 min={0}
                 step="0.01"
                 {...register("targetGoal")}
-                isError={errors.targetGoal != null}
+                isError={isFlexible}
               />
-              {errors.targetGoal && (
+              {isFlexible && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.targetGoal.message}
+                  Target goal is required with Flexible paymentType
                 </p>
               )}
             </div>
           </div>
 
-          <div className="w-full text-sm">
-            <label className="block mb-2 font-semibold text-gray-700 tracking-wide">
+          <div className="flex flex-col gap-1.5 w-full text-sm">
+            <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+              Payment Type
+            </label>
+            <select
+              {...register("paymentType")}
+              onChange={() => setIsFlexible(false)}
+              className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
+            >
+              <option value="fixed">Fixed</option>
+              <option value="flexible">Flexible</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5 w-full text-sm">
+            <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
               Featured Display
             </label>
             <label
@@ -482,6 +525,7 @@ export default function EditEventForm() {
               </div>
             </label>
           </div>
+
           <div>
             <FormTextarea
               label="Description"
@@ -519,7 +563,7 @@ export default function EditEventForm() {
           variant="outline"
           disabled={isSubmitting}
           onClick={() => router.push(`/group/${workspaceId}`)}
-          className="order-2 sm:order-1 w-full sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
+          className="order-2 sm:order-1 w-full hover:bg-transparent hover:text-primary sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
         >
           Cancel
         </Button>

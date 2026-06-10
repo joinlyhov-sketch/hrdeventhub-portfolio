@@ -12,14 +12,14 @@ function secondsFromExpiry(expiresAt: number | null): number {
 }
 
 export default function Step3OTP() {
-  const otpEmail = useRegisterStore((s) => s.otpEmail);
+  const otpEmail    = useRegisterStore((s) => s.otpEmail);
   const otpExpiresAt = useRegisterStore((s) => s.otpExpiresAt);
-  const goToOTP = useRegisterStore((s) => s.goToOTP);
-  const reset = useRegisterStore((s) => s.reset);
+  const goToOTP     = useRegisterStore((s) => s.goToOTP);
+  const reset       = useRegisterStore((s) => s.reset);
 
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [otp, setOtp]               = useState(["", "", "", "", "", ""]);
+  const [error, setError]           = useState<string | null>(null);
+  const [success, setSuccess]       = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
@@ -28,7 +28,7 @@ export default function Step3OTP() {
   );
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const router = useRouter();
+  const router    = useRouter();
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -36,7 +36,6 @@ export default function Step3OTP() {
       setSecondsLeft(remaining);
       if (remaining <= 0) window.clearInterval(timer);
     }, 1000);
-
     return () => window.clearInterval(timer);
   }, [otpExpiresAt]);
 
@@ -116,9 +115,7 @@ export default function Step3OTP() {
         setError(result.error);
         return;
       }
-      setResendMessage(
-        result.message ?? "Verification OTP successfully resent.",
-      );
+      setResendMessage(result.message ?? "Verification OTP successfully resent.");
       goToOTP(otpEmail);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
@@ -131,33 +128,38 @@ export default function Step3OTP() {
 
   return (
     <motion.div
-      className="flex flex-col gap-5 w-full items-stretch px-10  "
+      className="flex flex-col gap-4 sm:gap-5 w-full items-stretch sm:px-6"
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div className="mb-5 text-center">
-        <h2 className="text-[28px] font-extrabold tracking-[-2px] text-[#17356f]">
+      <div className="mb-3 sm:mb-5 text-center">
+        <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-[-1px] sm:tracking-[-2px] text-[#17356f]">
           Enter Verification Code
         </h2>
-        <p className="mt-4 text-[#6e7580] text-[14px]">
+        <p className="mt-1 sm:mt-2 text-sm text-[#6e7580]">
           We sent a code to your email
         </p>
       </div>
 
-      <div className="flex justify-between gap-4 my-2">
+      <div className="flex justify-between gap-2 sm:gap-3 my-1 sm:my-2">
         {otp.map((digit, index) => (
           <input
             key={index}
-            ref={(el) => {
-              inputRefs.current[index] = el;
-            }}
+            ref={(el) => { inputRefs.current[index] = el; }}
             type="text"
             inputMode="numeric"
             maxLength={1}
             value={digit}
             onChange={(e) => handleChange(e.target.value, index)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            className="h-14 w-full border-b-2 border-[#dce6f0] bg-transparent text-center text-2xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] focus:scale-105"
+            className="
+              h-11 w-full
+              sm:h-14
+              rounded-xl sm:rounded-2xl
+              border border-[#dce6f0] bg-white
+              text-center text-lg sm:text-xl font-bold text-[#24529a]
+              outline-none transition-all focus:border-[#24529a] shadow-sm
+            "
           />
         ))}
       </div>
@@ -194,7 +196,7 @@ export default function Step3OTP() {
       <button
         onClick={handleVerify}
         disabled={isPending}
-        className="mt-3 h-14.5 w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+        className="mt-2 sm:mt-3 h-[50px] sm:h-[58px] w-full rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
       >
         {isPending ? "Verifying..." : "Submit"}
       </button>

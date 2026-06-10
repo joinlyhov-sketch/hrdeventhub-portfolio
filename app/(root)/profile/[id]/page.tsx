@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
 import { UserProfilePayload } from "@/types/profile-types";
 import { useParams } from "next/navigation";
+import ProfilePageSkeleton from "@/components/site/profile/ProfilePageSkeleton";
 
 export type ViewMode = "self" | "alumni" | "admin" | "organizer" | "student";
 
@@ -29,11 +30,8 @@ export default function ProfilePage() {
   const viewMode: ViewMode = !isReady
     ? "student"
     : isSelf
-      ? "self"
-      : ((currentUser?.role as ViewMode) ?? "student");
-
-  const showTabs =
-    isSelf || profile?.roles === "STUDENT" || profile?.roles === "ALUMNI";
+    ? "self"
+    : (currentUser?.role as ViewMode) ?? "student";
 
   useEffect(() => {
     if (!isReady || !session?.accessToken) return;
@@ -56,19 +54,35 @@ export default function ProfilePage() {
     fetchProfile();
   }, [isReady, session?.accessToken, userId, isSelf]);
 
-  const subjectRole = profile?.roles;
+  const subjectRole = profile?.roles ? String(profile.roles).toUpperCase() : "";
+  const viewerRole = currentUser?.role ? String(currentUser.role).toUpperCase() : "";
+
+  const showEventTab = isReady && (
+    (isSelf && (viewerRole === "STUDENT" || viewerRole === "ALUMNI")) ||
+    (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI"))
+  );
+
+  const showEndorsementTab = isReady && (
+    (isSelf && viewerRole === "STUDENT") ||
+    (!isSelf && subjectRole === "STUDENT")
+  );
 
   const titlePrimary = isSelf
     ? "My"
     : subjectRole === "ALUMNI"
-      ? "Alumni"
-      : subjectRole === "ADMIN"
-        ? "Admin"
-        : subjectRole === "ORGANIZER"
-          ? "Organizer"
-          : "Student";
+    ? "Alumni"
+    : subjectRole === "ADMIN"
+    ? "Admin"
+    : subjectRole === "ORGANIZER"
+    ? "Organizer"
+    : "Student";
 
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
+
+  useEffect(() => {
+    if (activeTab === "EV" && !showEventTab) setActiveTab("BG");
+    if (activeTab === "EN" && !showEndorsementTab) setActiveTab("BG");
+  }, [activeTab, showEventTab, showEndorsementTab]);
 
   const subjectName = profile
     ? `${profile.appUser.firstName} ${profile.appUser.lastName}`.trim()
@@ -77,9 +91,12 @@ export default function ProfilePage() {
   const headerDesc = !isReady
     ? "Please wait..."
     : isSelf
-      ? "View your profile information, background details, and endorsements."
-      : `You are viewing ${subjectName ?? "this user"}'s profile.`;
-
+    ? "View your profile information, background details, and endorsements."
+    : `You are viewing ${subjectName ?? "this user"}'s profile.`;
+    
+  if(!isReady || profileLoading){
+    return <ProfilePageSkeleton/>
+  }
   return (
     <div className="w-full bg-background z-30">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
@@ -91,7 +108,7 @@ export default function ProfilePage() {
               profile={profile}
               loading={profileLoading || !isReady}
               profileId={userId}
-              authToken={session?.accessToken ?? ""}
+              authToken={session?.accessToken ?? ""} 
             />
           </div>
           <div className="xl:col-span-8 h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6 overflow-hidden">
@@ -101,37 +118,31 @@ export default function ProfilePage() {
                 label="Background"
                 onClick={() => setActiveTab("BG")}
               />
-              {showTabs && (
-                <>
-                  <Tabnav
-                    active={activeTab === "EV"}
-                    label="Participated Event"
-                    onClick={() => setActiveTab("EV")}
-                  />
-                  <Tabnav
-                    active={activeTab === "EN"}
-                    label={isSelf ? "My Endorsement" : "Endorsements"}
-                    onClick={() => setActiveTab("EN")}
-                  />
-                </>
+              {showEventTab && (
+                <Tabnav
+                  active={activeTab === "EV"}
+                  label="Participated Event"
+                  onClick={() => setActiveTab("EV")}
+                />
+              )}
+              {showEndorsementTab && (
+                <Tabnav
+                  active={activeTab === "EN"}
+                  label={isSelf ? "My Endorsement" : "Endorsements"}
+                  onClick={() => setActiveTab("EN")}
+                />
               )}
             </div>
             <div className="w-full flex-1 min-h-0 overflow-hidden">
               {activeTab === "BG" && (
-                <BackgroundTab
-                  profile={profile}
-                  loading={profileLoading || !isReady}
-                />
+                <BackgroundTab profile={profile} loading={profileLoading || !isReady} />
               )}
-
-              {activeTab === "EV" && showTabs && (
-                <EventTab userId={isSelf ? undefined : userId} />
+              {activeTab === "EV" && showEventTab && (
+                <EventTab userId={userId} />
               )}
-
-              {activeTab === "EN" && showTabs && (
-                <EndorsementTabs
-                  studentId={isSelf ? undefined : userId}
-                  authToken={session?.accessToken ?? ""}
+              {activeTab === "EN" && showEndorsementTab && (
+                <EndorsementTabs  
+                  studentId={isSelf ? undefined : userId} 
                 />
               )}
             </div>
