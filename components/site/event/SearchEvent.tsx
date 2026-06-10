@@ -16,6 +16,7 @@ import { PopoverItem } from "../pop-up/contents/pop-over-content";
 import CategoryFilterPopover, {
   FilterOption,
 } from "@/components/site/pop-up/contents/CategoryFilterPopover";
+
 interface SearchEventProps {
   role: UserRole;
   onFilterChange: (category: string | null) => void;
@@ -35,12 +36,14 @@ export default function SearchEvent({
 }: SearchEventProps) {
   const params = useParams();
   const groupId = params.groupid;
+  
   const getCreationRoute = (value: string) => {
     if (groupId && groupId !== "null") {
       return `/event-management/creation/${value}?groupId=${groupId}`;
     }
     return `/event-management/creation/${value}`;
   };
+
   const filterCategories: FilterOption[] = [
     { label: "Announcement", value: "announcement", icon: Megaphone },
     { label: "Article", value: "article", icon: FileText },
@@ -48,6 +51,7 @@ export default function SearchEvent({
     { label: "Survey", value: "survey", icon: CheckCircle2 },
     { label: "Poll", value: "poll", icon: BarChart3 },
   ];
+
   const contentMenuOptions: PopoverItem[] = [
     {
       label: "Announcement",
@@ -59,6 +63,8 @@ export default function SearchEvent({
     { label: "Survey", icon: CheckCircle2, href: getCreationRoute("survey") },
     { label: "Poll", icon: BarChart3, href: getCreationRoute("poll") },
   ];
+
+  const isSearchingOrFiltering = searchQuery.trim() !== "" || activeFilter !== null;
 
   return (
     <div className="w-full mb-8">
@@ -84,34 +90,46 @@ export default function SearchEvent({
           <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center text-gray-400 mb-4">
             <CalendarX size={30} className="text-red-500" />
           </div>
-          <h3 className="text-base font-bold text-gray-900 mb-1">
-            No matching items found
-          </h3>
-          <p className="text-sm text-gray-400 max-w-sm mx-auto leading-relaxed">
-            We couldn&apos;t find any results matching
-            <span className="font-medium text-gray-700">{searchQuery}</span>
-            &rdquo;
-            {activeFilter && (
-              <span>
-                {" "}
-                in{" "}
-                <span className="font-medium text-gray-700">
-                  {activeFilter}
-                </span>
-              </span>
-            )}
-            . Try checking your spelling or changing options.
-          </p>
-          {(searchQuery || activeFilter) && (
-            <button
-              onClick={() => {
-                onSearchChange("");
-                onFilterChange(null);
-              }}
-              className="mt-5 text-xs font-bold text-primary hover:text-primary-hover uppercase tracking-wider underline underline-offset-4 cursor-pointer"
-            >
-              Reset Search Filter
-            </button>
+
+          {isSearchingOrFiltering ? (
+            <>
+              <h3 className="text-base font-bold text-gray-900 mb-1">
+                No Results Found
+              </h3>
+              <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                We couldn&apos;t find any records matching &ldquo;
+                <span className="font-semibold text-gray-800">{searchQuery}</span>
+                &rdquo;
+                {activeFilter && (
+                  <span>
+                    {" "}within the{" "}
+                    <span className="font-semibold text-gray-800">
+                      {activeFilter}
+                    </span>{" "}
+                    category
+                  </span>
+                )}
+                . Please verify your spelling or adjust your options.
+              </p>
+              <button
+                onClick={() => {
+                  onSearchChange("");
+                  onFilterChange(null);
+                }}
+                className="mt-5 text-xs font-bold text-primary hover:text-primary-hover uppercase tracking-wider underline underline-offset-4 cursor-pointer"
+              >
+                Clear Filters & Reset
+              </button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-base font-bold text-gray-900 mb-1">
+                No Posts Available
+              </h3>
+              <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                There are currently no announcements, events, or posts published here. Check back later for updates.
+              </p>
+            </>
           )}
         </div>
       )}

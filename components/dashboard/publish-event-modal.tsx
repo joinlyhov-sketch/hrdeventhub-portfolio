@@ -43,7 +43,7 @@ export function PublishEventModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-106.25 rounded-xl bg-white p-6">
         <DialogHeader className="flex flex-col items-center text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center text-primary border bg-primary/10">
             <Globe size={24} />
           </div>
           <div className="space-y-1">
@@ -66,7 +66,7 @@ export function PublishEventModal({
             variant="outline"
             onClick={onClose}
             disabled={isPublishing}
-            className="flex-1 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+            className="flex-1 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-black"
           >
             Cancel
           </Button>
@@ -74,7 +74,7 @@ export function PublishEventModal({
             type="button"
             onClick={handleConfirm}
             disabled={isPublishing}
-            className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+            className="flex-1 rounded-xl bg-primary hover:bg-primary-hover text-white font-medium"
           >
             {isPublishing ? (
               <>

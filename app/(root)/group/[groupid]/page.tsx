@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-import GroupMemberCard from "../../../../components/site/event/GroupMemberCard";
-import UpComingEventCard from "../../../../components/site/event/UpComingEventCard";
-import FilteredFeed from "../../../../components/site/event/FilteredFeed";
+import GroupMemberCard from "@/components/site/event/GroupMemberCard";
+import UpComingEventCard from "@/components/site/event/UpComingEventCard";
+import FilteredFeed from "@/components/site/event/FilteredFeed";
 
 export const metadata: Metadata = {
   title: "Event Feed",
