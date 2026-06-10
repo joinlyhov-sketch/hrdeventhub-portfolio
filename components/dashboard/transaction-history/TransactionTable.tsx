@@ -116,7 +116,35 @@ export function TransactionTable({
             <Search className="absolute left-3 top-2 w-4 h-4 text-gray-400" />
           </div>
           <Button
-            onClick={() => alert("Export Excel Successfully")}
+            onClick={() => {
+              if (filteredData.length === 0) {
+                alert("No transactions to export.");
+                return;
+              }
+
+              const headers = ["ID", "Username", "Amount (USD)", "Status", "Timestamp"];
+              const rows = filteredData.map((t) => [
+                t.id,
+                t.username,
+                t.amount.toString(),
+                t.status,
+                t.timestamp,
+              ]);
+
+              const csvContent = [headers, ...rows]
+                .map((row) =>
+                  row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+                )
+                .join("\n");
+
+              const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+              link.click();
+              URL.revokeObjectURL(url);
+            }}
             className="bg-primary hover:bg-primary-hover text-white gap-2 rounded-lg flex items-center cursor-pointer"
           >
             <Download className="w-4 h-4" />

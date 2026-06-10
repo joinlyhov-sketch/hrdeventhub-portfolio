@@ -50,7 +50,7 @@ export default function PollOptionsList({
         type="button"
         variant="outline"
         onClick={onAddOption}
-        className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-gray-500 text-sm font-semibold shadow-sm hover:bg-slate-50/50"
+        className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-gray-500 text-sm font-semibold shadow-sm hover:bg-transparent hover:text-gray-600"
       >
         <Plus size={16} /> Add Option
       </Button>
