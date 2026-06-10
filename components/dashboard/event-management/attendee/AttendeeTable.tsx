@@ -34,9 +34,6 @@ export default function AttendeeTableClient({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  console.log("[AttendeeTableClient] Rendered with initialAttendees prop length:", initialAttendees.length);
-  console.log("[AttendeeTableClient] Current active internal state tracking:", attendees);
-
   useEffect(() => {
     console.log("[AttendeeTableClient] initialAttendees prop changed! New data:", initialAttendees);
     setAttendees(initialAttendees);
@@ -68,8 +65,6 @@ export default function AttendeeTableClient({
 
       return matchesStatus && matchesSearch;
     });
-
-    console.log(`[AttendeeTableClient] Filtering calculation complete. Matches: ${result.length} out of ${attendees.length}`);
     return result;
   }, [attendees, search, statusFilter]);
 
@@ -174,7 +169,6 @@ export default function AttendeeTableClient({
                       console.log("View profile clicked for:", item);
                     }}
                     onDeleteAttendee={(id) => {
-                      console.log("Delete request triggered for entry ID:", id);
                       setAttendees((prev) =>
                         prev.filter((item) => item.participantId !== id)
                       );
