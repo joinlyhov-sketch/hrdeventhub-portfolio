@@ -52,7 +52,7 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
             {members.length} {members.length === 1 ? "Member" : "Members"}
           </p>
         </div>
-        
+
         <div className="flex items-center -space-x-2 shrink-0 select-none">
           {headerVisibleMembers.map((member) => {
             const firstLetter = member.firstName?.[0] ?? "";
@@ -75,7 +75,8 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
                   />
                 ) : (
                   <span className="text-[10px] font-bold text-primary uppercase">
-                    {firstLetter}{lastLetter}
+                    {firstLetter}
+                    {lastLetter}
                   </span>
                 )}
               </div>
@@ -111,37 +112,41 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
             const mediaUrl = getMediaUrl((member as any).profileImage);
 
             return (
-             <Link key={member.appUserId} href={`/profile/${member.appUserId}`} className="flex items-center gap-3 min-w-0 w-full hover:opacity-80 transition-opacity">
-  <div
-    className="w-10 h-10 rounded-full border border-border bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center shrink-0 position-relative"
-    title={`${member.firstName} ${member.lastName}`}
-  >
-    {mediaUrl ? (
-      <Image
-        src={mediaUrl}
-        alt={`${member.firstName} ${member.lastName}`}
-        width={40}
-        height={40}
-        className="w-full h-full object-cover rounded-full"
-      />
-    ) : (
-      <span className="text-[11px] font-bold text-primary uppercase">
-        {firstLetter}{lastLetter}
-      </span>
-    )}
-  </div>
-  <span className="type-detail-semibold text-primary grow min-w-0 truncate">
-    {member.firstName} {member.lastName}
-  </span>
-</Link>
+              <Link
+                key={member.appUserId}
+                href={`/profile/${member.appUserId}`}
+                className="flex items-center gap-3 min-w-0 w-full hover:opacity-80 transition-opacity"
+              >
+                <div
+                  className="w-10 h-10 rounded-full border border-border bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center shrink-0 position-relative"
+                  title={`${member.firstName} ${member.lastName}`}
+                >
+                  {mediaUrl ? (
+                    <Image
+                      src={mediaUrl}
+                      alt={`${member.firstName} ${member.lastName}`}
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <span className="text-[11px] font-bold text-primary uppercase">
+                      {firstLetter}
+                      {lastLetter}
+                    </span>
+                  )}
+                </div>
+                <span className="type-detail-semibold text-primary grow min-w-0 truncate">
+                  {member.firstName} {member.lastName}
+                </span>
+              </Link>
             );
           })
         ) : (
           <p className="text-sm text-gray-400 text-center py-4">
-            {members.length === 0 
-              ? "No members yet" 
-              : `No members found matching “${searchQuery}”`
-            }
+            {members.length === 0
+              ? "No members yet"
+              : `No members found matching “${searchQuery}”`}
           </p>
         )}
       </div>
