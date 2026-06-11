@@ -61,7 +61,7 @@ export default function AttendeeRow({
 
     if (normalize === "pending") {
       return {
-        bg: "bg-[#F2F4F7] text-[#667085]",
+        bg: "bg-grey-200 text-[#667085]",
         dot: "bg-[#667085]",
       };
     }
