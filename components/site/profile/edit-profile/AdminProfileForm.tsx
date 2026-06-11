@@ -2,6 +2,14 @@
 
 import React, { useEffect, useState, useTransition, useRef } from "react";
 import { User, Mails, Cake, Link2, Camera } from "lucide-react";
+
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
 import {
@@ -28,6 +36,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [isBankOpen, setIsBankOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const [isAdjustOpen, setIsAdjustOpen] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
@@ -52,6 +61,12 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [phoneNumber, setPhoneNumber] = useState("012345678");
   const [email, setEmail] = useState("admin@gmail.com");
   const [bio, setBio] = useState("");
+  const selectedDate = dob ? new Date(dob) : undefined;
+
+  const maxDate = new Date();
+
+  const startMonth = new Date(1950, 0);
+  const endMonth = new Date();
 
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
@@ -163,12 +178,29 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const localUrl = URL.createObjectURL(file);
-      setSelectedImageSrc(localUrl);
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const base64 = reader.result as string;
+
+      sessionStorage.setItem("pending-avatar", base64);
+
+      setSelectedImageSrc(base64);
+      setIsAdjustOpen(true);
+    };
+
+    reader.readAsDataURL(file);
+  };
+  useEffect(() => {
+    const pendingAvatar = sessionStorage.getItem("pending-avatar");
+
+    if (pendingAvatar) {
+      setSelectedImageSrc(pendingAvatar);
       setIsAdjustOpen(true);
     }
-  };
+  }, []);
   const validateField = (name: string, value: string) => {
     switch (name) {
       case "firstName":
@@ -271,6 +303,45 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
         return "";
 
+      case "dateOfBirth":
+        if (!value.trim()) {
+          return "Date of birth is required";
+        }
+
+        const birthDate = new Date(value);
+
+        if (isNaN(birthDate.getTime())) {
+          return "Invalid date of birth";
+        }
+
+        const today = new Date();
+
+        if (birthDate > today) {
+          return "Date of birth cannot be in the future";
+        }
+
+        const age =
+          today.getFullYear() -
+          birthDate.getFullYear() -
+          (today <
+          new Date(
+            today.getFullYear(),
+            birthDate.getMonth(),
+            birthDate.getDate(),
+          )
+            ? 1
+            : 0);
+
+        if (age < 16) {
+          return "You must be at least 16 years old";
+        }
+
+        if (age > 120) {
+          return "Please enter a valid date of birth";
+        }
+
+        return "";
+
       default:
         return "";
     }
@@ -280,6 +351,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     setIsAdjustOpen(false);
     setIsUploading(true);
     setError(null);
+    sessionStorage.removeItem("pending-avatar");
 
     const localBlobUrl = URL.createObjectURL(croppedBlob);
     setAvatarUrl(localBlobUrl);
@@ -321,6 +393,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
       firstName: validateField("firstName", firstName),
       lastName: validateField("lastName", lastName),
       username: validateField("username", username),
+      dateOfBirth: validateField("dateOfBirth", dob),
       phoneNumber: validateField("phoneNumber", phoneNumber),
       linkedinUrl: validateField("linkedinUrl", linkedinUrl),
       githubUrl: validateField("githubUrl", githubUrl),
@@ -349,15 +422,24 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
       phoneNumber: phoneNumber.trim(),
     };
 
-    const activeSocials: any[] = [];
-    if (linkedinUrl.trim())
-      activeSocials.push({ platform: "linkedin", url: linkedinUrl.trim() });
-    if (githubUrl.trim())
-      activeSocials.push({ platform: "github", url: githubUrl.trim() });
-    if (facebookUrl.trim())
-      activeSocials.push({ platform: "facebook", url: facebookUrl.trim() });
-    if (telegramUrl.trim())
-      activeSocials.push({ platform: "telegram", url: telegramUrl.trim() });
+    const activeSocials = [
+      {
+        platform: "linkedin",
+        url: linkedinUrl.trim(),
+      },
+      {
+        platform: "github",
+        url: githubUrl.trim(),
+      },
+      {
+        platform: "facebook",
+        url: facebookUrl.trim(),
+      },
+      {
+        platform: "telegram",
+        url: telegramUrl.trim(),
+      },
+    ];
 
     const currentProfilePayload: any = {
       bio: bio.trim(),
@@ -623,17 +705,86 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               <label className="type-detail-semibold text-secondary">
                 Date of Birth
               </label>
-              <div className="relative flex items-center w-full">
-                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                  <Cake className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-foreground focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
+
+              {/* <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 w-full h-10 px-3 rounded-md border border-border bg-background text-left transition-colors hover:border-primary focus:outline-none focus:border-primary"
+                  >
+                    <Cake className="w-4 h-4 text-[#93A3CA] shrink-0" />
+
+                    <span
+                      className={`text-sm ${
+                        dob ? "text-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      {selectedDate
+                        ? format(selectedDate, "dd/MM/yyyy")
+                        : "DD/MM/YYYY"}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      if (!date) return;
+
+                      setDob(format(date, "yyyy-MM-dd"));
+                    }}
+                    disabled={(date) => date > maxDate || date < startMonth}
+                    captionLayout="dropdown"
+                    startMonth={startMonth}
+                    endMonth={endMonth}
+                  />
+                </PopoverContent>
+              </Popover> */}
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border border-border bg-background text-left ${errors.dateOfBirth ? "border-red-500" : ""}`}
+                  >
+                    <Cake className="w-4 h-4 text-[#93A3CA] shrink-0" />
+
+                    <span
+                      className={`text-sm ${
+                        dob ? "text-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      {selectedDate
+                        ? format(selectedDate, "dd/MM/yyyy")
+                        : "DD/MM/YYYY"}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      if (!date) return;
+
+                      setDob(format(date, "yyyy-MM-dd"));
+
+                      setIsCalendarOpen(false);
+                    }}
+                    disabled={(date) => date > maxDate || date < startMonth}
+                    captionLayout="dropdown"
+                    startMonth={startMonth}
+                    endMonth={endMonth}
+                  />
+                </PopoverContent>
+              </Popover>
+              {errors.dateOfBirth && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.dateOfBirth}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -1075,7 +1226,11 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         <ImageAdjustModal
           imageSrc={selectedImageSrc}
           isOpen={isAdjustOpen}
-          onClose={() => setIsAdjustOpen(false)}
+          onClose={() => {
+            sessionStorage.removeItem("pending-avatar");
+            setSelectedImageSrc(null);
+            setIsAdjustOpen(false);
+          }}
           onSave={handleSaveCroppedAvatar}
         />
       )}
