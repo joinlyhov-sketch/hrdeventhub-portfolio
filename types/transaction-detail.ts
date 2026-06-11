@@ -13,6 +13,7 @@ export interface Payer {
 
 export interface EventDetail {
   id: string;
+  workspaceId: string;
   title: string;
   date: string;
   time: string;
