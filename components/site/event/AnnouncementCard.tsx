@@ -450,7 +450,7 @@ function AnnouncementItem({
                   currentUserId={currentUser?.id}
                   currentUserPicture={currentUser?.profilePicture}
                   currentUserInitials={currentUser?.avatarInitials}
-                  onRefetch={refetch}
+                  onRefetch={refetch} workspaceId={groupId}                 
                 />
               ))
             ) : (
