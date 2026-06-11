@@ -365,6 +365,7 @@ function EventItem({
                   currentUserPicture={currentUser?.profilePicture}
                   currentUserInitials={currentUser?.avatarInitials}
                   onRefetch={refetch}
+                  workspaceId={groupid}
                 />
               ))
             ) : (

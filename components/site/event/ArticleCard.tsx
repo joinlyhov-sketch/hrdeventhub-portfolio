@@ -262,6 +262,7 @@ function ArticleItem({
                   currentUserPicture={currentUser?.profilePicture}
                   currentUserInitials={currentUser?.avatarInitials}
                   onRefetch={refetch}
+                  workspaceId={groupId}
                 />
               ))
             ) : (
