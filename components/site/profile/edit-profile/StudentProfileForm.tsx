@@ -17,6 +17,16 @@ import { toast } from "sonner";
 import * as Flags from "country-flag-icons/react/3x2";
 import { AddSkillModal } from "@/components/dashboard/AddSkillModal";
 import { DeleteResumeModal } from "@/components/dashboard/DeleteResumeModal";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+import { Calendar } from "@/components/ui/calendar";
 
 export default function StudentProfileForm() {
   const { data: session } = useSession();
@@ -36,6 +46,12 @@ export default function StudentProfileForm() {
 
   const [initialIdentity, setInitialIdentity] = useState<any>(null);
   const [initialProfile, setInitialProfile] = useState<any>(null);
+  const [educationErrors, setEducationErrors] = useState<
+    {
+      startYear?: string;
+      endYear?: string;
+    }[]
+  >([]);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -44,6 +60,14 @@ export default function StudentProfileForm() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("Female");
+  const selectedDate =
+    dob && !isNaN(new Date(dob).getTime()) ? new Date(dob) : undefined;
+
+  const maxBirthDate = new Date();
+  maxBirthDate.setFullYear(maxBirthDate.getFullYear() - 16);
+
+  const startMonth = new Date(1950, 0);
+  const endMonth = new Date();
 
   const [bio, setBio] = useState("");
   const [currentStatus, setCurrentStatus] = useState("studying");
@@ -127,14 +151,60 @@ export default function StudentProfileForm() {
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
       newErrors.dob = "Format must be YYYY-MM-DD";
       isValid = false;
-    }
+    } else {
+      const birthDate = new Date(dob);
 
+      if (isNaN(birthDate.getTime())) {
+        newErrors.dob = "Invalid date";
+        isValid = false;
+      } else {
+        const [year, month, day] = dob.split("-").map(Number);
+
+        if (
+          birthDate.getFullYear() !== year ||
+          birthDate.getMonth() + 1 !== month ||
+          birthDate.getDate() !== day
+        ) {
+          newErrors.dob = "Invalid date";
+          isValid = false;
+        } else {
+          const today = new Date();
+
+          let age = today.getFullYear() - birthDate.getFullYear();
+
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+
+          if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && today.getDate() < birthDate.getDate())
+          ) {
+            age--;
+          }
+
+          if (age < 16) {
+            newErrors.dob = "You must be at least 16 years old";
+            isValid = false;
+          }
+        }
+      }
+    }
     if (!phoneNumber.trim()) {
       newErrors.phoneNumber = "Phone number is required";
       isValid = false;
-    } else if (!/^[0-9+\-\s()]+$/.test(phoneNumber)) {
-      newErrors.phoneNumber = "Invalid phone number";
+    } else if (phoneNumber.includes("+")) {
+      newErrors.phoneNumber = "Do not include country code";
       isValid = false;
+    } else if (!/^\d+$/.test(phoneNumber)) {
+      newErrors.phoneNumber = "Phone number must contain digits only";
+      isValid = false;
+    } else {
+      const isValidPhone =
+        /^0\d{8,9}$/.test(phoneNumber) || /^[1-9]\d{7,8}$/.test(phoneNumber);
+
+      if (!isValidPhone) {
+        newErrors.phoneNumber = "Enter a valid phone number";
+        isValid = false;
+      }
     }
 
     if (
@@ -174,6 +244,83 @@ export default function StudentProfileForm() {
 
     return isValid;
   };
+  const calculateAge = (dateString: string) => {
+    const birthDate = new Date(dateString);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+  const validateEducation = () => {
+    const currentYear = new Date().getFullYear();
+    let isValid = true;
+
+    const newErrors = education.map((edu) => {
+      const error: {
+        startYear?: string;
+        endYear?: string;
+      } = {};
+
+      const startYear = Number(edu.startYear);
+      const endYear =
+        edu.endYear !== null && edu.endYear !== undefined
+          ? Number(edu.endYear)
+          : null;
+
+      if (edu.institutionName.trim()) {
+        if (!/^\d{4}$/.test(String(startYear))) {
+          error.startYear = "Year must be 4 digits";
+          isValid = false;
+        } else if (startYear < 1900) {
+          error.startYear = "Year cannot be before 1900";
+          isValid = false;
+        } else if (startYear > currentYear + 10) {
+          error.startYear = "Invalid year";
+          isValid = false;
+        }
+      }
+
+      if (endYear !== null) {
+        if (!/^\d{4}$/.test(String(endYear))) {
+          error.endYear = "Year must be 4 digits";
+          isValid = false;
+        } else if (endYear < 1900) {
+          error.endYear = "Year cannot be before 1900";
+          isValid = false;
+        } else if (endYear > currentYear + 10) {
+          error.endYear = "Invalid year";
+          isValid = false;
+        } else if (endYear < startYear) {
+          error.endYear = "End year must be after start year";
+          isValid = false;
+        }
+      }
+
+      return error;
+    });
+
+    setEducationErrors(newErrors);
+
+    return isValid;
+  };
+
+  useEffect(() => {
+    const pendingAvatar = sessionStorage.getItem("pending-avatar");
+    if (pendingAvatar) {
+      setSelectedImageSrc(pendingAvatar);
+      setIsAdjustModalOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     const loadAllUserData = async () => {
@@ -334,9 +481,15 @@ export default function StudentProfileForm() {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
-    const localBlobUrl = URL.createObjectURL(file);
-    setSelectedImageSrc(localBlobUrl);
-    setIsAdjustModalOpen(true);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      sessionStorage.setItem("pending-avatar", base64String);
+      setSelectedImageSrc(base64String);
+      setIsAdjustModalOpen(true);
+    };
+    reader.readAsDataURL(file);
     e.target.value = "";
   };
 
@@ -344,6 +497,8 @@ export default function StudentProfileForm() {
     setIsAdjustModalOpen(false);
     setIsUploading(true);
     setError(null);
+
+    sessionStorage.removeItem("pending-avatar");
 
     const localBlobUrl = URL.createObjectURL(croppedBlob);
     setProfilePicture(localBlobUrl);
@@ -408,10 +563,14 @@ export default function StudentProfileForm() {
   const handleSaveChanges = () => {
     setError(null);
 
-    if (!validateForm()) {
+    const isFormValid = validateForm();
+    const isEducationValid = validateEducation();
+
+    if (!isFormValid || !isEducationValid) {
       toast.error("Please fix the validation errors.");
       return;
     }
+
     const currentIdentityPayload = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
@@ -419,15 +578,24 @@ export default function StudentProfileForm() {
       dateOfBirth: dob.trim(),
       phoneNumber: phoneNumber.trim(),
     };
-    const activeSocials: any[] = [];
-    if (linkedinUrl.trim())
-      activeSocials.push({ platform: "linkedin", url: linkedinUrl.trim() });
-    if (githubUrl.trim())
-      activeSocials.push({ platform: "github", url: githubUrl.trim() });
-    if (facebookUrl.trim())
-      activeSocials.push({ platform: "facebook", url: facebookUrl.trim() });
-    if (telegramUrl.trim())
-      activeSocials.push({ platform: "telegram", url: telegramUrl.trim() });
+    const socialAccount = [
+      {
+        platform: "linkedin",
+        url: linkedinUrl.trim(),
+      },
+      {
+        platform: "github",
+        url: githubUrl.trim(),
+      },
+      {
+        platform: "facebook",
+        url: facebookUrl.trim(),
+      },
+      {
+        platform: "telegram",
+        url: telegramUrl.trim(),
+      },
+    ];
 
     const skillsPayload = skills.length > 0 ? [skills.join(", ")] : [];
     const validEducation = education.filter(
@@ -439,7 +607,7 @@ export default function StudentProfileForm() {
       major: validEducation[0]?.degree || "Computer Science",
       currentStatus: currentStatus.toLowerCase(),
       cvResumeUrl: cvResumeUrl || null,
-      socialAccount: activeSocials,
+      socialAccount,
       education: validEducation,
       skills: skillsPayload,
       profileSharingMode,
@@ -459,10 +627,13 @@ export default function StudentProfileForm() {
       JSON.stringify(initialProfile?.skills) !== JSON.stringify(skills) ||
       JSON.stringify(initialProfile?.education) !==
         JSON.stringify(validEducation) ||
-      initialProfile?.socials.linkedin !== linkedinUrl.trim() ||
-      initialProfile?.socials.github !== githubUrl.trim() ||
-      initialProfile?.socials.facebook !== facebookUrl.trim() ||
-      initialProfile?.socials.telegram !== telegramUrl.trim();
+      JSON.stringify(initialProfile?.socials) !==
+        JSON.stringify({
+          linkedin: linkedinUrl.trim(),
+          github: githubUrl.trim(),
+          facebook: facebookUrl.trim(),
+          telegram: telegramUrl.trim(),
+        });
 
     if (!identityChanged && !profileChanged) {
       router.back();
@@ -478,9 +649,10 @@ export default function StudentProfileForm() {
           updatePromises.push(
             Promise.resolve({ success: true, skipped: true }),
           );
-        if (profileChanged)
+        if (profileChanged) {
+          console.log("result: ", JSON.stringify(currentProfilePayload));
           updatePromises.push(updateProfileMeAction(currentProfilePayload));
-        else
+        } else
           updatePromises.push(
             Promise.resolve({ success: true, skipped: true }),
           );
@@ -703,21 +875,69 @@ export default function StudentProfileForm() {
         >
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Date of Birth</label>
-            <input
-              type="date"
-              value={dob}
-              onChange={(e) => {
-                setDob(e.target.value);
 
-                setErrors((prev) => ({
-                  ...prev,
-                  dob: "",
-                }));
-              }}
-              className={`w-full h-10 px-3 bg-white border rounded-lg ${
-                errors.dob ? "border-red-500" : "border-border"
-              }`}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`flex items-center gap-3 w-full h-10 px-3 border rounded-lg bg-white text-left transition-all ${
+                    errors.dob ? "border-red-500" : "border-border"
+                  }`}
+                >
+                  <CalendarIcon
+                    size={16}
+                    className="text-muted-foreground shrink-0"
+                  />
+
+                  <span
+                    className={
+                      dob
+                        ? "text-primary type-detail-medium"
+                        : "text-muted-foreground type-detail-medium"
+                    }
+                  >
+                    {selectedDate
+                      ? format(selectedDate, "dd/MM/yyyy")
+                      : "DD/MM/YYYY"}
+                  </span>
+                </button>
+              </PopoverTrigger>
+
+              <PopoverContent
+                className="w-auto p-0 rounded-xl"
+                align="start"
+                sideOffset={6}
+              >
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  captionLayout="dropdown"
+                  startMonth={startMonth}
+                  endMonth={endMonth}
+                  disabled={(date) => {
+                    const today = new Date();
+
+                    const maxBirthDate = new Date(
+                      today.getFullYear() - 16,
+                      today.getMonth(),
+                      today.getDate(),
+                    );
+
+                    return date > maxBirthDate;
+                  }}
+                  onSelect={(date) => {
+                    if (!date) return;
+
+                    setDob(format(date, "yyyy-MM-dd"));
+
+                    setErrors((prev) => ({
+                      ...prev,
+                      dob: "",
+                    }));
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
 
             {errors.dob && <p className="text-red-500 text-xs">{errors.dob}</p>}
           </div>
@@ -768,7 +988,7 @@ export default function StudentProfileForm() {
               </div>
 
               <input
-                type="text"
+                type="number"
                 value={phoneNumber}
                 onChange={(e) => {
                   setPhoneNumber(e.target.value);
@@ -862,7 +1082,7 @@ export default function StudentProfileForm() {
                 <input
                   type="text"
                   value={linkedinUrl}
-                  placeholder="linkedin.com/in/username"
+                  placeholder="https://linkedin.com/in/username"
                   onChange={(e) => {
                     setLinkedinUrl(e.target.value);
 
@@ -906,7 +1126,7 @@ export default function StudentProfileForm() {
               <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                 <input
                   type="text"
-                  placeholder="github.com/username"
+                  placeholder="https://github.com/username"
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
@@ -952,7 +1172,7 @@ export default function StudentProfileForm() {
               <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                 <input
                   type="text"
-                  placeholder="Facebook Profile Link or Name"
+                  placeholder="https://facebook.com/username"
                   value={facebookUrl}
                   onChange={(e) => setFacebookUrl(e.target.value)}
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
@@ -998,7 +1218,7 @@ export default function StudentProfileForm() {
               <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                 <input
                   type="text"
-                  placeholder="@username"
+                  placeholder="https://t.me/username"
                   value={telegramUrl}
                   onChange={(e) => setTelegramUrl(e.target.value)}
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
@@ -1081,37 +1301,80 @@ export default function StudentProfileForm() {
                 className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
               />
             </div>
+
             <div className="flex flex-col gap-1.5 w-full">
               <label className="type-detail-semibold text-secondary">
                 Start year
               </label>
+
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
                 value={edu.startYear || ""}
                 placeholder="2023"
-                onChange={(e) =>
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+
                   handleUpdateEducation(idx, {
-                    startYear: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
+                    startYear: value ? Number(value) : "",
+                  });
+
+                  setEducationErrors((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = {
+                      ...copy[idx],
+                      startYear: "",
+                    };
+                    return copy;
+                  });
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
+      ${educationErrors[idx]?.startYear ? "border-red-500" : "border-border"}`}
               />
+
+              {educationErrors[idx]?.startYear && (
+                <p className="text-red-500 text-xs">
+                  {educationErrors[idx].startYear}
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-1.5 w-full">
               <label className="type-detail-semibold text-secondary">
                 End year
               </label>
+
               <input
-                type="number"
-                value={edu.endYear || ""}
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                value={edu.endYear ?? ""}
                 placeholder="2026"
-                onChange={(e) =>
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+
                   handleUpdateEducation(idx, {
-                    endYear: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
+                    endYear: value ? Number(value) : null,
+                  });
+
+                  setEducationErrors((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = {
+                      ...copy[idx],
+                      endYear: "",
+                    };
+                    return copy;
+                  });
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
+      ${educationErrors[idx]?.endYear ? "border-red-500" : "border-border"}`}
               />
+
+              {educationErrors[idx]?.endYear && (
+                <p className="text-red-500 text-xs font-light">
+                  {educationErrors[idx].endYear}
+                </p>
+              )}
             </div>
           </div>
         ))}
@@ -1272,7 +1535,10 @@ export default function StudentProfileForm() {
       <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => {
+            sessionStorage.removeItem("pending-avatar");
+            router.back();
+          }}
           className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
         >
           Discard Changes
@@ -1290,7 +1556,11 @@ export default function StudentProfileForm() {
         <ImageAdjustModal
           imageSrc={selectedImageSrc}
           isOpen={isAdjustModalOpen}
-          onClose={() => setIsAdjustModalOpen(false)}
+          onClose={() => {
+            sessionStorage.removeItem("pending-avatar");
+            setSelectedImageSrc(null);
+            setIsAdjustModalOpen(false);
+          }}
           onSave={handleCroppedImageSave}
         />
       )}
