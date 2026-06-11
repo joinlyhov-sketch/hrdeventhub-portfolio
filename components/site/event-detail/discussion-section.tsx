@@ -8,6 +8,7 @@ import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { useCurrentUser } from "@/context/user-context";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
+import Link from "next/link";
 
 const EMOJI_LIST = [
   "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
@@ -40,19 +41,21 @@ export function DiscussionSection({ event }: DiscussionSectionProps) {
     <div className="space-y-6">
       <section className="flex items-center gap-x-2.5">
         <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
-          {currentUser?.profilePicture ? (
-            <Image
-              src={currentUser.profilePicture}
-              alt={currentUser.name || "User avatar"}
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="text-xs font-bold text-primary uppercase">
-              {currentUser?.avatarInitials ?? "?"}
-            </span>
-          )}
+          <Link href={`/profile/${currentUser?.id}`}>
+            {currentUser?.profilePicture ? (
+              <Image
+                src={currentUser.profilePicture}
+                alt={currentUser.name || "User avatar"}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-xs font-bold text-primary uppercase">
+                {currentUser?.avatarInitials ?? "?"}
+              </span>
+            )}
+          </Link>
         </div>
 
         <div className="flex justify-between items-center bg-grey-100 rounded-full pl-4 pr-2 py-2 w-full gap-2">
