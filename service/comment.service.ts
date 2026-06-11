@@ -14,14 +14,13 @@ export const getCommentsService = async (postId: string, authToken?: string) => 
 export const postCommentService = async (
   postId: string,
   comment: string,
-  authToken?: string
+  authToken?: string,
+  mentionedUserIds: string[] = [],
 ) => {
   return apiPost<PostCommentResponse>(
     `/posts/${postId}/comments`,
-    { comment },
-    {
-      authToken,
-    }
+    { comment, mentionedUserId: { userIds: mentionedUserIds } },
+    { authToken },
   );
 };
 export const editCommentService = async (
@@ -52,13 +51,12 @@ export const deleteCommentService = async (
 export const replyCommentService = async (
   commentId: string,
   reply: string,
-  authToken?: string
+  authToken?: string,
+  mentionedUserIds: string[] = [],
 ) => {
   return apiPost<PostCommentResponse>(
     `/posts/comments/${commentId}/replies`,
-    { comment: reply },
-    {
-      authToken,
-    }
+    { comment: reply, mentionedUserId: { userIds: mentionedUserIds } },
+    { authToken },
   );
 };

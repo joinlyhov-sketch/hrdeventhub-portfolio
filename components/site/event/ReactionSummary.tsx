@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 
 type AnyReactionItem = ReactionItem | CommentReactionItem;
 
@@ -68,11 +69,11 @@ export function ReactionSummary({ payload }: ReactionSummaryProps) {
       </DialogTrigger>
 
       <DialogContent 
-        className="p-2 bg-background border border-border rounded-2xl shadow-xl w-80 max-h-120 flex flex-col overflow-hidden gap-0 [&>button]:hidden"
+        className="w-[374.5px] p-2 bg-background border border-border rounded-2xl shadow-xl max-h-120 flex flex-col overflow-hidden gap-0 [&>button]:hidden"
       >
         <DialogTitle className="sr-only">Reaction Summary</DialogTitle>
 
-        <div className="flex items-center gap-1 px-3 pt-3 pb-0 border-b border-border overflow-x-auto shrink-0">
+        <div className="w-full flex items-center gap-1 px-3 pt-3 pb-0 border-b border-border shrink-0 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveFilter(null)}
             className={`relative -mb-px flex items-center gap-1.5 px-3 pb-2 pt-1 text-md font-semibold rounded-t-lg transition-colors shrink-0 border-b-2 ${
@@ -124,35 +125,41 @@ export function ReactionSummary({ payload }: ReactionSummaryProps) {
             const profileImage = r.reactor.profileImage;
 
             return (
-              <div key={r.reactionId} className="flex items-center gap-3">
-                <div className="relative shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden flex items-center justify-center border">
-                    {profileImage ? (
-                      <Image
-                        src={profileImage}
-                        alt={fullName}
-                        width={40}
-                        height={40}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs font-bold text-primary uppercase">
-                        {fullName.slice(0, 2)}
+              <>
+                <section>
+                  <Link href={`/profile/${r.reactor.appUserId}`}>
+                    <div key={r.reactionId} className="flex items-center gap-3">
+                      <div className="relative shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden flex items-center justify-center border">
+                              {profileImage ? (
+                                <Image
+                                  src={profileImage}
+                                  alt={fullName}
+                                  width={40}
+                                  height={40}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-xs font-bold text-primary uppercase">
+                                  {fullName.slice(0, 2)}
+                                </span>
+                              )}
+                          </div>
+                        <div className="absolute -bottom-1 -right-1">
+                          {reaction ? (
+                            <TwemojiImg emoji={reaction.emoji} size={16} />
+                          ) : (
+                            <span className="text-xs">👍</span>
+                          )}
+                        </div>
+                      </div>
+                      <span className="flex-1 text-sm font-medium text-grey-900 truncate">
+                        {fullName}
                       </span>
-                    )}
-                  </div>
-                  <div className="absolute -bottom-1 -right-1">
-                    {reaction ? (
-                      <TwemojiImg emoji={reaction.emoji} size={16} />
-                    ) : (
-                      <span className="text-xs">👍</span>
-                    )}
-                  </div>
-                </div>
-                <span className="flex-1 text-sm font-medium text-grey-900 truncate">
-                  {fullName}
-                </span>
-              </div>
+                    </div>
+                  </Link>
+                </section>
+              </>
             );
           })}
         </div>

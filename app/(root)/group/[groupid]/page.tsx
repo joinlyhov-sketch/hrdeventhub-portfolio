@@ -16,7 +16,7 @@ export default async function Page({
 
   return (
     <main className="min-h-screen w-full bg-background">
-      <div className="mx-auto w-full max-w-420">
+      <div className="w-full">
         <div className="flex flex-col gap-6 xl:flex-row">
           <section className="min-w-0 flex-1">
             <FilteredFeed groupid={groupid} />

@@ -5,9 +5,7 @@ import Image from "next/image";
 import {
   ThumbsUp,
   Share2,
-  SendHorizontal,
   MessageCircleMore,
-  Smile,
 } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
@@ -23,9 +21,12 @@ import ExpandableText from "./ExpandableText";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
+import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
+import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import { usePostReaction } from "@/hooks/use-post-reaction";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
+import Link from "next/link";
 
 interface ArticleCardProps {
   role: UserRole;
@@ -49,17 +50,19 @@ function ArticleItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+
   const {
     selectedReaction,
-    likesCount,
     reactionPayload,
     handleLikeToggle,
     handleReactionSelect,
   } = usePostReaction(post.postId);
+  
   const [commentInput, setCommentInput] = useState("");
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
   const { comments, refetch } = usePostComments(post.postId);
+  const { members } = useWorkspaceMembers(groupId ?? "");
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
@@ -75,56 +78,45 @@ function ArticleItem({
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
-    setIsSubmittingComment(true);
-    try {
-      const result = await createCommentAction(post.postId, commentInput);
-      if (result.ok) {
-        setCommentInput("");
-        await refetch();
-      }
-    } finally {
-      setIsSubmittingComment(false);
+    const result = await createCommentAction(post.postId, commentInput, mentionedIds);
+    if (result.ok) {
+      setCommentInput("");
+      setMentionedIds([]);
+      await refetch();
     }
   };
-
-  const EMOJI_LIST = [
-  "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
-  "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
-  "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
-  "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
-  ];
-
-  const [showEmoji, setShowEmoji] = useState(false);
 
   return (
     <>
       <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
-              {profilePictureUrl ? (
-                <Image
-                  src={profilePictureUrl}
-                  alt={creator?.fullName ?? "User"}
-                  width={48}
-                  height={48}
-                  className="w-full h-full object-cover rounded-full border-2 border-primary"
-                />
-              ) : (
-                <span className="type-desc-semibold text-primary uppercase">
-                  {initials}
-                </span>
-              )}
+          <Link href={`/profile/${currentUser?.id}`}>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+                {profilePictureUrl ? (
+                  <Image
+                    src={profilePictureUrl}
+                    alt={creator?.fullName ?? "User"}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover rounded-full border-2 border-primary"
+                  />
+                ) : (
+                  <span className="type-desc-semibold text-primary uppercase">
+                    {initials}
+                  </span>
+                )}
+              </div>
+              <div>
+                <h3 className="type-desc-semibold text-secondary">
+                  {creator?.fullName ?? "—"}
+                </h3>
+                <p className="text-desc-small-semibold text-grey-500">
+                  {formatEventDate(post.createdAt ?? "")}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="type-desc-semibold text-secondary">
-                {creator?.fullName ?? "—"}
-              </h3>
-              <p className="text-desc-small-semibold text-grey-500">
-                {formatEventDate(post.createdAt ?? "")}
-              </p>
-            </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             {creator?.role && (
               <span
@@ -148,10 +140,7 @@ function ArticleItem({
 
         <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
           <section className="flex items-center gap-6 py-4">
-            <ReactionPopover
-              selectedValue={selectedReaction}
-              onReactionSelect={handleReactionSelect}
-            >
+            <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
               <button
                 onClick={handleLikeToggle}
                 className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
@@ -180,70 +169,33 @@ function ArticleItem({
 
           <ReactionSummary payload={reactionPayload} />
         </div>
-
-        <div
-          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
-        >
-          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
-            {currentUser?.profilePicture ? (
-              <Image
-                src={currentUser.profilePicture}
-                alt={currentUser.name || "profile"}
-                width={40}
-                height={40}
-                className="w-full h-full object-cover rounded-full"
-              />
-            ) : (
-              <span className="type-desc-small-semibold text-primary uppercase">
-                {currentUser?.avatarInitials ?? "?"}
-              </span>
-            )}
+        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
+            <Link href={`/profile/${currentUser?.id}`}>
+              {currentUser?.profilePicture ? (
+                <Image
+                  src={currentUser.profilePicture}
+                  alt={currentUser.name || "profile"}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <span className="type-desc-small-semibold text-primary uppercase">
+                  {currentUser?.avatarInitials ?? "?"}
+                </span>
+              )}
+            </Link>
           </div>
-          <div className="relative grow flex items-center bg-grey-50 rounded-full pr-1.5 pl-6 py-1.5">
-            <input
-              type="text"
-              placeholder="Add a comment..."
+          <div className="flex-1">
+            <MentionInput
               value={commentInput}
-              onChange={(e) => setCommentInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
-              className="w-full bg-transparent border-none py-1.5 type-detail text-grey-900 placeholder:text-grey-400 outline-none"
+              onChange={(val, ids) => { setCommentInput(val); setMentionedIds(ids); }}
+              onSubmit={handleSubmitComment}
+              placeholder="Add a comment..."
+              members={members}
+              mentionedIds={mentionedIds}
             />
-
-            <section className="flex items-center gap-x-2">
-              <div className="relative shrink-0">
-                <button
-                  onClick={() => setShowEmoji((v) => !v)}
-                  className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
-                >
-                  <Smile size={20} />
-                </button>
-                {showEmoji && (
-                  <div className="absolute bottom-full mb-2 right-0 z-50 bg-background border border-border rounded-2xl shadow-lg p-3 w-64">
-                    <div className="grid grid-cols-8 gap-1">
-                      {EMOJI_LIST.map((e) => (
-                        <button
-                          key={e}
-                          onClick={() => {
-                            setCommentInput((v) => v + e);
-                            setShowEmoji(false);
-                          }}
-                          className="text-lg hover:scale-125 transition-transform cursor-pointer flex items-center justify-center h-7 w-7"
-                        >
-                          {e}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={handleSubmitComment}
-                disabled={!commentInput.trim() || isSubmittingComment}
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <SendHorizontal size={16} className="relative left-[-0.5px]" />
-              </button>
-            </section>
           </div>
         </div>
 
@@ -258,6 +210,7 @@ function ArticleItem({
                   currentUserPicture={currentUser?.profilePicture}
                   currentUserInitials={currentUser?.avatarInitials}
                   onRefetch={refetch}
+                  workspaceId={groupId}
                 />
               ))
             ) : (

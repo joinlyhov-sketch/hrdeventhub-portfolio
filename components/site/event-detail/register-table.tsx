@@ -101,7 +101,9 @@ const formatGender = (gender?: string) => {
 
 const normalizePaymentStatus = (status?: string) => {
   const normalized = (status || "").toLowerCase();
-  if (["successful", "success", "paid", "active", "free"].includes(normalized)) {
+  if (
+    ["successful", "success", "paid", "active", "free"].includes(normalized)
+  ) {
     return "Paid";
   }
   return "Unpaid";
@@ -191,7 +193,10 @@ export function AdminOverview({ event, workspaceId }: AdminOverviewProps) {
                 },
               };
             } catch (profileError) {
-              console.error("Failed to load participant profile:", profileError);
+              console.error(
+                "Failed to load participant profile:",
+                profileError,
+              );
               return participant;
             }
           }),
@@ -316,7 +321,7 @@ export function AdminOverview({ event, workspaceId }: AdminOverviewProps) {
       },
       {
         title: "This week",
-        value: `+${weekCount}`,
+        value: weekCount > 0 ? `+${weekCount}` : "0",
         iconName: "UserRoundCheck",
         colorKey: "secondary",
       },

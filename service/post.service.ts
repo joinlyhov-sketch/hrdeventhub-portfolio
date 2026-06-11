@@ -210,4 +210,15 @@ export const postService = {
     );
     return response.payload;
   },
+  getParticipants: async (
+    postId: string,
+    token: string,
+    page: number = 1,
+    size: number = 100
+  ): Promise<any> => {
+    return apiGet<any>(
+      `/posts/${postId}/participants?page=${page}&size=${size}`,
+      { authToken: token }
+    );
+  },
 };

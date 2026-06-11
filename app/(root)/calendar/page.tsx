@@ -7,6 +7,7 @@ import { useCurrentUser } from "@/context/user-context";
 import FullBigCalendar from "@/components/shadcn-big-calendar/calendar/FullBigCalendar";
 import TopBar from "@/components/shadcn-big-calendar/calendar/TopBar";
 import UpcomingEventSection from "@/components/shadcn-big-calendar/calendar/UpcomingEventSelection";
+import CalendarSkeleton from "@/components/shadcn-big-calendar/calendar/CalendarSkeleton";
 
 type CalendarRole = "admin" | "student" | "alumni" | "organizer";
 
@@ -28,8 +29,7 @@ export default function CalendarPage() {
   const { data: session, status } = useSession();
   const { currentUser, isLoading: userLoading } = useCurrentUser();
   const searchParams = useSearchParams();
-  const role =
-    currentUser?.role ?? normalizeRole(session?.user?.role);
+  const role = currentUser?.role ?? normalizeRole(session?.user?.role);
 
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces(
     role === "admin" ? null : role,
@@ -45,19 +45,24 @@ export default function CalendarPage() {
 
   if (status === "loading" || userLoading || workspacesLoading) {
     return (
-      <main className="min-h-screen w-full flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </main>
+      <div className="flex flex-col flex-1 min-w-0">
+        <TopBar />
+        <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 w-full">
+          <CalendarSkeleton />
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen w-full min-w-0 px-10 py-6">
+    <div className="flex flex-col flex-1 min-w-0">
       <TopBar />
-      <div className="mx-auto m-3 w-full max-w-360 space-y-6">
-        <FullBigCalendar workspaceId={workspaceId} role={role} />
-        <UpcomingEventSection workspaceId={workspaceId} role={role} />
-      </div>
-    </main>
+      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 max-w-475 mx-auto w-full">
+        <div className="w-full space-y-6">
+          <FullBigCalendar workspaceId={workspaceId} role={role} />
+          <UpcomingEventSection workspaceId={workspaceId} role={role} />
+        </div>
+      </main>
+    </div>
   );
 }

@@ -19,6 +19,7 @@ import {
 import { CancelButton } from "../../../site/user-mangement/button/CancelButton";
 import { SaveButton } from "../../../site/user-mangement/button/SaveButton";
 import { getUserByIdAction } from "../../../../actions/user.action";
+import { toast } from "sonner";
 
 type RoleType = "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT";
 
@@ -63,8 +64,8 @@ export default function EditRoleModal({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white w-full max-w-[30%] sm:max-w-none md:max-w-[30%] rounded-[32px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150 [&>button]:top-9 [&>button]:hover:text-slate-900 [&>button]:-translate-y-1/2 [&>button]:!bg-transparent [&>button]:focus:ring-0">
-        <div className="bg-[#F8FAFC] px-8 py-3 flex items-center justify-between border-b border-gray-100">
+      <DialogContent className="bg-white w-full max-w-[50%] sm:max-w-none md:max-w-[50%] rounded-[15px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150 [&>button]:top-9 [&>button]:hover:text-red-500 [&>button]:-translate-y-1/2 [&>button]:!bg-transparent [&>button]:focus:ring-0">
+        <div className="bg-grey-100 px-3 py-3 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
             {profileSrc ? (
               <img
@@ -74,12 +75,13 @@ export default function EditRoleModal({
               />
             ) : (
               <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-xl font-medium text-white">
-                {user.username.charAt(0).toUpperCase()}
+                {user.firstName?.charAt(0).toUpperCase()}
+                {user.lastName?.charAt(0).toUpperCase()}
               </div>
             )}
             <div>
-              <h4 className="font-bold text-slate-800 text-base">
-                {user.username}
+              <h4 className="font-semibold text-slate-800 text-base">
+                {user ? `${user.firstName} ${user.lastName}` : "User"}
               </h4>
               <p className="text-xs text-slate-400 font-medium">{user.email}</p>
             </div>
@@ -90,17 +92,17 @@ export default function EditRoleModal({
             <DialogTitle className="text-2xl font-bold text-primary">
               Edit User Role
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500 max-w-md mx-auto">
+            <DialogDescription className="text-lg text-grey-500 max-w-md mx-auto">
               Quick role management for keeping the community organized and
               secure.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="text-left max-w-md mx-auto space-y-2">
-            <label className="text-sm font-semibold text-slate-600">Role</label>
+          <div className="text-left max-w-lg mx-auto space-y-5">
+            <label className="type-desc text-grey-500">Role</label>
 
             {loading ? (
-              <div className="w-full px-5 py-3 rounded-2xl border border-blue-100 bg-slate-50 text-sm text-slate-400 animate-pulse">
+              <div className="w-full px-5 py-5 rounded-2xl border border-blue-200 bg-slate-50 text-sm text-slate-400 animate-pulse">
                 Fetching current role...
               </div>
             ) : (
@@ -108,20 +110,45 @@ export default function EditRoleModal({
                 value={role}
                 onValueChange={(val) => setRole(val as RoleType)}
               >
-                <SelectTrigger className="w-full px-5 py-5 rounded-2xl border border-blue-200 outline-none focus:border-blue-900 text-secondary text-sm transition-colors">
+                <SelectTrigger className="w-full px-5 py-7 rounded-2xl border border-primary outline-none focus:border-blue-900 text-secondary text-sm transition-colors">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-50 overflow-y-auto">
-                  <SelectItem value="ADMIN">ADMIN</SelectItem>
-                  <SelectItem value="ORGANIZER">ORGANIZER</SelectItem>
-                  <SelectItem value="ALUMNI">ALUMNI</SelectItem>
-                  <SelectItem value="STUDENT">STUDENT</SelectItem>
+                <SelectContent
+                  side="bottom"
+                  position="popper"
+                  className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-40 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
+                >
+                  {" "}
+                  <SelectItem
+                    value="ADMIN"
+                    className="px-3 py-3 type-desc rounded-md text-primary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
+                  >
+                    ADMIN
+                  </SelectItem>
+                  <SelectItem
+                    value="ORGANIZER"
+                    className="px-3 py-3 type-desc rounded-md text-primary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
+                  >
+                    ORGANIZER
+                  </SelectItem>
+                  <SelectItem
+                    value="ALUMNI"
+                    className="px-3 py-3 type-desc rounded-md text-primary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
+                  >
+                    ALUMNI
+                  </SelectItem>
+                  <SelectItem
+                    value="STUDENT"
+                    className="px-3 py-3 type-desc rounded-md text-primary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
+                  >
+                    STUDENT
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
           </div>
 
-          <div className="flex items-center justify-center gap-4 pt-4">
+          <div className="flex items-center justify-center gap-4 pt-1">
             <CancelButton onClick={onClose} />
             <div className={loading ? "pointer-events-none opacity-50" : ""}>
               <SaveButton
@@ -130,6 +157,7 @@ export default function EditRoleModal({
                     `Role update triggered — User: ${user.username} (ID: ${user.no}) | New Role: ${role}`,
                   );
                   onSave(user.no, role);
+                  toast.success("user's role has been update successfully");
                 }}
               />
             </div>

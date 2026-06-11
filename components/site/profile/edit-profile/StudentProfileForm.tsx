@@ -5,6 +5,7 @@ import { Trash2, CircleX } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
 import {
+  deleteMe,
   getIdentityMeAction,
   updateIdentityMeAction,
   updateProfileMeAction,
@@ -12,24 +13,45 @@ import {
 import { useRouter } from "next/navigation";
 import { uploadFileAction } from "@/actions/file.action";
 import ImageAdjustModal from "../ImageAdjustModal";
+import { toast } from "sonner";
+import * as Flags from "country-flag-icons/react/3x2";
+import { AddSkillModal } from "@/components/dashboard/AddSkillModal";
+import { DeleteResumeModal } from "@/components/dashboard/DeleteResumeModal";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+import { Calendar } from "@/components/ui/calendar";
 
 export default function StudentProfileForm() {
   const { data: session } = useSession();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
+  const [initialCvResumeUrl, setInitialCvResumeUrl] = useState("");
 
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
-
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
 
   const [initialIdentity, setInitialIdentity] = useState<any>(null);
   const [initialProfile, setInitialProfile] = useState<any>(null);
+  const [educationErrors, setEducationErrors] = useState<
+    {
+      startYear?: string;
+      endYear?: string;
+    }[]
+  >([]);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -38,11 +60,21 @@ export default function StudentProfileForm() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("Female");
+  const selectedDate =
+    dob && !isNaN(new Date(dob).getTime()) ? new Date(dob) : undefined;
+
+  const maxBirthDate = new Date();
+  maxBirthDate.setFullYear(maxBirthDate.getFullYear() - 16);
+
+  const startMonth = new Date(1950, 0);
+  const endMonth = new Date();
 
   const [bio, setBio] = useState("");
   const [currentStatus, setCurrentStatus] = useState("studying");
   const [profilePicture, setProfilePicture] = useState<string | null>("");
   const [cvResumeUrl, setCvResumeUrl] = useState<string | null>("");
+  const [isDeleteResumeModalOpen, setIsDeleteResumeModalOpen] = useState(false);
+
   const [profileSharingMode, setProfileSharingMode] = useState<
     "PUBLIC" | "PRIVATE"
   >("PUBLIC");
@@ -63,6 +95,232 @@ export default function StudentProfileForm() {
   const [githubUrl, setGithubUrl] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
   const [telegramUrl, setTelegramUrl] = useState("");
+  const [errors, setErrors] = useState({
+    firstName: "",
+    lastName: "",
+    username: "",
+    dob: "",
+    phoneNumber: "",
+    bio: "",
+    linkedinUrl: "",
+    githubUrl: "",
+    facebookUrl: "",
+    telegramUrl: "",
+  });
+  const validateForm = () => {
+    const newErrors = {
+      firstName: "",
+      lastName: "",
+      username: "",
+      dob: "",
+      phoneNumber: "",
+      bio: "",
+      linkedinUrl: "",
+      githubUrl: "",
+      facebookUrl: "",
+      telegramUrl: "",
+    };
+
+    let isValid = true;
+
+    if (!firstName.trim()) {
+      newErrors.firstName = "First name is required";
+      isValid = false;
+    }
+
+    if (!lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+      isValid = false;
+    }
+
+    if (!username.trim()) {
+      newErrors.username = "Username is required";
+      isValid = false;
+    } else if (/\s/.test(username)) {
+      newErrors.username = "Username cannot contain spaces";
+      isValid = false;
+    } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      newErrors.username =
+        "Username can only contain letters, numbers and underscore";
+      isValid = false;
+    }
+
+    if (!dob.trim()) {
+      newErrors.dob = "Date of birth is required";
+      isValid = false;
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+      newErrors.dob = "Format must be YYYY-MM-DD";
+      isValid = false;
+    } else {
+      const birthDate = new Date(dob);
+
+      if (isNaN(birthDate.getTime())) {
+        newErrors.dob = "Invalid date";
+        isValid = false;
+      } else {
+        const [year, month, day] = dob.split("-").map(Number);
+
+        if (
+          birthDate.getFullYear() !== year ||
+          birthDate.getMonth() + 1 !== month ||
+          birthDate.getDate() !== day
+        ) {
+          newErrors.dob = "Invalid date";
+          isValid = false;
+        } else {
+          const today = new Date();
+
+          let age = today.getFullYear() - birthDate.getFullYear();
+
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+
+          if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && today.getDate() < birthDate.getDate())
+          ) {
+            age--;
+          }
+
+          if (age < 16) {
+            newErrors.dob = "You must be at least 16 years old";
+            isValid = false;
+          }
+        }
+      }
+    }
+    if (!phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required";
+      isValid = false;
+    } else if (phoneNumber.includes("+")) {
+      newErrors.phoneNumber = "Do not include country code";
+      isValid = false;
+    } else if (!/^\d+$/.test(phoneNumber)) {
+      newErrors.phoneNumber = "Phone number must contain digits only";
+      isValid = false;
+    } else {
+      const isValidPhone =
+        /^0\d{8,9}$/.test(phoneNumber) || /^[1-9]\d{7,8}$/.test(phoneNumber);
+
+      if (!isValidPhone) {
+        newErrors.phoneNumber = "Enter a valid phone number";
+        isValid = false;
+      }
+    }
+
+    if (
+      linkedinUrl.trim() &&
+      !/^https?:\/\/(www\.)?linkedin\.com/i.test(linkedinUrl)
+    ) {
+      newErrors.linkedinUrl = "Invalid LinkedIn URL";
+      isValid = false;
+    }
+
+    if (
+      githubUrl.trim() &&
+      !/^https?:\/\/(www\.)?github\.com/i.test(githubUrl)
+    ) {
+      newErrors.githubUrl = "Invalid GitHub URL";
+      isValid = false;
+    }
+
+    if (
+      facebookUrl.trim() &&
+      !/^https?:\/\/(www\.)?facebook\.com/i.test(facebookUrl)
+    ) {
+      newErrors.facebookUrl = "Invalid Facebook URL";
+      isValid = false;
+    }
+
+    if (
+      telegramUrl.trim() &&
+      !/^https:\/\/t\.me\/[a-zA-Z0-9_]{5,32}$/.test(telegramUrl.trim())
+    ) {
+      newErrors.telegramUrl =
+        "Telegram URL must be in the format https://t.me/username";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+
+    return isValid;
+  };
+  const calculateAge = (dateString: string) => {
+    const birthDate = new Date(dateString);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+  const validateEducation = () => {
+    const currentYear = new Date().getFullYear();
+    let isValid = true;
+
+    const newErrors = education.map((edu) => {
+      const error: {
+        startYear?: string;
+        endYear?: string;
+      } = {};
+
+      const startYear = Number(edu.startYear);
+      const endYear =
+        edu.endYear !== null && edu.endYear !== undefined
+          ? Number(edu.endYear)
+          : null;
+
+      if (edu.institutionName.trim()) {
+        if (!/^\d{4}$/.test(String(startYear))) {
+          error.startYear = "Year must be 4 digits";
+          isValid = false;
+        } else if (startYear < 1900) {
+          error.startYear = "Year cannot be before 1900";
+          isValid = false;
+        } else if (startYear > currentYear + 10) {
+          error.startYear = "Invalid year";
+          isValid = false;
+        }
+      }
+
+      if (endYear !== null) {
+        if (!/^\d{4}$/.test(String(endYear))) {
+          error.endYear = "Year must be 4 digits";
+          isValid = false;
+        } else if (endYear < 1900) {
+          error.endYear = "Year cannot be before 1900";
+          isValid = false;
+        } else if (endYear > currentYear + 10) {
+          error.endYear = "Invalid year";
+          isValid = false;
+        } else if (endYear < startYear) {
+          error.endYear = "End year must be after start year";
+          isValid = false;
+        }
+      }
+
+      return error;
+    });
+
+    setEducationErrors(newErrors);
+
+    return isValid;
+  };
+
+  useEffect(() => {
+    const pendingAvatar = sessionStorage.getItem("pending-avatar");
+    if (pendingAvatar) {
+      setSelectedImageSrc(pendingAvatar);
+      setIsAdjustModalOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     const loadAllUserData = async () => {
@@ -106,6 +364,7 @@ export default function StudentProfileForm() {
           setCurrentStatus(p.currentStatus || "studying");
           setProfilePicture(p.profilePicture || "");
           setCvResumeUrl(p.cvResumeUrl || "");
+          setInitialCvResumeUrl(p.cvResumeUrl || "");
 
           let parsedSkills: string[] = [];
           if (p.skills && p.skills[0]) {
@@ -197,6 +456,23 @@ export default function StudentProfileForm() {
     loadAllUserData();
   }, [session]);
 
+  const confirmDeleteResume = async () => {
+    if (cvResumeUrl && cvResumeUrl !== initialCvResumeUrl) {
+      setCvResumeUrl("");
+      toast.success("Resume removed.");
+      return;
+    }
+
+    const result = await deleteMe();
+    console.log(result);
+    if (result.success) {
+      setCvResumeUrl("");
+      toast.success("Resume deleted successfully.");
+    } else {
+      toast.error("Failed to delete resume.");
+    }
+  };
+
   const handleContainerClick = () => {
     if (!isUploading) fileInputRef.current?.click();
   };
@@ -205,9 +481,15 @@ export default function StudentProfileForm() {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
-    const localBlobUrl = URL.createObjectURL(file);
-    setSelectedImageSrc(localBlobUrl);
-    setIsAdjustModalOpen(true);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      sessionStorage.setItem("pending-avatar", base64String);
+      setSelectedImageSrc(base64String);
+      setIsAdjustModalOpen(true);
+    };
+    reader.readAsDataURL(file);
     e.target.value = "";
   };
 
@@ -215,6 +497,8 @@ export default function StudentProfileForm() {
     setIsAdjustModalOpen(false);
     setIsUploading(true);
     setError(null);
+
+    sessionStorage.removeItem("pending-avatar");
 
     const localBlobUrl = URL.createObjectURL(croppedBlob);
     setProfilePicture(localBlobUrl);
@@ -254,8 +538,9 @@ export default function StudentProfileForm() {
       const result = await uploadFileAction(dataPayload);
       if (result.ok && result.payload?.fileUrl) {
         setCvResumeUrl(result.payload.fileUrl);
+        toast.success("Resume uploaded successfully.");
       } else {
-        setError(result.error || "Resume upload was rejected by the server.");
+        toast.error(result.error || "Failed to upload resume.");
         setCvResumeUrl(initialProfile?.cvResumeUrl || "");
       }
     } catch (err) {
@@ -277,6 +562,15 @@ export default function StudentProfileForm() {
 
   const handleSaveChanges = () => {
     setError(null);
+
+    const isFormValid = validateForm();
+    const isEducationValid = validateEducation();
+
+    if (!isFormValid || !isEducationValid) {
+      toast.error("Please fix the validation errors.");
+      return;
+    }
+
     const currentIdentityPayload = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
@@ -284,15 +578,24 @@ export default function StudentProfileForm() {
       dateOfBirth: dob.trim(),
       phoneNumber: phoneNumber.trim(),
     };
-    const activeSocials: any[] = [];
-    if (linkedinUrl.trim())
-      activeSocials.push({ platform: "linkedin", url: linkedinUrl.trim() });
-    if (githubUrl.trim())
-      activeSocials.push({ platform: "github", url: githubUrl.trim() });
-    if (facebookUrl.trim())
-      activeSocials.push({ platform: "facebook", url: facebookUrl.trim() });
-    if (telegramUrl.trim())
-      activeSocials.push({ platform: "telegram", url: telegramUrl.trim() });
+    const socialAccount = [
+      {
+        platform: "linkedin",
+        url: linkedinUrl.trim(),
+      },
+      {
+        platform: "github",
+        url: githubUrl.trim(),
+      },
+      {
+        platform: "facebook",
+        url: facebookUrl.trim(),
+      },
+      {
+        platform: "telegram",
+        url: telegramUrl.trim(),
+      },
+    ];
 
     const skillsPayload = skills.length > 0 ? [skills.join(", ")] : [];
     const validEducation = education.filter(
@@ -304,7 +607,7 @@ export default function StudentProfileForm() {
       major: validEducation[0]?.degree || "Computer Science",
       currentStatus: currentStatus.toLowerCase(),
       cvResumeUrl: cvResumeUrl || null,
-      socialAccount: activeSocials,
+      socialAccount,
       education: validEducation,
       skills: skillsPayload,
       profileSharingMode,
@@ -324,10 +627,13 @@ export default function StudentProfileForm() {
       JSON.stringify(initialProfile?.skills) !== JSON.stringify(skills) ||
       JSON.stringify(initialProfile?.education) !==
         JSON.stringify(validEducation) ||
-      initialProfile?.socials.linkedin !== linkedinUrl.trim() ||
-      initialProfile?.socials.github !== githubUrl.trim() ||
-      initialProfile?.socials.facebook !== facebookUrl.trim() ||
-      initialProfile?.socials.telegram !== telegramUrl.trim();
+      JSON.stringify(initialProfile?.socials) !==
+        JSON.stringify({
+          linkedin: linkedinUrl.trim(),
+          github: githubUrl.trim(),
+          facebook: facebookUrl.trim(),
+          telegram: telegramUrl.trim(),
+        });
 
     if (!identityChanged && !profileChanged) {
       router.back();
@@ -343,9 +649,10 @@ export default function StudentProfileForm() {
           updatePromises.push(
             Promise.resolve({ success: true, skipped: true }),
           );
-        if (profileChanged)
+        if (profileChanged) {
+          console.log("result: ", JSON.stringify(currentProfilePayload));
           updatePromises.push(updateProfileMeAction(currentProfilePayload));
-        else
+        } else
           updatePromises.push(
             Promise.resolve({ success: true, skipped: true }),
           );
@@ -355,6 +662,7 @@ export default function StudentProfileForm() {
         if (identityResult?.success && profileResult?.success) {
           router.refresh();
           router.back();
+          toast.success("Profile updated successfully.");
           return;
         }
         if (!identityResult?.success)
@@ -370,6 +678,9 @@ export default function StudentProfileForm() {
               "Profile validation failed.",
           );
       } catch (err: any) {
+        setError(
+          err?.message || "An exception blocked synchronization attempts.",
+        );
         setError(
           err?.message || "An exception blocked synchronization attempts.",
         );
@@ -419,7 +730,7 @@ export default function StudentProfileForm() {
   );
 
   return (
-    <div className="xl:col-span-8 border border-border rounded-2xl p-6 flex flex-col gap-6">
+    <div className="xl:col-span-8 border border-border rounded-2xl p-6 flex flex-col gap-4">
       {error && (
         <div className="p-4 text-sm bg-destructive/10 text-destructive rounded-lg font-mono whitespace-pre-wrap">
           {error}
@@ -442,7 +753,7 @@ export default function StudentProfileForm() {
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
+                <div className="absolute opacity-0 hover:opacity-100 duration-300 ease-in-out inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
                   {isUploading ? (
                     <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
                   ) : (
@@ -482,30 +793,76 @@ export default function StudentProfileForm() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1 w-full min-w-0">
             <div className="flex flex-col gap-1.5">
               <label className="type-desc text-secondary">First Name</label>
+
               <input
                 type="text"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    firstName: "",
+                  }));
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg ${
+                  errors.firstName ? "border-red-500" : "border-border"
+                }`}
               />
+
+              {errors.firstName && (
+                <p className="text-red-500 text-xs">{errors.firstName}</p>
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="type-desc text-secondary">Last Name</label>
               <input
                 type="text"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
+                onChange={(e) => {
+                  setLastName(e.target.value);
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    lastName: "",
+                  }));
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg ${
+                  errors.lastName ? "border-red-500" : "border-border"
+                }`}
               />
+
+              {errors.lastName && (
+                <p className="text-red-500 text-xs">{errors.lastName}</p>
+              )}
             </div>
+
             <div className="flex flex-col gap-1.5">
               <label className="type-desc text-secondary">Username</label>
+
               <input
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  setUsername(value);
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    username: /\s/.test(value)
+                      ? "Username cannot contain spaces"
+                      : "",
+                  }));
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail-medium text-primary ${
+                  errors.username ? "border-red-500" : "border-border"
+                }`}
               />
+
+              {errors.username && (
+                <p className="text-red-500 text-xs">{errors.username}</p>
+              )}
             </div>
           </div>
         </div>
@@ -518,27 +875,82 @@ export default function StudentProfileForm() {
         >
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Date of Birth</label>
-            <input
-              type="text"
-              value={dob}
-              placeholder="YYYY-MM-DD"
-              onChange={(e) => setDob(e.target.value)}
-              className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary"
-            />
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`flex items-center gap-3 w-full h-10 px-3 border rounded-lg bg-white text-left transition-all ${
+                    errors.dob ? "border-red-500" : "border-border"
+                  }`}
+                >
+                  <CalendarIcon
+                    size={16}
+                    className="text-muted-foreground shrink-0"
+                  />
+
+                  <span
+                    className={
+                      dob
+                        ? "text-primary type-detail-medium"
+                        : "text-muted-foreground type-detail-medium"
+                    }
+                  >
+                    {selectedDate
+                      ? format(selectedDate, "dd/MM/yyyy")
+                      : "DD/MM/YYYY"}
+                  </span>
+                </button>
+              </PopoverTrigger>
+
+              <PopoverContent
+                className="w-auto p-0 rounded-xl"
+                align="start"
+                sideOffset={6}
+              >
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  captionLayout="dropdown"
+                  startMonth={startMonth}
+                  endMonth={endMonth}
+                  disabled={(date) => {
+                    const today = new Date();
+
+                    const maxBirthDate = new Date(
+                      today.getFullYear() - 16,
+                      today.getMonth(),
+                      today.getDate(),
+                    );
+
+                    return date > maxBirthDate;
+                  }}
+                  onSelect={(date) => {
+                    if (!date) return;
+
+                    setDob(format(date, "yyyy-MM-dd"));
+
+                    setErrors((prev) => ({
+                      ...prev,
+                      dob: "",
+                    }));
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+
+            {errors.dob && <p className="text-red-500 text-xs">{errors.dob}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Current Status</label>
             <select
-              value={
-                currentStatus.toLowerCase() === "studying"
-                  ? "studying"
-                  : "graduated"
-              }
+              value={currentStatus.toLowerCase()}
               onChange={(e) => setCurrentStatus(e.target.value)}
               className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
             >
               <option value="studying">Studying</option>
-              <option value="graduated">Graduated</option>
+              <option value="working">Working</option>
+              <option value="job_seeking">Job Seeking</option>
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -561,13 +973,41 @@ export default function StudentProfileForm() {
         >
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Phone Number</label>
-            <input
-              type="text"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary"
-            />
+
+            <div
+              className={`flex items-center h-10 rounded-lg border bg-white overflow-hidden transition-all focus-within:border-primary ${
+                errors.phoneNumber ? "border-red-500" : "border-border"
+              }`}
+            >
+              <div className="flex items-center gap-2 bg-gray-50 border-r border-border h-full px-3 shrink-0 text-sm font-medium text-gray-500">
+                <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center">
+                  <Flags.KH className="w-full object-cover" />
+                </span>
+
+                <span className="text-primary">+855</span>
+              </div>
+
+              <input
+                type="number"
+                value={phoneNumber}
+                onChange={(e) => {
+                  setPhoneNumber(e.target.value);
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    phoneNumber: "",
+                  }));
+                }}
+                className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
+                placeholder="123 456 789"
+              />
+            </div>
+
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-xs">{errors.phoneNumber}</p>
+            )}
           </div>
+
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">
               Email (Read Only)
@@ -593,6 +1033,7 @@ export default function StudentProfileForm() {
       </div>
       <section className="space-y-4">
         <h2 className="type-subtitle-24 text-primary">Social Accounts</h2>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div className="flex items-end gap-3 w-full">
             <div className="shrink-0 mb-1">
@@ -627,19 +1068,36 @@ export default function StudentProfileForm() {
                 />
               </svg>
             </div>
-            <div className="flex flex-col gap-1.5 flex-1">
+
+            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
               <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
                 LinkedIn
               </label>
-              <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
+
+              <div
+                className={`flex items-center h-12 px-3 border rounded-xl bg-white transition-all focus-within:border-primary ${
+                  errors.linkedinUrl ? "border-red-500" : "border-border"
+                }`}
+              >
                 <input
                   type="text"
-                  placeholder="linkedin.com/in/username"
                   value={linkedinUrl}
-                  onChange={(e) => setLinkedinUrl(e.target.value)}
-                  className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
+                  placeholder="https://linkedin.com/in/username"
+                  onChange={(e) => {
+                    setLinkedinUrl(e.target.value);
+
+                    setErrors((prev) => ({
+                      ...prev,
+                      linkedinUrl: "",
+                    }));
+                  }}
+                  className="w-full bg-transparent outline-none type-detail text-foreground font-medium placeholder:text-gray-400"
                 />
               </div>
+
+              {errors.linkedinUrl && (
+                <p className="text-xs text-red-500">{errors.linkedinUrl}</p>
+              )}
             </div>
           </div>
 
@@ -668,12 +1126,16 @@ export default function StudentProfileForm() {
               <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                 <input
                   type="text"
-                  placeholder="github.com/username"
+                  placeholder="https://github.com/username"
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
                 />
               </div>
+
+              {errors.githubUrl && (
+                <p className="text-xs text-red-500">{errors.githubUrl}</p>
+              )}
             </div>
           </div>
 
@@ -710,12 +1172,16 @@ export default function StudentProfileForm() {
               <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                 <input
                   type="text"
-                  placeholder="Facebook Profile Link or Name"
+                  placeholder="https://facebook.com/username"
                   value={facebookUrl}
                   onChange={(e) => setFacebookUrl(e.target.value)}
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
                 />
               </div>
+
+              {errors.facebookUrl && (
+                <p className="text-xs text-red-500">{errors.facebookUrl}</p>
+              )}
             </div>
           </div>
 
@@ -752,24 +1218,21 @@ export default function StudentProfileForm() {
               <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                 <input
                   type="text"
-                  placeholder="@username"
+                  placeholder="https://t.me/username"
                   value={telegramUrl}
                   onChange={(e) => setTelegramUrl(e.target.value)}
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
                 />
               </div>
+
+              {errors.telegramUrl && (
+                <p className="text-xs text-red-500">{errors.telegramUrl}</p>
+              )}
             </div>
           </div>
         </div>
-
-        <button
-          type="button"
-          className="w-full py-3 mt-2 border border-border rounded-xl text-center type-desc-medium text-secondary hover:bg-grey-50 transition-colors"
-        >
-          + Add your social media
-        </button>
       </section>
-      <div className="space-y-4 w-full">
+      <div className="space-y-4 w-full mt-4">
         <div className="flex justify-between items-center gap-2">
           <h2 className="type-subtitle-24 text-primary">Education</h2>
           <button
@@ -838,37 +1301,80 @@ export default function StudentProfileForm() {
                 className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
               />
             </div>
+
             <div className="flex flex-col gap-1.5 w-full">
               <label className="type-detail-semibold text-secondary">
                 Start year
               </label>
+
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
                 value={edu.startYear || ""}
                 placeholder="2023"
-                onChange={(e) =>
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+
                   handleUpdateEducation(idx, {
-                    startYear: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
+                    startYear: value ? Number(value) : "",
+                  });
+
+                  setEducationErrors((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = {
+                      ...copy[idx],
+                      startYear: "",
+                    };
+                    return copy;
+                  });
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
+      ${educationErrors[idx]?.startYear ? "border-red-500" : "border-border"}`}
               />
+
+              {educationErrors[idx]?.startYear && (
+                <p className="text-red-500 text-xs">
+                  {educationErrors[idx].startYear}
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-1.5 w-full">
               <label className="type-detail-semibold text-secondary">
                 End year
               </label>
+
               <input
-                type="number"
-                value={edu.endYear || ""}
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                value={edu.endYear ?? ""}
                 placeholder="2026"
-                onChange={(e) =>
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+
                   handleUpdateEducation(idx, {
-                    endYear: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
+                    endYear: value ? Number(value) : null,
+                  });
+
+                  setEducationErrors((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = {
+                      ...copy[idx],
+                      endYear: "",
+                    };
+                    return copy;
+                  });
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
+      ${educationErrors[idx]?.endYear ? "border-red-500" : "border-border"}`}
               />
+
+              {educationErrors[idx]?.endYear && (
+                <p className="text-red-500 text-xs font-light">
+                  {educationErrors[idx].endYear}
+                </p>
+              )}
             </div>
           </div>
         ))}
@@ -892,10 +1398,7 @@ export default function StudentProfileForm() {
           ))}
           <button
             type="button"
-            onClick={() => {
-              const input = prompt("Enter new skill:");
-              if (input?.trim()) setSkills([...skills, input.trim()]);
-            }}
+            onClick={() => setIsSkillModalOpen(true)}
             className="flex items-center gap-1 px-2.5 py-3 border border-[#C1D8F0] rounded-xl text-secondary type-detail-medium bg-white hover:bg-grey-50 cursor-pointer"
           >
             + Add Skill
@@ -1015,17 +1518,16 @@ export default function StudentProfileForm() {
               className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}
             >
               {cvResumeUrl
-                ? cvResumeUrl.split("/").pop()
-                : "CV_Kaknika_shii.pdf"}
+                ? `CV_${username}.` + cvResumeUrl.split(".").pop()
+                : "CV_Example.pdf"}
             </span>
           </div>
           {cvResumeUrl && (
             <button
               type="button"
-              onClick={() => setCvResumeUrl("")}
-              className="p-2 hover:bg-gray-100 rounded text-destructive transition-colors border-0 bg-transparent cursor-pointer shrink-0"
+              onClick={() => setIsDeleteResumeModalOpen(true)}
             >
-              <Trash2 className="w-5 h-5" />
+              <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
             </button>
           )}
         </div>
@@ -1033,7 +1535,10 @@ export default function StudentProfileForm() {
       <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => {
+            sessionStorage.removeItem("pending-avatar");
+            router.back();
+          }}
           className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
         >
           Discard Changes
@@ -1051,10 +1556,38 @@ export default function StudentProfileForm() {
         <ImageAdjustModal
           imageSrc={selectedImageSrc}
           isOpen={isAdjustModalOpen}
-          onClose={() => setIsAdjustModalOpen(false)}
+          onClose={() => {
+            sessionStorage.removeItem("pending-avatar");
+            setSelectedImageSrc(null);
+            setIsAdjustModalOpen(false);
+          }}
           onSave={handleCroppedImageSave}
         />
       )}
+
+      <AddSkillModal
+        isOpen={isSkillModalOpen}
+        onClose={() => setIsSkillModalOpen(false)}
+        onAddSkill={(skill) => {
+          if (skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
+            toast.error("This skill already exists.");
+            return;
+          }
+
+          setSkills((prev) => [...prev, skill]);
+          toast.success("Skill added successfully.");
+        }}
+      />
+      <DeleteResumeModal
+        isOpen={isDeleteResumeModalOpen}
+        onClose={() => setIsDeleteResumeModalOpen(false)}
+        fileName={
+          cvResumeUrl
+            ? `CV_${username}.${cvResumeUrl.split(".").pop()}`
+            : undefined
+        }
+        onConfirm={confirmDeleteResume}
+      />
     </div>
   );
 }

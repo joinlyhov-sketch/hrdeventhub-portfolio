@@ -65,6 +65,122 @@ function formatEventDateTime(isoString: string): { date: string; time: string } 
   };
 }
 
+function firstString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+
+      if (
+        trimmed &&
+        trimmed.toLowerCase() !== "undefined" &&
+        trimmed.toLowerCase() !== "null"
+      ) {
+        return trimmed;
+      }
+    }
+  }
+
+  return "";
+}
+
+function normalizeText(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+async function findPayerIdFromTransactionList(
+  base: string | undefined,
+  headers: Record<string, string>,
+  transactionUUID: string,
+  tx: any,
+): Promise<string> {
+  if (!base) return "";
+
+  try {
+    const res = await fetch(`${base}/payments/transactions`, {
+      headers,
+      cache: "no-store",
+    });
+    const json = res.ok ? await res.json() : null;
+    const transactions = Array.isArray(json?.payload) ? json.payload : [];
+
+    const matched = transactions.find((item: any) => {
+      return (
+        firstString(item.id) === transactionUUID ||
+        firstString(item.id) === firstString(tx.id) ||
+        firstString(item.billNo) === firstString(tx.billNo) ||
+        firstString(item.transactionId) === firstString(tx.transactionId)
+      );
+    });
+
+    return firstString(
+      matched?.appUserId,
+      matched?.app_user_id,
+      matched?.userId,
+      matched?.user_id,
+      matched?.payerId,
+      matched?.payer_id,
+      matched?.payerAppUserId,
+      matched?.payer_app_user_id,
+    );
+  } catch (error) {
+    console.error("Failed to resolve payer from transaction list:", error);
+    return "";
+  }
+}
+
+async function findPayerIdFromUsers(
+  base: string | undefined,
+  headers: Record<string, string>,
+  tx: any,
+): Promise<string> {
+  if (!base) return "";
+
+  const targetEmail = normalizeText(
+    firstString(tx.email, tx.payerEmail, tx.payer_email, tx.appUser?.email, tx.payer?.email),
+  );
+  const targetPhone = normalizeText(
+    firstString(tx.phoneNumber, tx.phone, tx.payerPhone, tx.payer_phone, tx.appUser?.phoneNumber, tx.payer?.phoneNumber),
+  );
+  const targetUsername = normalizeText(
+    firstString(tx.username, tx.appUser?.username, tx.payer?.username),
+  );
+  const targetName = normalizeText(
+    firstString(tx.payerName, tx.payer_name, tx.senderAccountName, tx.sender_account_name),
+  );
+
+  if (!targetEmail && !targetPhone && !targetUsername && !targetName) return "";
+
+  try {
+    const res = await fetch(`${base}/admin/users?page=1&size=200`, {
+      headers,
+      cache: "no-store",
+    });
+    const json = res.ok ? await res.json() : null;
+    const users = Array.isArray(json?.payload) ? json.payload : [];
+
+    const matched = users.find((user: any) => {
+      const fullName = normalizeText(`${user.firstName ?? ""} ${user.lastName ?? ""}`);
+      const reverseName = normalizeText(`${user.lastName ?? ""} ${user.firstName ?? ""}`);
+
+      return (
+        (targetEmail && normalizeText(user.email) === targetEmail) ||
+        (targetPhone && normalizeText(user.phoneNumber) === targetPhone) ||
+        (targetUsername && normalizeText(user.username) === targetUsername) ||
+        (targetName && (fullName === targetName || reverseName === targetName))
+      );
+    });
+
+    return firstString(matched?.appUserId, matched?.app_user_id, matched?.userId, matched?.user_id);
+  } catch (error) {
+    console.error("Failed to resolve payer from users:", error);
+    return "";
+  }
+}
+
 export async function getTransactions(): Promise<Transaction[]> {
   const session = await getServerSession(authOptions);
   if (!session?.accessToken) {
@@ -136,12 +252,46 @@ if (!txRes.ok) {
 }
   const txJson = await txRes.json();
   const tx = txJson.payload;
+  let txAppUserId = firstString(
+    tx.appUserId,
+    tx.app_user_id,
+    tx.userId,
+    tx.user_id,
+    tx.payerId,
+    tx.payer_id,
+    tx.payerAppUserId,
+    tx.payer_app_user_id,
+    tx.customerId,
+    tx.customer_id,
+    tx.memberId,
+    tx.member_id,
+    tx.payer?.appUserId,
+    tx.payer?.app_user_id,
+    tx.payer?.userId,
+    tx.payer?.user_id,
+    tx.payer?.id,
+    tx.appUser?.appUserId,
+    tx.appUser?.app_user_id,
+    tx.appUser?.userId,
+    tx.appUser?.user_id,
+    tx.appUser?.id,
+  );
 
-  const profileRes = await fetch(`${base}/profile/${tx.appUserId}`, {
-    headers,
-    cache: "no-store",
-  });
-  const profileJson = profileRes.ok ? await profileRes.json() : null;
+  if (!txAppUserId) {
+    txAppUserId = await findPayerIdFromTransactionList(base, headers, transactionUUID, tx);
+  }
+
+  if (!txAppUserId) {
+    txAppUserId = await findPayerIdFromUsers(base, headers, tx);
+  }
+
+  const profileRes = txAppUserId
+    ? await fetch(`${base}/profile/${txAppUserId}`, {
+        headers,
+        cache: "no-store",
+      })
+    : null;
+  const profileJson = profileRes?.ok ? await profileRes.json() : null;
   const profile = profileJson?.payload;
 
   const postRes = await fetch(`${base}/posts/events/${tx.postId}`, {
@@ -172,6 +322,22 @@ if (!txRes.ok) {
     ?? "";
 
   const appUser = profile?.appUser;
+  const payerProfileId = firstString(
+    appUser?.appUserId,
+    appUser?.app_user_id,
+    appUser?.userId,
+    appUser?.user_id,
+    appUser?.id,
+    profile?.appUserId,
+    profile?.app_user_id,
+    profile?.userId,
+    profile?.user_id,
+    profile?.user?.appUserId,
+    profile?.user?.app_user_id,
+    profile?.user?.userId,
+    profile?.user?.user_id,
+    txAppUserId,
+  );
   const skills = profile?.skills;
   const firstSkill = Array.isArray(skills) && skills.length > 0 ? skills[0] : "";
   const generation = profile?.generation?.name ?? "";
@@ -185,7 +351,7 @@ if (!txRes.ok) {
     referenceId: tx.billNo ?? "",
     transactionId: `#TX-${String(tx.transactionId).slice(-5)}`,
     payer: {
-      id: tx.appUserId,
+      id: payerProfileId,
       name: appUser
         ? `${appUser.firstName ?? ""} ${appUser.lastName ?? ""}`.trim() || appUser.username
         : tx.payerName,
@@ -198,6 +364,7 @@ if (!txRes.ok) {
     },
     event: {
       id: tx.postId,
+      workspaceId: post?.workspaceId ?? "",
       title: post?.title ?? "",
       date: eventDate,
       time: eventTime,

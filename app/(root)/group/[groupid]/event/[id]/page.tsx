@@ -45,7 +45,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   }
 
   return (
-    <section className="max-w-420 min-[1289px]:mx-auto flex flex-col gap-y-4 bg-background">
+    <section className="w-full flex flex-col gap-y-4 bg-background">
       <section className="flex gap-x-1 items-center text-grey-400 type-detail">
         <Link href={`/group/${groupid}`} className="hover:text-primary transition-colors">
           Events

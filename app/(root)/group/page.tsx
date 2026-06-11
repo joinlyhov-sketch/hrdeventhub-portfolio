@@ -18,10 +18,10 @@ export default async function GroupPage({ searchParams }: PageProps) {
   const searchQuery = resolvedParams?.search || "";
   console.log("searchQuery:", searchQuery);
   return (
-    <div className="container mx-auto min-h-full flex mt-6 flex-col max-w-full pr-8 lg:pr-12 lg:pl-12 w-full box-border">
+    <div className="min-h-full flex mt-6 flex-col pr-8 lg:pr-12 lg:pl-12 w-full">
       <GroupHeader />
 
-      <div className="max-w-420 mx-auto w-full">
+      <div className="w-full max-w-475 mx-auto">
         <GroupSearch initialSearchValue={searchQuery} />
 
         <GroupList />

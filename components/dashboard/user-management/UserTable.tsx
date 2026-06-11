@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useTransition } from "react";
-import {
-  UserX,
-  ListFilter,
-  ArrowUp,
-  ArrowDown,
-  UserRoundCheck,
-} from "lucide-react";
+import { UserX, ListFilter, ArrowUp, ArrowDown } from "lucide-react";
 import Search from "../../site/search/Search";
 import UserRow from "./UserRow";
 import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
@@ -15,6 +9,7 @@ import SuspendModal from "../pop-up/user-management-pop-up/SuspendModal";
 import ReactivateModal from "../pop-up/user-management-pop-up/ReactivateModal";
 import { UserData } from "../../../types/user-management-type/user";
 import { PaginationDemo } from "@/components/feedback/Pagination";
+import { toast } from "sonner"; 
 import {
   Table,
   TableBody,
@@ -60,6 +55,10 @@ export default function UserTableClient({
     useState<UserData | null>(null);
   const [selectedUserForReactivate, setSelectedUserForReactivate] =
     useState<UserData | null>(null);
+
+  const currentLoggedInUserNo = useMemo(() => {
+    return "";
+  }, []);
 
   const uniqueGenerations = useMemo(() => {
     const generations = users
@@ -116,6 +115,7 @@ export default function UserTableClient({
               u.no === idString ? { ...u, status: "Active" } : u,
             ),
           );
+          toast.success("User reactivated successfully");
         }
         setSelectedUserForReactivate(null);
       } catch (err) {
@@ -135,18 +135,16 @@ export default function UserTableClient({
               u.no === idString ? { ...u, status: "Suspended" } : u,
             ),
           );
+          toast.success("User has been suspended successfully");
           setSelectedUserForSuspend(null);
         } else {
-          alert(
-            response?.message ||
-              "Server rejected suspension execution request.",
+          toast.error(
+            response?.message || "Server rejected suspension request.",
           );
         }
       } catch (err) {
-        console.error(
-          "Network crash executing suspension pipeline action:",
-          err,
-        );
+        console.error("Suspension system failure:", err);
+        toast.error("An error occurred during suspension execution.");
       }
     });
   };
@@ -164,6 +162,7 @@ export default function UserTableClient({
             prev.map((u) => (u.no === idString ? { ...u, role: role } : u)),
           );
           setSelectedUserForRole(null);
+          toast.success("Role updated successfully");
         }
       } catch (err) {
         console.error(err);
@@ -216,7 +215,6 @@ export default function UserTableClient({
               <TableHead className="px-6 py-3 text-white w-[15%] type-desc-semibold">
                 Gender
               </TableHead>
-
               <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
                 <div className="flex items-center justify-center gap-1">
                   <span className="select-none whitespace-nowrap">
@@ -225,7 +223,6 @@ export default function UserTableClient({
                       ? `(${selectedGen.replace(/\D/g, "")})`
                       : ""}
                   </span>
-
                   <button
                     type="button"
                     onClick={() => {
@@ -241,7 +238,6 @@ export default function UserTableClient({
                       <ArrowDown size={16} />
                     )}
                   </button>
-
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
@@ -282,7 +278,6 @@ export default function UserTableClient({
                   </DropdownMenu>
                 </div>
               </TableHead>
-
               <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -324,7 +319,6 @@ export default function UserTableClient({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableHead>
-
               <TableHead className="px-1 py-3 text-white w-[20%] type-desc-semibold">
                 Action
               </TableHead>
@@ -392,6 +386,10 @@ export default function UserTableClient({
           user={selectedUserForSuspend}
           onClose={() => setSelectedUserForSuspend(null)}
           onConfirm={handleConfirmSuspend}
+          isCurrentUser={
+            currentLoggedInUserNo !== "" &&
+            String(selectedUserForSuspend.no) === String(currentLoggedInUserNo)
+          }
         />
       )}
 

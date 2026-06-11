@@ -1,0 +1,261 @@
+"use client";
+
+import { useState, useRef, useCallback, useEffect } from "react";
+import Image from "next/image";
+import { Smile, SendHorizontal } from "lucide-react";
+import { WorkspaceMember } from "@/hooks/use-workspace-members";
+import { EmojiPopover } from "./EmojiPopover";
+
+interface MentionInputProps {
+  value: string;
+  onChange: (value: string, mentionedIds: string[]) => void;
+  onSubmit: () => void;
+  onClose?: () => void;
+  onBlurClose?: boolean;
+  placeholder?: string;
+  members: WorkspaceMember[];
+  mentionedIds: string[];
+  autoFocus?: boolean;
+}
+
+export function MentionInput({
+  value,
+  onChange,
+  onSubmit,
+  onClose,
+  onBlurClose = false,
+  placeholder,
+  members,
+  mentionedIds,
+  autoFocus = false,
+}: MentionInputProps) {
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [dropdownIndex, setDropdownIndex] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownContainerRef = useRef<HTMLDivElement>(null);
+
+  const filteredMembers =
+    mentionQuery !== null
+      ? members.filter((m) => {
+          const fullName = `${m.firstName} ${m.lastName}`.toLowerCase();
+          const username = (m.username ?? "").toLowerCase();
+          const query = mentionQuery.toLowerCase();
+          return fullName.includes(query) || username.includes(query);
+        })
+      : [];
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current && 
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setMentionQuery(null);
+        if (onBlurClose && onClose && !showEmoji) {
+          onClose();
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onBlurClose, onClose, showEmoji]);
+
+  useEffect(() => {
+    if (dropdownContainerRef.current && filteredMembers.length > 0) {
+      const activeEl = dropdownContainerRef.current.children[dropdownIndex] as HTMLElement;
+      if (activeEl) {
+        const container = dropdownContainerRef.current;
+        const itemTop = activeEl.offsetTop;
+        const itemBottom = itemTop + activeEl.offsetHeight;
+        const containerTop = container.scrollTop;
+        const containerBottom = containerTop + container.clientHeight;
+
+        if (itemTop < containerTop) {
+          container.scrollTop = itemTop;
+        } else if (itemBottom > containerBottom) {
+          container.scrollTop = itemBottom - container.clientHeight;
+        }
+      }
+    }
+  }, [dropdownIndex, filteredMembers.length]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    const cursor = e.target.selectionStart ?? val.length;
+    const textUpToCursor = val.slice(0, cursor);
+    const match = textUpToCursor.match(/@(\w*)$/);
+    if (match) {
+      setMentionQuery(match[1]);
+      setDropdownIndex(0);
+    } else {
+      setMentionQuery(null);
+    }
+    onChange(val, mentionedIds);
+  };
+
+  const pickMember = useCallback(
+    (member: WorkspaceMember) => {
+      const cursor = inputRef.current?.selectionStart ?? value.length;
+      const before = value.slice(0, cursor);
+      const after = value.slice(cursor);
+      const tag = member.username ? `@${member.username}` : `@${member.firstName.toLowerCase()}${member.lastName.toLowerCase()}`;
+      const replaced = before.replace(/@\w*$/, `${tag} `);
+      const newIds = mentionedIds.includes(member.appUserId)
+        ? mentionedIds
+        : [...mentionedIds, member.appUserId];
+      onChange(replaced + after, newIds);
+      setMentionQuery(null);
+      setTimeout(() => inputRef.current?.focus(), 0);
+    },
+    [value, mentionedIds, onChange],
+  );
+
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting || !value.trim()) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, value, onSubmit]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (mentionQuery !== null && filteredMembers.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setDropdownIndex((i) => (i + 1) % filteredMembers.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setDropdownIndex((i) => (i - 1 + filteredMembers.length) % filteredMembers.length);
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        pickMember(filteredMembers[dropdownIndex]);
+        return;
+      }
+    }
+    if (e.key === "Escape") {
+      if (mentionQuery !== null) {
+        setMentionQuery(null);
+        return;
+      }
+      if (onClose) onClose();
+      return;
+    }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (mentionQuery !== null) {
+        setMentionQuery(null);
+        return;
+      }
+      handleSubmit();
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      {mentionQuery !== null && filteredMembers.length > 0 && (
+        <div className="absolute bottom-full mb-2 left-0 z-50 w-72 bg-background border border-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <style dangerouslySetInnerHTML={{__html: `
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          `}} />
+          <div 
+            ref={dropdownContainerRef} 
+            className="max-h-56 overflow-y-auto p-1.5 space-y-0.5 no-scrollbar"
+          >
+            {filteredMembers.map((member, idx) => {
+              const initials = `${member.firstName[0]}${member.lastName[0]}`.toUpperCase();
+              const isActive = idx === dropdownIndex;
+              return (
+                <button
+                  key={member.appUserId}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => pickMember(member)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left cursor-pointer ${
+                    isActive ? "bg-primary/5 text-primary" : "hover:bg-grey-50 text-grey-900"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-full bg-[#EBF5FB] overflow-hidden shrink-0 flex items-center justify-center border border-border/60">
+                    {member.profileImage ? (
+                      <Image
+                        src={member.profileImage}
+                        alt={`${member.firstName} ${member.lastName}`}
+                        width={36}
+                        height={36}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                        {initials}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold truncate ${isActive ? "text-primary" : "text-grey-900"}`}>
+                      {member.firstName} {member.lastName}
+                    </p>
+                    {member.username && (
+                      <p className={`text-xs truncate ${isActive ? "text-primary/70" : "text-grey-400"}`}>
+                        @{member.username}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center bg-grey-50 rounded-full border border-border/40 py-1.5 pl-5 pr-2 gap-2 w-full h-11 focus-within:border-primary/40 focus-within:bg-background focus-within:shadow-xs transition-all">
+        <input
+          ref={inputRef}
+          autoFocus={autoFocus}
+          type="text"
+          placeholder={placeholder ?? "Write a comment…"}
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          className="flex-1 bg-transparent outline-none text-sm text-grey-900 placeholder:text-grey-400 min-w-0"
+        />
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className="relative">
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setShowEmoji((v) => !v)}
+              className="text-grey-400 hover:text-grey-600 transition-colors cursor-pointer flex items-center p-1 rounded-full hover:bg-grey-100"
+            >
+              <Smile size={18} />
+            </button>
+            {showEmoji && (
+              <EmojiPopover
+                onPick={(emoji) => onChange(value + emoji, mentionedIds)}
+                onClose={() => setShowEmoji(false)}
+              />
+            )}
+          </div>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleSubmit}
+            disabled={!value.trim() || isSubmitting}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all shadow-sm"
+          >
+            <SendHorizontal size={14} className="relative left-[-0.5px]" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

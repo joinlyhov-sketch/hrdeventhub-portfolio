@@ -29,10 +29,10 @@ async function EventManagementData() {
 
 export default async function EventManagementPage() {
   return (
-    <main className="min-h-screen w-full">  
+    <div className="w-full max-w-475 mx-auto">
       <Suspense fallback={<EventManagementSkeleton />}>
         <EventManagementData />
       </Suspense>
-    </main>
+    </div>
   );
 }

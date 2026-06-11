@@ -23,7 +23,7 @@ async function UserManagementData() {
 
 export default async function UserManagementPage() {
   return (
-    <div className="w-full max-w-full">
+    <div className="w-full max-w-475 mx-auto ">
       <Suspense fallback={<UserManagementSkeleton />}>
         <UserManagementData />
       </Suspense>

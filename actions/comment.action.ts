@@ -57,44 +57,19 @@ export async function getCommentsAction(
 export async function createCommentAction(
   postId: string,
   comment: string,
+  mentionedUserIds: string[] = [],
 ): Promise<ServerActionResponse2<boolean>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
+    if (!postId || !comment) return { ok: false, error: "Missing required fields" };
+    if (!token) return { ok: false, error: "Authorization token is missing." };
 
-    if (!postId || !comment) {
-      return {
-        ok: false,
-        error: "Missing required fields: postId or comment text",
-      };
-    }
-
-    if (!token) {
-      return {
-        ok: false,
-        error: "Authorization token is missing.",
-      };
-    }
-
-    const response = await postCommentService(postId, comment, token);
-
-    if (response.success) {
-      return { ok: true, payload: true };
-    }
-
-    return {
-      ok: false,
-      error: response.message || "Failed to create comment.",
-    };
+    const response = await postCommentService(postId, comment, token, mentionedUserIds);
+    if (response.success) return { ok: true, payload: true };
+    return { ok: false, error: response.message || "Failed to create comment." };
   } catch (error: unknown) {
-    console.error("Server Action Create Comment Error:", error);
-    return {
-      ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unexpected service error occurred.",
-    };
+    return { ok: false, error: error instanceof Error ? error.message : "An unexpected error occurred." };
   }
 }
 
@@ -191,50 +166,19 @@ export async function deleteCommentAction(
 export async function createReplyAction(
   commentId: string,
   reply: string,
+  mentionedUserIds: string[] = [],
 ): Promise<ServerActionResponse2<Comment>> {
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
+    if (!commentId) return { ok: false, error: "Missing commentId" };
+    if (!reply?.trim()) return { ok: false, error: "Reply text cannot be empty." };
+    if (!token) return { ok: false, error: "Authorization token is missing." };
 
-    if (!commentId) {
-      return {
-        ok: false,
-        error: "Missing required identifier: commentId parameter",
-      };
-    }
-
-    if (!reply || !reply.trim()) {
-      return {
-        ok: false,
-        error: "Reply text cannot be empty.",
-      };
-    }
-
-    if (!token) {
-      return {
-        ok: false,
-        error: "Authorization token is missing.",
-      };
-    }
-
-    const response = await replyCommentService(commentId, reply, token);
-
-    if (response.success) {
-      return { ok: true, payload: response.payload };
-    }
-
-    return {
-      ok: false,
-      error: response.message || "Failed to create reply.",
-    };
+    const response = await replyCommentService(commentId, reply, token, mentionedUserIds);
+    if (response.success) return { ok: true, payload: response.payload };
+    return { ok: false, error: response.message || "Failed to create reply." };
   } catch (error: unknown) {
-    console.error("Server Action Create Reply Error:", error);
-    return {
-      ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unexpected service error occurred.",
-    };
+    return { ok: false, error: error instanceof Error ? error.message : "An unexpected error occurred." };
   }
 }
