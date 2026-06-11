@@ -26,7 +26,7 @@ export default async function SurveysPage() {
         titleSecondary="Management"
         description="Create, manage, and analyze survey responses from your participants."
       />
-      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 w-full">
+      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 w-full max-w-475 mx-auto">
         <div className="mb-6 flex justify-end">
           <Link href="/dashboard/feedback/survey/create">
             <Button className="gap-2 bg-primary">

@@ -364,6 +364,7 @@ if (!txRes.ok) {
     },
     event: {
       id: tx.postId,
+      workspaceId: post?.workspaceId ?? "",
       title: post?.title ?? "",
       date: eventDate,
       time: eventTime,

@@ -21,7 +21,7 @@ export default async function GroupPage({ searchParams }: PageProps) {
     <div className="min-h-full flex mt-6 flex-col pr-8 lg:pr-12 lg:pl-12 w-full">
       <GroupHeader />
 
-      <div className="w-full">
+      <div className="w-full max-w-475 mx-auto">
         <GroupSearch initialSearchValue={searchQuery} />
 
         <GroupList />

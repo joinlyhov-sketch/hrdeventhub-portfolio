@@ -22,7 +22,7 @@ export default function TransactionHistoryPage() {
         titleSecondary="History"
         description="Monitor participant responses and review insights from completed community surveys."
       />
-      <div className="w-full min-w-0 lg:pr-11.25 lg:pl-11.75">
+      <div className="w-full min-w-0 max-w-475 mx-auto pr-8 lg:pr-12 lg:pl-12">
         <Suspense fallback={<TransactionHistorySkeleton />}>
           <TransactionHistoryData />
         </Suspense>

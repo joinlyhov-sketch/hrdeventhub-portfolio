@@ -36,7 +36,9 @@ export default async function Page() {
         titleSecondary="Settings"
         description="Manage your profile visibility and control who can see your information and activities."
       />
-      <PrivacySettingsClient profile={response.payload} />
+      <div className="w-full max-w-475 mx-auto">
+        <PrivacySettingsClient profile={response.payload} />
+      </div>
     </main>
   );
 }
