@@ -102,7 +102,7 @@ export default function ProfilePage() {
   return (
     <div className="w-full bg-background z-30">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
-      <div className="lg:pr-12 lg:pl-12 max-w-420 m-auto">
+      <div className="lg:pr-12 lg:pl-12 w-full">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch max-h-[calc(100vh-220px)] xl:h-[680px]">
           <div className="xl:col-span-4 h-full">
             <ProfileCard

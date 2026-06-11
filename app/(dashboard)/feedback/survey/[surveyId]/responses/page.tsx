@@ -26,9 +26,7 @@ export default async function SurveyResponsesPage({
     redirect("/auth/login");
   }
 
-  // Check if user has admin/organizer role (optional - backend will validate)
   const userRole = (session.user as any)?.role;
-  // Note: Full permission check happens on backend
 
   const { surveyId } = params;
 
@@ -39,7 +37,7 @@ export default async function SurveyResponsesPage({
         titleSecondary="Responses"
         description="View and analyze participant responses to this survey."
       />
-      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 max-w-420 m-auto">
+      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 w-full">
         <div className="mb-6">
           <Link href="/dashboard/feedback/survey">
             <Button variant="outline" className="gap-2">
