@@ -1,5 +1,8 @@
-import { apiGet, apiPatch, apiPut } from "@/libs/api";
-import { UpdateProfileRequest, UpdateProfileResponse } from "@/types/profile-edit-type";
+import { apiDelete, apiGet, apiPatch, apiPut } from "@/libs/api";
+import {
+  UpdateProfileRequest,
+  UpdateProfileResponse,
+} from "@/types/profile-edit-type";
 
 export interface UpdateIdentityRequest {
   firstName: string;
@@ -113,32 +116,60 @@ export interface UserProfileResponse {
 
 export const profileService = {
   getProfileMe: async (token: string): Promise<UserProfileResponse> => {
-    return await apiGet<UserProfileResponse>("/profile/me", { authToken: token });
+    return await apiGet<UserProfileResponse>("/profile/me", {
+      authToken: token,
+    });
   },
 
   updateProfileMe: async (
     payload: UpdateProfileRequest,
-    token: string
+    token: string,
   ): Promise<UpdateProfileResponse> => {
-    return await apiPatch<UpdateProfileResponse>("/profile/me", payload, { authToken: token });
+    return await apiPatch<UpdateProfileResponse>("/profile/me", payload, {
+      authToken: token,
+    });
   },
 
   getIdentityMe: async (token: string): Promise<any> => {
     return await apiGet<any>("/auths/me", { authToken: token });
   },
 
-  updateIdentityMe: async (payload: UpdateIdentityRequest, token: string): Promise<any> => {
+  updateIdentityMe: async (
+    payload: UpdateIdentityRequest,
+    token: string,
+  ): Promise<any> => {
     return await apiPatch<any>("/auths/me", payload, { authToken: token });
   },
 
-  updateSharingMode: async (payload: UpdateSharingModeRequest, token: string): Promise<any> => {
-    return await apiPut<any>("/profile/me/sharing-mode", payload, { authToken: token });
+  updateSharingMode: async (
+    payload: UpdateSharingModeRequest,
+    token: string,
+  ): Promise<any> => {
+    return await apiPut<any>("/profile/me/sharing-mode", payload, {
+      authToken: token,
+    });
   },
 
-  updatePreferences: async (payload: UpdatePreferencesRequest, token: string): Promise<any> => {
-    return await apiPatch<any>("/profile/me/preferences", payload, { authToken: token });
+  updatePreferences: async (
+    payload: UpdatePreferencesRequest,
+    token: string,
+  ): Promise<any> => {
+    return await apiPatch<any>("/profile/me/preferences", payload, {
+      authToken: token,
+    });
   },
-  getProfileById: async (id: string, token: string): Promise<UserProfileResponse> => {
-return await apiGet<UserProfileResponse>(`/profile/${id}`, { authToken: token });
-},
+  getProfileById: async (
+    id: string,
+    token: string,
+  ): Promise<UserProfileResponse> => {
+    return await apiGet<UserProfileResponse>(`/profile/${id}`, {
+      authToken: token,
+    });
+  },
+  deleteMe: async (token: string): Promise<any> => {
+    return await apiDelete<any>("/profile/me/cv", {
+      authToken: token,
+      accept: "*/*",
+    });
+  },
 };
