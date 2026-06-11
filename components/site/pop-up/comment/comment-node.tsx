@@ -321,7 +321,7 @@ export function CommentNode({
                         >
                           @{cleanHandle}
                         </Link>
-                        {trailingPunctuation} LineBreak{" "}
+                        {trailingPunctuation} 
                       </span>
                     );
                   }
