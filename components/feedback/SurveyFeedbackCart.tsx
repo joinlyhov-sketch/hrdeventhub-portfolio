@@ -18,6 +18,7 @@ import Image from "next/image";
 import { Survey } from "../../types/survey";
 import { Poll } from "@/types/poll";
 import { surveyService } from "../../service/survey.service";
+import SurveyFeedbackSkeleton from "./SurveyFeedbackSkeleton";
 import { getAllPollsAction } from "../../actions/poll.action";
 import { pollService } from "../../service/poll.service";
 import { format, isAfter } from "date-fns";
@@ -156,14 +157,7 @@ export default function SurveyFeedbackFeature() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full p-8 text-center flex flex-col items-center justify-center min-h-[300px]">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-sm text-muted-foreground font-medium animate-pulse">
-          Fetching latest records...
-        </p>
-      </div>
-    );
+    return <SurveyFeedbackSkeleton />;
   }
 
   if (error) {

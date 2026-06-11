@@ -94,7 +94,7 @@ export default function PrivacySettingsClient({ profile }: Props) {
   );
 
   return (
-    <div className="max-w-420 m-auto grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12">
+    <div className="w-full grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12">
       <div className="xl:col-span-4">
         <ProfilePrivacy
           profile={profile}

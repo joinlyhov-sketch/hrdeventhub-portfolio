@@ -2,7 +2,13 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronRight, Clock3, MapPin } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronRight,
+  Clock3,
+  Loader2,
+  MapPin,
+} from "lucide-react";
 import { useUpcomingEvents } from "@/hooks/use-upcoming-events";
 
 type Props = {
@@ -54,9 +60,16 @@ export default function UpcomingEventSection({ workspaceId, role }: Props) {
         </h2>
       </div>
 
-      {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
-      {error && (
-        <p className="text-sm text-destructive">Failed to load events</p>
+      {isLoading && (
+        <div className="calendar-status-indicator">
+          <Loader2 size={14} className="animate-spin" />
+          <span>Loading upcoming events...</span>
+        </div>
+      )}
+      {error && !isLoading && (
+        <div className="calendar-status-indicator calendar-status-error">
+          <span>Failed to load events</span>
+        </div>
       )}
       {!isLoading && !error && events.length === 0 && (
         <p className="text-sm text-muted-foreground">No upcoming events</p>
