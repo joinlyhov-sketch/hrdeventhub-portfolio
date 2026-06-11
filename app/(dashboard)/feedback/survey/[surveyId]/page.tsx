@@ -35,7 +35,7 @@ export default async function SurveyDetailPage({
         titleSecondary="Response"
         description="Please take a moment to complete this survey."
       />
-      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 w-full">
+      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 w-full max-w-475 mx-auto">
         <div className="mb-6">
           <Link href="/dashboard/feedback/survey">
             <Button variant="outline" className="gap-2">

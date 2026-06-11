@@ -20,7 +20,7 @@ export default async function EditPollPage({ searchParams }: Props) {
   const poll = await getPollAction(pollId);
 
   return (
-    <div className="w-full max-w-5xl mx-auto py-8 px-4">
+    <div className="w-full max-w-475 mx-auto py-8 pr-8 lg:pr-12 lg:pl-12">
       <FeedbackBreadcrumb label="Poll Editing" />
       <PollForm
         pollId={poll.pollId}

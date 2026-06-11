@@ -26,16 +26,24 @@ export default function GroupList() {
 
   const { workspaces, totalPages, isLoading } = isAdmin
     ? { ...adminData, totalPages: adminData.totalPages }
-    : { workspaces: memberData.workspaces, totalPages: 1, isLoading: memberData.isLoading };
+    : {
+        workspaces: memberData.workspaces,
+        totalPages: 1,
+        isLoading: memberData.isLoading,
+      };
 
   const filtered = workspaces.filter((workspace) => {
     const matchType =
-      type === "Internal" ? !workspace.isPublic :
-      type === "External" ? workspace.isPublic :
-      true;
+      type === "Internal"
+        ? !workspace.isPublic
+        : type === "External"
+          ? workspace.isPublic
+          : true;
     const matchSearch = isAdmin
       ? true
-      : search.trim() ? workspace.name.toLowerCase().includes(search.toLowerCase()) : true;
+      : search.trim()
+        ? workspace.name.toLowerCase().includes(search.toLowerCase())
+        : true;
     return matchType && matchSearch;
   });
 
@@ -58,7 +66,9 @@ export default function GroupList() {
           <UserX size={22} />
         </div>
         <div>
-          <p className="text-base font-bold text-slate-700">Data doesn&apos;t exist</p>
+          <p className="text-base font-bold text-slate-700">
+            Data doesn&apos;t exist
+          </p>
           <p className="text-sm text-slate-400 font-medium">
             We couldn&apos;t find any match for your current query.
           </p>
