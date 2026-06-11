@@ -13,25 +13,25 @@ function secondsFromExpiry(expiresAt: number | null): number {
 }
 
 export default function Step3OTP() {
-  const otpEmail    = useRegisterStore((s) => s.otpEmail);
+  const otpEmail = useRegisterStore((s) => s.otpEmail);
   const otpExpiresAt = useRegisterStore((s) => s.otpExpiresAt);
-  const goToOTP     = useRegisterStore((s) => s.goToOTP);
-  const reset       = useRegisterStore((s) => s.reset);
+  const goToOTP = useRegisterStore((s) => s.goToOTP);
+  const reset = useRegisterStore((s) => s.reset);
 
-  const [otp, setOtp]               = useState(["", "", "", "", "", ""]);
-  const [error, setError]           = useState<string | null>(null);
-  const [success, setSuccess]       = useState<string | null>(null);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [autoSubmitEnabled, setAutoSubmitEnabled] = useState(true);
   const [secondsLeft, setSecondsLeft] = useState(() =>
     secondsFromExpiry(otpExpiresAt),
   );
-  
+
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const router    = useRouter();
+  const router = useRouter();
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -45,7 +45,7 @@ export default function Step3OTP() {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = ""; 
+      e.returnValue = "";
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -53,7 +53,7 @@ export default function Step3OTP() {
 
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
-    
+
     const handlePopState = () => {
       setIsLeaveModalOpen(true);
       window.history.pushState(null, "", window.location.href);
@@ -137,7 +137,9 @@ export default function Step3OTP() {
         setError(result.error);
         return;
       }
-      setResendMessage(result.message ?? "Verification OTP successfully resent.");
+      setResendMessage(
+        result.message ?? "Verification OTP successfully resent.",
+      );
       goToOTP(otpEmail);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
@@ -168,7 +170,9 @@ export default function Step3OTP() {
           {otp.map((digit, index) => (
             <input
               key={index}
-              ref={(el) => { inputRefs.current[index] = el; }}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
               type="text"
               inputMode="numeric"
               maxLength={1}
@@ -225,9 +229,9 @@ export default function Step3OTP() {
         </button>
       </motion.div>
 
-      <LeaveVerificationModal 
-        isOpen={isLeaveModalOpen} 
-        onClose={() => setIsLeaveModalOpen(false)} 
+      <LeaveVerificationModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
         onConfirm={handleConfirmLeave}
       />
     </>
