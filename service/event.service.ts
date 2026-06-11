@@ -142,34 +142,40 @@ export const eventService = {
   },
 
   getAllPlatformEvents: async (token: string): Promise<EventItem[]> => {
-    const pageSize = 100;
-    const eventsById = new Map<string, EventItem>();
+  const pageSize = 100;
+  const eventsById = new Map<string, EventItem>();
 
-    for (let page = 1; page <= 100; page += 1) {
-      const pageEvents = await eventService.getAll(token, page, pageSize);
-      let newEventCount = 0;
-
-      pageEvents.forEach((event) => {
-        if (!eventsById.has(event.postId)) newEventCount += 1;
-
-        eventsById.set(event.postId, {
-          ...event,
-          sourceWorkspaceId: event.sourceWorkspaceId || event.workspaceId,
-        });
-      });
-
-      if (pageEvents.length < pageSize || newEventCount === 0) break;
-    }
-
-    return Array.from(eventsById.values()).sort((a, b) => {
-      const aTime = new Date(a.eventStart).getTime();
-      const bTime = new Date(b.eventStart).getTime();
-
-      if (Number.isNaN(aTime)) return 1;
-      if (Number.isNaN(bTime)) return -1;
-      return aTime - bTime;
+  const firstPage = await eventService.getAll(token, 1, pageSize);
+  firstPage.forEach((event) => {
+    eventsById.set(event.postId, {
+      ...event,
+      sourceWorkspaceId: event.sourceWorkspaceId || event.workspaceId,
     });
-  },
+  });
+
+  if (firstPage.length === pageSize) {
+    const remainingPages = await Promise.all(
+      Array.from({ length: 19 }, (_, i) =>
+        eventService.getAll(token, i + 2, pageSize),
+      ),
+    );
+
+    remainingPages.flat().forEach((event) => {
+      eventsById.set(event.postId, {
+        ...event,
+        sourceWorkspaceId: event.sourceWorkspaceId || event.workspaceId,
+      });
+    });
+  }
+
+  return Array.from(eventsById.values()).sort((a, b) => {
+    const aTime = new Date(a.eventStart).getTime();
+    const bTime = new Date(b.eventStart).getTime();
+    if (Number.isNaN(aTime)) return 1;
+    if (Number.isNaN(bTime)) return -1;
+    return aTime - bTime;
+  });
+},
 
   getAllPlatformEventsWithAttendees: async (
     token: string,
@@ -254,31 +260,34 @@ export const eventService = {
   },
 
   getParticipantStats: async (
-    token: string,
-    postId: string,
-  ): Promise<{ total: number; pendingPayment: number }> => {
-    const pageSize = 100;
-    let total = 0;
-    let pendingPayment = 0;
+  token: string,
+  postId: string,
+): Promise<{ total: number; pendingPayment: number }> => {
+  const pageSize = 100;
+  const firstPage = await eventService.getParticipants(token, postId, 1, pageSize);
 
-    for (let page = 1; page <= 100; page += 1) {
-      const participants = await eventService.getParticipants(
-        token,
-        postId,
-        page,
-        pageSize,
-      );
+  if (firstPage.length < pageSize) {
+    return {
+      total: firstPage.length,
+      pendingPayment: firstPage.filter((p) =>
+        eventService.isPendingParticipantPayment(p.paymentStatus),
+      ).length,
+    };
+  }
 
-      total += participants.length;
-      pendingPayment += participants.filter((participant) =>
-        eventService.isPendingParticipantPayment(participant.paymentStatus),
-      ).length;
+  const remainingRequests = Array.from({ length: 19 }, (_, i) =>
+    eventService.getParticipants(token, postId, i + 2, pageSize),
+  );
+  const remainingPages = await Promise.all(remainingRequests);
+  const all = [firstPage, ...remainingPages].flat();
 
-      if (participants.length < pageSize) break;
-    }
-
-    return { total, pendingPayment };
-  },
+  return {
+    total: all.length,
+    pendingPayment: all.filter((p) =>
+      eventService.isPendingParticipantPayment(p.paymentStatus),
+    ).length,
+  };
+},
 
   isPendingParticipantPayment: (status?: string): boolean => {
     const normalized = status?.trim().toLowerCase();

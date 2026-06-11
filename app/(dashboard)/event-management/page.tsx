@@ -1,10 +1,12 @@
+import { Suspense } from "react";
 import { EventManagementClient } from "../../../components/dashboard/event-management/EventManagementClient";
 import { eventService, EventItem } from "@/service/event.service";
 import { paymentService, Transaction } from "@/service/payment.service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
+import EventManagementSkeleton from "@/components/dashboard/EventManagementSkeletion";
 
-export default async function EventManagementPage() {
+async function EventManagementData() {
   const session = await getServerSession(authOptions);
   const token = session?.accessToken || "";
 
@@ -13,18 +15,24 @@ export default async function EventManagementPage() {
 
   try {
     if (token) {
-      events = await eventService.getAllPlatformEventsWithAttendees(token);
-      transactions = await paymentService.getAllTransactions(token);
+      [events, transactions] = await Promise.all([
+        eventService.getAllPlatformEventsWithAttendees(token),
+        paymentService.getAllTransactions(token),
+      ]);
     }
   } catch (error) {
     console.error("Failed to fetch event management data:", error);
   }
+
+  return <EventManagementClient events={events} transactions={transactions} />;
+}
+
+export default async function EventManagementPage() {
   return (
-    <main className="min-h-screen max-w-420 mx-auto">
-      <EventManagementClient
-        events={events}
-        transactions={transactions}
-      />
+    <main className="min-h-screen w-full">  
+      <Suspense fallback={<EventManagementSkeleton />}>
+        <EventManagementData />
+      </Suspense>
     </main>
   );
 }
