@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Trash2, Smile, ThumbsUp, SendHorizontal } from "lucide-react";
+import { Trash2, Smile, SendHorizontal } from "lucide-react";
 import { Comment } from "@/types/comment";
 import {
   createReplyAction,
@@ -15,6 +15,7 @@ import {
 } from "@/components/site/pop-up/comment/reaction";
 import { useCommentReaction } from "@/hooks/use-comment-reaction";
 import { ReactionSummary } from "../../event/ReactionSummary";
+import Link from "next/link";
 
 interface CommentNodeProps {
   comment: Comment;
@@ -44,78 +45,51 @@ function Avatar({
   alt,
   initials,
   size,
+  userId,
 }: {
   src?: string;
   alt: string;
   initials: string;
   size: number;
+  userId?: string;
 }) {
+  const content = src ? (
+    <Image
+      src={src}
+      alt={alt}
+      width={size}
+      height={size}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <span
+      style={{ fontSize: size < 32 ? 10 : 12 }}
+      className="font-bold text-primary uppercase"
+    >
+      {initials || "?"}
+    </span>
+  );
+
   return (
     <div
       style={{ width: size, height: size, minWidth: size }}
       className="rounded-full bg-[#EBF5FB] overflow-hidden flex items-center justify-center border text-[#3FA6DC] font-semibold shrink-0"
     >
-      {src ? (
-        <Image
-          src={src}
-          alt={alt}
-          width={size}
-          height={size}
-          className="w-full h-full object-cover"
-        />
+      {userId ? (
+        <Link href={`/profile/${userId}`}>{content}</Link>
       ) : (
-        <span
-          style={{ fontSize: size < 32 ? 10 : 12 }}
-          className="font-bold text-primary uppercase"
-        >
-          {initials || "?"}
-        </span>
+        content
       )}
     </div>
   );
 }
 
 const EMOJI_LIST = [
-  "😀",
-  "😂",
-  "😍",
-  "🥰",
-  "😎",
-  "🤔",
-  "😢",
-  "😡",
-  "👍",
-  "👎",
-  "❤️",
-  "🔥",
-  "🎉",
-  "✨",
-  "💯",
-  "🙏",
-  "😭",
-  "🤣",
-  "😊",
-  "😅",
-  "😆",
-  "🥲",
-  "😇",
-  "🤩",
-  "😏",
-  "😒",
-  "😳",
-  "🤯",
-  "😱",
-  "😴",
-  "🤗",
-  "🫡",
-  "🫠",
-  "😬",
-  "🙄",
-  "😤",
-  "🤬",
-  "💀",
-  "👀",
-  "💪",
+  "😀", "😂", "😍", "🥰", "😎", "🤔", "😢", "😡",
+  "👍", "👎", "❤️", "🔥", "🎉", "✨", "💯", "🙏",
+  "😭", "🤣", "😊", "😅", "😆", "🥲", "😇", "🤩",
+  "😏", "😒", "😳", "🤯", "😱", "😴", "🤗", "🫡",
+  "🫠", "😬", "🙄", "😤", "🤬", "💀", "👀", "💪",
 ];
 
 function EmojiPopover({
@@ -162,6 +136,7 @@ function EmojiPopover({
 function ReplyInput({
   currentUserPicture,
   currentUserInitials,
+  currentUserId,
   replyText,
   onReplyTextChange,
   onSubmit,
@@ -170,6 +145,7 @@ function ReplyInput({
 }: {
   currentUserPicture?: string;
   currentUserInitials?: string;
+  currentUserId?: string;
   replyText: string;
   onReplyTextChange: (v: string) => void;
   onSubmit: () => void;
@@ -201,6 +177,7 @@ function ReplyInput({
         alt="Your avatar"
         initials={currentUserInitials ?? "?"}
         size={28}
+        userId={currentUserId}
       />
       <div className="flex-1">
         <div className="relative flex items-center bg-grey-100 rounded-2xl px-3 py-3 gap-2">
@@ -329,24 +306,34 @@ export function CommentNode({
           alt={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
           initials={initials}
           size={36}
+          userId={comment.appUser.appUserId || undefined}
         />
         {hasReplies && showReplies && (
           <div className="w-px bg-grey-200 mt-1.5 mb-1 flex-1" />
         )}
       </div>
 
-      <div className="flex-1 w-full pb-1">
+      <div className="flex-col w-fit pb-1">
         <div
-          className={`relative bg-grey-100 rounded-2xl px-3 py-2  ${
+          className={`bg-grey-100 rounded-2xl px-3 py-2 ${
             editingId === comment.commentId
               ? "block w-full bg-transparent p-0!"
               : "inline-block max-w-full"
           }`}
         >
           <div className="flex items-center gap-2 justify-between">
-            <span className="type-detail-semibold text-grey-900 text-sm leading-tight">
-              {comment.appUser.firstName} {comment.appUser.lastName}
-            </span>
+            {comment.appUser.appUserId ? (
+              <Link
+                href={`/profile/${comment.appUser.appUserId}`}
+                className="type-detail-semibold text-grey-900 text-sm leading-tight hover:underline"
+              >
+                {comment.appUser.firstName} {comment.appUser.lastName}
+              </Link>
+            ) : (
+              <span className="type-detail-semibold text-grey-900 text-sm leading-tight">
+                {comment.appUser.firstName} {comment.appUser.lastName}
+              </span>
+            )}
             {isOwner && (
               <div className="flex gap-1.5 items-baseline shrink-0">
                 {editingId !== comment.commentId && (
@@ -389,7 +376,6 @@ export function CommentNode({
                   }}
                   autoFocus
                 />
-
                 <div className="flex items-center gap-1.5 shrink-0">
                   <section className="relative shrink-0">
                     <button
@@ -406,7 +392,6 @@ export function CommentNode({
                       onClose={() => setShowEditEmoji(false)}
                     />
                   )}
-
                   <button
                     onClick={handleEdit}
                     disabled={!editText.trim()}
@@ -420,7 +405,6 @@ export function CommentNode({
                   </button>
                 </div>
               </div>
-
               <div className="flex justify-start pl-4">
                 <button
                   onClick={() => setEditingId(null)}
@@ -443,46 +427,39 @@ export function CommentNode({
               )}
             </p>
           )}
-
-          <section className="absolute -right-2">
-            <ReactionSummary payload={reactionPayload} />
-          </section>
         </div>
 
         {editingId !== comment.commentId && (
-          <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
-            <span className="font-normal">{timeAgo(comment.createdAt)}</span>
-
-            <ReactionPopover
-              selectedValue={selectedReaction}
-              onReactionSelect={handleReactionSelect}
-            >
-              <button
-                onClick={handleLikeToggle}
-                className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
-                  activeReaction
-                    ? `${activeReaction.color} font-semibold`
-                    : "hover:text-grey-900"
-                }`}
+          <div className="flex items-center justify-between mt-1 pl-1 text-xs font-semibold text-grey-400 min-w-[180px]">
+            <section className="flex items-center gap-3">
+              <span className="font-normal">{timeAgo(comment.createdAt)}</span>
+              <ReactionPopover
+                selectedValue={selectedReaction}
+                onReactionSelect={handleReactionSelect}
               >
-                {activeReaction ? (
-                  activeReaction.displayText
-                ) : (
-                  <ThumbsUp size={13} />
-                )}
-                {!activeReaction && "Like"}
+                <button
+                  onClick={handleLikeToggle}
+                  className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
+                    activeReaction
+                      ? `${activeReaction.color} font-semibold`
+                      : "hover:text-grey-900"
+                  }`}
+                >
+                  {activeReaction ? activeReaction.displayText : "Like"}
+                </button>
+              </ReactionPopover>
+              <button
+                onClick={() => {
+                  setShowReplyInput((v) => !v);
+                  setReplyText("");
+                }}
+                className="hover:text-grey-900 transition-colors cursor-pointer"
+              >
+                Reply
               </button>
-            </ReactionPopover>
+            </section>
 
-            <button
-              onClick={() => {
-                setShowReplyInput((v) => !v);
-                setReplyText("");
-              }}
-              className="hover:text-grey-900 transition-colors cursor-pointer"
-            >
-              Reply
-            </button>
+            <ReactionSummary payload={reactionPayload} />
           </div>
         )}
 
@@ -502,6 +479,7 @@ export function CommentNode({
           <ReplyInput
             currentUserPicture={currentUserPicture}
             currentUserInitials={currentUserInitials}
+            currentUserId={currentUserId}
             replyText={replyText}
             onReplyTextChange={setReplyText}
             onSubmit={handleReply}

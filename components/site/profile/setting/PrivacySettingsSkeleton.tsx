@@ -17,31 +17,26 @@ const Sk = ({
 
 export default function PrivacySettingsSkeleton() {
   return (
-    <div className="max-w-420 m-auto grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12 animate-pulse">
-      {/* LEFT — Profile Preview Card */}
+    <div className="w-full grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12 animate-pulse">
       <div className="xl:col-span-4">
         <div className="w-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-transparent">
-          {/* Banner */}
           <Sk className="w-full h-32 rounded-none" />
 
           <div className="flex flex-col items-center px-6 pb-6 -mt-10">
-            {/* Avatar */}
             <div className="w-24 h-24 rounded-full border-4 border-white dark:border-background mb-3 overflow-hidden shrink-0">
               <Sk className="w-full h-full rounded-none" />
             </div>
-            {/* Name */}
+
             <Sk className="h-6 w-40 rounded-lg mb-2" />
-            {/* @username */}
+
             <Sk className="h-4 w-28 rounded-md mb-3" />
-            {/* Bio */}
+
             <Sk className="h-4 w-36 rounded mb-5" />
 
             <hr className="border-border w-full mb-4" />
 
-            {/* Section title */}
             <Sk className="h-5 w-44 rounded-md self-start mb-4" />
 
-            {/* Info rows */}
             <div className="w-full flex flex-col gap-3">
               {[
                 { lw: "w-52" },
@@ -60,11 +55,8 @@ export default function PrivacySettingsSkeleton() {
         </div>
       </div>
 
-      {/* RIGHT — Two stacked cards */}
       <div className="xl:col-span-8 flex flex-col gap-6">
-        {/* Card 1 — Choose visibility mode */}
         <div className="w-full border border-border rounded-2xl p-6 bg-white dark:bg-transparent">
-          {/* Title with number badge */}
           <div className="flex items-center gap-3 mb-5">
             <div className="w-7 h-7 rounded-full overflow-hidden shrink-0">
               <Sk className="w-full h-full rounded-none" />
@@ -72,7 +64,6 @@ export default function PrivacySettingsSkeleton() {
             <Sk className="h-6 w-56 rounded-md" />
           </div>
 
-          {/* 3 mode cards */}
           <div className="grid grid-cols-3 gap-4">
             {[0, 1, 2].map((i) => (
               <div
@@ -96,9 +87,7 @@ export default function PrivacySettingsSkeleton() {
           </div>
         </div>
 
-        {/* Card 2 — Customize visibility */}
         <div className="w-full border border-border rounded-2xl p-6 bg-white dark:bg-transparent">
-          {/* Title + action links */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-full overflow-hidden shrink-0">
@@ -112,7 +101,6 @@ export default function PrivacySettingsSkeleton() {
             </div>
           </div>
 
-          {/* Section rows */}
           <div className="flex flex-col gap-3">
             {[
               { lw: "w-16", dw: "w-48" },

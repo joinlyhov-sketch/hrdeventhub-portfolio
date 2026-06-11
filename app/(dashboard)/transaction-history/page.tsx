@@ -1,14 +1,20 @@
+import { Suspense } from "react";
 import Header from "../../../components/dashboard/header/Header";
-import { StatsCardsSection } from "../../../components/dashboard/transaction-history/StatsCardsSection";
 import { TransactionTableSection } from "../../../components/dashboard/transaction-history/TransactionTableSection";
-
+import TransactionHistorySkeleton from "../../../components/dashboard/transaction-history/TransactionHistorySkeleton";
 import { getTransactions, getEventSummaries } from "@/actions/transaction.action";
 
-export default async function TransactionHistoryPage() {
+async function TransactionHistoryData() {
   const [transactions, events] = await Promise.all([
     getTransactions(),
     getEventSummaries(),
   ]);
+  return (
+    <TransactionTableSection transactions={transactions} events={events} />
+  );
+}
+
+export default function TransactionHistoryPage() {
   return (
     <main className="min-h-screen z-10">
       <Header
@@ -16,13 +22,10 @@ export default async function TransactionHistoryPage() {
         titleSecondary="History"
         description="Monitor participant responses and review insights from completed community surveys."
       />
-      <div className="w-full max-w-420 min-w-0 mx-auto lg:pr-11.25 lg:pl-11.75">
-        {/* <StatsCardsSection stats={statsData} /> */}
-
-        <TransactionTableSection
-          transactions={transactions}
-          events={events}
-        />
+      <div className="w-full min-w-0 lg:pr-11.25 lg:pl-11.75">
+        <Suspense fallback={<TransactionHistorySkeleton />}>
+          <TransactionHistoryData />
+        </Suspense>
       </div>
     </main>
   );

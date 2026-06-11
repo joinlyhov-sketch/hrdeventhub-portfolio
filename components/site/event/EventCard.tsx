@@ -111,31 +111,33 @@ function EventItem({
     <>
       <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
-              {profilePictureUrl ? (
-                <Image
-                  src={profilePictureUrl}
-                  alt={creator!.fullName}
-                  width={48}
-                  height={48}
-                  className="w-full h-full object-cover rounded-full border-2 border-primary"
-                />
-              ) : (
-                <span className="type-desc-semibold text-primary uppercase">
-                  {initials}
-                </span>
-              )}
+          <Link href={`/profile/${currentUser?.id}`}>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+                {profilePictureUrl ? (
+                  <Image
+                    src={profilePictureUrl}
+                    alt={creator!.fullName}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover rounded-full border-2 border-primary"
+                  />
+                ) : (
+                  <span className="type-desc-semibold text-primary uppercase">
+                    {initials}
+                  </span>
+                )}
+              </div>
+              <div>
+                <h3 className="type-desc-semibold text-secondary">
+                  {creator?.fullName ?? "—"}
+                </h3>
+                <p className="text-desc-small-semibold text-grey-500">
+                  {formatEventDate(post.createdAt ?? "")}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="type-desc-semibold text-secondary">
-                {creator?.fullName ?? "—"}
-              </h3>
-              <p className="text-desc-small-semibold text-grey-500">
-                {formatEventDate(post.createdAt ?? "")}
-              </p>
-            </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             {creator?.role && (
               <span
@@ -288,19 +290,21 @@ function EventItem({
           className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
         >
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
-            {currentUser?.profilePicture ? (
-              <Image
-                src={currentUser.profilePicture}
-                alt={currentUser.name || "profile"}
-                width={40}
-                height={40}
-                className="w-full h-full object-cover rounded-full"
-              />
-            ) : (
-              <span className="type-desc-small-semibold text-primary uppercase">
-                {currentUser?.avatarInitials ?? "?"}
-              </span>
-            )}
+            <Link href={`/profile/${currentUser?.id}`}>
+              {currentUser?.profilePicture ? (
+                <Image
+                  src={currentUser.profilePicture}
+                  alt={currentUser.name || "profile"}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <span className="type-desc-small-semibold text-primary uppercase">
+                  {currentUser?.avatarInitials ?? "?"}
+                </span>
+              )}
+            </Link>
           </div>
           <div className="relative grow flex items-center bg-grey-50 rounded-full pr-1.5 pl-6 py-1.5">
             <input

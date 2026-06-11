@@ -339,32 +339,34 @@ export default function EventDetailClient({
     <>
       <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
         <section className="flex justify-between items-center">
-          <div className="flex items-center gap-x-3">
-            {event?.creator?.profilePicture && !avatarError ? (
-              <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-secondary">
-                <Image
-                  unoptimized
-                  src={event.creator.profilePicture}
-                  alt={event.creator.fullName || "User Avatar"}
-                  fill
-                  className="object-cover"
-                  onError={() => setAvatarError(true)}
-                />
+          <Link href={`/profile/${event.creator?.userId}`}>
+            <div className="flex items-center gap-x-3">
+              {event?.creator?.profilePicture && !avatarError ? (
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-secondary">
+                  <Image
+                    unoptimized
+                    src={event.creator.profilePicture}
+                    alt={event.creator.fullName || "User Avatar"}
+                    fill
+                    className="object-cover"
+                    onError={() => setAvatarError(true)}
+                  />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary uppercase">
+                  {event?.creator?.fullName?.slice(0, 2) || "EV"}
+                </div>
+              )}
+              <div>
+                <p className="text-subtitle font-medium text-secondary">
+                  {event?.creator?.fullName || (isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team")}
+                </p>
+                <p className="text-desc-small-semibold font-medium text-muted-foreground">
+                  {formattedCreationDate}
+                </p>
               </div>
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary uppercase">
-                {event?.creator?.fullName?.slice(0, 2) || "EV"}
-              </div>
-            )}
-            <div>
-              <p className="text-subtitle font-medium text-secondary">
-                {event?.creator?.fullName || (isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team")}
-              </p>
-              <p className="text-desc-small-semibold font-medium text-muted-foreground">
-                {formattedCreationDate}
-              </p>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-x-2">
             {isAdminOrOrganizer && (
               <>

@@ -25,7 +25,9 @@ export default function RootLayout({
       <TooltipProvider>
         <SidebarProvider>
           <AppSidebar />
-          {children}
+          <div className="flex flex-col flex-1 min-w-0 w-full">
+            {children}
+          </div>
         </SidebarProvider>
       </TooltipProvider>
     </div>

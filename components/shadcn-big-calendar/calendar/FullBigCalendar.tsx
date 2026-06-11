@@ -13,10 +13,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Loader2,
   MapPin,
 } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "sonner";
 
 import { useWorkspaceEvents } from "@/hooks/use-workspace-events";
 import type { CalendarView, EventTone } from "@/types/calendar";
@@ -121,27 +121,6 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
     useState<CSSProperties>({ display: "none" });
   const { events, isLoading, error } = useWorkspaceEvents(workspaceId, role);
 
-  useEffect(() => {
-    if (isLoading) {
-      toast.loading("Loading calendar events...", {
-        id: "calendar-events",
-      });
-      return;
-    }
-
-    if (error) {
-      toast.error("Failed to load calendar events", {
-        id: "calendar-events",
-      });
-      return;
-    }
-
-    if (events.length > 0) {
-      toast.success("Calendar events loaded successfully", {
-        id: "calendar-events",
-      });
-    }
-  }, [isLoading, error, events]);
 
   const title = useMemo(() => format(currentDate, "MMMM yyyy"), [currentDate]);
   const calendarEvents = useMemo<EventInput[]>(
@@ -362,9 +341,7 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
 
     const isOverflowHoverArea = (target: EventTarget | null) =>
       target instanceof Element &&
-      Boolean(
-        target.closest(".fc-more-popover") || getOverflowDay(target),
-      );
+      Boolean(target.closest(".fc-more-popover") || getOverflowDay(target));
 
     const handlePointerOver = (event: PointerEvent) => {
       const target = event.target;
@@ -455,16 +432,20 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
           >
             <ChevronRight size={22} />
           </button>
-
-          <button
-            title="Go to today"
-            type="button"
-            className="calendar-today-btn"
-            onClick={handleToday}
-          >
-            {new Date().getDate().toString().padStart(2, "0")}
-          </button>
         </div>
+
+        {isLoading && (
+          <div className="calendar-status-indicator">
+            <Loader2 size={14} className="animate-spin" />
+            <span>Loading events...</span>
+          </div>
+        )}
+
+        {error && !isLoading && (
+          <div className="calendar-status-indicator calendar-status-error">
+            <span>Failed to load events</span>
+          </div>
+        )}
 
         <div className="calendar-view-tabs">
           {viewsConfig.map((item) => (
