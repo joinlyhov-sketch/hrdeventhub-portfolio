@@ -6,9 +6,7 @@ import Link from "next/link";
 import {
   ThumbsUp,
   Share2,
-  SendHorizontal,
   MessageCircleMore,
-  Smile,
 } from "lucide-react";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
@@ -25,6 +23,8 @@ import { usePostReaction } from "@/hooks/use-post-reaction";
 import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
+import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
+import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
 
@@ -59,16 +59,16 @@ function EventItem({
 
   const {
     selectedReaction,
-    likesCount,
     handleLikeToggle,
     handleReactionSelect,
     reactionPayload,
   } = usePostReaction(post.postId);
 
   const [commentInput, setCommentInput] = useState("");
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
   const { comments, refetch } = usePostComments(post.postId);
+  const { members } = useWorkspaceMembers(groupid ?? "");
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const coverImage = post.media?.find((m) => m.isCover) ?? post.media?.[0];
@@ -86,26 +86,13 @@ function EventItem({
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
-    setIsSubmittingComment(true);
-    try {
-      const result = await createCommentAction(post.postId, commentInput);
-      if (result.ok) {
-        setCommentInput("");
-        await refetch();
-      }
-    } finally {
-      setIsSubmittingComment(false);
+    const result = await createCommentAction(post.postId, commentInput, mentionedIds);
+    if (result.ok) {
+      setCommentInput("");
+      setMentionedIds([]);
+      await refetch();
     }
   };
-
-  const EMOJI_LIST = [
-    "😀","😂","😍","🥰","😎","🤔","😢","😡","👍","👎",
-    "❤️","🔥","🎉","✨","💯","🙏","😭","🤣","😊","😅",
-    "😆","🥲","😇","🤩","😏","😒","😳","🤯","😱","😴",
-    "🤗","🫡","🫠","😬","🙄","😤","🤬","💀","👀","💪",
-  ];
-
-  const [showEmoji, setShowEmoji] = useState(false);
 
   return (
     <>
@@ -166,9 +153,7 @@ function EventItem({
         <div className="bg-grey-50 rounded-[6px] p-4 space-y-3 mb-6 border-l-5 border-primary">
           {post.location && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">
-                LOCATION:{" "}
-              </span>
+              <span className="type-detail-semibold text-foreground">LOCATION: </span>
               <a
                 href={post.location.googleMapUrl}
                 target="_blank"
@@ -181,18 +166,14 @@ function EventItem({
           )}
           {post.eventStart && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">
-                DATE:{" "}
-              </span>
+              <span className="type-detail-semibold text-foreground">DATE: </span>
               {post.eventStart}
               {post.eventEnd && ` — ${post.eventEnd}`}
             </p>
           )}
           {post.purpose && (
             <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">
-                PURPOSE:{" "}
-              </span>
+              <span className="type-detail-semibold text-foreground">PURPOSE: </span>
               {post.purpose}
             </p>
           )}
@@ -225,9 +206,7 @@ function EventItem({
                   />
                 </svg>
               </div>
-              <span className="type-desc-small-semibold">
-                No image available
-              </span>
+              <span className="type-desc-small-semibold">No image available</span>
             </div>
           )}
           <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-6 text-white z-10 flex items-end justify-between gap-4">
@@ -251,10 +230,7 @@ function EventItem({
 
         <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
           <section className="flex items-center gap-6 py-4">
-            <ReactionPopover
-              selectedValue={selectedReaction}
-              onReactionSelect={handleReactionSelect}
-            >
+            <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
               <button
                 onClick={handleLikeToggle}
                 className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
@@ -286,10 +262,8 @@ function EventItem({
           <ReactionSummary payload={reactionPayload} />
         </div>
 
-        <div
-          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
-        >
-          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
             <Link href={`/profile/${currentUser?.id}`}>
               {currentUser?.profilePicture ? (
                 <Image
@@ -306,51 +280,15 @@ function EventItem({
               )}
             </Link>
           </div>
-          <div className="relative grow flex items-center bg-grey-50 rounded-full pr-1.5 pl-6 py-1.5">
-            <input
-              type="text"
-              placeholder="Add a comment..."
+          <div className="flex-1">
+            <MentionInput
               value={commentInput}
-              onChange={(e) => setCommentInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
-              className="w-full bg-transparent border-none py-1.5 type-detail text-grey-900 placeholder:text-grey-400 outline-none"
+              onChange={(val, ids) => { setCommentInput(val); setMentionedIds(ids); }}
+              onSubmit={handleSubmitComment}
+              placeholder="Add a comment..."
+              members={members}
+              mentionedIds={mentionedIds}
             />
-
-            <section className="flex items-center gap-x-2">
-              <div className="relative shrink-0">
-                <button
-                  onClick={() => setShowEmoji((v) => !v)}
-                  className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
-                >
-                  <Smile size={20} />
-                </button>
-                {showEmoji && (
-                  <div className="absolute bottom-full mb-2 right-0 z-50 bg-background border border-border rounded-2xl shadow-lg p-3 w-64">
-                    <div className="grid grid-cols-8 gap-1">
-                      {EMOJI_LIST.map((e) => (
-                        <button
-                          key={e}
-                          onClick={() => {
-                            setCommentInput((v) => v + e);
-                            setShowEmoji(false);
-                          }}
-                          className="text-lg hover:scale-125 transition-transform cursor-pointer flex items-center justify-center h-7 w-7"
-                        >
-                          {e}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={handleSubmitComment}
-                disabled={!commentInput.trim() || isSubmittingComment}
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-secondary transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <SendHorizontal size={16} className="relative left-[-0.5px]" />
-              </button>
-            </section>
           </div>
         </div>
 

@@ -9,7 +9,10 @@ import {
   editCommentAction,
   deleteCommentAction,
 } from "@/actions/comment.action";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
+import {
+  ReactionPopover,
+  REACTIONS,
+} from "@/components/site/pop-up/comment/reaction";
 import { useCommentReaction } from "@/hooks/use-comment-reaction";
 import { ReactionSummary } from "../../event/ReactionSummary";
 import { MentionInput } from "./MentionInput";
@@ -111,11 +114,16 @@ export function CommentNode({
 
   const { members } = useWorkspaceMembers(workspaceId ?? "");
 
-  const { selectedReaction, handleLikeToggle, handleReactionSelect, reactionPayload } =
-    useCommentReaction(comment.commentId);
+  const {
+    selectedReaction,
+    handleLikeToggle,
+    handleReactionSelect,
+    reactionPayload,
+  } = useCommentReaction(comment.commentId);
 
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
-  const initials = `${comment.appUser.firstName?.[0] ?? ""}${comment.appUser.lastName?.[0] ?? ""}`.toUpperCase();
+  const initials =
+    `${comment.appUser.firstName?.[0] ?? ""}${comment.appUser.lastName?.[0] ?? ""}`.toUpperCase();
   const isOwner = currentUserId === comment.appUser.appUserId;
   const hasReplies = comment.replies && comment.replies.length > 0;
   const replyCount = countAllReplies(comment.replies ?? []);
@@ -138,7 +146,11 @@ export function CommentNode({
 
   const handleReply = async () => {
     if (!replyText.trim()) return;
-    const result = await createReplyAction(comment.commentId, replyText, replyMentionedIds);
+    const result = await createReplyAction(
+      comment.commentId,
+      replyText,
+      replyMentionedIds,
+    );
     if (result.ok) {
       setShowReplyInput(false);
       setReplyText("");
@@ -146,6 +158,22 @@ export function CommentNode({
       setShowReplies(true);
       await onRefetch();
     }
+  };
+
+  const handleReplyClick = () => {
+    const targetUser = comment.appUser;
+    const matchingMember = members.find(
+      (m) => m.appUserId === targetUser.appUserId,
+    );
+    const exactUsername = matchingMember?.username || targetUser.username;
+
+    const handle = exactUsername
+      ? `@${exactUsername}`
+      : `@${targetUser.firstName.toLowerCase()}${targetUser.lastName.toLowerCase()}`;
+
+    setReplyText(`${handle} `);
+    setReplyMentionedIds([targetUser.appUserId]);
+    setShowReplyInput(true);
   };
 
   const closeReplyInput = useCallback(() => {
@@ -156,7 +184,10 @@ export function CommentNode({
 
   return (
     <div className="flex gap-2.5">
-      <div className="flex flex-col items-center shrink-0" style={{ width: 36 }}>
+      <div
+        className="flex flex-col items-center shrink-0"
+        style={{ width: 36 }}
+      >
         <Avatar
           src={comment.appUser.profilePicture}
           alt={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
@@ -247,13 +278,19 @@ export function CommentNode({
                     disabled={!editText.trim()}
                     className="p-2 bg-primary text-white rounded-full hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all flex items-center justify-center w-8 h-8"
                   >
-                    <SendHorizontal size={16} className="relative left-[-0.5px]" />
+                    <SendHorizontal
+                      size={16}
+                      className="relative left-[-0.5px]"
+                    />
                   </button>
                 </div>
               </div>
               <div className="flex justify-start pl-4">
                 <button
-                  onClick={() => { setEditingId(null); setEditText(""); }}
+                  onClick={() => {
+                    setEditingId(null);
+                    setEditText("");
+                  }}
                   className="text-xs font-medium text-grey-400 hover:text-grey-900 cursor-pointer transition-colors"
                 >
                   Cancel
@@ -261,14 +298,36 @@ export function CommentNode({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-grey-900 leading-normal mt-0.5">
-              {comment.comment.split(" ").map((word, i) =>
-                word.startsWith("@") ? (
-                  <span key={i} className="text-blue-600 font-semibold">{word} </span>
-                ) : (
-                  word + " "
-                ),
-              )}
+            <p className="text-sm text-grey-900 leading-normal mt-0.5 whitespace-pre-wrap">
+              {comment.comment.split(" ").map((word, i) => {
+                if (word.startsWith("@")) {
+                  const cleanHandle = word
+                    .replace(/^@+/, "")
+                    .replace(/[^a-zA-Z0-9_-]/g, "");
+                  const trailingPunctuation = word.slice(
+                    cleanHandle.length + 1,
+                  );
+                  const matchedUser = members.find(
+                    (m) =>
+                      m.username?.toLowerCase() === cleanHandle.toLowerCase(),
+                  );
+
+                  if (matchedUser) {
+                    return (
+                      <span key={i}>
+                        <Link
+                          href={`/profile/${matchedUser.appUserId}`}
+                          className="text-blue-600 font-semibold hover: transition-colors cursor-pointer"
+                        >
+                          @{cleanHandle}
+                        </Link>
+                        {trailingPunctuation} LineBreak{" "}
+                      </span>
+                    );
+                  }
+                }
+                return word + " ";
+              })}
             </p>
           )}
 
@@ -292,12 +351,16 @@ export function CommentNode({
                     : "hover:text-grey-900"
                 }`}
               >
-                {activeReaction ? activeReaction.displayText : <ThumbsUp size={13} />}
+                {activeReaction ? (
+                  activeReaction.displayText
+                ) : (
+                  <ThumbsUp size={13} />
+                )}
                 {!activeReaction && "Like"}
               </button>
             </ReactionPopover>
             <button
-              onClick={() => { setShowReplyInput((v) => !v); setReplyText(""); setReplyMentionedIds([]); }}
+              onClick={handleReplyClick}
               className="hover:text-grey-900 transition-colors cursor-pointer"
             >
               Reply
@@ -329,11 +392,18 @@ export function CommentNode({
             <div className="flex-1">
               <MentionInput
                 value={replyText}
-                onChange={(val, ids) => { setReplyText(val); setReplyMentionedIds(ids); }}
+                onChange={(val, ids) => {
+                  setReplyText(val);
+                  setReplyMentionedIds(ids);
+                }}
                 onSubmit={handleReply}
                 onClose={closeReplyInput}
                 onBlurClose
-                placeholder={`Reply to ${comment.appUser.firstName} ${comment.appUser.lastName}…`}
+                placeholder={
+                  comment.appUser.username
+                    ? `Reply to @${comment.appUser.username.toLowerCase()}…`
+                    : `Reply to ${comment.appUser.firstName} ${comment.appUser.lastName}…`
+                }
                 members={members}
                 mentionedIds={replyMentionedIds}
                 autoFocus

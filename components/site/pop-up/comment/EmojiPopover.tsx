@@ -19,25 +19,27 @@ export function EmojiPopover({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        onClose();
+      }
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
   return (
     <div
       ref={ref}
-      className="absolute bottom-full mb-2 right-0 z-50 bg-background border border-border rounded-2xl shadow-lg p-3 w-64"
+      className="absolute bottom-full mb-2 right-0 z-50 bg-background border border-border rounded-2xl shadow-lg p-3 w-64 animate-in fade-in zoom-in-95 duration-150"
     >
       <div className="grid grid-cols-8 gap-1">
         {EMOJI_LIST.map((e) => (
           <button
             key={e}
-            onMouseDown={(ev) => ev.preventDefault()}
-            onClick={() => { onPick(e); onClose(); }}
-            className="text-lg hover:scale-125 transition-transform cursor-pointer flex items-center justify-center h-7 w-7"
+            type="button"
+            onClick={() => onPick(e)}
+            className="text-lg hover:scale-125 transition-transform cursor-pointer flex items-center justify-center h-7 w-7 select-none"
           >
             {e}
           </button>

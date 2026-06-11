@@ -10,6 +10,7 @@ export interface WorkspaceMember {
   lastName: string;
   profileImage?: string;
   role?: string;
+  username?: string;
 }
 
 export function useWorkspaceMembers(workspaceId: string) {

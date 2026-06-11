@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { Smile, SendHorizontal } from "lucide-react";
 import { WorkspaceMember } from "@/hooks/use-workspace-members";
@@ -35,15 +35,53 @@ export function MentionInput({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownContainerRef = useRef<HTMLDivElement>(null);
 
   const filteredMembers =
     mentionQuery !== null
-      ? members.filter((m) =>
-          `${m.firstName} ${m.lastName}`
-            .toLowerCase()
-            .includes(mentionQuery.toLowerCase()),
-        )
+      ? members.filter((m) => {
+          const fullName = `${m.firstName} ${m.lastName}`.toLowerCase();
+          const username = (m.username ?? "").toLowerCase();
+          const query = mentionQuery.toLowerCase();
+          return fullName.includes(query) || username.includes(query);
+        })
       : [];
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current && 
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setMentionQuery(null);
+        if (onBlurClose && onClose && !showEmoji) {
+          onClose();
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onBlurClose, onClose, showEmoji]);
+
+  useEffect(() => {
+    if (dropdownContainerRef.current && filteredMembers.length > 0) {
+      const activeEl = dropdownContainerRef.current.children[dropdownIndex] as HTMLElement;
+      if (activeEl) {
+        const container = dropdownContainerRef.current;
+        const itemTop = activeEl.offsetTop;
+        const itemBottom = itemTop + activeEl.offsetHeight;
+        const containerTop = container.scrollTop;
+        const containerBottom = containerTop + container.clientHeight;
+
+        if (itemTop < containerTop) {
+          container.scrollTop = itemTop;
+        } else if (itemBottom > containerBottom) {
+          container.scrollTop = itemBottom - container.clientHeight;
+        }
+      }
+    }
+  }, [dropdownIndex, filteredMembers.length]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -64,7 +102,8 @@ export function MentionInput({
       const cursor = inputRef.current?.selectionStart ?? value.length;
       const before = value.slice(0, cursor);
       const after = value.slice(cursor);
-      const replaced = before.replace(/@\w*$/, `@${member.firstName}${member.lastName} `);
+      const tag = member.username ? `@${member.username}` : `@${member.firstName.toLowerCase()}${member.lastName.toLowerCase()}`;
+      const replaced = before.replace(/@\w*$/, `${tag} `);
       const newIds = mentionedIds.includes(member.appUserId)
         ? mentionedIds
         : [...mentionedIds, member.appUserId];
@@ -113,41 +152,40 @@ export function MentionInput({
     }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (mentionQuery !== null) setMentionQuery(null);
+      if (mentionQuery !== null) {
+        setMentionQuery(null);
+        return;
+      }
       handleSubmit();
     }
   };
 
-  const handleBlur = useCallback(() => {
-    if (!onBlurClose || !onClose) return;
-    setTimeout(() => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(document.activeElement) &&
-        !isSubmitting
-      ) {
-        if (!showEmoji && mentionQuery === null) onClose();
-      }
-    }, 200);
-  }, [onBlurClose, onClose, showEmoji, mentionQuery, isSubmitting]);
-
   return (
-    <div ref={containerRef} className="relative w-full" onBlur={handleBlur}>
+    <div ref={containerRef} className="relative w-full">
       {mentionQuery !== null && filteredMembers.length > 0 && (
-        <div className="absolute bottom-full mb-2 left-0 z-50 w-72 bg-background border border-border rounded-2xl shadow-xl overflow-hidden">
-          <div className="max-h-56 overflow-y-auto">
+        <div className="absolute bottom-full mb-2 left-0 z-50 w-72 bg-background border border-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <style dangerouslySetInnerHTML={{__html: `
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          `}} />
+          <div 
+            ref={dropdownContainerRef} 
+            className="max-h-56 overflow-y-auto p-1.5 space-y-0.5 no-scrollbar"
+          >
             {filteredMembers.map((member, idx) => {
               const initials = `${member.firstName[0]}${member.lastName[0]}`.toUpperCase();
+              const isActive = idx === dropdownIndex;
               return (
                 <button
                   key={member.appUserId}
+                  type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => pickMember(member)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 transition-colors text-left cursor-pointer ${
-                    idx === dropdownIndex ? "bg-primary/10" : "hover:bg-grey-50"
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left cursor-pointer ${
+                    isActive ? "bg-primary/5 text-primary" : "hover:bg-grey-50 text-grey-900"
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-full bg-[#EBF5FB] overflow-hidden shrink-0 flex items-center justify-center border">
+                  <div className="w-9 h-9 rounded-full bg-[#EBF5FB] overflow-hidden shrink-0 flex items-center justify-center border border-border/60">
                     {member.profileImage ? (
                       <Image
                         src={member.profileImage}
@@ -157,32 +195,29 @@ export function MentionInput({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-xs font-bold text-primary uppercase">
+                      <span className="text-xs font-bold text-primary uppercase tracking-wider">
                         {initials}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-grey-900 truncate">
+                    <p className={`text-sm font-semibold truncate ${isActive ? "text-primary" : "text-grey-900"}`}>
                       {member.firstName} {member.lastName}
                     </p>
-                    {member.role && (
-                      <p className="text-xs text-grey-400 truncate">{member.role}</p>
+                    {member.username && (
+                      <p className={`text-xs truncate ${isActive ? "text-primary/70" : "text-grey-400"}`}>
+                        @{member.username}
+                      </p>
                     )}
                   </div>
                 </button>
               );
             })}
           </div>
-          <div className="px-3 py-1.5 border-t border-border bg-grey-50">
-            <p className="text-xs text-grey-400">
-              Showing {filteredMembers.length} result{filteredMembers.length !== 1 ? "s" : ""}
-            </p>
-          </div>
         </div>
       )}
 
-      <div className="flex items-center bg-grey-100 rounded-full py-1.5 pl-4 pr-2 gap-2 w-full h-11">
+      <div className="flex items-center bg-grey-50 rounded-full border border-border/40 py-1.5 pl-5 pr-2 gap-2 w-full h-11 focus-within:border-primary/40 focus-within:bg-background focus-within:shadow-xs transition-all">
         <input
           ref={inputRef}
           autoFocus={autoFocus}
@@ -196,9 +231,10 @@ export function MentionInput({
         <div className="flex items-center gap-1.5 shrink-0">
           <div className="relative">
             <button
+              type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setShowEmoji((v) => !v)}
-              className="text-grey-400 hover:text-grey-600 transition-colors cursor-pointer flex items-center"
+              className="text-grey-400 hover:text-grey-600 transition-colors cursor-pointer flex items-center p-1 rounded-full hover:bg-grey-100"
             >
               <Smile size={18} />
             </button>
@@ -210,12 +246,13 @@ export function MentionInput({
             )}
           </div>
           <button
+            type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={handleSubmit}
             disabled={!value.trim() || isSubmitting}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-opacity"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all shadow-sm"
           >
-            <SendHorizontal size={15} className="relative left-[-0.5px]" />
+            <SendHorizontal size={14} className="relative left-[-0.5px]" />
           </button>
         </div>
       </div>
