@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { CalendarMinus2, Clock, MapPin } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { apiGet } from "@/libs/api";
+import { postService } from "@/service/post.service";
 
 interface DetailContentProps {
   title?: string;
@@ -27,10 +27,7 @@ export default function DetailContentComponent({
   const fetchRegistrants = async () => {
     if (!postId || !session?.accessToken) return;
     try {
-      const data = await apiGet<any>(
-        `/posts/${postId}/participants?page=1&size=100`,
-        { authToken: session.accessToken },
-      );
+      const data = await postService.getParticipants(postId, session.accessToken, 1, 100);
       setJoinedCount(data?.payload?.length ?? 0);
     } catch {
       setJoinedCount(0);
