@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { resendOtpAction, verifyOtpAction } from "../../../actions/auth.action";
 import { useRegisterStore } from "../../../store/useRegisterStore";
+import { toast } from "sonner";
 import { LeaveVerificationModal } from "@/components/site/pop-up/leave-verification-modal";
 
 function secondsFromExpiry(expiresAt: number | null): number {
@@ -95,6 +96,9 @@ export default function Step3OTP() {
         if (result?.ok) {
           setSuccess(result.message ?? "Verification successful.");
           reset();
+          toast.success(
+            "Your account is ready. Sign in now to start exploring your dashboard.",
+          );
           setTimeout(() => router.push("/login"), 300);
         }
       });
