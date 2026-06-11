@@ -554,18 +554,18 @@ export default function EventDetailClient({
                 Discussion
               </button>
             </section>
-            {activeAdminTab === "overview" ? (
-              <AdminOverview event={event} workspaceId={workspaceId} />
-            ) : (
-              <div ref={discussionRef}>
-                <DiscussionSection event={event} />
-              </div>
-            )}
+   {activeAdminTab === "overview" ? (
+  <AdminOverview event={event} workspaceId={workspaceId} />
+) : (
+  <div ref={discussionRef}>
+    <DiscussionSection event={event} workspaceId={workspaceId} />
+  </div>
+)}
           </div>
         ) : (
-          <div ref={discussionRef} className="space-y-4">
-            <DiscussionSection event={event} />
-          </div>
+         <div ref={discussionRef} className="space-y-4">
+  <DiscussionSection event={event} workspaceId={workspaceId} />
+</div>
         )}
       </section>
 
