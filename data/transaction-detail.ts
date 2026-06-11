@@ -29,6 +29,7 @@ export const transactionDetailsData: TransactionDetail[] = [
       image: "/images/Workshop.webp",
       badge: "NEW EVENT",
       status: "Active",
+      workspaceId: "ws-001",
     },
   },
 ];
