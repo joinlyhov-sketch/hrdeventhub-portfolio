@@ -13,7 +13,7 @@ export function SuspendButton({ onClick, ...props }: SuspendButtonProps) {
       type="button"
       onClick={onClick}
       {...props} 
-      className="px-10 py-3 h-auto rounded-2xl bg-red-500 text-white font-bold text-sm hover:bg-red-700 transition-colors min-w-[140px] cursor-pointer"
+      className="px-10 py-3 h-auto rounded-2xl bg-red-500 text-white type-desc hover:bg-red-700 transition-colors min-w-[120px] cursor-pointer"
     >
       Suspend
     </Button>

@@ -20,7 +20,7 @@ export default function PollOptionsList({
 
   return (
     <div className="space-y-4 w-full">
-      <h3 className="text-sm font-bold text-slate-500 tracking-wide">
+      <h3 className="text-sm font-bold text-secondary tracking-wide">
         Poll Options
       </h3>
 
@@ -50,7 +50,7 @@ export default function PollOptionsList({
         type="button"
         variant="outline"
         onClick={onAddOption}
-        className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-gray-500 text-sm font-semibold shadow-sm hover:bg-transparent hover:text-gray-600"
+        className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-gray-500 type-desc text-sm font-semibold shadow-sm hover:bg-transparent hover:text-gray-600"
       >
         <Plus size={16} /> Add Option
       </Button>
