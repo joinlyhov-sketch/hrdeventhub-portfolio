@@ -102,16 +102,20 @@ export function MentionInput({
         pickMember(filteredMembers[dropdownIndex]);
         return;
       }
-      if (e.key === "Escape") {
+    }
+    if (e.key === "Escape") {
+      if (mentionQuery !== null) {
         setMentionQuery(null);
         return;
       }
+      if (onClose) onClose();
+      return;
     }
-    if (e.key === "Enter" && !e.shiftKey && mentionQuery === null) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (mentionQuery !== null) setMentionQuery(null);
       handleSubmit();
     }
-    if (e.key === "Escape" && onClose) onClose();
   };
 
   const handleBlur = useCallback(() => {
