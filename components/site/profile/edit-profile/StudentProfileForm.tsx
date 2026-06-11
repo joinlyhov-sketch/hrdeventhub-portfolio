@@ -5,6 +5,7 @@ import { Trash2, CircleX } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { profileService } from "@/service/profile.service";
 import {
+  deleteMe,
   getIdentityMeAction,
   updateIdentityMeAction,
   updateProfileMeAction,
@@ -12,19 +13,24 @@ import {
 import { useRouter } from "next/navigation";
 import { uploadFileAction } from "@/actions/file.action";
 import ImageAdjustModal from "../ImageAdjustModal";
+import { toast } from "sonner";
+import * as Flags from "country-flag-icons/react/3x2";
+import { AddSkillModal } from "@/components/dashboard/AddSkillModal";
+import { DeleteResumeModal } from "@/components/dashboard/DeleteResumeModal";
 
 export default function StudentProfileForm() {
   const { data: session } = useSession();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
+  const [initialCvResumeUrl, setInitialCvResumeUrl] = useState("");
 
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
-
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
 
@@ -43,6 +49,8 @@ export default function StudentProfileForm() {
   const [currentStatus, setCurrentStatus] = useState("studying");
   const [profilePicture, setProfilePicture] = useState<string | null>("");
   const [cvResumeUrl, setCvResumeUrl] = useState<string | null>("");
+  const [isDeleteResumeModalOpen, setIsDeleteResumeModalOpen] = useState(false);
+
   const [profileSharingMode, setProfileSharingMode] = useState<
     "PUBLIC" | "PRIVATE"
   >("PUBLIC");
@@ -63,6 +71,109 @@ export default function StudentProfileForm() {
   const [githubUrl, setGithubUrl] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
   const [telegramUrl, setTelegramUrl] = useState("");
+  const [errors, setErrors] = useState({
+    firstName: "",
+    lastName: "",
+    username: "",
+    dob: "",
+    phoneNumber: "",
+    bio: "",
+    linkedinUrl: "",
+    githubUrl: "",
+    facebookUrl: "",
+    telegramUrl: "",
+  });
+  const validateForm = () => {
+    const newErrors = {
+      firstName: "",
+      lastName: "",
+      username: "",
+      dob: "",
+      phoneNumber: "",
+      bio: "",
+      linkedinUrl: "",
+      githubUrl: "",
+      facebookUrl: "",
+      telegramUrl: "",
+    };
+
+    let isValid = true;
+
+    if (!firstName.trim()) {
+      newErrors.firstName = "First name is required";
+      isValid = false;
+    }
+
+    if (!lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+      isValid = false;
+    }
+
+    if (!username.trim()) {
+      newErrors.username = "Username is required";
+      isValid = false;
+    } else if (/\s/.test(username)) {
+      newErrors.username = "Username cannot contain spaces";
+      isValid = false;
+    } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      newErrors.username =
+        "Username can only contain letters, numbers and underscore";
+      isValid = false;
+    }
+
+    if (!dob.trim()) {
+      newErrors.dob = "Date of birth is required";
+      isValid = false;
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+      newErrors.dob = "Format must be YYYY-MM-DD";
+      isValid = false;
+    }
+
+    if (!phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required";
+      isValid = false;
+    } else if (!/^[0-9+\-\s()]+$/.test(phoneNumber)) {
+      newErrors.phoneNumber = "Invalid phone number";
+      isValid = false;
+    }
+
+    if (
+      linkedinUrl.trim() &&
+      !/^https?:\/\/(www\.)?linkedin\.com/i.test(linkedinUrl)
+    ) {
+      newErrors.linkedinUrl = "Invalid LinkedIn URL";
+      isValid = false;
+    }
+
+    if (
+      githubUrl.trim() &&
+      !/^https?:\/\/(www\.)?github\.com/i.test(githubUrl)
+    ) {
+      newErrors.githubUrl = "Invalid GitHub URL";
+      isValid = false;
+    }
+
+    if (
+      facebookUrl.trim() &&
+      !/^https?:\/\/(www\.)?facebook\.com/i.test(facebookUrl)
+    ) {
+      newErrors.facebookUrl = "Invalid Facebook URL";
+      isValid = false;
+    }
+
+    if (
+      telegramUrl.trim() &&
+      !/^https:\/\/t\.me\/[a-zA-Z0-9_]{5,32}$/.test(telegramUrl.trim())
+    ) {
+      newErrors.telegramUrl =
+        "Telegram URL must be in the format https://t.me/username";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+
+    return isValid;
+  };
 
   useEffect(() => {
     const loadAllUserData = async () => {
@@ -106,6 +217,7 @@ export default function StudentProfileForm() {
           setCurrentStatus(p.currentStatus || "studying");
           setProfilePicture(p.profilePicture || "");
           setCvResumeUrl(p.cvResumeUrl || "");
+          setInitialCvResumeUrl(p.cvResumeUrl || "");
 
           let parsedSkills: string[] = [];
           if (p.skills && p.skills[0]) {
@@ -197,6 +309,23 @@ export default function StudentProfileForm() {
     loadAllUserData();
   }, [session]);
 
+  const confirmDeleteResume = async () => {
+    if (cvResumeUrl && cvResumeUrl !== initialCvResumeUrl) {
+      setCvResumeUrl("");
+      toast.success("Resume removed.");
+      return;
+    }
+
+    const result = await deleteMe();
+    console.log(result);
+    if (result.success) {
+      setCvResumeUrl("");
+      toast.success("Resume deleted successfully.");
+    } else {
+      toast.error("Failed to delete resume.");
+    }
+  };
+
   const handleContainerClick = () => {
     if (!isUploading) fileInputRef.current?.click();
   };
@@ -254,8 +383,9 @@ export default function StudentProfileForm() {
       const result = await uploadFileAction(dataPayload);
       if (result.ok && result.payload?.fileUrl) {
         setCvResumeUrl(result.payload.fileUrl);
+        toast.success("Resume uploaded successfully.");
       } else {
-        setError(result.error || "Resume upload was rejected by the server.");
+        toast.error(result.error || "Failed to upload resume.");
         setCvResumeUrl(initialProfile?.cvResumeUrl || "");
       }
     } catch (err) {
@@ -277,6 +407,11 @@ export default function StudentProfileForm() {
 
   const handleSaveChanges = () => {
     setError(null);
+
+    if (!validateForm()) {
+      toast.error("Please fix the validation errors.");
+      return;
+    }
     const currentIdentityPayload = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
@@ -355,6 +490,7 @@ export default function StudentProfileForm() {
         if (identityResult?.success && profileResult?.success) {
           router.refresh();
           router.back();
+          toast.success("Profile updated successfully.");
           return;
         }
         if (!identityResult?.success)
@@ -370,6 +506,9 @@ export default function StudentProfileForm() {
               "Profile validation failed.",
           );
       } catch (err: any) {
+        setError(
+          err?.message || "An exception blocked synchronization attempts.",
+        );
         setError(
           err?.message || "An exception blocked synchronization attempts.",
         );
@@ -419,7 +558,7 @@ export default function StudentProfileForm() {
   );
 
   return (
-    <div className="xl:col-span-8 border border-border rounded-2xl p-6 flex flex-col gap-6">
+    <div className="xl:col-span-8 border border-border rounded-2xl p-6 flex flex-col gap-4">
       {error && (
         <div className="p-4 text-sm bg-destructive/10 text-destructive rounded-lg font-mono whitespace-pre-wrap">
           {error}
@@ -442,7 +581,7 @@ export default function StudentProfileForm() {
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
+                <div className="absolute opacity-0 hover:opacity-100 duration-300 ease-in-out inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
                   {isUploading ? (
                     <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
                   ) : (
@@ -482,30 +621,76 @@ export default function StudentProfileForm() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1 w-full min-w-0">
             <div className="flex flex-col gap-1.5">
               <label className="type-desc text-secondary">First Name</label>
+
               <input
                 type="text"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    firstName: "",
+                  }));
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg ${
+                  errors.firstName ? "border-red-500" : "border-border"
+                }`}
               />
+
+              {errors.firstName && (
+                <p className="text-red-500 text-xs">{errors.firstName}</p>
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="type-desc text-secondary">Last Name</label>
               <input
                 type="text"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
+                onChange={(e) => {
+                  setLastName(e.target.value);
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    lastName: "",
+                  }));
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg ${
+                  errors.lastName ? "border-red-500" : "border-border"
+                }`}
               />
+
+              {errors.lastName && (
+                <p className="text-red-500 text-xs">{errors.lastName}</p>
+              )}
             </div>
+
             <div className="flex flex-col gap-1.5">
               <label className="type-desc text-secondary">Username</label>
+
               <input
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  setUsername(value);
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    username: /\s/.test(value)
+                      ? "Username cannot contain spaces"
+                      : "",
+                  }));
+                }}
+                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail-medium text-primary ${
+                  errors.username ? "border-red-500" : "border-border"
+                }`}
               />
+
+              {errors.username && (
+                <p className="text-red-500 text-xs">{errors.username}</p>
+              )}
             </div>
           </div>
         </div>
@@ -519,26 +704,33 @@ export default function StudentProfileForm() {
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Date of Birth</label>
             <input
-              type="text"
+              type="date"
               value={dob}
-              placeholder="YYYY-MM-DD"
-              onChange={(e) => setDob(e.target.value)}
-              className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary"
+              onChange={(e) => {
+                setDob(e.target.value);
+
+                setErrors((prev) => ({
+                  ...prev,
+                  dob: "",
+                }));
+              }}
+              className={`w-full h-10 px-3 bg-white border rounded-lg ${
+                errors.dob ? "border-red-500" : "border-border"
+              }`}
             />
+
+            {errors.dob && <p className="text-red-500 text-xs">{errors.dob}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Current Status</label>
             <select
-              value={
-                currentStatus.toLowerCase() === "studying"
-                  ? "studying"
-                  : "graduated"
-              }
+              value={currentStatus.toLowerCase()}
               onChange={(e) => setCurrentStatus(e.target.value)}
               className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
             >
               <option value="studying">Studying</option>
-              <option value="graduated">Graduated</option>
+              <option value="working">Working</option>
+              <option value="job_seeking">Job Seeking</option>
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -561,13 +753,41 @@ export default function StudentProfileForm() {
         >
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Phone Number</label>
-            <input
-              type="text"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary"
-            />
+
+            <div
+              className={`flex items-center h-10 rounded-lg border bg-white overflow-hidden transition-all focus-within:border-primary ${
+                errors.phoneNumber ? "border-red-500" : "border-border"
+              }`}
+            >
+              <div className="flex items-center gap-2 bg-gray-50 border-r border-border h-full px-3 shrink-0 text-sm font-medium text-gray-500">
+                <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center">
+                  <Flags.KH className="w-full object-cover" />
+                </span>
+
+                <span className="text-primary">+855</span>
+              </div>
+
+              <input
+                type="text"
+                value={phoneNumber}
+                onChange={(e) => {
+                  setPhoneNumber(e.target.value);
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    phoneNumber: "",
+                  }));
+                }}
+                className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
+                placeholder="123 456 789"
+              />
+            </div>
+
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-xs">{errors.phoneNumber}</p>
+            )}
           </div>
+
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">
               Email (Read Only)
@@ -593,6 +813,7 @@ export default function StudentProfileForm() {
       </div>
       <section className="space-y-4">
         <h2 className="type-subtitle-24 text-primary">Social Accounts</h2>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div className="flex items-end gap-3 w-full">
             <div className="shrink-0 mb-1">
@@ -627,19 +848,36 @@ export default function StudentProfileForm() {
                 />
               </svg>
             </div>
-            <div className="flex flex-col gap-1.5 flex-1">
+
+            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
               <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
                 LinkedIn
               </label>
-              <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
+
+              <div
+                className={`flex items-center h-12 px-3 border rounded-xl bg-white transition-all focus-within:border-primary ${
+                  errors.linkedinUrl ? "border-red-500" : "border-border"
+                }`}
+              >
                 <input
                   type="text"
-                  placeholder="linkedin.com/in/username"
                   value={linkedinUrl}
-                  onChange={(e) => setLinkedinUrl(e.target.value)}
-                  className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
+                  placeholder="linkedin.com/in/username"
+                  onChange={(e) => {
+                    setLinkedinUrl(e.target.value);
+
+                    setErrors((prev) => ({
+                      ...prev,
+                      linkedinUrl: "",
+                    }));
+                  }}
+                  className="w-full bg-transparent outline-none type-detail text-foreground font-medium placeholder:text-gray-400"
                 />
               </div>
+
+              {errors.linkedinUrl && (
+                <p className="text-xs text-red-500">{errors.linkedinUrl}</p>
+              )}
             </div>
           </div>
 
@@ -674,6 +912,10 @@ export default function StudentProfileForm() {
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
                 />
               </div>
+
+              {errors.githubUrl && (
+                <p className="text-xs text-red-500">{errors.githubUrl}</p>
+              )}
             </div>
           </div>
 
@@ -716,6 +958,10 @@ export default function StudentProfileForm() {
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
                 />
               </div>
+
+              {errors.facebookUrl && (
+                <p className="text-xs text-red-500">{errors.facebookUrl}</p>
+              )}
             </div>
           </div>
 
@@ -758,18 +1004,15 @@ export default function StudentProfileForm() {
                   className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
                 />
               </div>
+
+              {errors.telegramUrl && (
+                <p className="text-xs text-red-500">{errors.telegramUrl}</p>
+              )}
             </div>
           </div>
         </div>
-
-        <button
-          type="button"
-          className="w-full py-3 mt-2 border border-border rounded-xl text-center type-desc-medium text-secondary hover:bg-grey-50 transition-colors"
-        >
-          + Add your social media
-        </button>
       </section>
-      <div className="space-y-4 w-full">
+      <div className="space-y-4 w-full mt-4">
         <div className="flex justify-between items-center gap-2">
           <h2 className="type-subtitle-24 text-primary">Education</h2>
           <button
@@ -892,10 +1135,7 @@ export default function StudentProfileForm() {
           ))}
           <button
             type="button"
-            onClick={() => {
-              const input = prompt("Enter new skill:");
-              if (input?.trim()) setSkills([...skills, input.trim()]);
-            }}
+            onClick={() => setIsSkillModalOpen(true)}
             className="flex items-center gap-1 px-2.5 py-3 border border-[#C1D8F0] rounded-xl text-secondary type-detail-medium bg-white hover:bg-grey-50 cursor-pointer"
           >
             + Add Skill
@@ -1015,17 +1255,16 @@ export default function StudentProfileForm() {
               className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}
             >
               {cvResumeUrl
-                ? cvResumeUrl.split("/").pop()
-                : "CV_Kaknika_shii.pdf"}
+                ? `CV_${username}.` + cvResumeUrl.split(".").pop()
+                : "CV_Example.pdf"}
             </span>
           </div>
           {cvResumeUrl && (
             <button
               type="button"
-              onClick={() => setCvResumeUrl("")}
-              className="p-2 hover:bg-gray-100 rounded text-destructive transition-colors border-0 bg-transparent cursor-pointer shrink-0"
+              onClick={() => setIsDeleteResumeModalOpen(true)}
             >
-              <Trash2 className="w-5 h-5" />
+              <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
             </button>
           )}
         </div>
@@ -1055,6 +1294,30 @@ export default function StudentProfileForm() {
           onSave={handleCroppedImageSave}
         />
       )}
+
+      <AddSkillModal
+        isOpen={isSkillModalOpen}
+        onClose={() => setIsSkillModalOpen(false)}
+        onAddSkill={(skill) => {
+          if (skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
+            toast.error("This skill already exists.");
+            return;
+          }
+
+          setSkills((prev) => [...prev, skill]);
+          toast.success("Skill added successfully.");
+        }}
+      />
+      <DeleteResumeModal
+        isOpen={isDeleteResumeModalOpen}
+        onClose={() => setIsDeleteResumeModalOpen(false)}
+        fileName={
+          cvResumeUrl
+            ? `CV_${username}.${cvResumeUrl.split(".").pop()}`
+            : undefined
+        }
+        onConfirm={confirmDeleteResume}
+      />
     </div>
   );
 }
