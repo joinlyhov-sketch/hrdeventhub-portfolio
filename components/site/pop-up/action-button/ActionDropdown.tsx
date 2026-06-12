@@ -23,8 +23,8 @@ export default function ActionDropdown({ actions }: ActionDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button 
-          onClick={(e) => e.stopPropagation()} 
+        <button
+          onClick={(e) => e.stopPropagation()}
           className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-lg transition-colors inline-flex items-center justify-center cursor-pointer"
         >
           <MoreVertical className="w-4 h-4" />
@@ -32,7 +32,7 @@ export default function ActionDropdown({ actions }: ActionDropdownProps) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="flex flex-col justify-center w-20 h-25 bg-card gap-10"
+        className="flex flex-col justify-center w-20 h-auto bg-card gap-10"
         align="start"
       >
         <DropdownMenuGroup>

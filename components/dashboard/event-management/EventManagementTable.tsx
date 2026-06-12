@@ -1,9 +1,22 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ListFilter, Pencil, Trash2, XCircle, UserX } from "lucide-react";
-import { EventManagement } from "../../../types/event-management";
+import {
+  Globe,
+  ListFilter,
+  Pencil,
+  Trash2,
+  UserX,
+  XCircle,
+} from "lucide-react";
+import { EventItem } from "@/service/event.service";
+import {
+  changePostStatusAction,
+  deletePostAction,
+  publishDraftPostAction,
+} from "@/actions/post.action";
+import { DeleteEventModal } from "@/components/dashboard/delete-event-modal";
 import {
   Table,
   TableBody,
@@ -24,23 +37,55 @@ import Link from "next/link";
 import ActionDropdown, {
   DropdownAction,
 } from "@/components/site/pop-up/action-button/ActionDropdown";
+import { toast } from "sonner";
+import { CloseEventModal } from "../close-event-model";
+import { PublishEventModal } from "../publish-event-modal";
 
 interface EventManagementTableProps {
-  events: EventManagement[];
+  events: EventItem[];
   searchTerm: string;
 }
 
 const getStatusStyles = (status: string): string => {
-  switch (status) {
-    case "Published":
-      return "bg-[#FFF4E5] text-[#FF9F1C]";
-    case "Draft":
-      return "bg-[#EBF3FF] text-[#1D4ED8]";
-    case "Cancel":
+  switch (status?.toLowerCase()) {
+    case "active":
+    case "published":
+    case "open":
+      return "bg-[#E6F9F1] text-accent";
+    case "draft":
+      return "bg-gray-100 text-gray-500";
+    case "cancel":
+    case "closed":
       return "bg-[#FEE2E2] text-[#EF4444]";
     default:
       return "bg-gray-100 text-gray-700";
   }
+};
+
+const formatDate = (dateStr: string): string => {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month}, ${year}`;
 };
 
 export function EventManagementTable({
@@ -48,23 +93,44 @@ export function EventManagementTable({
   searchTerm,
 }: EventManagementTableProps) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
-  const itemsPerPage = 10;
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [activeEvent, setActiveEvent] = useState<{
+    id: string;
+    title: string;
+    groudId: string | undefined;
+  } | null>(null);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [closeEventData, setCloseEventData] = useState<{
+    id: string;
+    title: string;
+    groupId: string | undefined;
+  } | null>(null);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [publishEventData, setPublishEventData] = useState<{
+    id: string;
+    title: string;
+    groupId: string | undefined;
+  } | null>(null);
+
+  const itemsPerPage = 10;
   const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      const matchesSearch = event.name
-        .toLowerCase()
+    return (events || []).filter((event) => {
+      const matchesSearch = event.title
+        ?.toLowerCase()
         .includes(searchTerm.toLowerCase());
 
       const matchesStatus =
-        selectedStatus === "all" || event.status === selectedStatus;
+        selectedStatus === "all" ||
+        event.status?.toLowerCase() === selectedStatus.toLowerCase();
 
       let matchesDate = true;
-      if (selectedDateRange !== "all" && event.date) {
-        const eventDate = new Date(event.date);
+      if (selectedDateRange !== "all" && event.createdAt) {
+        const eventDate = new Date(event.createdAt);
         const now = new Date();
 
         const today = new Date(
@@ -111,17 +177,70 @@ export function EventManagementTable({
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredEvents.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredEvents, currentPage]);
+  const handleDeleteExecute = async (
+    groupId: string | undefined,
+    postId: string | undefined,
+  ) => {
+    console.log("show groupID: ", closeEventData);
+    if (!groupId || !postId) return;
 
-  const handleDeleteRequest = (id: string) => {
-    if (confirm("Are you sure you want to delete this event?")) {
-      console.log(`Deleting event with ID: ${id}`);
-    }
+    await new Promise<void>((resolve, reject) => {
+      startTransition(async () => {
+        try {
+          await deletePostAction(groupId, postId);
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
   };
 
-  const handleCancelRequest = (id: string) => {
-    if (confirm("Are you sure you want to cancel this event?")) {
-      console.log(`Canceling event with ID: ${id}`);
-    }
+  const handlePublishExecute = async (groupId: string, postId: string) => {
+    return new Promise<void>((resolve, reject) => {
+      startTransition(async () => {
+        try {
+          const result = await publishDraftPostAction(groupId, postId);
+          if (result.ok) {
+            toast.success("Published event live successfully!");
+            router.refresh();
+            resolve();
+          } else {
+            toast.error(`Error publishing event: ${result.error}`);
+            reject(new Error(result.error));
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error("An unexpected execution exception occurred.");
+          reject(err);
+        }
+      });
+    });
+  };
+
+  const handleCloseExecute = async (
+    groupId: string,
+    postId: string,
+    reason: string,
+  ) => {
+    startTransition(async () => {
+      try {
+        const result = await changePostStatusAction(groupId, postId, {
+          status: "closed",
+          reason: reason,
+        });
+
+        if (result.ok) {
+          toast.success("Closed event successfully!");
+          router.refresh();
+        } else {
+          toast.error(`Error closing event: ${result.error}`);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("An unexpected execution exception occurred.");
+      }
+    });
   };
 
   const dateLabels: Record<string, string> = {
@@ -136,18 +255,16 @@ export function EventManagementTable({
 
   return (
     <div className="space-y-6">
-      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-[580px] bg-white">
-        <Table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
+      <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-145 bg-white">
+        <Table className="w-full text-left border-collapse min-w-250 table-fixed">
           <TableHeader>
-            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
+            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-13">
               <TableHead className="px-5 py-3 text-center text-white type-desc-semibold w-[6%]">
                 No.
               </TableHead>
-
               <TableHead className="px-5 py-3 text-left text-white type-desc-semibold w-[24%]">
                 Event Name
               </TableHead>
-
               <TableHead className="px-5 py-3 text-left text-white type-desc-semibold w-[18%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -160,7 +277,7 @@ export function EventManagementTable({
                       <ListFilter size={16} className="shrink-0" />
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[150px]">
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-37.5">
                     <DropdownMenuRadioGroup
                       value={selectedDateRange}
                       onValueChange={(val) => {
@@ -168,57 +285,22 @@ export function EventManagementTable({
                         setCurrentPage(1);
                       }}
                     >
-                      <DropdownMenuRadioItem
-                        value="all"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        All
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="today"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Today
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="yesterday"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Yesterday
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="7days"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Last 7 days
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="30days"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Last 30 days
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="thisMonth"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        This Month
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="lastMonth"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Last Month
-                      </DropdownMenuRadioItem>
+                      {Object.keys(dateLabels).map((key) => (
+                        <DropdownMenuRadioItem
+                          key={key}
+                          value={key}
+                          className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                        >
+                          {key === "all" ? "All" : dateLabels[key]}
+                        </DropdownMenuRadioItem>
+                      ))}
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableHead>
-
               <TableHead className="px-5 py-3 text-left text-white type-desc-semibold w-[15%]">
                 Category
               </TableHead>
-
               <TableHead className="px-5 py-3 text-left text-white type-desc-semibold w-[15%]">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -230,7 +312,7 @@ export function EventManagementTable({
                       <ListFilter size={16} className="shrink-0" />
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[130px]">
+                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-32.5">
                     <DropdownMenuRadioGroup
                       value={selectedStatus}
                       onValueChange={(val) => {
@@ -245,32 +327,30 @@ export function EventManagementTable({
                         All
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem
-                        value="Published"
+                        value="active"
                         className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                       >
-                        Published
+                        Active
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem
-                        value="Draft"
+                        value="draft"
                         className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                       >
                         Draft
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem
-                        value="Cancel"
+                        value="closed"
                         className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                       >
-                        Cancel
+                        Closed
                       </DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableHead>
-
               <TableHead className="px-5 py-3 text-center text-white type-desc-semibold w-[12%]">
                 Attendee
               </TableHead>
-
               <TableHead className="px-5 py-3 text-center text-white type-desc-semibold w-[10%]">
                 Action
               </TableHead>
@@ -279,64 +359,105 @@ export function EventManagementTable({
 
           <TableBody>
             {paginatedEvents.length > 0 ? (
-              paginatedEvents.map((event) => {
+              paginatedEvents.map((event, index) => {
+                const groupId = event.workspaceId;
+                const absoluteIndex =
+                  (currentPage - 1) * itemsPerPage + index + 1;
+                const eventWorkspaceId =
+                  event.sourceWorkspaceId || event.workspaceId;
+
                 const currentItemActions: DropdownAction[] = [
                   {
                     label: "Update",
                     icon: Pencil,
-                    onClick: () =>
-                      router.push(`/event-management/edition/event`),
+                    onClick: () => {
+                      if (!eventWorkspaceId) return;
+                      router.push(
+                        `/event-management/edition/event?groupId=${groupId}&postId=${event.postId}&admin=true`,
+                      );
+                    },
                   },
                   {
                     label: "Delete",
                     icon: Trash2,
-                    onClick: () => handleDeleteRequest(event.id),
-                  },
-                  {
-                    label: "Cancel",
-                    icon: XCircle,
-                    onClick: () => handleCancelRequest(event.id),
+                    onClick: () => {
+                      setActiveEvent({
+                        id: event.postId,
+                        title: event.title,
+                        groudId: groupId,
+                      });
+                      setIsDeleteModalOpen(true);
+                    },
                   },
                 ];
+                if (event.status?.toLowerCase() != "active") {
+                  currentItemActions.push({
+                    label: "Public",
+                    icon: Globe,
+                    onClick: () => {
+                      setPublishEventData({
+                        id: event.postId,
+                        title: event.title,
+                        groupId: groupId,
+                      });
+                      setIsPublishModalOpen(true);
+                    },
+                  });
+                }
+
+                if (event.status?.toLowerCase() !== "closed") {
+                  currentItemActions.push({
+                    label: "Close",
+                    icon: XCircle,
+                    onClick: () => {
+                      setCloseEventData({
+                        id: event.postId,
+                        title: event.title,
+                        groupId: groupId,
+                      });
+                      setIsCloseModalOpen(true);
+                    },
+                  });
+                }
 
                 return (
                   <TableRow
-                    key={event.id}
+                    key={event.postId}
                     className="hover:bg-gray-50/80 border-b border-gray-100 h-14"
                   >
                     <TableCell className="text-center text-secondary type-desc">
-                      {event.no}
+                      {absoluteIndex}
                     </TableCell>
 
                     <TableCell
-                      title={event.name}
-                      className="max-w-[140px] truncate text-left text-primary type-desc cursor-pointer"
+                      title={event.title}
+                      className="max-w-35 truncate text-left text-primary type-desc cursor-pointer"
                     >
                       <Link
-                        href={`/event-management/attendees-list/${event.id}`}
+                        href={`/event-management/attendees-list/${event.postId}`}
                         className="hover:underline"
                       >
-                        {event.name}
+                        {event.title}
                       </Link>
                     </TableCell>
 
                     <TableCell
-                      title={event.date}
-                      className="max-w-[140px] truncate text-left text-gray-500 type-desc"
+                      title={event.eventStart}
+                      className="max-w-35 truncate text-left text-gray-500 type-desc"
                     >
-                      {event.date}
+                      {formatDate(event.eventStart)}
                     </TableCell>
 
                     <TableCell
                       title={event.category}
-                      className="max-w-[120px] truncate text-left text-gray-500 type-desc"
+                      className="max-w-30 truncate text-left text-gray-500 type-desc"
                     >
                       {event.category || "-"}
                     </TableCell>
 
                     <TableCell className="text-left">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full type-desc-small-semibold font-bold whitespace-nowrap ${getStatusStyles(
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full type-desc-small-semibold font-bold whitespace-nowrap capitalize ${getStatusStyles(
                           event.status,
                         )}`}
                       >
@@ -346,9 +467,7 @@ export function EventManagementTable({
                     </TableCell>
 
                     <TableCell className="text-center text-secondary type-desc">
-                      {event.attendees !== null && event.attendees !== undefined
-                        ? event.attendees.toLocaleString()
-                        : "-"}
+                      {(event.attendeeCount ?? 0).toLocaleString()}
                     </TableCell>
 
                     <TableCell className="text-center">
@@ -359,10 +478,7 @@ export function EventManagementTable({
               })
             ) : (
               <TableRow className="hover:bg-transparent border-b-0">
-                <TableCell
-                  colSpan={7}
-                  className="px-6 py-16 text-center h-[520px]"
-                >
+                <TableCell colSpan={7} className="px-6 py-16 text-center h-130">
                   <div className="flex flex-col items-center justify-center space-y-3">
                     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-slate-400 border border-slate-100">
                       <UserX size={30} className="text-red-500" />
@@ -390,6 +506,53 @@ export function EventManagementTable({
           onPageChange={setCurrentPage}
         />
       )}
+
+      <DeleteEventModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setActiveEvent(null);
+        }}
+        eventTitle={activeEvent?.title || ""}
+        onConfirm={() =>
+          handleDeleteExecute(activeEvent?.groudId, activeEvent?.id)
+        }
+      />
+
+      <CloseEventModal
+        isOpen={isCloseModalOpen}
+        onClose={() => {
+          setIsCloseModalOpen(false);
+          setCloseEventData(null);
+        }}
+        eventTitle={closeEventData?.title || ""}
+        onConfirm={async (reason) => {
+          if (closeEventData?.groupId && closeEventData?.id) {
+            await handleCloseExecute(
+              closeEventData.groupId,
+              closeEventData.id,
+              reason,
+            );
+          }
+        }}
+      />
+
+      <PublishEventModal
+        isOpen={isPublishModalOpen}
+        onClose={() => {
+          setIsPublishModalOpen(false);
+          setPublishEventData(null);
+        }}
+        eventTitle={publishEventData?.title || ""}
+        onConfirm={async () => {
+          if (publishEventData?.groupId && publishEventData?.id) {
+            await handlePublishExecute(
+              publishEventData.groupId,
+              publishEventData.id,
+            );
+          }
+        }}
+      />
     </div>
   );
 }

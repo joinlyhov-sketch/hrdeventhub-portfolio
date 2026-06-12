@@ -53,10 +53,7 @@ export default function NewPasswordStep() {
   const handlePasswordBlur = () => {
     const result = passwordSchema.safeParse(password);
     if (!result.success) {
-      setErrors((prev) => ({
-        ...prev,
-        password: result.error.issues[0].message,
-      }));
+      setErrors((prev) => ({ ...prev, password: result.error.issues[0].message }));
     } else {
       setErrors((prev) => ({ ...prev, password: undefined }));
     }
@@ -64,17 +61,11 @@ export default function NewPasswordStep() {
 
   const handleConfirmPasswordBlur = () => {
     if (!confirmPassword) {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: "Please confirm your password",
-      }));
+      setErrors((prev) => ({ ...prev, confirmPassword: "Please confirm your password" }));
       return;
     }
     if (password !== confirmPassword) {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: "Passwords do not match",
-      }));
+      setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match" }));
     } else {
       setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
     }
@@ -122,14 +113,14 @@ export default function NewPasswordStep() {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="flex flex-col gap-5 w-full items-stretch px-15"
+      className="flex flex-col gap-5 w-full items-stretch sm:px-8"
     >
       <div className="mb-5 text-center">
-        <h2 className="text-[28px] font-bold text-[#17356f]">
+        <h2 className="text-[22px] sm:text-[28px] font-bold text-[#17356f]">
           Create a new password
         </h2>
-        <p className="mt-2 text-[#6e7580] text-[16px]">
-          You can enter your new password. You can change it <br></br> successfully.
+        <p className="mt-2 text-[#6e7580] text-[14px] sm:text-[16px]">
+          You can enter your new password. You can change it successfully.
         </p>
       </div>
 
@@ -203,7 +194,7 @@ export default function NewPasswordStep() {
       <button
         onClick={handleSubmit}
         disabled={isPending}
-        className="mt-3 h-[58px] w-full rounded-2xl bg-[#24529a] text-lg  text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+        className="mt-3 h-[50px] sm:h-[58px] w-full rounded-2xl bg-[#24529a] text-base sm:text-lg text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
       >
         {isPending ? "Saving..." : "Save"}
       </button>

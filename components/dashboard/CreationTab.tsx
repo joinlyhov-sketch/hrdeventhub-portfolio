@@ -5,22 +5,21 @@ import Link from "next/link";
 import { CalendarDays, Megaphone, BookOpenTextIcon } from "lucide-react";
 import { Button } from "../ui/button";
 
-export function CreationTabs() {
+export function CreationTabs({ groupid }: { groupid: string }) {
   const pathname = usePathname();
-
   const navigationItems = [
     {
-      href: "/event-management/creation/event",
+      href: `/event-management/creation/event`,
       label: "Event",
       icon: CalendarDays,
     },
     {
-      href: "/event-management/creation/announcement",
+      href: `/event-management/creation/announcement`,
       label: "Announcement",
       icon: Megaphone,
     },
     {
-      href: "/event-management/creation/article",
+      href: `/event-management/creation/article`,
       label: "Article",
       icon: BookOpenTextIcon,
     },
@@ -44,7 +43,7 @@ export function CreationTabs() {
             }`}
           >
             <Link
-              href={item.href}
+              href={`${item.href}?groupId=${groupid}`}
               className="flex items-center py-5 justify-center gap-2"
             >
               <Icon

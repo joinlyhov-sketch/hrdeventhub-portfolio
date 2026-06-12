@@ -1,69 +1,133 @@
-import { CalendarDays, ChevronRight, Clock3, MapPin } from "lucide-react";
+"use client";
 
-import { upcomingEventGroups } from "@/data/UpcomingEvents";
+import { useMemo } from "react";
+import Link from "next/link";
+import {
+  CalendarDays,
+  ChevronRight,
+  Clock3,
+  Loader2,
+  MapPin,
+} from "lucide-react";
+import { useUpcomingEvents } from "@/hooks/use-upcoming-events";
 
-export default function UpcomingEventSection() {
+type Props = {
+  workspaceId?: string;
+  role?: "admin" | "student" | "alumni" | "organizer";
+};
+
+const formatTime = (date: Date) =>
+  date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+export default function UpcomingEventSection({ workspaceId, role }: Props) {
+  const { events, isLoading, error } = useUpcomingEvents({ workspaceId, role });
+  const eventGroups = useMemo(() => {
+    const groups = new Map<string, typeof events>();
+
+    events.forEach((event) => {
+      const startDate = new Date(event.eventStart);
+      if (Number.isNaN(startDate.getTime())) return;
+
+      const key = `${startDate.getFullYear()}-${startDate.getMonth()}`;
+      const group = groups.get(key) ?? [];
+      group.push(event);
+      groups.set(key, group);
+    });
+
+    return Array.from(groups.values()).map((groupEvents) => {
+      const groupDate = new Date(groupEvents[0].eventStart);
+
+      return {
+        key: `${groupDate.getFullYear()}-${groupDate.getMonth()}`,
+        title: `${groupDate.toLocaleDateString("en-US", {
+          month: "long",
+        })} Events`,
+        events: groupEvents,
+      };
+    });
+  }, [events]);
+
   return (
-    <section className="mt-10">
-      <div className="mb-8 flex items-center gap-3">
-        <div className="inline-flex size-10 items-center justify-center rounded-lg bg-action/10 text-action">
-          <CalendarDays size={20} />
-        </div>
-
+    <section className="upcoming-events-section">
+      <div className="upcoming-events-heading">
+        <CalendarDays className="text-action" size={24} />
         <h2 className="type-title text-primary">
           Upcoming <span className="text-action">Event</span>
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {upcomingEventGroups.map((group) => (
-          <div key={group.monthTitle}>
-            <div className="mb-5 flex items-center gap-3">
-              <div className="h-8 w-1 rounded-full bg-action" />
+      {isLoading && (
+        <div className="calendar-status-indicator">
+          <Loader2 size={14} className="animate-spin" />
+          <span>Loading upcoming events...</span>
+        </div>
+      )}
+      {error && !isLoading && (
+        <div className="calendar-status-indicator calendar-status-error">
+          <span>Failed to load events</span>
+        </div>
+      )}
+      {!isLoading && !error && events.length === 0 && (
+        <p className="text-sm text-muted-foreground">No upcoming events</p>
+      )}
 
-              <h3 className="type-subtitle text-primary">{group.monthTitle}</h3>
-            </div>
+      <div className="upcoming-events-grid">
+        {eventGroups.map((group) => (
+          <div key={group.key} className="upcoming-event-group">
+            <h3 className="upcoming-event-month">{group.title}</h3>
 
-            <div className="space-y-4">
-              {group.events.map((event) => (
-                <article
-                  key={event.id}
-                  className="flex items-center rounded-xl border border-border bg-card p-5"
-                >
-                  <div className="flex min-w-[80px] flex-col items-center border-r border-border pr-5">
-                    <h3 className="type-title text-primary">{event.day}</h3>
+            <div className="upcoming-event-list">
+              {group.events.map((event) => {
+                const startDate = new Date(event.eventStart);
+                const endDate = new Date(event.eventEnd);
+                const hasEndDate = !Number.isNaN(endDate.getTime());
+                const eventWorkspaceId = event.sourceWorkspaceId || workspaceId;
 
-                    <p className="type-detail-small-medium text-action">
-                      {event.month}
-                    </p>
-                  </div>
+                return (
+                  <article key={event.postId} className="upcoming-event-card">
+                    <div className="upcoming-event-date">
+                      <strong>
+                        {startDate.getDate().toString().padStart(2, "0")}
+                      </strong>
+                      <span>
+                        {startDate
+                          .toLocaleDateString("en-US", { month: "short" })
+                          .toUpperCase()}{" "}
+                        {startDate.getFullYear()}
+                      </span>
+                    </div>
 
-                  <div className="ml-5 flex-1">
-                    <h4 className="type-desc-semibold text-foreground">
-                      {event.title}
-                    </h4>
-
-                    <div className="mt-2 flex flex-wrap items-center gap-4">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Clock3 size={14} />
-
-                        <span className="type-detail">{event.time}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <MapPin size={14} />
-
-                        <span className="type-detail">{event.location}</span>
+                    <div className="upcoming-event-content">
+                      <h4>{event.title}</h4>
+                      <div className="upcoming-event-meta">
+                        <span>
+                          <Clock3 size={13} />
+                          {formatTime(startDate)}
+                          {hasEndDate && ` - ${formatTime(endDate)}`}
+                        </span>
+                        <span>
+                          <MapPin size={13} />
+                          {event.location?.locationName ?? "No location"}
+                        </span>
                       </div>
                     </div>
-                  </div>
-                  <a href="/group/${data.groupId}/event/${data.id}">
-                    <button className="type-detail-semibold rounded-lg bg-muted px-5 py-3 text-primary transition hover:bg-primary hover:cursor-pointer hover:text-primary-foreground">
-                      View Detail
-                    </button>
-                  </a>
-                </article>
-              ))}
+
+                    {eventWorkspaceId && (
+                      <Link
+                        href={`/group/${eventWorkspaceId}/event/${event.postId}`}
+                        className="upcoming-event-link"
+                      >
+                        View Detail
+                        <ChevronRight size={15} />
+                      </Link>
+                    )}
+                  </article>
+                );
+              })}
             </div>
           </div>
         ))}

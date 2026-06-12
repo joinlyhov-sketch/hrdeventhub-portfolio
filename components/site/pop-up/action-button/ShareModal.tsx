@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,15 +13,37 @@ import { Link2 } from "lucide-react";
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
+  postId?: string;
   shareUrl?: string;
 }
 
 export default function ShareModal({
   isOpen,
   onClose,
-  shareUrl = "hrdeventhub.app/share-link",
+  postId,
+  shareUrl: customShareUrl,
 }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+
+  useEffect(() => {
+    if (!isOpen || typeof window === "undefined") return;
+
+    if (customShareUrl) {
+      setShareUrl(customShareUrl);
+    } 
+    else if (postId) {
+      const origin = window.location.origin;
+      const currentPath = window.location.pathname.replace(/\/$/, "");
+      const hasDuplicateId = new RegExp(`\\/events?\\/${postId}`, "i").test(currentPath);
+
+      if (hasDuplicateId) {
+        setShareUrl(`${origin}${currentPath}`);
+      } else {
+        setShareUrl(`${origin}${currentPath}/event/${postId}`);
+      }
+    }
+  }, [isOpen, postId, customShareUrl]);
 
   const handleCopy = async () => {
     try {
@@ -37,7 +59,7 @@ export default function ShareModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={true}
-        className="max-w-[540px] w-full rounded-3xl border-none bg-white p-8 shadow-2xl gap-0"
+        className="max-w-[540px] w-full rounded-3xl border-none bg-white p-8 shadow-2xl gap-0 [&>button]:top-6 [&>button]:hover:text-white [&>button]:-translate-y-1/2 [&>button]:hover:bg-red-500"
       >
         <DialogHeader className="mb-6">
           <DialogTitle className="text-[28px] font-bold text-[#0f172a]">
@@ -55,7 +77,7 @@ export default function ShareModal({
             </h4>
             <div className="flex items-center gap-4">
               <a
-                href="https://linkedin.com"
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-[56px] h-[56px] rounded-full border border-gray-100 flex items-center justify-center shadow-xs text-[#0077b5] hover:bg-gray-50 transition-colors"
@@ -66,7 +88,7 @@ export default function ShareModal({
               </a>
 
               <a
-                href="https://telegram.org"
+                href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-[56px] h-[56px] rounded-full border border-gray-100 flex items-center justify-center shadow-xs text-[#0088cc] hover:bg-gray-50 transition-colors"
@@ -80,7 +102,7 @@ export default function ShareModal({
               </a>
 
               <a
-                href="https://facebook.com"
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-[56px] h-[56px] rounded-full border border-gray-100 flex items-center justify-center shadow-xs text-[#1877f2] hover:bg-gray-50 transition-colors"
@@ -103,24 +125,25 @@ export default function ShareModal({
             </div>
           </div>
 
-          <div className="space-y-3 pt-2">
+          <div className="space-y-3 pt-2 w-full">
             <h4 className="text-[17px] font-semibold text-[#334155]">
               Or copy link
             </h4>
-            <div className="flex items-center justify-between border border-gray-100 rounded-2xl p-2.5 bg-white w-full shadow-xs">
-              <div className="flex items-center gap-3 pl-2 flex-1 min-w-0">
+            <div className="grid grid-cols-[1fr_auto] items-center border border-gray-100 rounded-2xl p-2.5 bg-white w-full max-w-full overflow-hidden shadow-xs">
+              <div className="flex items-center gap-3 pl-2 min-w-0">
                 <Link2 className="text-gray-400 rotate-45 shrink-0" size={20} />
-                <span className="text-[15px] font-medium text-[#475569] truncate">
-                  {shareUrl}
+                <span className="text-[15px] font-medium text-[#475569] truncate w-full block">
+                  {shareUrl || "Generating link..."}
                 </span>
               </div>
               <button
+                disabled={!shareUrl}
                 onClick={handleCopy}
                 className={`h-[44px] px-6 text-white font-bold rounded-xl text-[15px] shadow-sm transition-all shrink-0 cursor-pointer ${
                   copied
                     ? "bg-green-500 hover:bg-green-600"
                     : "bg-[#ff9f38] hover:bg-[#e08626]"
-                }`}
+                } disabled:opacity-50`}
               >
                 {copied ? "Copied!" : "Copy"}
               </button>

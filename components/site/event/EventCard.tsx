@@ -1,313 +1,352 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import image from "../../../public/images/PinnedCardTest.jpg";
+import Link from "next/link";
 import {
   ThumbsUp,
-  MessageSquare,
   Share2,
-  Send,
+  MessageCircleMore,
 } from "lucide-react";
+import { UserRole, useCurrentUser } from "@/context/user-context";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
-import { ReactionPopover, REACTIONS } from "@/components/site/pop-up/comment/reaction";
-import { Event, Comment, Reaction, initialMockData, mockComments } from "@/data/event";
+import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
+import {
+  ReactionPopover,
+  REACTIONS,
+  TwemojiImg,
+} from "@/components/site/pop-up/comment/reaction";
+import { Post } from "@/types/posts";
+import { getMediaUrl } from "@/libs/media";
+import ExpandableText from "./ExpandableText";
+import { usePostReaction } from "@/hooks/use-post-reaction";
+import { usePostComments } from "@/hooks/use-post-comments";
+import { createCommentAction } from "@/actions/comment.action";
+import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
+import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
+import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
+import { ReactionSummary } from "./ReactionSummary";
+import { formatEventDate } from "@/libs/format-date";
 
 interface EventCardProps {
+  role: UserRole;
+  posts: Post[];
   searchQuery: string;
-  onVisibilityChange: (hasItems: boolean) => void;
+  onDeletePost: (postId: string) => Promise<void> | void;
+  groupid: string;
+  pinnedCount: number;
+  onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
 }
 
-export function EventCard({ searchQuery, onVisibilityChange }: EventCardProps) {
+function EventItem({
+  post,
+  role,
+  onDelete,
+  groupid,
+  pinnedCount,
+  onTogglePin,
+}: {
+  post: Post;
+  role: UserRole;
+  onDelete: () => Promise<void> | void;
+  groupid: string;
+  pinnedCount: number;
+  onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
+}) {
+  const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [eventData, setEventData] = useState<Event>(initialMockData);
-  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
 
-  const activeReaction = REACTIONS.find((r: Reaction) => r.id === selectedReaction);
+  const {
+    selectedReaction,
+    handleLikeToggle,
+    handleReactionSelect,
+    reactionPayload,
+  } = usePostReaction(post.postId);
 
-  const handleLikeToggle = () => {
-    setEventData((prev) => {
-      const isCurrentlyActive = !!selectedReaction;
-      if (isCurrentlyActive) {
-        setSelectedReaction(null);
-        return {
-          ...prev,
-          isLikedByUser: false,
-          likesCount: prev.likesCount - 1,
-        };
-      } else {
-        setSelectedReaction("like");
-        return {
-          ...prev,
-          isLikedByUser: true,
-          likesCount: prev.likesCount + 1,
-        };
-      }
-    });
+  const [commentInput, setCommentInput] = useState("");
+  const [mentionedIds, setMentionedIds] = useState<string[]>([]);
+
+  const { comments, refetch } = usePostComments(post.postId);
+  const { members } = useWorkspaceMembers(groupid ?? "");
+  const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
+
+  const coverImage = post.media?.find((m) => m.isCover) ?? post.media?.[0];
+  const imageUrl = getMediaUrl(coverImage?.filePath);
+  const creator = post.creator;
+  const profilePictureUrl = getMediaUrl(creator?.profilePicture);
+  const initials = creator?.fullName
+    ? creator.fullName
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "?";
+
+  const handleSubmitComment = async () => {
+    if (!commentInput.trim()) return;
+    const result = await createCommentAction(post.postId, commentInput, mentionedIds);
+    if (result.ok) {
+      setCommentInput("");
+      setMentionedIds([]);
+      await refetch();
+    }
   };
-
-  const handleReactionSelect = (reactionId: string) => {
-    const wasAlreadyActive = !!selectedReaction;
-    setSelectedReaction(reactionId);
-    setEventData((prev) => ({
-      ...prev,
-      isLikedByUser: true,
-      likesCount: wasAlreadyActive ? prev.likesCount : prev.likesCount + 1,
-    }));
-  };
-
-  const isMatch = eventData.title
-    .toLowerCase()
-    .includes((searchQuery || "").toLowerCase().trim());
-
-  useEffect(() => {
-    onVisibilityChange(isMatch);
-  }, [isMatch, onVisibilityChange]);
-
-  if (!isMatch) {
-    return null;
-  }
 
   return (
     <>
       <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden">
-              <img
-                src={eventData.creator.avatarUrl}
-                alt={eventData.creator.name}
-                className="w-full h-full object-cover"
+          <Link href={`/profile/${currentUser?.id}`}>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+                {profilePictureUrl ? (
+                  <Image
+                    src={profilePictureUrl}
+                    alt={creator!.fullName}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover rounded-full border-2 border-primary"
+                  />
+                ) : (
+                  <span className="type-desc-semibold text-primary uppercase">
+                    {initials}
+                  </span>
+                )}
+              </div>
+              <div>
+                <h3 className="type-desc-semibold text-secondary">
+                  {creator?.fullName ?? "—"}
+                </h3>
+                <p className="text-desc-small-semibold text-grey-500">
+                  {formatEventDate(post.createdAt ?? "")}
+                </p>
+              </div>
+            </div>
+          </Link>
+          <div className="flex items-center gap-2">
+            {creator?.role && (
+              <span
+                className={`type-desc-small-semibold px-4 py-3 rounded-xl uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-primary" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+              >
+                {creator.role}
+              </span>
+            )}
+            {(role === "admin" || role === "organizer") && (
+              <EditPostDropDown
+                title={post.title}
+                editUrl={`/event-management/edition/event?groupId=${groupid}&postId=${post.postId}`}
+                onDelete={onDelete}
+                isPinned={post.pinned ?? false}
+                pinnedCount={pinnedCount}
+                onTogglePin={(currentStatus) => onTogglePin(post.postId, currentStatus)}
               />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-secondary">
-                {eventData.creator.name}
-              </h3>
-              <p className="text-xs font-medium text-grey-400">
-                {eventData.createdAt}
-              </p>
-            </div>
+            )}
           </div>
-          {eventData.role && (
-            <span
-              className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${
-                eventData.role.toLowerCase() === "admin"
-                  ? "bg-[#EBF5FB] text-[#3FA6DC]"
-                  : "bg-[#FFF7ED] text-[#F97316]"
-              }`}
-            >
-              {eventData.role}
-            </span>
+        </div>
+
+        <h2 className="type-title text-primary mb-2">{post.title}</h2>
+
+        <ExpandableText text={post.content} />
+
+        <div className="bg-grey-50 rounded-[6px] p-4 space-y-3 mb-6 border-l-5 border-primary">
+          {post.location && (
+            <p className="type-detail text-grey-500">
+              <span className="type-detail-semibold text-foreground">LOCATION: </span>
+              <a
+                href={post.location.googleMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                {post.location.locationName ?? "View on map"}
+              </a>
+            </p>
+          )}
+          {post.eventStart && (
+            <p className="type-detail text-grey-500">
+              <span className="type-detail-semibold text-foreground">DATE: </span>
+              {post.eventStart}
+              {post.eventEnd && ` — ${post.eventEnd}`}
+            </p>
+          )}
+          {post.purpose && (
+            <p className="type-detail text-grey-500">
+              <span className="type-detail-semibold text-foreground">PURPOSE: </span>
+              {post.purpose}
+            </p>
           )}
         </div>
 
-        <h2 className="text-xl font-bold text-primary mb-2">{eventData.title}</h2>
-        <p className="text-sm text-grey-500 leading-relaxed mb-2">
-          {eventData.description}
-        </p>
-
-        <div className="bg-grey-50 rounded-[12px] p-3 space-y-3 mb-6">
-          <div className="flex items-start gap-3">
-            <p className="text-sm text-grey-500">
-              <span className="font-semibold text-grey-900">LOCATION:</span>{" "}
-              {eventData.location}
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <p className="text-sm text-grey-500">
-              <span className="font-semibold text-grey-900">DATE:</span>{" "}
-              {eventData.dateString}
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <p className="text-sm text-grey-500">
-              <span className="font-semibold text-grey-900">PURPOSE:</span>{" "}
-              {eventData.purpose}
-            </p>
-          </div>
-        </div>
-
-        <div className="relative rounded-[12px] overflow-hidden mb-6 h-64">
-          <Image
-            src={image}
-            alt="Pinned Event Banner"
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-6 text-white">
-            <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide mb-2">
-              {eventData.badge}
-            </span>
-            <h4 className="text-base font-semibold">{eventData.innerBannerTitle}</h4>
-            <p className="text-xs opacity-80">{eventData.innerBannerMeta}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-6 py-4 border-b border-border text-sm font-medium text-grey-500">
-          
-          <ReactionPopover 
-            selectedValue={selectedReaction} 
-            onReactionSelect={handleReactionSelect}
-          >
-            <button 
-              onClick={handleLikeToggle}
-              className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"
-              }`}
+        <div className="relative rounded-[12px] overflow-hidden mb-6 h-64 bg-grey-100">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={post.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 700px"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-grey-400">
+              <div className="w-12 h-12 rounded-full bg-grey-200 flex items-center justify-center">
+                <svg
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 19.5h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z"
+                  />
+                </svg>
+              </div>
+              <span className="type-desc-small-semibold">No image available</span>
+            </div>
+          )}
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-6 text-white z-10 flex items-end justify-between gap-4">
+            <div>
+              <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide mb-2">
+                Event
+              </span>
+              <h4 className="type-desc-semibold">{post.title}</h4>
+              <p className="type-detail-small-medium opacity-80">
+                {post.eventStart ?? "—"}
+              </p>
+            </div>
+            <Link
+              href={`/group/${groupid}/event/${post.postId}`}
+              className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white type-desc-small-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer shrink-0 text-center shadow-md mb-0.5"
             >
-              <ThumbsUp size={18} className={activeReaction?.id === "like" ? "fill-blue-500" : ""} /> 
-              <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
-              <span className="text-xs font-normal text-grey-400">({eventData.likesCount})</span>
-            </button>
-          </ReactionPopover>
-
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
-          >
-            <MessageSquare size={18} /> {eventData.commentsCount}
-          </button>
-          
-          <button 
-            onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
-          >
-            <Share2 size={18} /> Share
-          </button>
+              View Detail
+            </Link>
+          </div>
         </div>
 
-        <div
-          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
-        >
-          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0">
-            <img
-              src="https://i.pravatar.cc/150?u=user"
-              alt="Me"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="relative grow">
-            <input
-              type="text"
-              placeholder="Add a comment..."
-              className="w-full bg-grey-50 border-none rounded-full py-3 pl-6 pr-12 text-sm text-grey-900 placeholder:text-grey-400 focus:ring-1 focus:ring-primary/20 outline-none"
-            />
-            <button className="absolute right-4 top-1/2 -translate-y-1/2 text-primary p-1 hover:opacity-80 transition-opacity cursor-pointer">
-              <Send size={18} />
+        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center gap-6 py-4">
+            <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
+              <button
+                onClick={handleLikeToggle}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+              >
+                {activeReaction ? (
+                  <TwemojiImg emoji={activeReaction.emoji} size={20} />
+                ) : (
+                  <ThumbsUp size={20} />
+                )}
+                <span>
+                  {activeReaction ? activeReaction.displayText : "Like"}
+                </span>
+              </button>
+            </ReactionPopover>
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+            >
+              <MessageCircleMore size={20} /> {comments?.length ?? 0}
             </button>
+            <button
+              onClick={() => setIsShareOpen(true)}
+              className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
+            >
+              <Share2 size={20} /> Share
+            </button>
+          </section>
+
+          <ReactionSummary payload={reactionPayload} />
+        </div>
+
+        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
+            <Link href={`/profile/${currentUser?.id}`}>
+              {currentUser?.profilePicture ? (
+                <Image
+                  src={currentUser.profilePicture}
+                  alt={currentUser.name || "profile"}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <span className="type-desc-small-semibold text-primary uppercase">
+                  {currentUser?.avatarInitials ?? "?"}
+                </span>
+              )}
+            </Link>
+          </div>
+          <div className="flex-1">
+            <MentionInput
+              value={commentInput}
+              onChange={(val, ids) => { setCommentInput(val); setMentionedIds(ids); }}
+              onSubmit={handleSubmitComment}
+              placeholder="Add a comment..."
+              members={members}
+              mentionedIds={mentionedIds}
+            />
           </div>
         </div>
 
         {showComments && (
-          <div className="space-y-6 pt-2">
-            {mockComments.map((comment) => (
-              <div key={comment.id} className="relative flex flex-col">
-                <div className="flex items-start gap-3 relative z-10">
-                  <div className="w-10 h-10 rounded-full bg-[#EBF5FB] flex items-center justify-center shrink-0 text-[#3FA6DC] font-semibold text-sm">
-                    {comment.author.initials}
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <span className="font-bold text-grey-900">
-                        {comment.author.name}
-                      </span>
-                      <span className="text-grey-400 text-xs font-normal">
-                        · {comment.date}
-                      </span>
-                    </div>
-                    <p className="text-sm text-grey-900 leading-normal">
-                      {comment.text}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
-                      <button className="hover:underline cursor-pointer">
-                        Reply
-                      </button>
-                      <button className="hover:underline cursor-pointer">
-                        Like
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {comment.replies && comment.replies.length > 0 && (
-                  <div className="relative pl-10 mt-4 space-y-5">
-                    <div
-                      className="absolute left-[20px] top-[-24px] w-[20px] border-l border-b border-grey-200 rounded-bl-[12px]"
-                      style={{ bottom: "24px" }}
-                    />
-
-                    {comment.replies.map((reply, index) => (
-                      <div
-                        key={reply.id}
-                        className="relative flex items-start gap-3"
-                      >
-                        {index > 0 && (
-                          <div className="absolute left-[-20px] top-[-24px] bottom-[24px] border-l border-grey-200" />
-                        )}
-                        <div className="absolute left-[-20px] top-5 w-[20px] border-t border-grey-200" />
-
-                        <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 relative z-10">
-                          <img
-                            src={reply.author.avatar}
-                            alt={reply.author.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-1.5 text-sm">
-                            <span className="font-bold text-grey-900">
-                              {reply.author.name}
-                            </span>
-                            <span className="text-grey-400 text-xs font-normal">
-                              · {reply.date}
-                            </span>
-                          </div>
-                          <p className="text-sm text-grey-900 leading-normal">
-                            {reply.text.split(" ").map((word, i) =>
-                              word.startsWith("@") ? (
-                                <span
-                                  key={i}
-                                  className="text-blue-600 font-medium"
-                                >
-                                  {word}{" "}
-                                </span>
-                              ) : (
-                                word + " "
-                              ),
-                            )}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs font-bold text-grey-900 pt-1">
-                            <button className="hover:underline cursor-pointer">
-                              Reply
-                            </button>
-                            {reply.isOwn && (
-                              <>
-                                <button className="hover:underline cursor-pointer">
-                                  Edit
-                                </button>
-                                <button className="hover:underline cursor-pointer">
-                                  Delete
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          <div className="space-y-4 pt-2">
+            {comments.length > 0 ? (
+              comments.map((comment) => (
+                <CommentNode
+                  key={comment.commentId}
+                  comment={comment}
+                  currentUserId={currentUser?.id}
+                  currentUserPicture={currentUser?.profilePicture}
+                  currentUserInitials={currentUser?.avatarInitials}
+                  onRefetch={refetch}
+                  workspaceId={groupid}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-grey-400 type-detail-medium">
+                  No comments yet. Be the first to comment!
+                </p>
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
 
-      <ShareModal 
-        isOpen={isShareOpen} 
-        onClose={() => setIsShareOpen(false)} 
-        shareUrl={`hrdeventhub.app/events/${eventData.id}`}
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        postId={post.postId}
       />
+    </>
+  );
+}
+
+export function EventCard({
+  role,
+  posts,
+  onDeletePost,
+  groupid,
+  pinnedCount,
+  onTogglePin,
+}: EventCardProps) {
+  return (
+    <>
+      {posts.map((post) => (
+        <EventItem
+          key={post.postId}
+          post={post}
+          role={role}
+          onDelete={() => onDeletePost(post.postId)}
+          groupid={groupid}
+          pinnedCount={pinnedCount}
+          onTogglePin={onTogglePin}
+        />
+      ))}
     </>
   );
 }

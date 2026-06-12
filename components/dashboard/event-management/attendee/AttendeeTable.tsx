@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { UserX, ListFilter, Check } from "lucide-react";
-import { AttendeeData } from "../../../../data/AttendeeData";
+import { Participant } from "@/service/event.service";
 import Search from "../../../site/search/Search";
 import { PaginationDemo } from "@/components/feedback/Pagination";
 import AttendeeRow from "./AttendeeRow";
@@ -22,40 +22,50 @@ import {
 } from "../../../ui/drop-down/dropdown-menu";
 
 interface AttendeeTableClientProps {
-  initialAttendees: AttendeeData[];
+  initialAttendees: Participant[];
 }
 
 export default function AttendeeTableClient({
   initialAttendees,
 }: AttendeeTableClientProps) {
-  const [attendees, setAttendees] = useState<AttendeeData[]>(initialAttendees);
+  const [attendees, setAttendees] = useState<Participant[]>(initialAttendees);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  useEffect(() => {
+    console.log("[AttendeeTableClient] initialAttendees prop changed! New data:", initialAttendees);
+    setAttendees(initialAttendees);
+  }, [initialAttendees]);
+
   const uniqueStatuses = useMemo(() => {
-    const statuses = attendees.map((a) => a.status);
+    const statuses = attendees.map((a) => a.paymentStatus || "Free");
     return ["All", ...Array.from(new Set(statuses))];
   }, [attendees]);
 
   const filteredAttendees = useMemo(() => {
-    return attendees.filter((attendee) => {
+    const result = attendees.filter((attendee) => {
+      const currentStatus = attendee.paymentStatus || "Free";
       const matchesStatus =
         statusFilter === "All" ||
-        attendee.status.toLowerCase() === statusFilter.toLowerCase();
+        currentStatus.toLowerCase() === statusFilter.toLowerCase();
+
+      const nameStr = attendee.appUserId || "";
+      const dateStr = attendee.registeredAt || "";
+      const remarkStr = attendee.remark || "";
+      const searchLower = search.toLowerCase();
 
       const matchesSearch =
         search === "" ||
-        attendee.name.toLowerCase().includes(search.toLowerCase()) ||
-        attendee.gender.toLowerCase().includes(search.toLowerCase()) ||
-        attendee.timestamp.toLowerCase().includes(search.toLowerCase()) ||
-        attendee.remark.toLowerCase().includes(search.toLowerCase()) ||
-        attendee.amount.toString().includes(search) ||
-        attendee.status.toLowerCase().includes(search.toLowerCase());
+        nameStr.toLowerCase().includes(searchLower) ||
+        dateStr.toLowerCase().includes(searchLower) ||
+        remarkStr.toLowerCase().includes(searchLower) ||
+        currentStatus.toLowerCase().includes(searchLower);
 
       return matchesStatus && matchesSearch;
     });
+    return result;
   }, [attendees, search, statusFilter]);
 
   const totalPages = Math.ceil(filteredAttendees.length / itemsPerPage);
@@ -88,24 +98,18 @@ export default function AttendeeTableClient({
       <div className="w-full overflow-x-auto rounded-xl border border-gray-100 min-h-145 bg-white">
         <Table className="w-full text-left border-collapse min-w-250 table-fixed">
           <TableHeader>
-            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-[52px]">
+            <TableRow className="bg-secondary hover:bg-secondary border-b-0 h-13">
               <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[5%] ">
                 No.
               </TableHead>
-              <TableHead className="px-5 py-3 text-white type-desc-semibold text-left w-[18%]">
+              <TableHead className="px-5 py-3 text-white type-desc-semibold text-left w-[28%]">
                 Name
               </TableHead>
-              <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[10%]">
-                Gender
-              </TableHead>
-              <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[12%]">
+              <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[15%]">
                 Timestamp
               </TableHead>
-              <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[22%]">
+              <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[30%]">
                 Remark
-              </TableHead>
-              <TableHead className="px-5 py-3 text-white type-desc-semibold text-center w-[10%]">
-                Amount
               </TableHead>
               <TableHead className="px-8 py-3 text-white type-desc-semibold w-[12%]">
                 <DropdownMenu>
@@ -115,16 +119,14 @@ export default function AttendeeTableClient({
                       <ListFilter
                         size={16}
                         className={
-                          statusFilter !== "All"
-                            ? "text-white fill-white"
-                            : ""
+                          statusFilter !== "All" ? "text-white fill-white" : ""
                         }
                       />
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="center"
-                    className="bg-white border rounded-md shadow-md py-1 min-w-[120px]"
+                    className="bg-white border rounded-md shadow-md py-1 min-w-30"
                   >
                     {uniqueStatuses.map((status) => (
                       <DropdownMenuItem
@@ -156,24 +158,27 @@ export default function AttendeeTableClient({
           </TableHeader>
           <TableBody>
             {paginatedAttendees.length > 0 ? (
-              paginatedAttendees.map((attendee) => (
-                <AttendeeRow
-                  key={attendee.no}
-                  attendee={attendee}
-                  onViewProfile={(attendee) => {
-                    console.log("View profile for:", attendee);
-                  }}
-                  onDeleteAttendee={(id) => {
-                    console.log("Delete attendee with ID:", id);
-                    setAttendees((prev) =>
-                      prev.filter((item) => item.no !== id),
-                    );
-                  }}
-                />
-              ))
+              paginatedAttendees.map((attendee, index) => {
+                const absoluteIndex = (currentPage - 1) * itemsPerPage + index + 1;
+                return (
+                  <AttendeeRow
+                    key={attendee.participantId}
+                    indexNumber={absoluteIndex}
+                    attendee={attendee}
+                    onViewProfile={(item) => {
+                      console.log("View profile clicked for:", item);
+                    }}
+                    onDeleteAttendee={(id) => {
+                      setAttendees((prev) =>
+                        prev.filter((item) => item.participantId !== id)
+                      );
+                    }}
+                  />
+                );
+              })
             ) : (
               <TableRow className="hover:bg-transparent border-b-0">
-                <TableCell colSpan={8} className="px-6 py-16 text-center h-130">
+                <TableCell colSpan={6} className="px-6 py-16 text-center h-130">
                   <div className="flex flex-col items-center justify-center space-y-3">
                     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-slate-400 border border-slate-100">
                       <UserX size={30} className="text-red-500" />
@@ -183,8 +188,8 @@ export default function AttendeeTableClient({
                         Attendee doesn&apos;t exist
                       </p>
                       <p className="text-sm text-gray-400 font-medium">
-                        We couldn't find any attendees match for your search
-                        parameters.
+                        We couldn&apos;t find any attendees match for your
+                        search parameters.
                       </p>
                     </div>
                   </div>

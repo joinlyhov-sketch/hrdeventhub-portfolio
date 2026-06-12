@@ -7,7 +7,7 @@ export const transactionDetailsData: TransactionDetail[] = [
     amount: 125.0,
     currency: "USD",
     status: "Successful",
-    paymentMethod: "WebPay",
+    // paymentMethod: "WebPay",
     referenceId: "WB-365-FBXZ-99L1",
     transactionId: "#TXN-8842",
     payer: {
@@ -29,6 +29,7 @@ export const transactionDetailsData: TransactionDetail[] = [
       image: "/images/Workshop.webp",
       badge: "NEW EVENT",
       status: "Active",
+      workspaceId: "ws-001",
     },
   },
 ];

@@ -18,6 +18,13 @@ interface PayerCardProps {
 }
 
 export function PayerCard({ payer }: PayerCardProps) {
+  const profileId = payer.id?.trim() ?? "";
+  const hasProfileId = Boolean(
+    profileId &&
+      profileId.toLowerCase() !== "undefined" &&
+      profileId.toLowerCase() !== "null",
+  );
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm w-full">
       <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
@@ -27,15 +34,21 @@ export function PayerCard({ payer }: PayerCardProps) {
             Payer Information
           </h3>
         </div>
-        <Link
-          href={"/profile"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex text-primary items-center gap-1.5 text-sm font-semibold type-desc hover:underline"
-        >
-          <span>View Profile</span>
-          <ExternalLink className="w-4 h-4" strokeWidth={2.5} />
-        </Link>
+        {hasProfileId ? (
+          <Link
+            href={`/profile/${profileId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex text-primary items-center gap-1.5 text-sm font-semibold type-desc hover:underline"
+          >
+            <span>View Profile</span>
+            <ExternalLink className="w-4 h-4" strokeWidth={2.5} />
+          </Link>
+        ) : (
+          <span className="text-sm font-semibold type-desc text-gray-400">
+            Profile unavailable
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-4 mb-6">

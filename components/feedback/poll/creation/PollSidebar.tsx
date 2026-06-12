@@ -18,14 +18,26 @@ import {
 } from "../../../ui/select";
 import PollSidebarItem from "./PollSidebarItem";
 
-export default function PollSidebar() {
-  const [settings, setSettings] = useState({
-    multipleSelect: false,
-    anonymousVote: false,
-    addOption: false,
-    hiddenPoll: false,
-    showResult: "Select",
-  });
+export interface PollSettings {
+  multipleSelect: boolean;
+  anonymousVote: boolean;
+  addOption: boolean;
+  hiddenPoll: boolean;
+  showResult: string;
+  closingDate: string;
+  closingTime: string;
+}
+
+interface PollSidebarProps {
+  settings: PollSettings;
+  onSettingsChange: (settings: PollSettings) => void;
+}
+
+export default function PollSidebar({
+  settings,
+  onSettingsChange,
+}: PollSidebarProps) {
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const toggleItems = [
     { key: "multipleSelect", label: "Multiple select", icon: CheckSquare },
@@ -35,11 +47,19 @@ export default function PollSidebar() {
   ];
 
   const handleToggleChange = (key: string, checked: boolean) => {
-    setSettings((prev) => ({ ...prev, [key]: checked }));
+    onSettingsChange({ ...settings, [key]: checked });
   };
 
   const handleSelectChange = (value: string) => {
-    setSettings((prev) => ({ ...prev, showResult: value }));
+    setHasInteracted(true);
+    onSettingsChange({ ...settings, showResult: value });
+  };
+
+  const getDisplayLabel = (val: string) => {
+    if (val === "alwaysVisible") return "Always Visible";
+    if (val === "afterVote") return "After Voting";
+    if (val === "afterExpire") return "After Poll Expire";
+    return val;
   };
 
   return (
@@ -55,7 +75,9 @@ export default function PollSidebar() {
 
       <div className="space-y-3 w-full">
         {toggleItems.map((item) => {
-          const isActive = settings[item.key as keyof typeof settings] as boolean;
+          const isActive = settings[
+            item.key as keyof typeof settings
+          ] as boolean;
           return (
             <PollSidebarItem
               key={item.key}
@@ -64,7 +86,9 @@ export default function PollSidebar() {
               rightElement={
                 <Switch
                   checked={isActive}
-                  onCheckedChange={(checked) => handleToggleChange(item.key, checked)}
+                  onCheckedChange={(checked) =>
+                    handleToggleChange(item.key, checked)
+                  }
                   className="data-[state=checked]:bg-action"
                 />
               }
@@ -73,21 +97,44 @@ export default function PollSidebar() {
         })}
       </div>
 
-      <div className="space-y-3 pt-5 border-t border-slate-100 w-full pl-0.5">
-        <label className="text-[11px] font-extrabold text-slate-400 tracking-widest uppercase block">
-          Show Result
+      <div className="space-y-3 pt-1 border-t border-slate-100 w-full">
+        <label className="text-[12px] font-semibold text-slate-400 tracking-widest block pl-0.5">
+          Show Results
         </label>
 
-        <Select value={settings.showResult} onValueChange={handleSelectChange} >
-          <SelectTrigger className="w-[250px] h-20 bg-white border border-slate-200/80 rounded-2xl pl-11 py-5  font-medium text-slate-600 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 relative shadow-sm transition-all">
-            <Inbox className="w-5 h-5 absolute left-4  text-secondary" />
-            <SelectValue placeholder="Select" />
+        <Select value={settings.showResult} onValueChange={handleSelectChange}>
+          <SelectTrigger className="w-[250px] bg-white hover:bg-slate-50 text-slate-700 rounded-2xl px-2 py-6 text-[12px] type-desc border-gray-200 outline-none cursor-pointer ">
+            <div className="flex items-center gap-4">
+              <div className="bg-[#F4F6F9] p-2 rounded-lg flex items-center justify-center shrink-0">
+                <Inbox className="w-5 h-5 text-secondary text-4xl" />
+              </div>
+              <SelectValue>
+                {!hasInteracted
+                  ? "Select"
+                  : getDisplayLabel(settings.showResult)}
+              </SelectValue>
+            </div>
           </SelectTrigger>
-          <SelectContent className="rounded-2xl py-5 border border-slate-100 shadow-xl bg-white p-1">
-            <SelectItem value="Select" className="rounded-xl">Select</SelectItem>
-            <SelectItem value="Always Visible" className="rounded-xl">Always Visible</SelectItem>
-            <SelectItem value="After Voting" className="rounded-xl">After Voting</SelectItem>
-            <SelectItem value="After Poll Expire" className="rounded-xl">After Poll Expire</SelectItem>
+
+          <SelectContent className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-50 overflow-y-auto">
+            <SelectItem
+              value="alwaysVisible"
+              className="px-2 py-3 text-sm type-desc text-secondary hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Always Visible
+            </SelectItem>
+            <SelectItem
+              value="afterVote"
+              className="px-2 py-3 text-sm type-desc text-secondary hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              After Voting
+            </SelectItem>
+            <SelectItem
+              value="afterExpire"
+              className="px-2 py-3 text-sm type-desc text-secondary hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              After Poll Expire
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

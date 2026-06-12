@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   ArrowUp,
   BadgeDollarSign,
@@ -10,7 +11,6 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { StatsCard } from "./../../dashboard/transaction-history/StatsCard";
-import { mockStatsData } from "../../../data/event-detail";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,26 +19,230 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/drop-down/dropdown-menu";
 import { PaginationDemo } from "@/components/feedback/Pagination";
-import { initialRegistrations } from "../../../data/registrations";
+import { eventService, Participant } from "@/service/event.service";
+import { profileService } from "@/service/profile.service";
+import { Post } from "@/types/posts";
 
 const ITEMS_PER_PAGE = 5;
+const EMPTY_VALUE = "Not provided";
 
-export function AdminOverview() {
-  const [registrations] = useState(initialRegistrations);
+type RegistrationRow = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  gender: string;
+  gen: string;
+  status: string;
+  time: string;
+  avatar: string;
+  registeredAt: string;
+};
+
+type AdminOverviewProps = {
+  event: Post;
+  workspaceId: string;
+};
+
+const isSameDay = (date: Date, compareDate: Date) =>
+  date.getFullYear() === compareDate.getFullYear() &&
+  date.getMonth() === compareDate.getMonth() &&
+  date.getDate() === compareDate.getDate();
+
+const getStartOfWeek = (date: Date) => {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - start.getDay());
+  return start;
+};
+
+const getDisplayValue = (value?: string | null) => {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : EMPTY_VALUE;
+};
+
+const formatRelativeTime = (value?: string) => {
+  if (!value) return EMPTY_VALUE;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.max(0, Math.floor(diffMs / 60_000));
+
+  if (diffMinutes < 1) return "just now";
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
+
+const getGenerationNumber = (name?: string) => {
+  if (!name) return EMPTY_VALUE;
+  return name.match(/\d+/)?.[0] ?? name;
+};
+
+const formatGender = (gender?: string) => {
+  const normalized = gender?.trim().toLowerCase();
+  if (!normalized) return EMPTY_VALUE;
+  if (normalized === "m" || normalized === "male") return "Male";
+  if (normalized === "f" || normalized === "female") return "Female";
+  return gender!;
+};
+
+const normalizePaymentStatus = (status?: string) => {
+  const normalized = (status || "").toLowerCase();
+  if (
+    ["successful", "success", "paid", "active", "free"].includes(normalized)
+  ) {
+    return "Paid";
+  }
+  return "Unpaid";
+};
+
+const mapParticipantToRegistration = (
+  participant: Participant,
+): RegistrationRow => {
+  const user = participant.user;
+  const fullName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+    user?.username ||
+    participant.appUserId ||
+    "Unknown user";
+
+  return {
+    id: participant.participantId,
+    name: fullName,
+    email: getDisplayValue(user?.email),
+    phone: getDisplayValue(user?.phoneNumber),
+    gender: formatGender(user?.gender),
+    gen: getGenerationNumber(user?.generation?.name),
+    status: normalizePaymentStatus(participant.paymentStatus),
+    time: formatRelativeTime(participant.registeredAt),
+    avatar: user?.profilePicture || "/placeholder-avatar.png",
+    registeredAt: participant.registeredAt,
+  };
+};
+
+export function AdminOverview({ event, workspaceId }: AdminOverviewProps) {
+  const { data: session } = useSession();
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedGen, setSelectedGen] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [showAll, setShowAll] = useState<boolean>(false);
 
   useEffect(() => {
+    if (!event.postId || !workspaceId || !session?.accessToken) return;
+
+    let isActive = true;
+
+    const loadRegistrations = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await eventService.getParticipants(
+          session.accessToken!,
+          event.postId,
+          1,
+          100,
+        );
+
+        const enrichedData = await Promise.all(
+          data.map(async (participant) => {
+            const userId = participant.user?.appUserId || participant.appUserId;
+            if (!userId) return participant;
+
+            try {
+              const profile = await profileService.getProfileById(
+                userId,
+                session.accessToken!,
+              );
+              const profileUser = profile.payload.appUser;
+
+              return {
+                ...participant,
+                user: {
+                  ...participant.user,
+                  appUserId: profileUser.appUserId,
+                  username: profileUser.username,
+                  firstName: profileUser.firstName,
+                  lastName: profileUser.lastName,
+                  email: participant.user?.email || profileUser.email,
+                  phoneNumber:
+                    participant.user?.phoneNumber || profileUser.phoneNumber,
+                  gender: participant.user?.gender || profileUser.gender,
+                  profilePicture:
+                    participant.user?.profilePicture ||
+                    profile.payload.profilePicture ||
+                    "",
+                  generation:
+                    participant.user?.generation || profile.payload.generation,
+                },
+              };
+            } catch (profileError) {
+              console.error(
+                "Failed to load participant profile:",
+                profileError,
+              );
+              return participant;
+            }
+          }),
+        );
+
+        if (isActive) setParticipants(enrichedData);
+      } catch (err) {
+        console.error("Failed to load event registrations:", err);
+        if (isActive) setError("Failed to load registrations.");
+      } finally {
+        if (isActive) setIsLoading(false);
+      }
+    };
+
+    loadRegistrations();
+
+    return () => {
+      isActive = false;
+    };
+  }, [event.postId, session?.accessToken, workspaceId]);
+
+  const registrations = useMemo(
+    () => participants.map(mapParticipantToRegistration),
+    [participants],
+  );
+
+  const handleToggleShowAll = () => {
+    setShowAll((prev) => !prev);
     setCurrentPage(1);
-  }, [selectedGen, selectedStatus, showAll]);
+  };
+
+  const handleGenChange = (value: string) => {
+    setSelectedGen(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
+    setCurrentPage(1);
+  };
 
   const uniqueGenerations = useMemo(() => {
     const generations = registrations.map((user) => user.gen);
-    return Array.from(new Set(generations)).sort(
-      (a, b) => Number(a) - Number(b),
-    );
+    return Array.from(
+      new Set(generations.filter((gen) => gen !== EMPTY_VALUE)),
+    ).sort((a, b) => Number(a) - Number(b));
   }, [registrations]);
 
   const filteredRegistrations = useMemo(() => {
@@ -65,6 +269,65 @@ export function AdminOverview() {
     return filteredRegistrations.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredRegistrations, currentPage, showAll]);
 
+  const statsData = useMemo(() => {
+    const now = new Date();
+    const startOfWeek = getStartOfWeek(now);
+    const paidRegistrations = participants.filter(
+      (participant) =>
+        normalizePaymentStatus(participant.paymentStatus) === "Paid",
+    );
+    const eventPrice = event.payment?.paymentAmount ?? 0;
+    const totalPayment =
+      event.payment?.amountRaised && event.payment.amountRaised > 0
+        ? event.payment.amountRaised
+        : paidRegistrations.length * eventPrice;
+    const todayCount = participants.filter((participant) => {
+      const registeredDate = new Date(participant.registeredAt);
+      return (
+        !Number.isNaN(registeredDate.getTime()) &&
+        isSameDay(registeredDate, now)
+      );
+    }).length;
+    const weekCount = participants.filter((participant) => {
+      const registeredDate = new Date(participant.registeredAt);
+      return (
+        !Number.isNaN(registeredDate.getTime()) &&
+        registeredDate >= startOfWeek &&
+        registeredDate <= now
+      );
+    }).length;
+
+    return [
+      {
+        title: "Total Payment",
+        value: `$${totalPayment.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
+        iconName: "BadgeDollarSign",
+        colorKey: "primary",
+      },
+      {
+        title: "Total Attendee",
+        value: String(participants.length),
+        iconName: "UserRound",
+        colorKey: "action",
+      },
+      {
+        title: "Today",
+        value: todayCount > 0 ? `+${todayCount}` : "0",
+        iconName: "UserRoundCheck",
+        colorKey: "subtle",
+      },
+      {
+        title: "This week",
+        value: weekCount > 0 ? `+${weekCount}` : "0",
+        iconName: "UserRoundCheck",
+        colorKey: "secondary",
+      },
+    ];
+  }, [event.payment, participants]);
+
   const iconRegistry = {
     BadgeDollarSign: BadgeDollarSign,
     UserRound: UserRound,
@@ -78,13 +341,11 @@ export function AdminOverview() {
     secondary: { text: "text-secondary", bg: "bg-secondary/10" },
   };
 
-  const fetchedData = mockStatsData;
-
   return (
     <>
       <div className="space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {fetchedData.map((stat, index) => {
+          {statsData.map((stat, index) => {
             const SelectedIcon =
               iconRegistry[stat.iconName as keyof typeof iconRegistry];
             const styles =
@@ -116,7 +377,7 @@ export function AdminOverview() {
               Recent registrations
             </h3>
             <button
-              onClick={() => setShowAll(!showAll)}
+              onClick={handleToggleShowAll}
               className={`${
                 showAll
                   ? "bg-secondary text-white hover:bg-opacity-90"
@@ -134,8 +395,20 @@ export function AdminOverview() {
             </button>
           </div>
 
+          {isLoading && (
+            <div className="rounded-xl border border-border bg-white p-5 text-center text-sm text-gray-400">
+              Loading registrations...
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-xl border border-red-100 bg-red-50 p-5 text-center text-sm font-medium text-red-500">
+              {error}
+            </div>
+          )}
+
           <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
+            <table className="w-full text-left border-collapse table-fixed min-w-175">
               <thead>
                 <tr className="bg-secondary text-grey-100 text-sm font-medium">
                   <th className="p-3.5 pl-5 w-[30%]">Username & Email</th>
@@ -154,10 +427,10 @@ export function AdminOverview() {
                           <ListFilter size={16} className="shrink-0" />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[135px]">
+                      <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-33.75">
                         <DropdownMenuRadioGroup
                           value={selectedGen}
-                          onValueChange={setSelectedGen}
+                          onValueChange={handleGenChange}
                         >
                           <DropdownMenuRadioItem
                             value="all"
@@ -192,10 +465,10 @@ export function AdminOverview() {
                           <ListFilter size={16} className="shrink-0" />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[125px]">
+                      <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-31.25">
                         <DropdownMenuRadioGroup
                           value={selectedStatus}
-                          onValueChange={setSelectedStatus}
+                          onValueChange={handleStatusChange}
                         >
                           <DropdownMenuRadioItem
                             value="all"
@@ -230,9 +503,9 @@ export function AdminOverview() {
               </thead>
               <tbody className="divide-y divide-border bg-white text-[#4A5568] text-sm">
                 {paginatedRegistrations.length > 0 ? (
-                  paginatedRegistrations.map((user, i) => (
+                  paginatedRegistrations.map((user) => (
                     <tr
-                      key={i}
+                      key={user.id}
                       className="hover:bg-gray-50/70 transition-colors"
                     >
                       <td className="p-3.5 pl-5 flex items-center gap-x-3 overflow-hidden">
@@ -245,9 +518,11 @@ export function AdminOverview() {
                           <span className="font-semibold text-[#1A202C] truncate">
                             {user.name}
                           </span>
-                          <span className="text-gray-400 text-xs font-normal truncate">
-                            {user.email}
-                          </span>
+                          {user.email !== EMPTY_VALUE && (
+                            <span className="text-gray-400 text-xs font-normal truncate">
+                              {user.email}
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="p-3.5 text-center text-gray-600 font-normal truncate">
@@ -261,7 +536,7 @@ export function AdminOverview() {
                       </td>
                       <td className="p-3.5 text-center">
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border inline-block text-center min-w-[70px] ${
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border inline-block text-center min-w-17.5 ${
                             user.status === "Paid"
                               ? "bg-[#E6F9F5] text-[#00A878] border-[#CCEFE7]"
                               : "bg-[#FEE2E2] text-[#EF4444] border-[#FCA5A5]"

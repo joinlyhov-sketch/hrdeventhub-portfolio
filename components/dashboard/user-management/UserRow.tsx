@@ -1,80 +1,158 @@
 "use client";
-import { SquarePen, UserX2, UserRoundCheck } from "lucide-react";
-import { UserData } from "../../../data/UserData";
+
+import React from "react";
+import { UserRoundCheck } from "lucide-react";
+import { UserData } from "../../../types/user-management-type/user";
 import { TableCell, TableRow } from "../../ui/table";
 import Image from "next/image";
 
 interface UserRowProps {
   user: UserData;
+  index: number;
   onEditRole: (user: UserData) => void;
   onToggleSuspend: (user: UserData) => void;
 }
 
+const formatPhoneNumber = (phone: string | undefined) => {
+  if (!phone) return "N/A";
+  let cleaned = phone.replace(/\s+/g, "").replace(/-/g, "");
+  while (cleaned.startsWith("+855") || cleaned.startsWith("855")) {
+    if (cleaned.startsWith("+855")) cleaned = cleaned.slice(4);
+    else if (cleaned.startsWith("855")) cleaned = cleaned.slice(3);
+  }
+  if (cleaned.startsWith("+")) return "N/A";
+  if (cleaned.length > 0 && !cleaned.startsWith("0")) cleaned = "0" + cleaned;
+  if (/^0+$/.test(cleaned)) return "N/A";
+  if (/^0\d{8,9}$/.test(cleaned)) return cleaned;
+  return "N/A";
+};
+
 export default function UserRow({
   user,
+  index,
   onEditRole,
   onToggleSuspend,
 }: UserRowProps) {
   const isActive = user.status === "Active";
+  const rowDisplayIdentifier = String(
+    typeof index === "number" && !isNaN(index) ? index + 1 : 1,
+  );
+
+  const profileSrc =
+    user.profilePicture && user.profilePicture.trim() !== ""
+      ? user.profilePicture
+      : null;
+
+  const getGenerationNumber = (genName: string | undefined) => {
+    if (!genName) return "N/A";
+    const match = genName.match(/\d+/);
+    return match ? match[0] : genName;
+  };
+
+  const cell =
+    "px-3 py-0 h-[44px] align-middle text-sm text-gray-500 overflow-hidden whitespace-nowrap";
 
   return (
-    <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[56px]">
-      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] ">
-        {user.no}
+    <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+      <TableCell
+        className={`${cell} text-center`}
+        style={{ width: "60px", minWidth: "60px", maxWidth: "60px" }}
+      >
+        {rowDisplayIdentifier}
       </TableCell>
 
-      <TableCell className="px-3 py-3 type-desc text-gray-500 w-[18%]">
-        <div className="flex items-center gap-3 truncate">
-          <img
-            src={user.avatar}
-            alt=""
-            className="w-8 h-8 rounded-full object-cover shrink-0"
-          />
-          <span className="truncate">{user.username}</span>
+      <TableCell
+        className={`${cell} text-left`}
+        style={{ width: "220px", minWidth: "220px", maxWidth: "220px" }}
+      >
+        <div className="flex items-center gap-2 max-w-full">
+          {profileSrc ? (
+            <img
+              src={profileSrc}
+              alt={user.username}
+              className="w-7 h-7 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[11px] font-semibold text-white shrink-0">
+              {user.firstName?.charAt(0).toUpperCase()}
+              {user.lastName?.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span className="truncate block flex-1 min-w-0">
+            {`${user.firstName} ${user.lastName}`}
+          </span>
         </div>
       </TableCell>
 
-      <TableCell className="px-2 py-3 type-desc text-gray-500 w-[20%] truncate text-center">
-        {user.email}
+      <TableCell
+        className={`${cell} text-left`}
+        style={{ width: "280px", minWidth: "280px", maxWidth: "280px" }}
+      >
+        <span className="truncate block max-w-full">{user.email}</span>
       </TableCell>
 
-      <TableCell className="px-6 py-3 type-desc text-gray-500 w-[13%] truncate text-center">
-        {user.phone}
+      <TableCell
+        className={`${cell} text-center`}
+        style={{ width: "150px", minWidth: "150px", maxWidth: "150px" }}
+      >
+        <span className="truncate block max-w-full">
+          {formatPhoneNumber(user.phoneNumber)}
+        </span>
       </TableCell>
 
-      <TableCell className="px-6 py-3 type-desc text-gray-500 w-[10%] truncate text-center">
-        {user.gender}
+      <TableCell
+        className={`${cell} text-center`}
+        style={{ width: "90px", minWidth: "90px", maxWidth: "90px" }}
+      >
+        <span className="truncate block max-w-full">{user.gender}</span>
       </TableCell>
 
-      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[10%] truncate">
-        {user.gen}
+      <TableCell
+        className={`${cell} text-center`}
+        style={{ width: "100px", minWidth: "100px", maxWidth: "100px" }}
+      >
+        <span className="truncate block max-w-full">
+          {getGenerationNumber(user.generation?.name) || "N/A"}
+        </span>
       </TableCell>
 
-      <TableCell className="px-1 py-3 type-desc text-gray-500 text-center w-[15%]">
+      <TableCell
+        className={`${cell} text-center`}
+        style={{ width: "120px", minWidth: "120px", maxWidth: "120px" }}
+      >
         <div className="flex items-center justify-center w-full">
           <span
-            className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium shrink-0 min-w-[90px] ${
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium min-w-[76px] justify-center ${
               isActive
                 ? "bg-[#E6F9F1] text-accent"
                 : "bg-[#FEECEB] text-[#EA1D24]"
             }`}
           >
             <span
-              className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-accent" : "bg-[#EA1D24]"}`}
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                isActive ? "bg-accent" : "bg-[#EA1D24]"
+              }`}
             />
             {user.status}
           </span>
         </div>
       </TableCell>
 
-      <TableCell className="px-8 py-3 text-sm w-[10%] text-left">
-        <div className="flex items-center gap-4">
+      <TableCell
+        className={`${cell} text-center`}
+        style={{ width: "100px", minWidth: "100px", maxWidth: "100px" }}
+      >
+        <div className="flex items-center justify-center gap-3 w-full">
           <button
             type="button"
-            onClick={() => onEditRole(user)}
-            className="text-slate-600 hover:text-blue-900 transition-colors cursor-pointer shrink-0"
+            onClick={() => isActive && onEditRole(user)}
+            className={`transition-colors shrink-0 ${
+              isActive
+                ? "text-slate-600 hover:text-blue-900 cursor-pointer"
+                : "opacity-30 cursor-not-allowed"
+            }`}
           >
-            <Image src={"edit.svg"} alt="edit" width={18} height={18} />
+            <Image src="/edit.svg" alt="edit" width={15} height={15} />
           </button>
           <button
             type="button"
@@ -87,13 +165,13 @@ export default function UserRow({
           >
             {isActive ? (
               <Image
-                src={"user-minus.svg"}
-                alt="user-minus"
-                width={18}
-                height={18}
+                src="/user-minus.svg"
+                alt="suspend"
+                width={15}
+                height={15}
               />
             ) : (
-              <UserRoundCheck size={18} />
+              <UserRoundCheck size={15} />
             )}
           </button>
         </div>
