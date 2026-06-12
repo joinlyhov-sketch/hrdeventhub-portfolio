@@ -3,6 +3,8 @@ import { SidebarProvider } from "../../components/ui/sidebar";
 import { AppSidebar } from "../../components/site/AppSidebar";
 import { TooltipProvider } from "../../components/ui/tooltip";
 import { Metadata } from "next";
+import { NotificationProvider } from "@/context/NotificationProvider";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export const metadata: Metadata = {
   title: {
@@ -25,11 +27,9 @@ export default function RootLayout({
       <TooltipProvider>
         <SidebarProvider>
           <AppSidebar />
-          <div className="flex flex-col flex-1 min-w-0 w-full">
             {children}
-          </div>
         </SidebarProvider>
-      </TooltipProvider>
+      </TooltipProvider>      
     </div>
   );
 }

@@ -86,7 +86,7 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-          <SidebarTrigger />
+          <SidebarTrigger />      
         </SidebarHeader>
 
         <SidebarContent className="py-2">

@@ -7,6 +7,9 @@ import Providers from "./provider";
 import { UserProvider } from "../context/user-context";
 import { SessionGuard } from "@/components/auth/SessionGuard";
 import { Toaster } from "sonner";
+import { NotificationProvider } from "@/context/NotificationProvider";
+import { NotificationBell } from "@/components/NotificationBell";
+
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -44,7 +47,12 @@ export default function RootLayout({
       >
         <Providers>
           <UserProvider>
-            <SessionGuard>{children}</SessionGuard>
+            <SessionGuard>
+              <NotificationProvider>
+                {children}
+                <NotificationBell />
+              </NotificationProvider>
+            </SessionGuard>
           </UserProvider>
         </Providers>
         <Toaster position="top-right" richColors closeButton duration={3000} />
