@@ -11,7 +11,6 @@ import { Transaction } from "@/service/payment.service";
 import Search from "../../site/search/Search";
 import ContentTypePopover from "@/components/site/pop-up/contents/pop-over-content";
 import { PopoverItem } from "@/components/site/pop-up/contents/pop-over-content";
-import { useParams } from "next/navigation";
 
 interface EventManagementClientProps {
   events: EventItem[];
@@ -32,17 +31,9 @@ export function EventManagementClient({
 }: EventManagementClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const params = useParams();
-
-  const workspaceId = (params.workspaceId ||
-    params.id ||
-    params.groupId) as string;
   return (
     <div className="space-y-6">
-      <StatsCardsSection
-        events={events}
-        transactions={transactions}
-      />
+      <StatsCardsSection events={events} transactions={transactions} />
 
       <div className="bg-background rounded-2xl border border-gray-200 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
@@ -62,10 +53,7 @@ export function EventManagementClient({
           </div>
         </div>
 
-        <EventManagementTable
-          events={events}
-          searchTerm={searchTerm}
-        />
+        <EventManagementTable events={events} searchTerm={searchTerm} />
       </div>
     </div>
   );
