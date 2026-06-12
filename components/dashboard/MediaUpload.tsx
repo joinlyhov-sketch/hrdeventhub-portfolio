@@ -22,7 +22,9 @@ const MediaUpload = ({
 }: MediaUploadProps) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [deletingKeys, setDeletingKeys] = useState<Record<string, boolean>>({});
-
+  const uniqueValue = Array.from(
+    new Map(value.map((item) => [item.filePath, item])).values(),
+  );
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
 
@@ -46,7 +48,13 @@ const MediaUpload = ({
           };
           console.log(newMediaItem);
 
-          updatedMediaList = [...updatedMediaList, newMediaItem];
+          const alreadyExists = updatedMediaList.some(
+            (item) => item.filePath === newMediaItem.filePath,
+          );
+
+          if (!alreadyExists) {
+            updatedMediaList = [...updatedMediaList, newMediaItem];
+          }
           toast.success("File upload success!");
         } else {
           toast.error(
@@ -114,7 +122,7 @@ const MediaUpload = ({
       setDeletingKeys((prev) => ({ ...prev, [filePathToRemove]: false }));
     }
 
-    const remainingMedia = value.filter(
+    const remainingMedia = uniqueValue.filter(
       (img) => img.filePath !== filePathToRemove,
     );
 
@@ -165,13 +173,13 @@ const MediaUpload = ({
           </label>
         </div>
 
-        {value.map((image: PostMediaItem) => {
+        {uniqueValue.map((image: PostMediaItem, index) => {
           const dynamicPreviewUrl = `${image.filePath}`;
           const isTargetDeleting = deletingKeys[image.filePath];
 
           return (
             <div
-              key={image.filePath}
+              key={`${image.filePath}-${index}`}
               className={`relative w-[320px] h-55 rounded-2xl overflow-hidden border p-2 bg-white shrink-0 group transition-all duration-200 ${
                 image.isCover
                   ? "border-primary ring-4 ring-primary/10 shadow-md"

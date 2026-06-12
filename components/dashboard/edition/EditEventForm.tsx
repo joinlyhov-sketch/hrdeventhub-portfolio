@@ -44,7 +44,7 @@ export default function EditEventForm() {
 
   const token = session?.accessToken;
 
-  const { data, error, isLoading, mutate } = usePlatformEvents(token);
+  const { data, isLoading } = usePlatformEvents(token);
 
   const event = data?.find(
     (e) => e.postId === postId && e.workspaceId === workspaceId,
