@@ -80,6 +80,15 @@ export default function ProfileCard({
     );
   }
 
+  const sharingMode = profile.profileSharingMode;
+  const prefs = profile.preferences?.[0];
+
+  const isVisible = (field: keyof NonNullable<typeof prefs>): boolean => {
+    if (sharingMode === "PUBLIC") return true;
+    if (sharingMode === "PRIVATE") return false;
+    return prefs?.[field] ?? true;
+  };
+
   const displayName =
     `${profile.appUser.firstName} ${profile.appUser.lastName}`.trim();
   const profileAvatar = getMediaUrl(profile.profilePicture);
@@ -100,6 +109,8 @@ export default function ProfileCard({
   const showEndorse =
     viewMode === "alumni" || viewMode === "admin" || viewMode === "organizer";
   const showMessage = viewMode !== "self";
+
+  console.log("preferences:", profile.preferences);
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full w-full overflow-hidden">
@@ -138,34 +149,34 @@ export default function ProfileCard({
             <h3 className="type-subtitle-24 text-secondary font-semibold mb-4">
               Personal Information
             </h3>
-            <InfoRow icon={<Mail size={16} />} text={profile.appUser.email} />
-            <InfoRow
-              icon={<Calendar size={16} />}
-              text={formatDate(profile.appUser.dateOfBirth)}
-            />
-            <InfoRow
-              icon={<Users size={16} />}
-              text={profile.generation?.name || "N/A"}
-            />
-            <InfoRow
-              icon={<Code size={16} />}
-              text={formatSkills(profile.skills)}
-            />
-            <InfoRow
-              icon={<Phone size={16} />}
-              text={"+855" + profile.appUser.phoneNumber || "—"}
-            />
-            <InfoRow
-              icon={<GraduationCap size={16} />}
-              text={
-                profile.currentStatus
-                  ? profile.currentStatus
-                      .replace(/_/g, " ")
-                      .toLowerCase()
+              <InfoRow icon={<Mail size={16} />} text={profile.appUser.email} />
+              <InfoRow
+                icon={<Calendar size={16} />}
+                text={formatDate(profile.appUser.dateOfBirth)}
+              />
+              <InfoRow
+                icon={<Users size={16} />}
+                text={profile.generation?.name || "N/A"}
+              />
+              <InfoRow
+                icon={<Code size={16} />}
+                text={formatSkills(profile.skills)}
+              />
+              <InfoRow
+                icon={<Phone size={16} />}
+                text={"+855" + profile.appUser.phoneNumber || "—"}
+              />
+              <InfoRow
+                icon={<GraduationCap size={16} />}
+                text={
+                  profile.currentStatus
+                    ? profile.currentStatus
+                        .replace(/_/g, " ")
+                        .toLowerCase()
                       .replace(/\b\w/g, (char) => char.toUpperCase())
-                  : "Studying"
-              }
-            />
+                    : "Studying"
+                }
+              />
           </div>
 
           {(facebookAccount ||
