@@ -85,11 +85,14 @@ function ArticleItem({
       await refetch();
     }
   };
+  const shareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=article`
+    : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=article`;
 
   return (
     <>
-      <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
+      <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
@@ -174,10 +177,8 @@ function ArticleItem({
 
           <ReactionSummary payload={reactionPayload} />
         </div>
-        <div
-          className={`flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 ${showComments ? "mb-6 sm:mb-8" : ""}`}
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
+        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
             <Link href={`/profile/${currentUser?.id}`}>
               {currentUser?.profilePicture ? (
                 <Image
@@ -237,7 +238,7 @@ function ArticleItem({
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/articles/${post.postId}`}
+        shareUrl={shareUrl}
       />
     </>
   );

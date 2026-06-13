@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
 import { EventCard } from "./EventCard";
@@ -15,9 +15,15 @@ import { CalendarX } from "lucide-react";
 
 interface FilteredFeedProps {
   groupid: string;
+  deepLinkPostId?: string;
+  deepLinkType?: string;
 }
 
-export default function FilteredFeed({ groupid }: FilteredFeedProps) {
+export default function FilteredFeed({
+  groupid,
+  deepLinkPostId,
+  deepLinkType,
+}: FilteredFeedProps) {
   const { currentUser, isLoading: userLoading } = useCurrentUser();
   const role = currentUser?.role ?? "student";
 
@@ -25,6 +31,32 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const hasScrolled = useRef(false);
+  useEffect(() => {
+    if (feedLoading || userLoading) return;
+    if (hasScrolled.current) return;
+    if (!deepLinkPostId) return;
+
+    hasScrolled.current = true;
+    const tryScroll = (attemptsLeft: number) => {
+      const el = document.getElementById(`post-${deepLinkPostId}`);
+
+      if (el) {
+        const TOP_OFFSET = 100;
+        const y = el.getBoundingClientRect().top + window.scrollY - TOP_OFFSET;
+
+        window.scrollTo({ top: y, behavior: "smooth" });
+
+        el.classList.add("deep-link-highlight");
+        setTimeout(() => el.classList.remove("deep-link-highlight"), 2500);
+        return;
+      }
+      if (attemptsLeft > 0) {
+        setTimeout(() => tryScroll(attemptsLeft - 1), 150);
+      }
+    };
+    requestAnimationFrame(() => tryScroll(10));
+  }, [feedLoading, userLoading, deepLinkPostId, deepLinkType]);
 
   const pinnedCount = useMemo(() => {
     return feedItems.filter(item => item.type === "POST" && item.data?.pinned).length;
@@ -85,10 +117,10 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     return categoryFiltered.filter((item) => {
       const titleMatch = item.title?.toLowerCase().includes(q);
       const descMatch = item.description?.toLowerCase().includes(q);
-      
+
       const rawContent = item.data?.content;
-      const contentMatch = typeof rawContent === "string" 
-        ? rawContent.toLowerCase().includes(q) 
+      const contentMatch = typeof rawContent === "string"
+        ? rawContent.toLowerCase().includes(q)
         : false;
 
       return titleMatch || descMatch || contentMatch;
@@ -109,7 +141,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
     return (
       <div className="space-y-5 animate-in fade-in duration-300">
         <div className="w-full h-11 bg-muted rounded-lg animate-pulse" />
-        
+
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div
@@ -123,7 +155,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
                   <div className="h-3 bg-muted rounded w-1/6 animate-pulse" />
                 </div>
               </div>
-              
+
               <div className="space-y-2 pt-2">
                 <div className="h-5 bg-muted rounded w-2/3 animate-pulse" />
                 <div className="h-4 bg-muted rounded w-full animate-pulse" />
@@ -176,7 +208,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
                       {" "}within the{" "}
                       <span className="font-semibold text-gray-800">
                         {activeFilter}
-                    </span>{" "}
+                      </span>{" "}
                       category
                     </span>
                   )}
