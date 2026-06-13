@@ -527,7 +527,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           {error}
         </div>
       )}
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex items-center justify-between w-full">
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
         <div className="flex items-center gap-5">
           <div className="relative group w-20 h-20 shrink-0">
             {avatarUrl ? (
@@ -567,17 +567,17 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           </div>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <button
             onClick={() => setIsResetOpen(true)}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
+            className="w-full sm:w-auto bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
           >
             Change Password
           </button>
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-6 w-full">
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs space-y-6 w-full">
         <h2 className="type-subtitle text-secondary border-b border-border pb-2">
           Personal Information
         </h2>
@@ -1084,7 +1084,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-4 w-full">
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs space-y-4 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
           <div>
             <h3 className="type-subtitle text-secondary flex items-center gap-2">

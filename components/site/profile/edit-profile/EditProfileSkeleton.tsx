@@ -18,9 +18,9 @@ const Sk = ({
 export default function EditProfileSkeleton() {
   return (
     <div className="w-full flex flex-col gap-4 animate-pulse">
-      <div className="w-full border border-border rounded-2xl p-6 flex flex-col gap-5 bg-white dark:bg-transparent">
+      <div className="w-full border border-border rounded-2xl p-4 sm:p-6 flex flex-col gap-5 bg-white dark:bg-transparent">
         <Sk className="h-6 w-40 rounded-md" />
-        <div className="flex items-end gap-5">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-5">
           <Sk className="w-20 h-20 rounded-full shrink-0" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
             {[{ w: "w-20" }, { w: "w-20" }, { w: "w-24" }].map((f, i) => (

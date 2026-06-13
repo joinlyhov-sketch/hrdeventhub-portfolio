@@ -53,9 +53,9 @@ export default function UserRow({
     "px-3 py-0 h-[44px] align-middle text-lg text-gray-500 overflow-hidden whitespace-nowrap";
 
   return (
-    <TableRow className="border-b py-4 border-gray-100 hover:bg-gray-50/50 transition-colors">
+    <TableRow className="border-b py-3 border-gray-100 hover:bg-gray-50/50 transition-colors">
       <TableCell
-        className={`${cell} text-center py-4`}
+        className={`${cell} text-center py-3`}
         style={{ width: "60px", minWidth: "60px", maxWidth: "60px" }}
       >
         {rowDisplayIdentifier}
@@ -70,10 +70,10 @@ export default function UserRow({
             <img
               src={profileSrc}
               alt={user.username}
-              className="w-10 h-10 rounded-full object-cover shrink-0"
+              className="w-8 h-8 rounded-full object-cover shrink-0"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-lg font-semibold text-white shrink-0">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-lg font-medium text-white shrink-0">
               {user.firstName?.charAt(0).toUpperCase()}
               {user.lastName?.charAt(0).toUpperCase()}
             </div>
