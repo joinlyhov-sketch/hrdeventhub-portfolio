@@ -19,7 +19,6 @@ import {
 import { CancelButton } from "../../../site/user-mangement/button/CancelButton";
 import { SaveButton } from "../../../site/user-mangement/button/SaveButton";
 import { getUserByIdAction } from "../../../../actions/user.action";
-import { toast } from "sonner";
 
 type RoleType = "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT";
 
@@ -151,7 +150,6 @@ export default function EditRoleModal({
                     `Role update triggered — User: ${user.username} (ID: ${user.no}) | New Role: ${role}`,
                   );
                   onSave(user.no, role);
-                  toast.success("user's role has been update successfully");
                 }}
               />
             </div>
