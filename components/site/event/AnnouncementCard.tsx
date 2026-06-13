@@ -203,9 +203,16 @@ function AnnouncementItem({
     }
   };
 
+  const shareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=announcement`
+    : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=announcement`;
+
   return (
     <>
-      <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
+      <div
+        id={`post-${post.postId}`}
+        className="bg-background rounded-[12px] border border-border p-5 shadow-sm transition-all duration-300"
+      >
         <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-[#EBF5FB] p-2 rounded-lg text-primary">
@@ -415,7 +422,7 @@ function AnnouncementItem({
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/announcements/${post.postId}`}
+        shareUrl={shareUrl}
       />
     </>
   );
