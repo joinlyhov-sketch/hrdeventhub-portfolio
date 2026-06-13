@@ -129,7 +129,7 @@ export function NotificationBell() {
       <button
       ref={buttonRef}
       onClick={() => setOpen((v) => !v)}
-      className="fixed top-4 right-6 z-[9999] flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors"
+      className="fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors"
       aria-label="Notifications"
     >
       <Bell className="w-5 h-5 text-white" />
