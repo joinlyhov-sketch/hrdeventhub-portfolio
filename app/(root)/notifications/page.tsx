@@ -25,7 +25,6 @@ export default function NotificationsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-background px-4 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-[#1c4d8d]">Notifications</h1>
@@ -44,7 +43,6 @@ export default function NotificationsPage() {
         )}
       </div>
 
-      {/* List */}
       <div className="flex-1 divide-y">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
