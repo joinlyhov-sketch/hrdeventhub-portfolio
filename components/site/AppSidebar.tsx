@@ -50,7 +50,7 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r z-50 bg-white">
+      <Sidebar collapsible="icon" className="border-r z-50">
         <SidebarHeader className="border-b py-4">
           <SidebarMenu>
             <SidebarMenuItem>
