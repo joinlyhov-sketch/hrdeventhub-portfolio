@@ -80,6 +80,15 @@ export default function ProfileCard({
     );
   }
 
+  const sharingMode = profile.profileSharingMode;
+  const prefs = profile.preferences?.[0];
+
+  const isVisible = (field: keyof NonNullable<typeof prefs>): boolean => {
+    if (sharingMode === "PUBLIC") return true;
+    if (sharingMode === "PRIVATE") return false;
+    return prefs?.[field] ?? true;
+  };
+
   const displayName =
     `${profile.appUser.firstName} ${profile.appUser.lastName}`.trim();
   const profileAvatar = getMediaUrl(profile.profilePicture);
@@ -100,6 +109,8 @@ export default function ProfileCard({
   const showEndorse =
     viewMode === "alumni" || viewMode === "organizer";
   const showMessage = viewMode !== "self";
+
+  console.log("preferences:", profile.preferences);
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full w-full overflow-hidden">
@@ -163,9 +174,9 @@ export default function ProfileCard({
                       .replace(/_/g, " ")
                       .toLowerCase()
                       .replace(/\b\w/g, (char) => char.toUpperCase())
-                  : "Studying"
-              }
-            />
+                    : "Studying"
+                }
+              />
           </div>
 
           {(facebookAccount ||

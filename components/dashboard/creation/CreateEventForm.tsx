@@ -28,7 +28,7 @@ import {
   publishDraftPostAction,
 } from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
-import { CreatePostPayload, CreatePostResponse } from "@/types/post-types";
+import { CreatePostPayload } from "@/types/post-types";
 import { getAllWorkspacesAction } from "@/actions/workspace.action";
 import SearchableSelect, {
   SearchableSelectOption,
@@ -193,6 +193,13 @@ export default function CreateEventForm() {
       toast.error("An unexpected runtime error occurred.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+  const handleCancel = () => {
+    if (isAdmin) {
+      router.push("/event-management");
+    } else {
+      router.push(`/group/${activeWorkspaceId}`);
     }
   };
 
@@ -481,7 +488,7 @@ export default function CreateEventForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${activeWorkspaceId}`)}
+          onClick={handleCancel}
           className="order-2 sm:order-1 w-full hover:bg-transparent hover:text-primary sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
         >
           Cancel
