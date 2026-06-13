@@ -330,10 +330,6 @@ export function CommentNode({
               })}
             </p>
           )}
-
-          <section className="absolute -right-2">
-            <ReactionSummary payload={reactionPayload} />
-          </section>
         </div>
 
         {editingId !== comment.commentId && (
@@ -365,6 +361,8 @@ export function CommentNode({
             >
               Reply
             </button>
+
+            <ReactionSummary payload={reactionPayload} />
           </div>
         )}
 
