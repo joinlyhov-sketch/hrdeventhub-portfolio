@@ -130,7 +130,7 @@ export function EventManagementTable({
 
       let matchesDate = true;
       if (selectedDateRange !== "all" && event.createdAt) {
-        const eventDate = new Date(event.createdAt);
+        const eventDate = new Date(event.eventStart);
         const now = new Date();
 
         const today = new Date(
