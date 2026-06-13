@@ -44,6 +44,8 @@ import { PublishEventModal } from "../publish-event-modal";
 interface EventManagementTableProps {
   events: EventItem[];
   searchTerm: string;
+  attendeeCountByPostId: Record<string, number>;
+  isOrganizer: boolean;
 }
 
 const getStatusStyles = (status: string): string => {
@@ -66,31 +68,19 @@ const formatDate = (dateStr: string): string => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
-
   const day = String(date.getDate()).padStart(2, "0");
   const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
   ];
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-
-  return `${day} ${month}, ${year}`;
+  return `${day} ${months[date.getMonth()]}, ${date.getFullYear()}`;
 };
 
 export function EventManagementTable({
   events,
   searchTerm,
+  attendeeCountByPostId,
+  isOrganizer,
 }: EventManagementTableProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -118,6 +108,7 @@ export function EventManagementTable({
   } | null>(null);
 
   const itemsPerPage = 10;
+
   const filteredEvents = useMemo(() => {
     return (events || []).filter((event) => {
       const matchesSearch = event.title
@@ -130,19 +121,14 @@ export function EventManagementTable({
 
       let matchesDate = true;
       if (selectedDateRange !== "all" && event.createdAt) {
-        const eventDate = new Date(event.eventStart);
+        const eventDate = new Date(event.createdAt);
         const now = new Date();
-
-        const today = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-        );
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
-
-        const diffTime = today.getTime() - eventDate.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil(
+          (today.getTime() - eventDate.getTime()) / (1000 * 60 * 60 * 24),
+        );
 
         if (selectedDateRange === "today") {
           matchesDate = eventDate.toDateString() === today.toDateString();
@@ -157,8 +143,7 @@ export function EventManagementTable({
             eventDate.getMonth() === now.getMonth() &&
             eventDate.getFullYear() === now.getFullYear();
         } else if (selectedDateRange === "lastMonth") {
-          const lastMonthTarget =
-            now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+          const lastMonthTarget = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
           const lastMonthYear =
             now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
           matchesDate =
@@ -177,13 +162,12 @@ export function EventManagementTable({
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredEvents.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredEvents, currentPage]);
+
   const handleDeleteExecute = async (
     groupId: string | undefined,
     postId: string | undefined,
   ) => {
-    console.log("show groupID: ", closeEventData);
     if (!groupId || !postId) return;
-
     await new Promise<void>((resolve, reject) => {
       startTransition(async () => {
         try {
@@ -229,7 +213,6 @@ export function EventManagementTable({
           status: "closed",
           reason: reason,
         });
-
         if (result.ok) {
           toast.success("Closed event successfully!");
           router.refresh();
@@ -366,6 +349,10 @@ export function EventManagementTable({
                 const eventWorkspaceId =
                   event.sourceWorkspaceId || event.workspaceId;
 
+                const attendeeCount = isOrganizer
+                  ? (attendeeCountByPostId[event.postId] ?? 0)
+                  : (event.attendeeCount ?? 0);
+
                 const currentItemActions: DropdownAction[] = [
                   {
                     label: "Update",
@@ -390,34 +377,37 @@ export function EventManagementTable({
                     },
                   },
                 ];
-                if (event.status?.toLowerCase() != "active") {
-                  currentItemActions.push({
-                    label: "Public",
-                    icon: Globe,
-                    onClick: () => {
-                      setPublishEventData({
-                        id: event.postId,
-                        title: event.title,
-                        groupId: groupId,
-                      });
-                      setIsPublishModalOpen(true);
-                    },
-                  });
-                }
 
-                if (event.status?.toLowerCase() !== "closed") {
-                  currentItemActions.push({
-                    label: "Close",
-                    icon: XCircle,
-                    onClick: () => {
-                      setCloseEventData({
-                        id: event.postId,
-                        title: event.title,
-                        groupId: groupId,
-                      });
-                      setIsCloseModalOpen(true);
-                    },
-                  });
+                if (!isOrganizer) {
+                  if (event.status?.toLowerCase() !== "active") {
+                    currentItemActions.push({
+                      label: "Public",
+                      icon: Globe,
+                      onClick: () => {
+                        setPublishEventData({
+                          id: event.postId,
+                          title: event.title,
+                          groupId: groupId,
+                        });
+                        setIsPublishModalOpen(true);
+                      },
+                    });
+                  }
+
+                  if (event.status?.toLowerCase() !== "closed") {
+                    currentItemActions.push({
+                      label: "Close",
+                      icon: XCircle,
+                      onClick: () => {
+                        setCloseEventData({
+                          id: event.postId,
+                          title: event.title,
+                          groupId: groupId,
+                        });
+                        setIsCloseModalOpen(true);
+                      },
+                    });
+                  }
                 }
 
                 return (
@@ -467,7 +457,7 @@ export function EventManagementTable({
                     </TableCell>
 
                     <TableCell className="text-center text-secondary type-desc">
-                      {(event.attendeeCount ?? 0).toLocaleString()}
+                      {attendeeCount.toLocaleString()}
                     </TableCell>
 
                     <TableCell className="text-center">

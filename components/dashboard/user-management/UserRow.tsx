@@ -50,12 +50,12 @@ export default function UserRow({
   };
 
   const cell =
-    "px-3 py-0 h-[44px] align-middle text-sm text-gray-500 overflow-hidden whitespace-nowrap";
+    "px-3 py-0 h-[44px] align-middle text-lg text-gray-500 overflow-hidden whitespace-nowrap";
 
   return (
-    <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+    <TableRow className="border-b py-4 border-gray-100 hover:bg-gray-50/50 transition-colors">
       <TableCell
-        className={`${cell} text-center`}
+        className={`${cell} text-center py-4`}
         style={{ width: "60px", minWidth: "60px", maxWidth: "60px" }}
       >
         {rowDisplayIdentifier}
@@ -70,10 +70,10 @@ export default function UserRow({
             <img
               src={profileSrc}
               alt={user.username}
-              className="w-7 h-7 rounded-full object-cover shrink-0"
+              className="w-10 h-10 rounded-full object-cover shrink-0"
             />
           ) : (
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[11px] font-semibold text-white shrink-0">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-lg font-semibold text-white shrink-0">
               {user.firstName?.charAt(0).toUpperCase()}
               {user.lastName?.charAt(0).toUpperCase()}
             </div>
@@ -122,7 +122,7 @@ export default function UserRow({
       >
         <div className="flex items-center justify-center w-full">
           <span
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium min-w-[76px] justify-center ${
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium justify-center ${
               isActive
                 ? "bg-[#E6F9F1] text-accent"
                 : "bg-[#FEECEB] text-[#EA1D24]"
@@ -152,7 +152,7 @@ export default function UserRow({
                 : "opacity-30 cursor-not-allowed"
             }`}
           >
-            <Image src="/edit.svg" alt="edit" width={15} height={15} />
+            <Image src="/edit.svg" alt="edit" width={20} height={20} />
           </button>
           <button
             type="button"
@@ -167,11 +167,11 @@ export default function UserRow({
               <Image
                 src="/user-minus.svg"
                 alt="suspend"
-                width={15}
-                height={15}
+                width={20}
+                height={20}
               />
             ) : (
-              <UserRoundCheck size={15} />
+              <UserRoundCheck size={20} />
             )}
           </button>
         </div>
