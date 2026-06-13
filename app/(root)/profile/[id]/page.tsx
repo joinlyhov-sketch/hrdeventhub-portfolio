@@ -107,9 +107,9 @@ export default function ProfilePage() {
   return (
     <div className="w-full bg-background z-30">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
-      <div className="w-full max-w-475 pr-8 lg:pr-12 lg:pl-12 mx-auto">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch max-h-[calc(100vh-220px)] xl:h-170">
-          <div className="xl:col-span-4 h-full">
+      <div className="w-full max-w-475 px-4 sm:px-6 lg:pr-12 lg:pl-12 mx-auto">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-stretch xl:max-h-[calc(100vh-220px)] xl:h-170">
+          <div className="xl:col-span-4 xl:h-full">
             <ProfileCard
               viewMode={!isReady ? null : isSubjectAdmin ? "student" : adjustedViewMode}
               profile={profile}
@@ -118,8 +118,8 @@ export default function ProfilePage() {
               authToken={session?.accessToken ?? ""}
             />
           </div>
-          <div className="xl:col-span-8 h-full bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col gap-6 overflow-hidden">
-            <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1 shrink-0">
+          <div className="xl:col-span-8 xl:h-full bg-card border border-border rounded-xl p-4 sm:p-6 shadow-sm flex flex-col gap-6 xl:overflow-hidden">
+            <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1 shrink-0 overflow-x-auto">
               <Tabnav
                 active={activeTab === "BG"}
                 label="Background"
@@ -140,7 +140,7 @@ export default function ProfilePage() {
                 />
               )}
             </div>
-            <div className="w-full flex-1 min-h-0 overflow-hidden">
+            <div className="w-full flex-1 min-h-0 xl:overflow-hidden">
               {activeTab === "BG" && (
                 <BackgroundTab
                   profile={profile}
@@ -172,7 +172,7 @@ const Tabnav = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex-1 py-2.5 px-4 rounded-md type-desc-semibold transition-all duration-100 ${
+    className={`flex-1 shrink-0 whitespace-nowrap py-2.5 px-4 rounded-md type-desc-semibold transition-all duration-100 ${
       active
         ? "bg-primary text-primary-foreground shadow-sm cursor-pointer"
         : "text-muted-foreground hover:bg-grey-50 hover:text-foreground cursor-pointer"
