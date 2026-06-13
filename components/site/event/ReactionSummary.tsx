@@ -125,41 +125,41 @@ export function ReactionSummary({ payload }: ReactionSummaryProps) {
             const profileImage = r.reactor.profileImage;
 
             return (
-              <>
-                <section>
-                  <Link href={`/profile/${r.reactor.appUserId}`}>
-                    <div key={r.reactionId} className="flex items-center gap-3">
-                      <div className="relative shrink-0">
-                          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden flex items-center justify-center border">
-                              {profileImage ? (
-                                <Image
-                                  src={profileImage}
-                                  alt={fullName}
-                                  width={40}
-                                  height={40}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-xs font-bold text-primary uppercase">
-                                  {fullName.slice(0, 2)}
-                                </span>
-                              )}
-                          </div>
-                        <div className="absolute -bottom-1 -right-1">
-                          {reaction ? (
-                            <TwemojiImg emoji={reaction.emoji} size={16} />
-                          ) : (
-                            <span className="text-xs">👍</span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="flex-1 text-sm font-medium text-grey-900 truncate">
-                        {fullName}
-                      </span>
+              <Link
+                key={r.reactionId || r.reactor.appUserId}
+                href={`/profile/${r.reactor.appUserId}`}
+                className="block"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="relative shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden flex items-center justify-center border">
+                      {profileImage ? (
+                        <Image
+                          src={profileImage}
+                          alt={fullName}
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs font-bold text-primary uppercase">
+                          {fullName.slice(0, 2)}
+                        </span>
+                      )}
                     </div>
-                  </Link>
-                </section>
-              </>
+                    <div className="absolute -bottom-1 -right-1">
+                      {reaction ? (
+                        <TwemojiImg emoji={reaction.emoji} size={16} />
+                      ) : (
+                        <span className="text-xs">👍</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="flex-1 text-sm font-medium text-grey-900 truncate">
+                    {fullName}
+                  </span>
+                </div>
+              </Link>
             );
           })}
         </div>

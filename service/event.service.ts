@@ -71,6 +71,8 @@ export interface EventItem {
   media: EventMedia[];
   payment: EventPayment;
   comments: EventComment[];
+  scheduledAt?: string;
+  pinned?: boolean;
 }
 
 export interface EventResponse {
@@ -142,40 +144,40 @@ export const eventService = {
   },
 
   getAllPlatformEvents: async (token: string): Promise<EventItem[]> => {
-  const pageSize = 100;
-  const eventsById = new Map<string, EventItem>();
+    const pageSize = 100;
+    const eventsById = new Map<string, EventItem>();
 
-  const firstPage = await eventService.getAll(token, 1, pageSize);
-  firstPage.forEach((event) => {
-    eventsById.set(event.postId, {
-      ...event,
-      sourceWorkspaceId: event.sourceWorkspaceId || event.workspaceId,
-    });
-  });
-
-  if (firstPage.length === pageSize) {
-    const remainingPages = await Promise.all(
-      Array.from({ length: 19 }, (_, i) =>
-        eventService.getAll(token, i + 2, pageSize),
-      ),
-    );
-
-    remainingPages.flat().forEach((event) => {
+    const firstPage = await eventService.getAll(token, 1, pageSize);
+    firstPage.forEach((event) => {
       eventsById.set(event.postId, {
         ...event,
         sourceWorkspaceId: event.sourceWorkspaceId || event.workspaceId,
       });
     });
-  }
 
-  return Array.from(eventsById.values()).sort((a, b) => {
-    const aTime = new Date(a.eventStart).getTime();
-    const bTime = new Date(b.eventStart).getTime();
-    if (Number.isNaN(aTime)) return 1;
-    if (Number.isNaN(bTime)) return -1;
-    return aTime - bTime;
-  });
-},
+    if (firstPage.length === pageSize) {
+      const remainingPages = await Promise.all(
+        Array.from({ length: 19 }, (_, i) =>
+          eventService.getAll(token, i + 2, pageSize),
+        ),
+      );
+
+      remainingPages.flat().forEach((event) => {
+        eventsById.set(event.postId, {
+          ...event,
+          sourceWorkspaceId: event.sourceWorkspaceId || event.workspaceId,
+        });
+      });
+    }
+
+    return Array.from(eventsById.values()).sort((a, b) => {
+      const aTime = new Date(a.eventStart).getTime();
+      const bTime = new Date(b.eventStart).getTime();
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return aTime - bTime;
+    });
+  },
 
   getAllPlatformEventsWithAttendees: async (
     token: string,
@@ -260,34 +262,39 @@ export const eventService = {
   },
 
   getParticipantStats: async (
-  token: string,
-  postId: string,
-): Promise<{ total: number; pendingPayment: number }> => {
-  const pageSize = 100;
-  const firstPage = await eventService.getParticipants(token, postId, 1, pageSize);
+    token: string,
+    postId: string,
+  ): Promise<{ total: number; pendingPayment: number }> => {
+    const pageSize = 100;
+    const firstPage = await eventService.getParticipants(
+      token,
+      postId,
+      1,
+      pageSize,
+    );
 
-  if (firstPage.length < pageSize) {
+    if (firstPage.length < pageSize) {
+      return {
+        total: firstPage.length,
+        pendingPayment: firstPage.filter((p) =>
+          eventService.isPendingParticipantPayment(p.paymentStatus),
+        ).length,
+      };
+    }
+
+    const remainingRequests = Array.from({ length: 19 }, (_, i) =>
+      eventService.getParticipants(token, postId, i + 2, pageSize),
+    );
+    const remainingPages = await Promise.all(remainingRequests);
+    const all = [firstPage, ...remainingPages].flat();
+
     return {
-      total: firstPage.length,
-      pendingPayment: firstPage.filter((p) =>
+      total: all.length,
+      pendingPayment: all.filter((p) =>
         eventService.isPendingParticipantPayment(p.paymentStatus),
       ).length,
     };
-  }
-
-  const remainingRequests = Array.from({ length: 19 }, (_, i) =>
-    eventService.getParticipants(token, postId, i + 2, pageSize),
-  );
-  const remainingPages = await Promise.all(remainingRequests);
-  const all = [firstPage, ...remainingPages].flat();
-
-  return {
-    total: all.length,
-    pendingPayment: all.filter((p) =>
-      eventService.isPendingParticipantPayment(p.paymentStatus),
-    ).length,
-  };
-},
+  },
 
   isPendingParticipantPayment: (status?: string): boolean => {
     const normalized = status?.trim().toLowerCase();
@@ -341,4 +348,44 @@ export const eventService = {
     );
     return response.payload || [];
   },
+  getOrganizerParticipants: async (
+  token: string,
+  page: number = 1,
+  size: number = 100,
+): Promise<Participant[]> => {
+  const response = await apiGet<ParticipantResponse>(
+    `/posts/participants/my-workspaces?page=${page}&size=${size}`,
+    { authToken: token },
+  );
+  return response.payload || [];
+},
+
+getOrganizerEvents: async (token: string): Promise<{
+  events: EventItem[];
+  participantsByPostId: Map<string, Participant[]>;
+}> => {
+  const participants = await eventService.getOrganizerParticipants(token);
+
+  const participantsByPostId = new Map<string, Participant[]>();
+  const eventsById = new Map<string, EventItem>();
+
+  participants.forEach((p) => {
+    if (p.post) {
+      eventsById.set(p.postId, p.post);
+    }
+    const existing = participantsByPostId.get(p.postId) || [];
+    existing.push(p);
+    participantsByPostId.set(p.postId, existing);
+  });
+
+  const events = Array.from(eventsById.values()).sort((a, b) => {
+    const aTime = new Date(a.eventStart).getTime();
+    const bTime = new Date(b.eventStart).getTime();
+    if (Number.isNaN(aTime)) return 1;
+    if (Number.isNaN(bTime)) return -1;
+    return aTime - bTime;
+  });
+
+  return { events, participantsByPostId };
+},
 };
