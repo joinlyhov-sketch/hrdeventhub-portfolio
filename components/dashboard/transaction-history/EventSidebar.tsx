@@ -82,15 +82,20 @@ export function EventSidebar({
           value={String(selectedYear)}
           onValueChange={(val) => setSelectedYear(Number(val))}
         >
-          <SelectTrigger className="w-20 h-8 text-xs text-gray-400 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:border-gray-300 focus:ring-0 focus:ring-offset-0">
+          <SelectTrigger className="w-20 h-8 text-xs text-gray-400 border border-gray-200 rounded-md px-2 py-1 cursor-pointer ">
             <SelectValue placeholder="Year" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            side="bottom"
+            position="popper"
+            avoidCollisions={false}
+            className="w-[var(--radix-select-trigger-width)] min-w-[80px] max-w-[80px] max-h-40 overflow-y-auto bg-white rounded-md border border-gray-200 shadow-md py-1 -mt-1 z-50 text-left"
+          >
             {availableYears.map((year) => (
               <SelectItem
                 key={year}
                 value={String(year)}
-                className="text-xs cursor-pointer text-primary focus:bg-blue-100 focus:text-blue-700 cursor-pointer"
+                className="text-xs text-primary focus:bg-blue-100 focus:text-blue-700 cursor-pointer py-1"
               >
                 {year}
               </SelectItem>
