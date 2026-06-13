@@ -74,11 +74,15 @@ export default function UserTableClient({
     const filtered = users.filter((user) => {
       const matchesSearch =
         user.username.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase());
+        user.email.toLowerCase().includes(search.toLowerCase()) ||
+        `${user.firstName} ${user.lastName}`
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        user.firstName?.toLowerCase().includes(search.toLowerCase()) ||
+        user.lastName?.toLowerCase().includes(search.toLowerCase());
       const matchesGen =
         selectedGen === "all" || user.generation?.name === selectedGen;
 
-      // Filter mapping logic supporting 'all' state checks
       const matchesStatus =
         selectedStatus === "all" ||
         selectedStatus === "" ||
@@ -121,7 +125,7 @@ export default function UserTableClient({
               u.no === idString ? { ...u, status: "Active" } : u,
             ),
           );
-          toast.success("User reactivated successfully");
+          toast.success("user has been reactivate back");
         }
         setSelectedUserForReactivate(null);
       } catch (err) {
