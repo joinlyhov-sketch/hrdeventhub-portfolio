@@ -48,7 +48,7 @@ export function DeleteEventModal({
       <AlertDialogContent className="sm:max-w-[600px] w-full rounded-2xl border border-gray-100 bg-white p-0 shadow-2xl overflow-hidden gap-0">
         <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-6">
           <AlertDialogHeader className="flex flex-row items-center gap-4 space-y-0">
-            <AlertDialogMedia className="flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-full w-12 h-12 shrink-0">
+            <AlertDialogMedia className="flex items-center justify-center bg-red-50 text-red-600 rounded-full w-12 h-12 shrink-0">
               <TriangleAlert size={24} />
             </AlertDialogMedia>
             <div className="space-y-1">
@@ -92,7 +92,7 @@ export function DeleteEventModal({
               variant="outline"
               onClick={onClose}
               disabled={isDeleting}
-              className="h-10 px-5 border border-gray-300 text-gray-700 hover:bg-gray-100 font-medium rounded-lg text-sm transition-colors"
+              className="h-10 px-5 border border-gray-300 text-gray-700 hover:text-black hover:bg-gray-100 font-medium rounded-lg text-sm transition-colors"
             >
               Cancel
             </Button>
@@ -101,7 +101,7 @@ export function DeleteEventModal({
             <Button
               onClick={handleConfirm}
               disabled={isDeleting}
-              className="h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors disabled:opacity-50"
+              className="h-10 px-5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors disabled:opacity-50"
             >
               {isDeleting ? "Deleting..." : "Delete Event"}
             </Button>

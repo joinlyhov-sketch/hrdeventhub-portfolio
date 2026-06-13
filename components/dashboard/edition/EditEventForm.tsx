@@ -28,7 +28,8 @@ import {
 } from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
 import { UpdateEventPayload } from "@/types/post-types";
-import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
+import { usePlatformEvents } from "@/hooks/usePlatformEvents";
+import { useSession } from "next-auth/react";
 
 export default function EditEventForm() {
   const router = useRouter();
@@ -39,9 +40,15 @@ export default function EditEventForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFlexible, setIsFlexible] = useState(false);
-  const { posts, isLoading: postsLoading } = useWorkspacePosts(workspaceId);
+  const { data: session } = useSession();
 
-  const event = posts?.find((e) => e.postId === postId);
+  const token = session?.accessToken;
+
+  const { data, isLoading } = usePlatformEvents(token);
+
+  const event = data?.find(
+    (e) => e.postId === postId && e.workspaceId === workspaceId,
+  );
 
   const {
     register,
@@ -205,10 +212,7 @@ export default function EditEventForm() {
         donationGoal: Number(data.targetGoal) || 0,
       },
     };
-    console.log(
-      "MATCHED SWAGGER ARTICLE PAYLOAD:",
-      JSON.stringify(payload, null, 2),
-    );
+
     try {
       const result = await updatePostAction(workspaceId, postId, payload);
 
@@ -241,6 +245,13 @@ export default function EditEventForm() {
       setIsSubmitting(false);
     }
   };
+  const handleCancel = () => {
+    if (isAdmin) {
+      router.push("/event-management");
+    } else {
+      router.push(`/group/${workspaceId}`);
+    }
+  };
 
   const watchedIsPinned = useWatch({
     control,
@@ -248,7 +259,7 @@ export default function EditEventForm() {
     defaultValue: false,
   });
 
-  if (postsLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-100 text-slate-500 font-medium">
         Loading target event parameters context...
@@ -562,7 +573,7 @@ export default function EditEventForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${workspaceId}`)}
+          onClick={handleCancel}
           className="order-2 sm:order-1 w-full hover:bg-transparent hover:text-primary sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
         >
           Cancel
