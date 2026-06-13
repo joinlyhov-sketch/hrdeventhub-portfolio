@@ -18,6 +18,7 @@ import type {
   VisibilityMode,
   SelectiveVisibility,
 } from "./PrivacySettingsClient";
+import { useMemo } from "react";
 
 interface ProfileCardProps {
   profile: UserProfilePayload;
@@ -160,6 +161,14 @@ export default function ProfilePrivacy({
     show("showSocial") &&
     !!(linkedinAccount || githubAccount || facebookAccount || telegramAccount);
 
+  const coverIndex = useMemo(() => {
+    const hash = (appUser.username || "user")
+      .split("")
+      .reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return (hash % 3) + 1; // gives 1–3
+  }, [appUser.username]);
+  // const coverIndex = useMemo(() => Math.floor(Math.random() * 10) + 1, []);
+
   if (visibilityMode === "private") {
     return (
       <>
@@ -167,27 +176,37 @@ export default function ProfilePrivacy({
           <div className="w-full type-subtitle-24 font-bold text-secondary ">
             Preview As Public
           </div>
-            <div className="h-28 bg-[#1e4e8c] border border-border rounded-2xl shrink-0 relative" />
-            <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow">
-              <div className="w-28 h-28 rounded-full border-4 border-card overflow-hidden bg-grey-100  shadow-sm mb-3 shrink-0 relative z-10 flex items-center justify-center bg-primary/10">
-                <span className="text-2xl font-bold text-primary">
-                  {initials}
+          {/* <div className="h-28 bg-[#1e4e8c] border border-border rounded-2xl shrink-0 relative" /> */}
+          <div className="h-28 border border-border rounded-2xl shrink-0 relative overflow-hidden">
+            <img
+              src={`/covers/cover${coverIndex}.jpg`}
+              alt="Cover"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/covers/cover1.jpg";
+              }}
+            />
+          </div>
+          <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow">
+            <div className="w-28 h-28 rounded-full border-4 border-card overflow-hidden bg-grey-100  shadow-sm mb-3 shrink-0 relative z-10 flex items-center justify-center bg-primary/10">
+              <span className="text-2xl font-bold text-primary">
+                {initials}
+              </span>
+            </div>
+            <div className="text-center w-full ">
+              <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
+                {displayName}
+              </h3>
+              <p className="type-detail text-secondary mb-4">@{username}</p>
+            </div>
+            <div className="w-full px-4 mb-4">
+              <div className="border py-2.5 rounded-2xl text-center flex items-center justify-center mt-9">
+                <span className="text-grey-400 type-desc tracking-wide">
+                  {displayName}&apos;s profile is locked
                 </span>
               </div>
-              <div className="text-center w-full ">
-                <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
-                  {displayName}
-                </h3>
-                <p className="type-detail text-secondary mb-4">@{username}</p>
-              </div>
-              <div className="w-full px-4 mb-4">
-                <div className="border py-2.5 rounded-2xl text-center flex items-center justify-center mt-9">
-                  <span className="text-grey-400 type-desc tracking-wide">
-                    {displayName}&apos;s profile is locked
-                  </span>
-                </div>
-              </div>
             </div>
+          </div>
         </div>
         <div className="p-3 type-detail flex items-center justify-center gap-1.5 text-[10px] text-[#0F2854]">
           <Eye className="w-3.5 h-3.5" />
@@ -215,7 +234,14 @@ export default function ProfilePrivacy({
         <div className="w-full type-subtitle-24 font-bold text-[#0f2d59]">
           Preview As Public
         </div>
-        <div className="h-28 bg-[#1e4e8c] border border-border rounded-2xl shrink-0 relative" />
+        {/* <div className="h-28 bg-[#1e4e8c] border border-border rounded-2xl shrink-0 relative" /> */}
+        <div className="h-28 border border-border rounded-2xl shrink-0 relative overflow-hidden">
+          <img
+            src={`/covers/cover${coverIndex}.jpg`}
+            alt="Cover"
+            className="w-full h-full"
+          />
+        </div>
         <div className="px-4 flex flex-col items-center -mt-16 w-full relative z-10 ">
           <div className="w-28 h-28 rounded-full border-4 border-card overflow-hidden bg-primary/10 shadow-sm mb-3 flex items-center justify-center shrink-0">
             {show("showProfilePicture") && avatarUrl ? (
@@ -234,9 +260,7 @@ export default function ProfilePrivacy({
             <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
               {displayName}
             </h3>
-            <p className="type-detail text-secondary mb-4">
-              @{username}
-            </p>
+            <p className="type-detail text-secondary mb-4">@{username}</p>
             {show("showBio") && bio && (
               <p className="text-xs text-secondary text-center leading-relaxed font-medium px-4 max-w-md mx-auto italic">
                 &quot;{bio}&quot;
@@ -293,7 +317,7 @@ export default function ProfilePrivacy({
                 />
               )}
               {show("showEducation") && education.length > 0 && (
-                <div className="space-y-2 pt-1 border-t border-border/50">
+                <div className="space-y-2 pt-1 ">
                   {education.map((edu, i) => (
                     <InfoRow
                       key={i}

@@ -16,7 +16,7 @@ export default function Header({ titlePrimary, titleSecondary, description }: He
           </h1>
           <p className="type-desc mt-1 text-muted-foreground">{description}</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mr-6 mb-4">
           <div className="flex items-center gap-3">
             <div className="text-right">
               <h3 className="type-detail-semibold text-primary">

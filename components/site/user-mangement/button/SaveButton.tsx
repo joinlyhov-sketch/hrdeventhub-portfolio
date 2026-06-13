@@ -11,7 +11,7 @@ export function SaveButton({ onClick }: SaveButtonProps) {
     <Button
       type="button"
       onClick={onClick}
-      className="px-10 py-3 h-auto rounded-2xl bg-[#1E3A8A] text-white font-bold text-sm hover:bg-blue-800 transition-colors min-w-[140px] cursor-pointer"
+      className="px-10 py-3 h-auto rounded-2xl bg-primary text-white type-desc hover:bg-primary/90 hover:shadow-lg transition-all duration-200 min-w-[140px] cursor-pointer"
     >
       Save
     </Button>

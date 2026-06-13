@@ -1,20 +1,16 @@
 "use client";
 
 import React, { useState, useMemo, useTransition } from "react";
-import {
-  UserX,
-  ListFilter,
-  ArrowUp,
-  ArrowDown,
-  UserRoundCheck,
-} from "lucide-react";
+import { UserX, ListFilter, ArrowUp, ArrowDown } from "lucide-react";
 import Search from "../../site/search/Search";
 import UserRow from "./UserRow";
 import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
 import SuspendModal from "../pop-up/user-management-pop-up/SuspendModal";
 import ReactivateModal from "../pop-up/user-management-pop-up/ReactivateModal";
+import FilterStatusModal from "../pop-up/user-management-pop-up/FilterStatusModal";
 import { UserData } from "../../../types/user-management-type/user";
 import { PaginationDemo } from "@/components/feedback/Pagination";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -61,6 +57,12 @@ export default function UserTableClient({
   const [selectedUserForReactivate, setSelectedUserForReactivate] =
     useState<UserData | null>(null);
 
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
+
+  const currentLoggedInUserNo = useMemo(() => {
+    return "";
+  }, []);
+
   const uniqueGenerations = useMemo(() => {
     const generations = users
       .map((user) => user.generation?.name)
@@ -75,8 +77,11 @@ export default function UserTableClient({
         user.email.toLowerCase().includes(search.toLowerCase());
       const matchesGen =
         selectedGen === "all" || user.generation?.name === selectedGen;
+
+      // Filter mapping logic supporting 'all' state checks
       const matchesStatus =
         selectedStatus === "all" ||
+        selectedStatus === "" ||
         user.status?.toLowerCase() === selectedStatus.toLowerCase();
       return matchesSearch && matchesGen && matchesStatus;
     });
@@ -116,6 +121,7 @@ export default function UserTableClient({
               u.no === idString ? { ...u, status: "Active" } : u,
             ),
           );
+          toast.success("User reactivated successfully");
         }
         setSelectedUserForReactivate(null);
       } catch (err) {
@@ -135,18 +141,16 @@ export default function UserTableClient({
               u.no === idString ? { ...u, status: "Suspended" } : u,
             ),
           );
+          toast.success("User has been suspended successfully");
           setSelectedUserForSuspend(null);
         } else {
-          alert(
-            response?.message ||
-              "Server rejected suspension execution request.",
+          toast.error(
+            response?.message || "Server rejected suspension request.",
           );
         }
       } catch (err) {
-        console.error(
-          "Network crash executing suspension pipeline action:",
-          err,
-        );
+        console.error("Suspension system failure:", err);
+        toast.error("An error occurred during suspension execution.");
       }
     });
   };
@@ -164,6 +168,7 @@ export default function UserTableClient({
             prev.map((u) => (u.no === idString ? { ...u, role: role } : u)),
           );
           setSelectedUserForRole(null);
+          toast.success("Role updated successfully");
         }
       } catch (err) {
         console.error(err);
@@ -216,7 +221,6 @@ export default function UserTableClient({
               <TableHead className="px-6 py-3 text-white w-[15%] type-desc-semibold">
                 Gender
               </TableHead>
-
               <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
                 <div className="flex items-center justify-center gap-1">
                   <span className="select-none whitespace-nowrap">
@@ -225,7 +229,6 @@ export default function UserTableClient({
                       ? `(${selectedGen.replace(/\D/g, "")})`
                       : ""}
                   </span>
-
                   <button
                     type="button"
                     onClick={() => {
@@ -241,7 +244,6 @@ export default function UserTableClient({
                       <ArrowDown size={16} />
                     )}
                   </button>
-
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
@@ -284,45 +286,18 @@ export default function UserTableClient({
               </TableHead>
 
               <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
-                      <span className="truncate">
-                        Status{" "}
-                        {selectedStatus !== "all" ? `(${selectedStatus})` : ""}
-                      </span>
-                      <ListFilter size={16} className="shrink-0" />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[125px]">
-                    <DropdownMenuRadioGroup
-                      value={selectedStatus}
-                      onValueChange={(v) => {
-                        setSelectedStatus(v);
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <DropdownMenuRadioItem
-                        value="all"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        All
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="Active"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Active
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="Suspended"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Suspended
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div
+                  onClick={() => setIsStatusModalOpen(true)}
+                  className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200"
+                >
+                  <span className="truncate">
+                    Status{" "}
+                    {selectedStatus !== "all" && selectedStatus !== ""
+                      ? `(${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)})`
+                      : ""}
+                  </span>
+                  <ListFilter size={16} className="shrink-0" />
+                </div>
               </TableHead>
 
               <TableHead className="px-1 py-3 text-white w-[20%] type-desc-semibold">
@@ -379,6 +354,23 @@ export default function UserTableClient({
         />
       )}
 
+      {isStatusModalOpen && (
+        <FilterStatusModal
+          initialStatus={selectedStatus === "all" ? "" : selectedStatus}
+          onClose={() => setIsStatusModalOpen(false)}
+          onClear={() => {
+            setSelectedStatus("all");
+            setCurrentPage(1);
+            setIsStatusModalOpen(false);
+            toast.info("Status filter cleared");
+          }}
+          onFilterChange={(newStatus) => {
+            setSelectedStatus(newStatus || "all");
+            setCurrentPage(1);
+          }}
+        />
+      )}
+
       {selectedUserForRole && (
         <EditRoleModal
           user={selectedUserForRole}
@@ -392,6 +384,10 @@ export default function UserTableClient({
           user={selectedUserForSuspend}
           onClose={() => setSelectedUserForSuspend(null)}
           onConfirm={handleConfirmSuspend}
+          isCurrentUser={
+            currentLoggedInUserNo !== "" &&
+            String(selectedUserForSuspend.no) === String(currentLoggedInUserNo)
+          }
         />
       )}
 

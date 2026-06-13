@@ -80,6 +80,7 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.rememberMe = user.rememberMe;
+        token.appUserId = user.id;
 
         const parts = (user.accessToken as string)?.split(".");
         if (parts?.length === 3) {
@@ -140,6 +141,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id;
         session.user.email = token.email;
         session.user.role = token.role;
+        session.appUserId = token.appUserId as string;
         session.accessToken = token.accessToken;
         session.refreshToken = token.refreshToken;
         session.error = token.error;

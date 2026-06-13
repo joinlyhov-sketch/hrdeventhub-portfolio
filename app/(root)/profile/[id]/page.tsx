@@ -66,8 +66,9 @@ export default function ProfilePage() {
 
   const showEndorsementTab =
     isReady &&
-    ((isSelf && viewerRole === "STUDENT") ||
-      (!isSelf && subjectRole === "STUDENT"));
+    !isSelf &&
+    viewerRole === "ALUMNI" &&
+    subjectRole === "STUDENT";
 
   const titlePrimary = isSelf
     ? "My"
@@ -96,17 +97,21 @@ export default function ProfilePage() {
       ? "View your profile information, background details, and endorsements."
       : `You are viewing ${subjectName ?? "this user"}'s profile.`;
 
+  const isSubjectAdmin = subjectRole === "ADMIN";
+  const adjustedViewMode = viewerRole === "ADMIN" ? "student" : viewMode;
+
   if (!isReady || profileLoading) {
     return <ProfilePageSkeleton />;
   }
+
   return (
     <div className="w-full bg-background z-30">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
-      <div className="lg:pr-12 lg:pl-12 w-full">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch max-h-[calc(100vh-220px)] xl:h-[680px]">
+      <div className="w-full max-w-475 pr-8 lg:pr-12 lg:pl-12 mx-auto">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-stretch max-h-[calc(100vh-220px)] xl:h-170">
           <div className="xl:col-span-4 h-full">
             <ProfileCard
-              viewMode={!isReady ? null : viewMode}
+              viewMode={!isReady ? null : isSubjectAdmin ? "student" : adjustedViewMode}
               profile={profile}
               loading={profileLoading || !isReady}
               profileId={userId}

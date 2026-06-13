@@ -17,11 +17,11 @@ import EndorseStudentModal from "../pop-up/EndorseStep";
 import type { ViewMode } from "@/app/(root)/profile/[id]/page";
 
 const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
-  <div className="flex flex-row w-full">
-    <div className="flex items-center gap-3 w-full">
-      <span className="text-primary shrink-0">{icon}</span>
-      <span className="text-grey-900 truncate">{text}</span>
-    </div>
+  <div className="flex items-center gap-3 w-full min-w-0">
+    <span className="text-primary shrink-0">{icon}</span>
+    <span className="text-grey-900 truncate grow" title={text}>
+      {text}
+    </span>
   </div>
 );
 
@@ -107,7 +107,7 @@ export default function ProfileCard({
 
   const showEdit = viewMode === "self";
   const showEndorse =
-    viewMode === "alumni" || viewMode === "admin" || viewMode === "organizer";
+    viewMode === "alumni" || viewMode === "organizer";
   const showMessage = viewMode !== "self";
 
   console.log("preferences:", profile.preferences);
@@ -149,30 +149,30 @@ export default function ProfileCard({
             <h3 className="type-subtitle-24 text-secondary font-semibold mb-4">
               Personal Information
             </h3>
-              <InfoRow icon={<Mail size={16} />} text={profile.appUser.email} />
-              <InfoRow
-                icon={<Calendar size={16} />}
-                text={formatDate(profile.appUser.dateOfBirth)}
-              />
-              <InfoRow
-                icon={<Users size={16} />}
-                text={profile.generation?.name || "N/A"}
-              />
-              <InfoRow
-                icon={<Code size={16} />}
-                text={formatSkills(profile.skills)}
-              />
-              <InfoRow
-                icon={<Phone size={16} />}
-                text={"+855" + profile.appUser.phoneNumber || "—"}
-              />
-              <InfoRow
-                icon={<GraduationCap size={16} />}
-                text={
-                  profile.currentStatus
-                    ? profile.currentStatus
-                        .replace(/_/g, " ")
-                        .toLowerCase()
+            <InfoRow icon={<Mail size={16} />} text={profile.appUser.email} />
+            <InfoRow
+              icon={<Calendar size={16} />}
+              text={formatDate(profile.appUser.dateOfBirth)}
+            />
+            <InfoRow
+              icon={<Users size={16} />}
+              text={profile.generation?.name || "N/A"}
+            />
+            <InfoRow
+              icon={<Code size={16} />}
+              text={formatSkills(profile.skills)}
+            />
+            <InfoRow
+              icon={<Phone size={16} />}
+              text={profile.appUser.phoneNumber ? `+855${profile.appUser.phoneNumber}` : "—"}
+            />
+            <InfoRow
+              icon={<GraduationCap size={16} />}
+              text={
+                profile.currentStatus
+                  ? profile.currentStatus
+                      .replace(/_/g, " ")
+                      .toLowerCase()
                       .replace(/\b\w/g, (char) => char.toUpperCase())
                     : "Studying"
                 }

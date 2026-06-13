@@ -11,6 +11,7 @@ export type CommentItem = {
 
 export interface AppUserComment {
   appUserId: string;
+  username: string;
   firstName: string;
   lastName: string;
   email: string;

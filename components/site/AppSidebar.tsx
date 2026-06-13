@@ -31,6 +31,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const isAdmin = currentUser?.role === "admin";
+  const isOrganizer = currentUser?.role === "organizer";
   const memberData = useMyWorkspaces();
   const pinnedWorkspaces = isAdmin
     ? []
@@ -64,7 +65,7 @@ export function AppSidebar() {
                     className={`overflow-hidden transition-all duration-300 ease-in-out ${state === "collapsed" ? "w-auto opacity-100 scale-100" : "w-0 hidden scale-75"}`}
                   >
                     <Image
-                      src="/images/hrdLogo.webp"
+                      src="/images/hrd.webp"
                       alt="HRD Event Hub Logo"
                       width={35}
                       height={35}
@@ -75,7 +76,7 @@ export function AppSidebar() {
                     className={`overflow-hidden transition-all duration-300 ease-in-out ${state === "collapsed" ? "w-0 opacity-0" : "w-auto scale-150 opacity-100 ml-4"}`}
                   >
                     <Image
-                      src="/images/Logo.webp"
+                      src="/images/HrdEventHub.webp"
                       alt="HRD Event Hub Text Logo"
                       width={102}
                       height={27}
@@ -448,60 +449,62 @@ export function AppSidebar() {
               </SidebarGroupLabel>
 
               <SidebarMenu className="flex flex-col gap-1">
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={pathname === "/user-management"}
-                    asChild
-                    tooltip="User Management"
-                    className="h-11"
-                  >
-                    <Link href="/user-management">
-                      <svg
-                        width={18}
-                        height={18}
-                        viewBox="0 0 18 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
-                          stroke="#878787"
-                          strokeWidth={1.5}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.4083 11.8048L11.7532 14.4598C11.6482 14.5648 11.5508 14.7598 11.5283 14.9023L11.3858 15.9148C11.3333 16.2823 11.5883 16.5373 11.9558 16.4848L12.9682 16.3423C13.1107 16.3198 13.3133 16.2223 13.4108 16.1173L16.0657 13.4623C16.5232 13.0048 16.7407 12.4723 16.0657 11.7973C15.3982 11.1298 14.8658 11.3473 14.4083 11.8048Z"
-                          stroke="#878787"
-                          strokeWidth={1.5}
-                          strokeMiterlimit={10}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.0273 12.1875C14.2523 12.9975 14.8823 13.6275 15.6923 13.8525"
-                          stroke="#878787"
-                          strokeWidth={1.5}
-                          strokeMiterlimit={10}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M2.55859 16.5C2.55859 13.5975 5.44611 11.25 9.00111 11.25C9.78111 11.25 10.5311 11.3625 11.2286 11.5725"
-                          stroke="#878787"
-                          strokeWidth={1.5}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span
-                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
-                      >
-                        User Management
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {!isOrganizer && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={pathname === "/user-management"}
+                      asChild
+                      tooltip="User Management"
+                      className="h-11"
+                    >
+                      <Link href="/user-management">
+                        <svg
+                          width={18}
+                          height={18}
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M14.4083 11.8048L11.7532 14.4598C11.6482 14.5648 11.5508 14.7598 11.5283 14.9023L11.3858 15.9148C11.3333 16.2823 11.5883 16.5373 11.9558 16.4848L12.9682 16.3423C13.1107 16.3198 13.3133 16.2223 13.4108 16.1173L16.0657 13.4623C16.5232 13.0048 16.7407 12.4723 16.0657 11.7973C15.3982 11.1298 14.8658 11.3473 14.4083 11.8048Z"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeMiterlimit={10}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M14.0273 12.1875C14.2523 12.9975 14.8823 13.6275 15.6923 13.8525"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeMiterlimit={10}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M2.55859 16.5C2.55859 13.5975 5.44611 11.25 9.00111 11.25C9.78111 11.25 10.5311 11.3625 11.2286 11.5725"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span
+                          className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                        >
+                          User Management
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
 
                 <SidebarMenuItem>
                   <SidebarMenuButton

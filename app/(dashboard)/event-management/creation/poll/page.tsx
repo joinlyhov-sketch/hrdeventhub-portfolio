@@ -11,9 +11,9 @@ export default async function PollCreatePage() {
   }
 
   return (
-    <main className="p-6">
+    <main className="w-full max-w-475 mx-auto">
       <FeedbackBreadcrumb label="Poll Creation" />
-      <div className="max-w-420 mx-auto flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
         <div className="flex-1 w-full">
           <PollForm />
         </div>

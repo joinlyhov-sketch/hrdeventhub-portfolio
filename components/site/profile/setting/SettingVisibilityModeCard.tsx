@@ -304,7 +304,7 @@ export default function SettingVisibilityModeCard({
         type="button"
         onClick={handleSave}
         disabled={isSaving}
-        className="px-8 py-2.5 bg-[#1C4D8D] text-white rounded-2xl text-sm font-semibold hover:bg-[#153b6c] transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+        className="px-8 py-2.5 bg-primary text-white rounded-2xl text-sm font-semibold hover:bg-[#153b6c] transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
       >
         {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
         {isSaving ? "Saving…" : "Save changes"}
@@ -317,7 +317,7 @@ export default function SettingVisibilityModeCard({
 
       <div className="bg-white rounded-2xl border border-primary/10 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <span className="w-6 h-6 rounded-full bg-[#1C4D8D] text-white flex items-center justify-center text-xs font-bold">1</span>
+          <span className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">1</span>
           <h2 className="text-lg font-bold text-secondary">Choose your visibility mode</h2>
         </div>
 
@@ -327,13 +327,13 @@ export default function SettingVisibilityModeCard({
             onClick={() => setVisibilityMode("share_all")}
             className={`relative p-5 rounded-2xl border text-left transition flex flex-col min-h-[160px] justify-between cursor-pointer ${
               isShareAll
-                ? "border-[#1C4D8D] bg-[#F4F7FC] ring-1 ring-[#1C4D8D]"
+                ? "border-primary bg-[#F4F7FC] ring-1 ring-primary"
                 : "border-border hover:border-grey-300"
             }`}
           >
             <div className="w-full">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-full bg-[#1C4D8D]/10 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <svg className="w-10 h-10" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M25 35C30.52 35 35 30.52 35 25C35 19.48 30.52 15 25 15C19.48 15 15 19.48 15 25C15 30.52 19.48 35 25 35Z" stroke="#1C4D8D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     <path d="M21 16H22C20.05 21.84 20.05 28.16 22 34H21" stroke="#1C4D8D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -357,13 +357,13 @@ export default function SettingVisibilityModeCard({
             onClick={() => setVisibilityMode("private")}
             className={`relative p-5 rounded-2xl border text-left transition flex flex-col min-h-[160px] justify-between cursor-pointer ${
               isPrivate
-                ? "border-[#1C4D8D] bg-[#F4F7FC] ring-1 ring-[#1C4D8D]"
+                ? "border-primary bg-[#F4F7FC] ring-1 ring-primary"
                 : "border-border hover:border-grey-300"
             }`}
           >
             <div className="w-full">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-full bg-[#1C4D8D]/10 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <svg className="w-10 h-10" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M19 23V21C19 17.69 20 15 25 15C30 15 31 17.69 31 21V23" stroke="#1C4D8D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     <path d="M25 31.5C26.38 31.5 27.5 30.38 27.5 29C27.5 27.62 26.38 26.5 25 26.5C23.62 26.5 22.5 27.62 22.5 29C22.5 30.38 23.62 31.5 25 31.5Z" stroke="#1C4D8D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -383,7 +383,7 @@ export default function SettingVisibilityModeCard({
             onClick={() => setVisibilityMode("selective")}
             className={`relative p-5 rounded-2xl border text-left transition flex flex-col min-h-[160px] justify-between cursor-pointer ${
               isSelective
-                ? "border-[#1C4D8D] bg-[#F4F7FC] ring-1 ring-[#1C4D8D]"
+                ? "border-primary bg-[#F4F7FC] ring-1 ring-primary"
                 : "border-border hover:border-grey-300"
             }`}
           >
@@ -410,7 +410,7 @@ export default function SettingVisibilityModeCard({
       <div className="bg-white rounded-2xl border border-primary/10 p-6 animate-in fade-in duration-200">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <span className="w-6 h-6 rounded-full bg-[#1C4D8D] text-white flex items-center justify-center text-xs font-bold">2</span>
+            <span className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">2</span>
             <h2 className="text-lg font-bold text-secondary">Customize your visibility</h2>
           </div>
 
@@ -436,7 +436,7 @@ export default function SettingVisibilityModeCard({
 
         {isPrivate ? ( 
           <div className="border border-dashed border-border rounded-2xl p-12 flex flex-col items-center justify-center text-center bg-[#F8FAFC]">
-            <div className="w-12 h-12 rounded-full bg-[#1C4D8D]/10 flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
               <Lock className="w-6 h-6 text-primary" />
             </div>
             <h3 className="text-base font-bold text- mb-1">Your profile is fully private</h3>
@@ -600,15 +600,15 @@ export default function SettingVisibilityModeCard({
 function RadioDot({ active }: { active: boolean }) {
   return (
     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-      active ? "border-[#1C4D8D]" : "border-gray-300"
+      active ? "border-primary" : "border-gray-300"
     }`}>
-      {active && <div className="w-2.5 h-2.5 rounded-full bg-[#1C4D8D]" />}
+      {active && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
     </div>
   );
 }
 
 const ProfileIcon = () => (
-  <div className="w-10 h-10 rounded-full bg-[#1C4D8D]/10 flex items-center justify-center">
+  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
     <svg width="28" height="28" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M22 22C24.7614 22 27 19.7614 27 17C27 14.2386 24.7614 12 22 12C19.2386 12 17 14.2386 17 17C17 19.7614 19.2386 22 22 22Z" stroke="#1C4D8D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M30.59 32C30.59 28.13 26.74 25 22 25C17.26 25 13.41 28.13 13.41 32" stroke="#1C4D8D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
