@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Trash2, ThumbsUp, Smile, SendHorizontal } from "lucide-react";
 import { Comment } from "@/types/comment";
@@ -203,9 +203,7 @@ export function CommentNode({
       </div>
 
       <div className="flex-1 w-full pb-1">
-        {/* WRAPPER: inline-block so action bar matches bubble width */}
         <div className="inline-block max-w-full min-w-0">
-          {/* BUBBLE */}
           <div
             ref={bubbleRef}
             className={`relative bg-grey-100 rounded-2xl px-3 py-2 ${
@@ -274,7 +272,9 @@ export function CommentNode({
                       </button>
                       {showEditEmoji && (
                         <EmojiPopover
-                          onPick={(emoji) => setEditText((prev) => prev + emoji)}
+                          onPick={(emoji) =>
+                            setEditText((prev) => prev + emoji)
+                          }
                           onClose={() => setShowEditEmoji(false)}
                         />
                       )}
@@ -338,7 +338,6 @@ export function CommentNode({
             )}
           </div>
 
-          {/* ACTION BAR — inside wrapper so it matches bubble width */}
           {editingId !== comment.commentId && (
             <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
               <span className="font-normal">{timeAgo(comment.createdAt)}</span>
@@ -375,7 +374,6 @@ export function CommentNode({
           )}
         </div>
 
-        {/* THESE STAY OUTSIDE the inline-block wrapper */}
         {hasReplies && !isNested && (
           <button
             onClick={() => setShowReplies((v) => !v)}

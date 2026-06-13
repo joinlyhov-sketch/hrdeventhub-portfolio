@@ -69,11 +69,11 @@ export function ReactionSummary({ payload }: ReactionSummaryProps) {
       </DialogTrigger>
 
       <DialogContent 
-        className="w-[374.5px] p-2 bg-background border border-border rounded-2xl shadow-xl max-h-120 flex flex-col overflow-hidden gap-0 [&>button]:hidden"
+        className="w-fit min-w-110 max-w-[95vw] p-2 bg-background border border-border rounded-2xl shadow-xl max-h-120 flex flex-col gap-0 [&>button]:hidden"
       >
         <DialogTitle className="sr-only">Reaction Summary</DialogTitle>
 
-        <div className="w-full flex items-center gap-1 px-3 pt-3 pb-0 border-b border-border shrink-0 overflow-x-auto scrollbar-none">
+        <div className="w-full flex items-center gap-1 px-3 pt-3 pb-0 border-b border-border scrollbar-none">
           <button
             onClick={() => setActiveFilter(null)}
             className={`relative -mb-px flex items-center gap-1.5 px-3 pb-2 pt-1 text-md font-semibold rounded-t-lg transition-colors shrink-0 border-b-2 ${
@@ -116,7 +116,7 @@ export function ReactionSummary({ payload }: ReactionSummaryProps) {
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-3 space-y-3">
+        <div className="overflow-y-auto flex-1 p-3 space-y-3 scrollbar-none">
           {filteredReactors.map((r) => {
             const reaction = REACTIONS.find((rx) => rx.id === r.type);
             const fullName = [r.reactor.firstName, r.reactor.lastName]
