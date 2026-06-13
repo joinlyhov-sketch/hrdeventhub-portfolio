@@ -706,42 +706,6 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                 Date of Birth
               </label>
 
-              {/* <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center gap-3 w-full h-10 px-3 rounded-md border border-border bg-background text-left transition-colors hover:border-primary focus:outline-none focus:border-primary"
-                  >
-                    <Cake className="w-4 h-4 text-[#93A3CA] shrink-0" />
-
-                    <span
-                      className={`text-sm ${
-                        dob ? "text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {selectedDate
-                        ? format(selectedDate, "dd/MM/yyyy")
-                        : "DD/MM/YYYY"}
-                    </span>
-                  </button>
-                </PopoverTrigger>
-
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      if (!date) return;
-
-                      setDob(format(date, "yyyy-MM-dd"));
-                    }}
-                    disabled={(date) => date > maxDate || date < startMonth}
-                    captionLayout="dropdown"
-                    startMonth={startMonth}
-                    endMonth={endMonth}
-                  />
-                </PopoverContent>
-              </Popover> */}
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -1162,7 +1126,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               </svg>
               WeBill365 Information
             </h3>
-            <p className="type-detail text-muted-foreground mt-0.5">
+            <p className="type-detail text-muted-foreground mt-0.5"> 
               Manage WeBill Information for room payment
             </p>
           </div>
