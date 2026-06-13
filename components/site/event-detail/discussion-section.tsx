@@ -21,7 +21,7 @@ export function DiscussionSection({ event, workspaceId }: DiscussionSectionProps
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch } = usePostComments(event.postId);
+  const { comments, refetch, loading } = usePostComments(event.postId, true);
   const { members } = useWorkspaceMembers(workspaceId ?? "");
 
   const handleSubmitComment = async () => {
@@ -68,7 +68,20 @@ export function DiscussionSection({ event, workspaceId }: DiscussionSectionProps
       </section>
 
       <div className="space-y-5">
-        {comments && comments.length > 0 ? (
+        {loading ? (
+          <div className="space-y-4 animate-pulse">
+            {[...Array(3)].map((_, idx) => (
+              <div key={idx} className="flex gap-3 items-start px-1">
+                <div className="w-10 h-10 rounded-full bg-grey-200 shrink-0" />
+                <div className="flex-1 bg-grey-50 rounded-xl p-3 space-y-2">
+                  <div className="h-4 bg-grey-200 rounded w-1/4" />
+                  <div className="h-3 bg-grey-200 rounded w-3/4" />
+                  <div className="h-3 bg-grey-200 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : comments && comments.length > 0 ? (
           comments.map((comment) => (
             <CommentNode
               key={comment.commentId}
