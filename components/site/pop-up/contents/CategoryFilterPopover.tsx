@@ -3,7 +3,11 @@
 import * as React from "react";
 import { Filter, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover/popover";
 
 export interface FilterOption {
   label: string;
@@ -25,6 +29,8 @@ export default function CategoryFilterPopover({
   const [open, setOpen] = React.useState(false);
 
   const currentLabel = options.find((opt) => opt.value === activeFilter)?.label;
+  const ActiveIcon =
+    options.find((opt) => opt.value === activeFilter)?.icon ?? Filter;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -36,7 +42,7 @@ export default function CategoryFilterPopover({
             gap-2 
             bg-primary 
             text-white 
-            px-3 
+            px-3 sm:px-4
             py-3 
             rounded-full 
             type-detail-semibold 
@@ -48,8 +54,11 @@ export default function CategoryFilterPopover({
             h-auto
           "
         >
-          <Filter size={18} />
-          {activeFilter ? `Category: ${currentLabel}` : "Filter by category"}
+          {activeFilter ? <ActiveIcon size={18} /> : <Filter size={18} />}
+          <span className="hidden sm:inline">
+            {activeFilter ? `Category: ${currentLabel}` : "Filter by category"}
+          </span>
+          {activeFilter && <span className="sm:hidden">{currentLabel}</span>}
         </Button>
       </PopoverTrigger>
 
@@ -57,7 +66,7 @@ export default function CategoryFilterPopover({
         align="end"
         sideOffset={8}
         className="
-          w-56 
+          w-48 sm:w-56 
           bg-white 
           border 
           border-gray-100 
@@ -104,8 +113,8 @@ export default function CategoryFilterPopover({
                   flex 
                   items-center 
                   gap-3 
-                  px-4 
-                  py-3 
+                  px-3 sm:px-4 
+                  py-2.5 sm:py-3 
                   text-sm 
                   cursor-pointer 
                   font-medium 

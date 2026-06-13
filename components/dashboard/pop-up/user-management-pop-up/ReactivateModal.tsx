@@ -12,7 +12,6 @@ import {
 } from "../../../ui/modal-user-management/dialog";
 import { CancelButton } from "../../../site/user-mangement/button/CancelButton";
 import { ReactivateButton } from "../../../site/user-mangement/button/ReactivateButton";
-import { toast } from "sonner";
 
 interface ReactivateModalProps {
   user: UserData;
@@ -92,7 +91,6 @@ export default function ReactivateModal({
                   `Reactivate — User: ${user.username} (ID: ${user.no})`,
                 );
                 onConfirm(user.no);
-                toast.success("user has been reactivate back");
               }}
             />
           </div>

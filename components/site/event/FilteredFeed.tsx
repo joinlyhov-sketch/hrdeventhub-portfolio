@@ -114,7 +114,7 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="bg-background rounded-xl border border-border/60 p-6 space-y-4 shadow-sm relative overflow-hidden"
+              className="bg-background rounded-xl border border-border/60 p-4 sm:p-6 space-y-3 sm:space-y-4 shadow-sm relative overflow-hidden"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
@@ -157,17 +157,17 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
 
       <div className="space-y-4">
         {isFeedEmpty ? (
-          <div className="p-12 text-center flex flex-col items-center justify-center min-h-65 mt-6 animate-in fade-in zoom-in-95 duration-150">
-            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center text-gray-400 mb-4">
+          <div className="p-6 sm:p-12 text-center flex flex-col items-center justify-center min-h-65 mt-4 sm:mt-6 animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-100 flex items-center justify-center text-gray-400 mb-3 sm:mb-4">
               <CalendarX size={30} className="text-red-500" />
             </div>
 
             {isSearchingOrFiltering ? (
               <>
-                <h3 className="text-base font-bold text-gray-900 mb-1">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1">
                   No Results Found
                 </h3>
-                <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs sm:text-sm text-gray-500 max-w-xs sm:max-w-sm mx-auto leading-relaxed">
                   We couldn&apos;t find any records matching &ldquo;
                   <span className="font-semibold text-gray-800">{searchQuery}</span>
                   &rdquo;
@@ -187,17 +187,17 @@ export default function FilteredFeed({ groupid }: FilteredFeedProps) {
                     setSearchQuery("");
                     setActiveFilter(null);
                   }}
-                  className="mt-5 text-xs font-bold text-primary hover:text-primary-hover uppercase tracking-wider underline underline-offset-4 cursor-pointer"
+                  className="mt-4 sm:mt-5 text-xs font-bold text-primary hover:text-primary-hover uppercase tracking-wider underline underline-offset-4 cursor-pointer"
                 >
                   Clear Filters & Reset
                 </button>
               </>
             ) : (
               <>
-                <h3 className="text-base font-bold text-gray-900 mb-1">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1">
                   No Posts Available
                 </h3>
-                <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs sm:text-sm text-gray-500 max-w-xs sm:max-w-sm mx-auto leading-relaxed">
                   There are currently no announcements, events, or posts published here. Check back later for updates.
                 </p>
               </>
