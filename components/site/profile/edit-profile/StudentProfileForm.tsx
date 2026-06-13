@@ -730,7 +730,7 @@ export default function StudentProfileForm() {
   );
 
   return (
-    <div className="xl:col-span-8 border border-border rounded-2xl p-6 flex flex-col gap-4">
+    <div className="xl:col-span-8 border border-border rounded-2xl p-4 sm:p-6 flex flex-col gap-4">
       {error && (
         <div className="p-4 text-sm bg-destructive/10 text-destructive rounded-lg font-mono whitespace-pre-wrap">
           {error}
@@ -867,11 +867,7 @@ export default function StudentProfileForm() {
           </div>
         </div>
         <div
-          className="grid gap-4 w-full"
-          style={{
-            gridTemplateColumns:
-              "calc(96px + ((100% - 96px - 32px) / 3)) 1fr 1fr",
-          }}
+          className="grid grid-cols-1 sm:[grid-template-columns:calc(96px_+_((100%_-_96px_-_32px)/3))_1fr_1fr] gap-4 w-full"
         >
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Date of Birth</label>
@@ -966,10 +962,7 @@ export default function StudentProfileForm() {
           </div>
         </div>
         <div
-          className="grid gap-4 w-full"
-          style={{
-            gridTemplateColumns: "calc(96px + ((100% - 96px - 32px) / 3)) 1fr",
-          }}
+          className="grid grid-cols-1 sm:[grid-template-columns:calc(96px_+_((100%_-_96px_-_32px)/3))_1fr] gap-4 w-full"
         >
           <div className="flex flex-col gap-1.5">
             <label className="type-desc text-secondary">Phone Number</label>
