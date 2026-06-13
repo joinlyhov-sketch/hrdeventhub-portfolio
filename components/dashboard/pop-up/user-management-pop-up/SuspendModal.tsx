@@ -62,8 +62,8 @@ export default function SuspendModal({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white w-full max-w-[50%] sm:max-w-none md:max-w-[50%] rounded-[15px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150 [&>button]:top-9 [&>button]:hover:text-red-500 [&>button]:-translate-y-1/2 [&>button]:!bg-transparent [&>button]:focus:ring-0">
-        <div className="bg-grey-100 px-3 py-3 flex items-center justify-between border-b border-gray-100">
+      <DialogContent className="bg-white w-full max-w-[700px] sm:max-w-none md:max-w-[700px] rounded-[15px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150 [&>button]:top-10 [&>button]:hover:text-red-500 [&>button]:-translate-y-1/2 [&>button]:!bg-transparent [&>button]:focus:ring-0">
+        <div className="bg-[#F2F4F7] px-3 py-4 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
             {profileSrc ? (
               <img
@@ -78,10 +78,10 @@ export default function SuspendModal({
               </div>
             )}
             <div>
-              <h4 className="font-semibold text-slate-800 text-base">
+              <h4 className="font-semibold text-slate-700 text-base">
                 {user ? `${user.firstName} ${user.lastName}` : "User"}
               </h4>
-              <p className="text-xs text-slate-400 font-medium">{user.email}</p>
+              <p className="text-xs text-slate-400">{user.email}</p>
             </div>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function SuspendModal({
                 <SelectContent
                   side="bottom"
                   position="popper"
-                  className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-45 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
+                  className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
                 >
                   {REASON_MAPPING.map((option) => (
                     <SelectItem
@@ -138,7 +138,7 @@ export default function SuspendModal({
             </DialogDescription>
           </div>
 
-          <div className="flex items-center justify-center gap-4 py-1 w-full">
+          <div className="flex items-center justify-center gap-4 py-2 w-full">
             <CancelButton onClick={onClose} />
             <div className="inline-block shrink-0">
               <SuspendButton onClick={handleSuspendSubmit} />

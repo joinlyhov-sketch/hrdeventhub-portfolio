@@ -7,6 +7,8 @@ import { Transaction } from "@/service/payment.service";
 interface StatsCardsSectionProps {
   events: EventItem[];
   transactions?: Transaction[];
+  attendeeCountByPostId?: Record<string, number>;
+  isOrganizer?: boolean;
 }
 
 const isSuccessfulTransaction = (status?: string) => {
@@ -24,12 +26,12 @@ const isActiveEvent = (event: EventItem) =>
 export function StatsCardsSection({
   events,
   transactions = [],
+  attendeeCountByPostId,
+  isOrganizer,
 }: StatsCardsSectionProps) {
-  const totalAttendees = (events || []).reduce(
-    (acc, event) => acc + (event.attendeeCount ?? 0),
-    0,
-  );
-
+ const totalAttendees = isOrganizer && attendeeCountByPostId
+    ? Object.values(attendeeCountByPostId).reduce((acc, count) => acc + count, 0)
+    : (events || []).reduce((acc, event) => acc + (event.attendeeCount ?? 0), 0);
   const pendingPaymentCount = (events || []).reduce(
     (acc, event) => acc + (event.pendingPaymentCount ?? 0),
     0,

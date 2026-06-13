@@ -32,8 +32,8 @@ export default function ReactivateModal({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white w-full max-w-[50%] sm:max-w-none md:max-w-[50%] rounded-[15px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150 [&>button]:top-9 [&>button]:hover:text-red-500 [&>button]:-translate-y-1/2 [&>button]:!bg-transparent [&>button]:focus:ring-0">
-        <div className="bg-grey-100 px-3 py-3 flex items-center justify-between border-b border-gray-100">
+      <DialogContent className="bg-white w-full max-w-[700px] sm:max-w-none md:max-w-[700px] rounded-[15px] p-0 overflow-hidden border-none gap-0 shadow-xl animate-in fade-in zoom-in-95 duration-150 [&>button]:top-10 [&>button]:hover:text-red-500 [&>button]:-translate-y-1/2 [&>button]:!bg-transparent [&>button]:focus:ring-0">
+        <div className="bg-[#F2F4F7] px-3 py-4 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
             {profileSrc ? (
               <img
@@ -48,7 +48,7 @@ export default function ReactivateModal({
               </div>
             )}
             <div>
-              <h4 className="font-bold text-slate-800 text-base">
+              <h4 className="font-bold text-slate-700 text-base">
                 {user ? `${user.firstName} ${user.lastName}` : "User"}
               </h4>
               <p className="text-xs text-slate-400 font-medium">{user.email}</p>
@@ -56,14 +56,14 @@ export default function ReactivateModal({
           </div>
         </div>
 
-        <div className="p-5 space-y-1 text-center">
+        <div className="p-5 space-y-2 text-center">
           <div className="w-18 h-18 bg-[#E6F9F1] rounded-full flex items-center justify-center border border-[#CCF4E3] mx-auto">
             <CheckCircle2 className="w-13 h-13 text-accent" />
           </div>
 
           <div className="space-y-3 w-full">
             <DialogHeader className="space-y-1.5 text-center">
-              <DialogTitle className="text-2xl  text-primary tracking-tight">
+              <DialogTitle className="text-2xl  text-primary font-semibold">
                 Reactivate User
               </DialogTitle>
             </DialogHeader>
