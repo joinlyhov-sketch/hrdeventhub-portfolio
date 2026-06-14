@@ -11,14 +11,14 @@ interface WorkspaceSelectorProps {
   selectedWorkspaceId: string;
   onSelectWorkspace: (workspaceId: string) => void;
   required?: boolean;
-  disabled?: boolean; // Accept disabled option handle flag
+  disabled?: boolean;
 }
 
 export default function WorkspaceSelector({
   selectedWorkspaceId,
   onSelectWorkspace,
   required = true,
-  disabled = false, // Default is selectable
+  disabled = false,
 }: WorkspaceSelectorProps) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,8 @@ export default function WorkspaceSelector({
         setWorkspaces(data);
         setError(null);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to fetch workspaces";
+        const message =
+          err instanceof Error ? err.message : "Failed to fetch workspaces";
         setError(message);
       } finally {
         setLoading(false);
@@ -51,8 +52,14 @@ export default function WorkspaceSelector({
 
   return (
     <div className="mb-6">
-      <Label htmlFor="workspace-select" className="mb-2 text-sm font-medium flex items-center gap-1.5">
-        <span>Select Workspace {required && !disabled && <span className="text-red-500">*</span>}</span>
+      <Label
+        htmlFor="workspace-select"
+        className="mb-2 text-sm font-medium flex items-center gap-1.5"
+      >
+        <span>
+          Select Workspace{" "}
+          {required && !disabled && <span className="text-red-500">*</span>}
+        </span>
         {disabled && <Lock size={13} className="text-muted-foreground" />}
       </Label>
 
@@ -76,9 +83,11 @@ export default function WorkspaceSelector({
             value={selectedWorkspaceId}
             onChange={(e) => onSelectWorkspace(e.target.value)}
             required={required}
-            disabled={disabled} // Hook up native selection disable attribute block
+            disabled={disabled}
             className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all appearance-none ${
-              disabled ? "bg-slate-50 border-gray-200 text-gray-500 cursor-not-allowed opacity-90" : ""
+              disabled
+                ? "bg-slate-50 border-gray-200 text-gray-500 cursor-not-allowed opacity-90"
+                : ""
             }`}
           >
             <option value="">-- Select a workspace --</option>
@@ -89,12 +98,15 @@ export default function WorkspaceSelector({
               </option>
             ))}
           </select>
-          
-          {/* Visual chevron indicator handler bypass for disabled fields */}
+
           {!disabled && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+              <svg
+                className="fill-current h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
               </svg>
             </div>
           )}

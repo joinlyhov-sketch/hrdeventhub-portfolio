@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { Bell, Trash2, CheckCheck } from "lucide-react";
 import { useNotificationStore } from "@/store/useNotificationStore";
@@ -8,6 +9,19 @@ import { NotificationPayload } from "@/types/notification";
 import { cn } from "@/libs/utils";
 import { formatDistanceToNow } from "date-fns";
 import { useSession } from "next-auth/react";
+
+function resolveNotificationHref(n: NotificationPayload): string | null {
+  if (!n.workspaceId || !n.postId) return null;
+
+  const category = n.postCategory?.toLowerCase();
+
+  if (category === "event") {
+    return `/group/${n.workspaceId}/event/${n.postId}`;
+  }
+
+  const typeParam = category ? `&type=${category}` : "";
+  return `/group/${n.workspaceId}?postId=${n.postId}${typeParam}`;
+}
 
 function NotificationIcon({ type }: { type: NotificationPayload["type"] }) {
   const base =
@@ -34,25 +48,36 @@ function NotificationItem({
   notification,
   onRead,
   onRemove,
+  onNavigate,
 }: {
   notification: NotificationPayload;
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
+  onNavigate: (href: string | null) => void;
 }) {
   const timeAgo = formatDistanceToNow(new Date(notification.createdAt), {
     addSuffix: true,
   });
 
+  const href = notification.type !== "POST_DELETED"
+    ? resolveNotificationHref(notification)
+    : null;
+
+  const handleClick = () => {
+    onRead(notification.notificationId);
+    onNavigate(href);
+  };
+
   return (
     <div
       className={cn(
-        "flex items-start gap-3 px-4 py-3 hover:bg-muted/50 cursor-pointer group transition-colors",
-        !notification.read && "bg-blue-50 dark:bg-blue-950/20"
+        "flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors group",
+        !notification.read && "bg-blue-50 dark:bg-blue-950/20",
+        href ? "cursor-pointer" : "cursor-default"
       )}
-      onClick={() => onRead(notification.notificationId)}
+      onClick={handleClick}
     >
       {notification.actorAvatar ? (
-        
         <img
           src={notification.actorAvatar}
           alt={notification.actorName}
@@ -90,6 +115,7 @@ function NotificationItem({
 
 export function NotificationBell() {
   const { status } = useSession();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -122,23 +148,28 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
+  const handleNavigate = (href: string | null) => {
+    setOpen(false);
+    if (href) router.push(href);
+  };
+
   if (status !== "authenticated") return null;
 
   return (
-    <>    
+    <>
       <button
-      ref={buttonRef}
-      onClick={() => setOpen((v) => !v)}
-      className="fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors"
-      aria-label="Notifications"
-    >
-      <Bell className="w-5 h-5 text-white" />
-      {unreadCount > 0 && (
-        <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-          {unreadCount > 99 ? "99+" : unreadCount}
-        </span>
-      )}
-    </button>
+        ref={buttonRef}
+        onClick={() => setOpen((v) => !v)}
+        className="fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors"
+        aria-label="Notifications"
+      >
+        <Bell className="w-5 h-5 text-white" />
+        {unreadCount > 0 && (
+          <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
+      </button>
 
       {open &&
         typeof window !== "undefined" &&
@@ -147,7 +178,7 @@ export function NotificationBell() {
             ref={panelRef}
             style={{ top: pos.top, right: pos.right }}
             className="fixed z-[9999] w-80 sm:w-96 rounded-xl border bg-background shadow-xl overflow-hidden"
-          >        
+          >
             <div className="flex items-center justify-between px-4 py-3 border-b">
               <span className="font-semibold text-sm">Notifications</span>
               {unreadCount > 0 && (
@@ -174,6 +205,7 @@ export function NotificationBell() {
                     notification={n}
                     onRead={markRead}
                     onRemove={removeNotification}
+                    onNavigate={handleNavigate}
                   />
                 ))
               )}

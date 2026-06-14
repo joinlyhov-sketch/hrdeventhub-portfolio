@@ -13,7 +13,10 @@ import { useSurveyFormStore } from "../../../store/useSurveyFormStore";
 import { surveyService } from "../../../service/survey.service";
 import { SurveyContent, SurveyElement } from "../../../types/survey";
 
-import { createSurveyAction, updateSurveyAction } from "@/actions/survey.action";
+import {
+  createSurveyAction,
+  updateSurveyAction,
+} from "@/actions/survey.action";
 
 export type QuestionType =
   | "short-text"
@@ -27,7 +30,7 @@ export type QuestionType =
 
 interface SurveyCreationFormProps {
   workspaceId?: string;
-  surveyId?: string; // Add optional surveyId parameter prop configuration
+  surveyId?: string;
   onSuccess?: () => void;
 }
 
@@ -71,7 +74,7 @@ export default function SurveyCreationForm({
       setIsLoadingData(true);
       try {
         const survey = await surveyService.getSurveyById(surveyId);
-        
+
         formStore.setTitle(survey.title);
         formStore.setDescription(survey.description || "");
         const isActiveSafe = (survey as any).active ?? survey.isActive ?? true;
@@ -216,7 +219,7 @@ export default function SurveyCreationForm({
         throw new Error("Please select a workspace");
 
       const content = convertQuestionsToBEFormat();
-      
+
       const surveyData = {
         title: formStore.title,
         description: formStore.description,

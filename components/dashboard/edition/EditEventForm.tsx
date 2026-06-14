@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InputDate } from "../InputDate";
+import { usePostDetail } from "@/hooks/use-post-detail";
 
 export default function EditEventForm() {
   const router = useRouter();
@@ -49,15 +50,8 @@ export default function EditEventForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFlexible, setIsFlexible] = useState(false);
-  const { data: session } = useSession();
 
-  const token = session?.accessToken;
-
-  const { data, isLoading } = usePlatformEvents(token);
-
-  const event = data?.find(
-    (e) => e.postId === postId && e.workspaceId === workspaceId,
-  );
+  const { post: event, isLoading } = usePostDetail(workspaceId, postId);
 
   const {
     register,

@@ -293,7 +293,7 @@ export default function SettingVisibilityModeCard({
     d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "—";
 
   const SaveButtonLayout = () => (
-    <div className="flex flex-col items-end gap-2 mt-6 w-full">
+    <div className="flex flex-col sm:items-end gap-2 mt-6 w-full">
       {saveError && (
         <p className="text-xs text-destructive">{saveError}</p>
       )}
@@ -304,7 +304,7 @@ export default function SettingVisibilityModeCard({
         type="button"
         onClick={handleSave}
         disabled={isSaving}
-        className="px-8 py-2.5 bg-primary text-white rounded-2xl text-sm font-semibold hover:bg-[#153b6c] transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+        className="w-full sm:w-auto px-8 py-2.5 bg-primary text-white rounded-2xl text-sm font-semibold hover:bg-[#153b6c] transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
       >
         {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
         {isSaving ? "Saving…" : "Save changes"}
@@ -321,11 +321,11 @@ export default function SettingVisibilityModeCard({
           <h2 className="text-lg font-bold text-secondary">Choose your visibility mode</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <button
             type="button"
             onClick={() => setVisibilityMode("share_all")}
-            className={`relative p-5 rounded-2xl border text-left transition flex flex-col min-h-[160px] justify-between cursor-pointer ${
+            className={`relative p-4 sm:p-5 rounded-2xl border text-left transition flex flex-col min-h-35 sm:min-h-40 justify-between cursor-pointer ${
               isShareAll
                 ? "border-primary bg-[#F4F7FC] ring-1 ring-primary"
                 : "border-border hover:border-grey-300"
@@ -355,7 +355,7 @@ export default function SettingVisibilityModeCard({
           <button
             type="button"
             onClick={() => setVisibilityMode("private")}
-            className={`relative p-5 rounded-2xl border text-left transition flex flex-col min-h-[160px] justify-between cursor-pointer ${
+            className={`relative p-4 sm:p-5 rounded-2xl border text-left transition flex flex-col min-h-35 sm:min-h-40 justify-between cursor-pointer ${
               isPrivate
                 ? "border-primary bg-[#F4F7FC] ring-1 ring-primary"
                 : "border-border hover:border-grey-300"
@@ -381,7 +381,7 @@ export default function SettingVisibilityModeCard({
           <button
             type="button"
             onClick={() => setVisibilityMode("selective")}
-            className={`relative p-5 rounded-2xl border text-left transition flex flex-col min-h-[160px] justify-between cursor-pointer ${
+            className={`relative p-4 sm:p-5 rounded-2xl border text-left transition flex flex-col min-h-35 sm:min-h-40 justify-between cursor-pointer ${
               isSelective
                 ? "border-primary bg-[#F4F7FC] ring-1 ring-primary"
                 : "border-border hover:border-grey-300"

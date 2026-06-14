@@ -16,7 +16,6 @@ import {
   articlePostSchema,
   ArticlePostFormValues,
 } from "@/schemas/article-schema";
-import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
 import { UpdateArticlePayload } from "@/types/post-types";
 import {
   publishDraftPostAction,
@@ -24,6 +23,7 @@ import {
 } from "@/actions/post.action";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePostDetail } from "@/hooks/use-post-detail";
 
 export default function EditArticleForm() {
   const router = useRouter();
@@ -32,9 +32,7 @@ export default function EditArticleForm() {
   const postId = searchParams.get("postId") || "";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { posts, isLoading: postsLoading } = useWorkspacePosts(workspaceId);
-
-  const article = posts?.find((p) => p.postId === postId);
+  const { post: article, isLoading } = usePostDetail(workspaceId, postId);
 
   const {
     register,
@@ -120,7 +118,7 @@ export default function EditArticleForm() {
     }
   };
 
-  if (postsLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-medium">
         Loading targeted article contextual params...
