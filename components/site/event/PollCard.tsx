@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { BarChart3 } from "lucide-react";
 import useSWR from "swr";
 import type { UserRole } from "@/context/user-context";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
-import { Poll } from "@/types/poll";
+import { Poll, PollOption } from "@/types/poll";
 import { useSession } from "next-auth/react";
 import { pollService } from "@/service/poll.service";
 import { deletePollAction } from "@/actions/poll.action";
@@ -48,11 +48,12 @@ function PollItem({
     Record<string, number>
   >({});
 
+  const sessionUser = session?.user as Record<string, unknown> | undefined;
   const userId =
-    (session?.user as any)?.id ||
-    (session?.user as any)?.userId ||
-    (session?.user as any)?.sub ||
-    (session?.user as any)?.uid;
+    sessionUser?.id ||
+    sessionUser?.userId ||
+    sessionUser?.sub ||
+    sessionUser?.uid;
 
   const { data: livePoll, mutate } = useSWR<Poll>(
     session?.accessToken
@@ -69,7 +70,7 @@ function PollItem({
 
   useEffect(() => {
     mutate();
-  }, [initialPoll.pollId]);
+  }, [initialPoll.pollId, mutate]);
 
   useEffect(() => {
     if (!initialPoll?.pollId || typeof window === "undefined") return;
@@ -78,6 +79,11 @@ function PollItem({
     const genericVoted = localStorage.getItem(genericVotedKey) === "true";
 
     let userVoted = false;
+    let parsedIds: Set<string> | null = null;
+    let typeSnapshot: string | null = null;
+    let countSnapshot: number | null = null;
+    let parsedCounts: Record<string, number> | null = null;
+
     if (userId) {
       const votedKey = `poll_voted_${initialPoll.pollId}_${userId}`;
       userVoted = localStorage.getItem(votedKey) === "true";
@@ -86,32 +92,39 @@ function PollItem({
       const rawIds = localStorage.getItem(votedIdsKey);
       if (rawIds) {
         try {
-          setPreviouslyVotedOptionIds(new Set(JSON.parse(rawIds)));
+          parsedIds = new Set(JSON.parse(rawIds));
         } catch {}
       }
 
       const typeKey = `poll_type_snapshot_${initialPoll.pollId}_${userId}`;
-      setVotedTypeSnapshot(localStorage.getItem(typeKey));
+      typeSnapshot = localStorage.getItem(typeKey);
 
       const countKey = `poll_options_count_snapshot_${initialPoll.pollId}_${userId}`;
       const savedCount = localStorage.getItem(countKey);
-      if (savedCount !== null)
-        setVotedOptionsCountSnapshot(parseInt(savedCount, 10));
+      if (savedCount !== null) countSnapshot = parseInt(savedCount, 10);
 
       const voteCountsKey = `poll_vote_counts_${initialPoll.pollId}_${userId}`;
       const savedCounts = localStorage.getItem(voteCountsKey);
       if (savedCounts) {
         try {
-          setPersistedVoteCounts(JSON.parse(savedCounts));
+          parsedCounts = JSON.parse(savedCounts);
         } catch {}
       }
     }
 
-    setLocalVoted(userVoted || genericVoted);
+    const finalVoted = userVoted || genericVoted;
+
+    queueMicrotask(() => {
+      if (parsedIds) setPreviouslyVotedOptionIds(parsedIds);
+      setVotedTypeSnapshot(typeSnapshot);
+      if (countSnapshot !== null) setVotedOptionsCountSnapshot(countSnapshot);
+      if (parsedCounts) setPersistedVoteCounts(parsedCounts);
+      setLocalVoted(finalVoted);
+    });
   }, [initialPoll.pollId, userId]);
 
   const poll = livePoll || initialPoll;
-  const rawOptions = poll.options ?? [];
+  const rawOptions = useMemo(() => poll.options ?? [], [poll.options]);
   const isExpired = new Date(poll.closingTime) < new Date();
 
   useEffect(() => {
@@ -128,48 +141,55 @@ function PollItem({
       }
     });
 
-    setPersistedVoteCounts((prev) => {
-      const merged = { ...prev, ...newCounts };
-      if (userId) {
+    queueMicrotask(() => {
+      setPersistedVoteCounts((prev) => {
+        const merged = { ...prev, ...newCounts };
+        if (userId) {
+          localStorage.setItem(
+            `poll_vote_counts_${initialPoll.pollId}_${userId}`,
+            JSON.stringify(merged),
+          );
+        }
         localStorage.setItem(
-          `poll_vote_counts_${initialPoll.pollId}_${userId}`,
+          `poll_vote_counts_global_${initialPoll.pollId}`,
           JSON.stringify(merged),
         );
-      }
-      localStorage.setItem(
-        `poll_vote_counts_global_${initialPoll.pollId}`,
-        JSON.stringify(merged),
-      );
-      return merged;
+        return merged;
+      });
     });
   }, [rawOptions, userId, initialPoll.pollId]);
 
   useEffect(() => {
-    setSelectedOptions([]);
+    queueMicrotask(() => setSelectedOptions([]));
   }, [poll?.multiSelect]);
 
   const currentPollTypeStr = poll.multiSelect ? "multi" : "single";
   const pollTypeHasChangedToSingle =
     votedTypeSnapshot === "multi" && currentPollTypeStr === "single";
 
+  const pollRec = poll as unknown as Record<string, unknown>;
   const serverHasVotedFlag = (() => {
     if (!rawOptions.length) return false;
-    if ((poll as any).hasVoted === true || (poll as any).voted === true)
+    if (pollRec.hasVoted === true || pollRec.voted === true)
       return true;
-    if ((poll as any).votedOptionId || (poll as any).selectedOptionId)
+    if (pollRec.votedOptionId || pollRec.selectedOptionId)
       return true;
 
     if (userId) {
       return rawOptions.some(
-        (opt: any) =>
-          opt.voters?.includes(userId) ||
-          opt.votedUserIds?.includes(userId) ||
-          opt.userVotes?.includes(userId) ||
-          opt.votedUsers?.some(
-            (u: any) => u.id === userId || u === userId || u.userId === userId,
-          ) ||
-          (poll as any).votedUserIds?.includes(userId) ||
-          (poll as any).voters?.includes(userId),
+        (opt) => {
+          const optRec = opt as unknown as Record<string, unknown>;
+          return (
+            (optRec.voters as unknown[])?.includes(userId) ||
+            (optRec.votedUserIds as unknown[])?.includes(userId) ||
+            (optRec.userVotes as unknown[])?.includes(userId) ||
+            (optRec.votedUsers as Record<string, unknown>[])?.some(
+              (u: Record<string, unknown>) => u.id === userId || u === userId || u.userId === userId,
+            ) ||
+            (pollRec.votedUserIds as unknown[])?.includes(userId) ||
+            (pollRec.voters as unknown[])?.includes(userId)
+          );
+        },
       );
     }
     return false;
@@ -238,15 +258,16 @@ function PollItem({
   );
 
   const uniqueVotersCount =
-    (poll as any).votersCount ||
-    (poll as any).totalVoters ||
+    (pollRec.votersCount as number | undefined) ||
+    (pollRec.totalVoters as number | undefined) ||
     (() => {
-      const uniqueUsers = new Set();
-      options.forEach((opt: any) => {
-        (opt.voters || opt.votedUserIds || opt.userVotes || []).forEach(
-          (id: any) => {
+      const uniqueUsers = new Set<unknown>();
+      options.forEach((opt: Record<string, unknown>) => {
+        const voters = (opt.voters || opt.votedUserIds || opt.userVotes || []) as unknown[];
+        voters.forEach(
+          (id: unknown) => {
             if (id)
-              uniqueUsers.add(typeof id === "object" ? id.id || id.userId : id);
+              uniqueUsers.add(typeof id === "object" ? (id as Record<string, unknown>).id || (id as Record<string, unknown>).userId : id);
           },
         );
       });
@@ -333,7 +354,7 @@ function PollItem({
 
       const countsToSave: Record<string, number> = {};
       const targets = freshPoll?.options || options;
-      targets.forEach((opt: any, idx: number) => {
+      targets.forEach((opt: PollOption, idx: number) => {
         const serverCount = opt.voteCount ?? 0;
         const persistedCount =
           persistedVoteCounts[opt.id] ??
@@ -365,8 +386,8 @@ function PollItem({
         JSON.stringify(countsToSave),
       );
       setPersistedVoteCounts(countsToSave);
-    } catch (err: any) {
-      const message = err?.message?.toLowerCase() ?? "";
+    } catch (err: unknown) {
+      const message = (err instanceof Error ? err.message : String(err)).toLowerCase();
       if (
         message.includes("already voted") ||
         message.includes("already_voted") ||
@@ -390,7 +411,7 @@ function PollItem({
         setJustVoted(true);
         mutate();
       } else {
-        setError(err?.message || "Failed to submit vote. Please try again.");
+        setError(err instanceof Error ? err.message : "Failed to submit vote. Please try again.");
       }
     } finally {
       setIsSubmitting(false);

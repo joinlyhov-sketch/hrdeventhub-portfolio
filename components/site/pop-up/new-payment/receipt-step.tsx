@@ -30,7 +30,7 @@ export function ReceiptStep({ transaction, onClose }: ReceiptStepProps) {
           <CheckCircle2 size={36} className="text-green-500" />
         </div>
         <p className="text-[18px] font-bold text-gray-800">Payment Confirmed!</p>
-        <p className="text-[13px] text-gray-500 text-center">You're now registered for this event.</p>
+        <p className="text-[13px] text-gray-500 text-center">You&apos;re now registered for this event.</p>
       </div>
 
       <div className="bg-white rounded-2xl border border-blue-50 shadow-sm px-4 py-2">

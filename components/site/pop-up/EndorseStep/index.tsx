@@ -208,11 +208,10 @@ export default function EndorseStudentModal({
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
 
   const [isDuplicate, setIsDuplicate] = useState(false);
-  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
+  const isCheckingDuplicate = false;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<SubmitResult>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -228,7 +227,7 @@ export default function EndorseStudentModal({
           authToken,
         );
         setSharedRegistrations(regs);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setFetchError("Unable to load shared event history. Please try again.");
         console.error("[EndorseModal] getMutualRegistrations error:", err);
       } finally {
@@ -254,7 +253,6 @@ export default function EndorseStudentModal({
 
     setIsSubmitting(true);
     setSubmitResult(null);
-    setSubmitError(null);
 
     try {
       await endorsementService.create(
@@ -275,11 +273,12 @@ export default function EndorseStudentModal({
           onSuccess();
         }, 100);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[EndorseModal] Submission error caught:", err);
 
-      const msg: string = err?.message || (typeof err === "string" ? err : "");
-      const status = err?.status;
+      const errRec = err as Record<string, unknown>;
+      const msg: string = (errRec?.message as string) || (typeof err === "string" ? err : "");
+      const status = errRec?.status;
 
       const isDupe =
         msg.toLowerCase().includes("already") ||
@@ -287,7 +286,6 @@ export default function EndorseStudentModal({
         status === 409;
 
       setSubmitResult(isDupe ? "duplicate" : "error");
-      setSubmitError(msg || "Failed to submit endorsement.");
       setStep(3);
     } finally {
       setIsSubmitting(false);
@@ -301,7 +299,6 @@ export default function EndorseStudentModal({
     setSkillQuery("");
     setFetchError(null);
     setSubmitResult(null);
-    setSubmitError(null);
     setIsDuplicate(false);
     if (!postId) {
       setCurrentPostId("");
@@ -312,7 +309,6 @@ export default function EndorseStudentModal({
 
   const handleRetryFromFailed = useCallback(() => {
     setSubmitResult(null);
-    setSubmitError(null);
     setStep(2);
   }, []);
 
@@ -412,7 +408,7 @@ export default function EndorseStudentModal({
                     <div className="mb-4 flex items-start gap-2.5 p-3.5 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium border border-amber-200">
                       <AlertTriangle size={16} className="shrink-0 mt-0.5" />
                       <span>
-                        You've already endorsed this student for this event.
+                        You&apos;ve already endorsed this student for this event.
                         Select a different event to continue.
                       </span>
                     </div>
@@ -436,7 +432,7 @@ export default function EndorseStudentModal({
                             className="shrink-0 mt-0.5"
                           />
                           <span>
-                            You cannot endorse this student — you haven't both
+                            You cannot endorse this student — you haven&apos;t both
                             registered for the same workspace events.
                           </span>
                         </div>

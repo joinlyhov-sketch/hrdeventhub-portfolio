@@ -11,7 +11,7 @@ export default async function EventManagementPage() {
 
   let events: EventItem[] = [];
   let transactions: Transaction[] = [];
-  let attendeeCountByPostId: Record<string, number> = {};
+  const attendeeCountByPostId: Record<string, number> = {};
   let isOrganizer = false;
 
   try {

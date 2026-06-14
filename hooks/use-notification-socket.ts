@@ -41,7 +41,7 @@ const TOAST_LABELS: Record<string, string> = {
 };
 
 function toNotificationPayload(
-  raw: WsPostNotification | WsMentionNotification
+  raw: WsPostNotification | WsMentionNotification,
 ): NotificationPayload {
   const base: Partial<NotificationPayload> = {
     notificationId: crypto.randomUUID(),
@@ -86,46 +86,57 @@ export function useNotificationSocket({
   token,
 }: UseNotificationSocketOptions) {
   const addNotification = useNotificationStore((s) => s.addNotification);
+  const addNotificationRef = useRef(addNotification);
   const clientRef = useRef<Client | null>(null);
+  const workspaceKey = workspaceIds.join(",");
 
   useEffect(() => {
-    if (!token || !appUserId || workspaceIds.length === 0) return;
+    addNotificationRef.current = addNotification;
+  }, [addNotification]);
+
+  useEffect(() => {
+    const ids = workspaceKey ? workspaceKey.split(",") : [];
+    if (!token || !appUserId || ids.length === 0) return;
 
     const client = new Client({
-  webSocketFactory: () => {
-    const base = process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api/v5", "")
-      || "https://api.hrdevent.app";
-    const url = `${base}/ws?token=${encodeURIComponent(token)}`;
-    return new SockJS(url);
-  },
-  connectHeaders: {},
-  reconnectDelay: 5000,
+      webSocketFactory: () => {
+        const base =
+          process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api/v5", "") ||
+          "https://api.hrdevent.app";
+        const url = `${base}/ws?token=${encodeURIComponent(token)}`;
+        return new SockJS(url);
+      },
+      connectHeaders: {},
+      reconnectDelay: 5000,
 
-  onConnect: () => {
-    client.subscribe("/user/queue/mentions", (message) => {
-    try {
-      const raw: WsMentionNotification = JSON.parse(message.body);
-      const payload = toNotificationPayload(raw);
-      addNotification(payload);
+      onConnect: () => {
+        client.subscribe("/user/queue/mentions", (message) => {
+          try {
+            const raw: WsMentionNotification = JSON.parse(message.body);
+            const payload = toNotificationPayload(raw);
+            addNotificationRef.current(payload);
 
-      toast(TOAST_LABELS[raw.type] ?? "Notification", {
-        description: payload.message,
-        duration: 4000,
-      });
-    } catch {
-      console.error("[Notification] parse error", message.body);
-    }
-  });
-    workspaceIds.forEach((wsId) => {
-      console.log("[WS] Subscribing to topic:", `/topic/workspace/${wsId}/notifications`);
-      client.subscribe(
+            toast(TOAST_LABELS[raw.type] ?? "Notification", {
+              description: payload.message,
+              duration: 4000,
+            });
+          } catch {
+            console.error("[Notification] parse error", message.body);
+          }
+        });
+        ids.forEach((wsId) => {
+          console.log(
+            "[WS] Subscribing to topic:",
+            `/topic/workspace/${wsId}/notifications`,
+          );
+          client.subscribe(
             `/topic/workspace/${wsId}/notifications`,
             (message) => {
               try {
                 const raw: WsPostNotification = JSON.parse(message.body);
                 const payload = toNotificationPayload(raw);
-                addNotification(payload);
-              
+                addNotificationRef.current(payload);
+
                 toast(TOAST_LABELS[raw.type] ?? "Notification", {
                   description: payload.message,
                   duration: 4000,
@@ -133,23 +144,23 @@ export function useNotificationSocket({
               } catch {
                 console.error("[Notification] parse error", message.body);
               }
-            }
+            },
           );
+        });
+      },
+
+      onStompError: (frame) => {
+        console.error("[STOMP] error:", frame.headers["message"], frame);
+      },
+
+      onDisconnect: () => {
+        console.warn("[WS] Disconnected");
+      },
+
+      onWebSocketError: (error) => {
+        console.error("[WS] WebSocket error:", error);
+      },
     });
-  },
-
-  onStompError: (frame) => {
-    console.error("[STOMP] error:", frame.headers["message"], frame);
-  },
-
-  onDisconnect: () => {
-    console.warn("[WS] Disconnected");
-  },
-
-  onWebSocketError: (error) => {
-    console.error("[WS] WebSocket error:", error);
-  },
-});
 
     client.activate();
     clientRef.current = client;
@@ -157,8 +168,8 @@ export function useNotificationSocket({
     return () => {
       client.deactivate();
       clientRef.current = null;
-    };    
-  }, [token, appUserId, workspaceIds.join(",")]);
+    };
+  }, [token, appUserId, workspaceKey]);
 }
 
 export function useNotificationListener(workspaceIds: string[]) {
@@ -166,7 +177,9 @@ export function useNotificationListener(workspaceIds: string[]) {
 
   useNotificationSocket({
     workspaceIds,
-    appUserId: (session as any)?.appUserId as string | undefined,
+    appUserId: (session as unknown as { appUserId?: string })?.appUserId as
+      | string
+      | undefined,
     token: session?.accessToken as string | undefined,
   });
 }

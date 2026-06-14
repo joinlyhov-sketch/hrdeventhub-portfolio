@@ -9,7 +9,6 @@ import {
   CreateAnnouncementResponseV2,
   CreateArticlePayload,
   CreatePostPayload,
-  CreatePostResponse,
   UpdateArticlePayload,
   UpdateEventPayload,
   UpdatePostActionResponse,

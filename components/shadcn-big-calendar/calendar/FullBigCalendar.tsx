@@ -276,15 +276,7 @@ export default function FullBigCalendar({ workspaceId, role }: Props) {
     api.next();
     updateCurrentDate();
   };
-
-  const handleToday = () => {
-    const api = getApi();
-    if (!api) return;
-
-    api.today();
-    setCurrentDate(api.getDate());
-    resizeCalendar();
-  };
+  
 
   const handleViewChange = (nextView: CalendarView) => {
     const api = getApi();

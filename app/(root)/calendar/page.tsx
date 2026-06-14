@@ -47,7 +47,7 @@ export default function CalendarPage() {
     return (
       <div className="flex flex-col flex-1 min-w-0">
         <TopBar />
-        <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 w-full">
+        <main className="flex flex-col flex-1 min-w-0 px-4 lg:px-12 w-full">
           <CalendarSkeleton />
         </main>
       </div>
@@ -57,7 +57,7 @@ export default function CalendarPage() {
   return (
     <div className="flex flex-col flex-1 min-w-0">
       <TopBar />
-      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 max-w-475 mx-auto w-full">
+      <main className="flex flex-col flex-1 min-w-0 px-4 lg:px-12 max-w-475 mx-auto w-full">
         <div className="w-full space-y-6">
           <FullBigCalendar workspaceId={workspaceId} role={role} />
           <UpcomingEventSection workspaceId={workspaceId} role={role} />

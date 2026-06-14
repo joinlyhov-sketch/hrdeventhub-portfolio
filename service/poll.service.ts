@@ -22,10 +22,10 @@ const pollSockets = new Map<string, WebSocket>();
 const getLiveToken = async (): Promise<string | undefined> => {
   if (typeof window === "undefined") {
     const session = await getServerSession(authOptions);
-    return session?.accessToken || (session?.user as any)?.token;
+    return session?.accessToken || (session?.user as Record<string, unknown>)?.token as string | undefined;
   }
   const session = await getSession();
-  return session?.accessToken || (session?.user as any)?.token;
+  return session?.accessToken || (session?.user as Record<string, unknown>)?.token as string | undefined;
 };
 
 function formatShowResult(value: string | undefined): string {
@@ -195,7 +195,7 @@ export const pollService = {
 
   delete: async (pollId: string): Promise<void> => {
     const token = await getLiveToken();
-    await apiDelete<any>(`/polls/${pollId}`, { authToken: token });
+    await apiDelete<unknown>(`/polls/${pollId}`, { authToken: token });
   },
 
   vote: async (
@@ -215,9 +215,9 @@ export const pollService = {
     return response.payload;
   },
 
-  getOptions: async (pollId: string): Promise<any> => {
+  getOptions: async (pollId: string): Promise<unknown> => {
     const token = await getLiveToken();
-    const response = await apiGet<BackendApiResponse<any>>(
+    const response = await apiGet<BackendApiResponse<unknown>>(
       `/polls/${pollId}/options`,
       { authToken: token },
     );

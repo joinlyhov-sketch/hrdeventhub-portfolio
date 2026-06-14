@@ -39,6 +39,18 @@ const nextConfig: NextConfig = {
         hostname: "api.dev.hrdevent.app",
         pathname: "/api/v5/files/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.jsdelivr.net",
+      },
+      {
+        protocol: "https",
+        hostname: "**.twimg.com",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
   },
   experimental: {

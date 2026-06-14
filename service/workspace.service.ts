@@ -23,7 +23,7 @@ export const workspaceService = {
       {
         authToken: token,
         next: { tags: ["workspaces"] },
-      } as any, 
+      } as Parameters<typeof apiGet>[1],
     );
     return response.payload;
   },
@@ -53,7 +53,7 @@ export const workspaceService = {
     const response = await apiGet<WorkspaceResponse>(`/workspaces/me`, {
       authToken: token,
       next: { tags: ["workspaces"] },
-    } as any); 
+    } as Parameters<typeof apiGet>[1]);
     return response.payload;
   },
 
