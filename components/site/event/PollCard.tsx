@@ -421,14 +421,14 @@ function PollItem({
 
   return (
     <article
-      className={`w-full bg-card rounded-xl p-5 border border-subtle shadow-sm text-foreground transition-opacity ${isDeleting ? "opacity-0 pointer-events-none hidden" : ""}`}
+      className={`w-full bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-subtle shadow-sm text-foreground transition-opacity ${isDeleting ? "opacity-0 pointer-events-none hidden" : ""}`}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle">
             <BarChart3 size={20} />
           </div>
-          <h2 className="type-subtitle font-bold text-subtle tracking-tight">
+          <h2 className="type-subtitle font-bold text-subtle tracking-tight text-xs sm:text-sm md:text-base break-words">
             {poll.title}
           </h2>
         </div>
@@ -441,19 +441,19 @@ function PollItem({
         )}
       </div>
 
-      <p className="text-desc-small-semibold text-grey-500 mb-4">
+      <p className="text-[10px] sm:text-xs md:text-sm text-grey-500 mb-3 sm:mb-4">
         {isExpired
           ? "Poll closed"
           : `Closes: ${formatEventDate(poll.closingTime)}`}
       </p>
 
-      <legend className="type-desc text-foreground mb-6 block">
+      <legend className="type-desc text-foreground mb-3 sm:mb-6 block break-words text-xs sm:text-sm md:text-base">
         {poll.description ?? poll.title}
       </legend>
 
       {canReVote ? (
         <form onSubmit={handleSubmit}>
-          <div className="space-y-5 mb-4">
+          <div className="space-y-3 sm:space-y-5 mb-3 sm:mb-4">
             {options.map((option) => {
               const isOldOptionVoted = previouslyVotedOptionIds.has(option.id);
               const isChecked =
@@ -462,13 +462,13 @@ function PollItem({
               return (
                 <label
                   key={option.id}
-                  className={`relative flex items-center justify-between p-4 rounded-xl border transition-all select-none overflow-hidden ${
+                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden ${
                     isOldOptionVoted
                       ? "border-grey-200 bg-grey-100 opacity-70 cursor-not-allowed"
                       : "border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer"
                   }`}
                 >
-                  <div className="relative z-10 flex items-center gap-4 flex-1 w-full">
+                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 flex-1 w-full">
                     <input
                       type="checkbox"
                       name={`poll-${poll.pollId}`}
@@ -489,7 +489,7 @@ function PollItem({
                         <div className="bg-subtle w-2.5 h-2.5 rounded-sm" />
                       )}
                     </div>
-                    <span className="type-detail-medium text-foreground">
+                    <span className="type-detail-medium text-foreground text-xs sm:text-sm">
                       {option.text}{" "}
                       {isOldOptionVoted && (
                         <span className="text-xs text-grey-400 ml-1.5">
@@ -510,7 +510,7 @@ function PollItem({
           <button
             type="submit"
             disabled={selectedOptions.length === 0 || isSubmitting}
-            className={`w-full py-3.5 rounded-xl type-desc-semibold transition-all ${
+             className={`w-full py-2.5 sm:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${
               selectedOptions.length > 0 && !isSubmitting
                 ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]"
                 : "bg-subtle/40 text-white cursor-not-allowed"
@@ -523,7 +523,7 @@ function PollItem({
         </form>
       ) : showResult ? (
         <div className="w-full space-y-6">
-          <div className="space-y-5">
+          <div className="space-y-3 sm:space-y-5">
             {options.map((option) => {
               const currentVotes = option.voteCount ?? 0;
               const adjustedDenominator = denominator === 0 ? 1 : denominator;
@@ -533,8 +533,8 @@ function PollItem({
               );
               return (
                 <div key={option.id} className="w-full select-none">
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="type-detail-medium text-foreground font-medium">
+                  <div className="flex flex-wrap justify-between items-center gap-1 mb-1.5">
+                    <span className="type-detail-medium text-foreground font-medium text-xs sm:text-sm">
                       {option.text}
                     </span>
                     <div className="flex items-center gap-2">
@@ -556,13 +556,13 @@ function PollItem({
               );
             })}
           </div>
-          <div className="text-center type-detail-medium text-grey-400 mt-3">
+          <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
             {isExpired ? "Poll closed" : `Total participants: ${denominator}`}
           </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
-          <div className="space-y-5 mb-6">
+          <div className="space-y-3 sm:space-y-5 mb-4 sm:mb-6">
             {options.map((option) => {
               const isChecked = selectedOptions.includes(option.id);
               return (
@@ -570,7 +570,7 @@ function PollItem({
                   key={option.id}
                   className="relative flex items-center justify-between p-4 rounded-xl border border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer transition-all select-none overflow-hidden"
                 >
-                  <div className="relative z-10 flex items-center gap-4 w-full">
+                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full">
                     <input
                       type={poll.multiSelect ? "checkbox" : "radio"}
                       name={`poll-${poll.pollId}`}
@@ -588,7 +588,7 @@ function PollItem({
                         />
                       )}
                     </div>
-                    <span className="type-detail-medium text-foreground">
+                    <span className="type-detail-medium text-foreground text-sm sm:text-base">
                       {option.text}
                     </span>
                   </div>
@@ -604,7 +604,7 @@ function PollItem({
           <button
             type="submit"
             disabled={selectedOptions.length === 0 || isSubmitting}
-            className={`w-full py-3.5 rounded-xl type-desc-semibold transition-all ${selectedOptions.length > 0 && !isSubmitting ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]" : "bg-subtle/50 text-white cursor-not-allowed"}`}
+            className={`w-full py-2 sm:py-3 md:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${selectedOptions.length > 0 && !isSubmitting ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]" : "bg-subtle/50 text-white cursor-not-allowed"}`}
           >
             {isSubmitting ? "Submitting..." : "Vote Now"}
           </button>

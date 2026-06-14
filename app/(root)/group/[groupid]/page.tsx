@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import GroupMemberCard from "@/components/site/event/GroupMemberCard";
 import UpComingEventCard from "@/components/site/event/UpComingEventCard";
 import FilteredFeed from "@/components/site/event/FilteredFeed";
+import MobileFeedTabs from "@/components/site/event/MobileFeedTabs";
 
 export const metadata: Metadata = {
   title: "Event Feed",
@@ -20,7 +21,12 @@ export default async function Page({
   return (
     <main className="min-h-screen w-full bg-background">
       <div className="w-full">
-        <div className="flex flex-col gap-6 xl:flex-row">
+        <MobileFeedTabs
+          groupid={groupid}
+          deepLinkPostId={postId}
+          deepLinkType={type}
+        />
+        <div className="hidden xl:flex gap-6">
           <section className="min-w-0 flex-1">
             <FilteredFeed
               groupid={groupid}
@@ -28,7 +34,7 @@ export default async function Page({
               deepLinkType={type}
             />
           </section>
-          <aside className="hidden xl:block xl:w-85 shrink-0">
+          <aside className="xl:w-85 shrink-0">
             <div className="sticky top-20 space-y-4">
               <UpComingEventCard groupid={groupid} />
               <GroupMemberCard groupid={groupid} />

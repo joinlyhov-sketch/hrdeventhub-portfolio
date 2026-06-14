@@ -1,13 +1,11 @@
-import { Suspense } from "react";
 import { EventManagementClient } from "../../../components/dashboard/event-management/EventManagementClient";
 import { eventService, EventItem } from "@/service/event.service";
 import { paymentService, Transaction } from "@/service/payment.service";
 import { authService } from "@/service/auth.service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
-import EventManagementSkeleton from "@/components/dashboard/EventManagementSkeletion";
 
-async function EventManagementData() {
+export default async function EventManagementPage() {
   const session = await getServerSession(authOptions);
   const token = session?.accessToken || "";
 
@@ -44,21 +42,13 @@ async function EventManagementData() {
   }
 
   return (
-    <EventManagementClient
-      events={events}
-      transactions={transactions}
-      attendeeCountByPostId={attendeeCountByPostId}
-      isOrganizer={isOrganizer}
-    />
-  );
-}
-
-export default async function EventManagementPage() {
-  return (
     <div className="w-full max-w-full">
-      <Suspense fallback={<EventManagementSkeleton />}>
-        <EventManagementData />
-      </Suspense>
+      <EventManagementClient
+        events={events}
+        transactions={transactions}
+        attendeeCountByPostId={attendeeCountByPostId}
+        isOrganizer={isOrganizer}
+      />
     </div>
   );
 }

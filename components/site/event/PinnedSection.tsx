@@ -20,8 +20,8 @@ export function PinnedSection({ posts, groupid }: PinnedSectionProps) {
   const visiblePosts = showAllPinned ? pinnedPosts : pinnedPosts.slice(0, 1);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4 text-primary">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4 text-primary">
         <div className="flex items-center gap-2">
           <Pin size={20} />
           <h2 className="text-primary">Pinned</h2>
@@ -29,7 +29,7 @@ export function PinnedSection({ posts, groupid }: PinnedSectionProps) {
         {pinnedPosts.length > 1 && (
           <button
             onClick={() => setShowAllPinned(!showAllPinned)}
-            className="text-desc cursor-pointer hover:text-primary-hover transition-colors"
+            className="text-xs sm:text-sm cursor-pointer hover:text-primary-hover transition-colors"
           >
             {showAllPinned ? "Show Less" : `View All (${pinnedPosts.length})`}
           </button>

@@ -30,7 +30,7 @@ import {
   AnnouncementPostFormValues,
 } from "@/schemas/announcement-schema";
 import { UpdateEventPayload } from "@/types/post-types";
-import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
+import { usePostDetail } from "@/hooks/use-post-detail";
 
 export default function EditAnnouncementForm() {
   const router = useRouter();
@@ -39,10 +39,9 @@ export default function EditAnnouncementForm() {
   const postId = searchParams.get("postId") || "";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { posts, isLoading: postsLoading } = useWorkspacePosts(workspaceId);
+  const { post: posts, isLoading } = usePostDetail(workspaceId, postId);
 
-  const announcement = posts?.find((e) => e.postId === postId);
-  console.log("announcement: ", announcement);
+  const announcement = posts;
 
   const {
     register,
@@ -235,7 +234,7 @@ export default function EditAnnouncementForm() {
     }
   };
 
-  if (postsLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-medium">
         Loading target announcement parameters context...
