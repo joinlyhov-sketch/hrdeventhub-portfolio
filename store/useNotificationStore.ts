@@ -20,7 +20,7 @@ interface NotificationStore {
   _token: string | null;
 }
 
-export const useNotificationStore = create<NotificationStore>((set) => ({
+export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: [],
   unreadCount: 0,
   _token: null,
