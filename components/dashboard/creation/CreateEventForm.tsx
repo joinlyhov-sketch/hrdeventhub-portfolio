@@ -28,11 +28,12 @@ import {
   publishDraftPostAction,
 } from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
-import { CreatePostPayload, CreatePostResponse } from "@/types/post-types";
+import { CreatePostPayload } from "@/types/post-types";
 import { getAllWorkspacesAction } from "@/actions/workspace.action";
 import SearchableSelect, {
   SearchableSelectOption,
 } from "@/components/site/event/SearchableSelect";
+import { Workspace } from "@/types/survey";
 
 export default function CreateEventForm() {
   const router = useRouter();
@@ -72,7 +73,6 @@ export default function CreateEventForm() {
       workspaceId: "",
     },
   });
-
   const watchedWorkspaceId = useWatch({ control, name: "workspaceId" });
 
   const activeWorkspaceId: string = (urlWorkspaceId ||
@@ -86,10 +86,12 @@ export default function CreateEventForm() {
       try {
         const res = await getAllWorkspacesAction();
         if (Array.isArray(res)) {
-          const formatted: SearchableSelectOption[] = res.map((ws: any) => ({
-            id: ws.id || ws.workspaceId,
-            label: ws.label || ws.name || ws.title || "Unnamed Workspace",
-          }));
+          const formatted: SearchableSelectOption[] = res.map(
+            (ws: Workspace) => ({
+              id: ws.workspaceId,
+              label: ws.name || "Unnamed Workspace",
+            }),
+          );
 
           formatted.sort((a, b) =>
             a.label.localeCompare(b.label, undefined, {
@@ -151,8 +153,8 @@ export default function CreateEventForm() {
       eventEnd: endIso,
       scheduledAt: data.status === "active" ? null : scheduledIso,
       expiresAt: endIso,
-      isPublished: data.status === "active",
-      status: data.status,
+      isPublished: false,
+      status: "draft",
       isPinned: false,
       location: {
         locationName: data.locationName,
@@ -168,11 +170,24 @@ export default function CreateEventForm() {
 
     try {
       const result = await createPostAction(activeWorkspaceId, payload);
+
       if (result.ok) {
         const generatedPostId = result.payload?.payload?.postId;
 
         if (data.status === "active" && generatedPostId) {
-          await publishDraftPostAction(activeWorkspaceId, generatedPostId);
+          const publishRes = await publishDraftPostAction(
+            activeWorkspaceId,
+            generatedPostId,
+          );
+
+          if (!publishRes.ok) {
+            console.error("Failed to set active:", publishRes);
+            toast.error(
+              `Draft saved, but failed to change status to active: ${publishRes.error}`,
+            );
+            setIsSubmitting(false);
+            return;
+          }
         }
 
         toast.success(
@@ -180,6 +195,7 @@ export default function CreateEventForm() {
             ? "Event created and published successfully!"
             : "Event draft saved successfully!",
         );
+
         if (isAdmin) {
           router.push(`/event-management`);
         } else {
@@ -193,6 +209,14 @@ export default function CreateEventForm() {
       toast.error("An unexpected runtime error occurred.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (isAdmin) {
+      router.push("/event-management");
+    } else {
+      router.push(`/group/${activeWorkspaceId}`);
     }
   };
 
@@ -481,7 +505,7 @@ export default function CreateEventForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${activeWorkspaceId}`)}
+          onClick={handleCancel}
           className="order-2 sm:order-1 w-full hover:bg-transparent hover:text-primary sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
         >
           Cancel

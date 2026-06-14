@@ -60,7 +60,7 @@ export default function SearchableSelect({
     <div ref={containerRef} className="relative">
       <div className="relative flex items-center">
         {icon && (
-          <div className="absolute left-4 text-gray-400 pointer-events-none z-10">
+          <div className="absolute left-3 sm:left-4 text-gray-400 pointer-events-none z-10">
             {icon}
           </div>
         )}
@@ -73,7 +73,7 @@ export default function SearchableSelect({
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          className={`h-[52px] pl-11 pr-10 rounded-xl border bg-white text-[15px]
+          className={`h-11 sm:h-[52px] pl-10 sm:pl-11 pr-9 sm:pr-10 rounded-xl border bg-white text-sm sm:text-[15px]
           ${
             error
               ? "border-red-400"
@@ -84,16 +84,16 @@ export default function SearchableSelect({
         <ChevronDown
           size={18}
           onClick={() => setIsOpen(!isOpen)}
-          className={`absolute right-4 cursor-pointer text-gray-400 transition-transform ${
+          className={`absolute right-3 sm:right-4 cursor-pointer text-gray-400 transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1.5 z-50 bg-white border border-gray-300 rounded-xl shadow-xl max-h-[220px] overflow-y-auto p-1">
+        <div className="absolute left-0 right-0 mt-1.5 z-50 bg-white border border-gray-300 rounded-xl shadow-xl max-h-[180px] sm:max-h-[220px] overflow-y-auto p-1">
           {filteredOptions.length === 0 ? (
-            <div className="px-4 py-3 text-center text-gray-400">
+            <div className="px-3 sm:px-4 py-2.5 sm:py-3 text-center text-gray-400 text-sm">
               No results found
             </div>
           ) : (
@@ -105,7 +105,7 @@ export default function SearchableSelect({
                   setSearch("");
                   setIsOpen(false);
                 }}
-                className={`px-4 py-3 rounded-lg cursor-pointer transition-colors
+                className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg cursor-pointer transition-colors text-sm sm:text-base
                 ${
                   value === option.id
                     ? "bg-blue-50 text-blue-900 font-medium"

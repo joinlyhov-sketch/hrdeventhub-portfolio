@@ -25,7 +25,6 @@ import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
-import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
 import { createPortal } from "react-dom";
@@ -37,28 +36,50 @@ interface AnnouncementCardProps {
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
   groupid: string;
+  members: any[];
 }
+
+const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+  if (!commentsList || commentsList.length === 0) return 0;
+  let total = 0;
+  for (const comment of commentsList) {
+    total += 1;
+    if (comment.replies && comment.replies.length > 0) {
+      total += getTotalCommentsCount(comment.replies);
+    }
+  }
+  return total;
+};
 
 function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const images = media.filter((m) => !m.filePath.endsWith(".pdf"));
   const displayImages = images.slice(0, 4);
   const remaining = images.length - 4;
+  
   if (images.length === 0) return null;
   const gridClass = images.length === 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
     <>
-      <div className={`grid ${gridClass} gap-1 rounded-[12px] overflow-hidden mb-6`}>
+      <div 
+        className={`grid ${gridClass} gap-1 rounded-[12px] overflow-hidden mb-6`}
+        style={{
+          contentVisibility: "auto",
+          containIntrinsicSize: images.length === 1 ? "320px" : "192px"
+        }}
+      >
         {displayImages.map((item, index) => {
           const url = getMediaUrl(item.filePath);
           const isLast = index === 3 && remaining > 0;
+          
           const heightClass =
             images.length === 1
               ? "h-80"
               : images.length === 3 && index === 0
                 ? "row-span-2 h-full min-h-48"
                 : "h-48";
+                
           return (
             <div
               key={item.mediaId}
@@ -72,6 +93,7 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
                   fill
                   className="object-cover hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 350px"
+                  priority={index === 0}
                 />
               ) : (
                 <div className="w-full h-full bg-grey-200" />
@@ -153,11 +175,13 @@ function AnnouncementItem({
   role,
   onDelete,
   groupId,
+  members,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupId: string;
+  members: any[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -173,8 +197,7 @@ function AnnouncementItem({
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch } = usePostComments(post.postId);
-  const { members } = useWorkspaceMembers(groupId ?? "");
+  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
@@ -199,13 +222,21 @@ function AnnouncementItem({
     if (result.ok) {
       setCommentInput("");
       setMentionedIds([]);
+      if (!showComments) setShowComments(true);
       await refetch();
     }
   };
 
+  const shareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=announcement`
+    : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=announcement`;
+
   return (
     <>
-      <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
+      <div
+        id={`post-${post.postId}`}
+        className="bg-background rounded-[12px] border border-border p-5 shadow-sm transition-all duration-300"
+      >
         <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-[#EBF5FB] p-2 rounded-lg text-primary">
@@ -344,7 +375,8 @@ function AnnouncementItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> {comments?.length ?? 0}
+              <MessageCircleMore size={20} /> 
+              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -389,7 +421,18 @@ function AnnouncementItem({
 
         {showComments && (
           <div className="space-y-4 pt-2">
-            {comments.length > 0 ? (
+            {loading ? (
+              <div className="space-y-4 animate-pulse">
+                {[...Array(3)].map((_, idx) => (
+                  <div key={idx} className="flex gap-3 items-start px-1">
+                    <div className="w-10 h-10 rounded-full bg-grey-200 shrink-0" />
+                    <div className="flex-1 bg-grey-50 rounded-xl p-3 space-y-2">
+                      <div className="h-4 bg-grey-200 rounded w-1/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : comments.length > 0 ? (
               comments.map((comment) => (
                 <CommentNode
                   key={comment.commentId}
@@ -415,7 +458,7 @@ function AnnouncementItem({
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/announcements/${post.postId}`}
+        shareUrl={shareUrl}
       />
     </>
   );
@@ -426,6 +469,7 @@ export function AnnouncementCard({
   posts,
   onDeletePost,
   groupid,
+  members,
 }: AnnouncementCardProps) {
   return (
     <>
@@ -436,6 +480,7 @@ export function AnnouncementCard({
           role={role}
           onDelete={() => onDeletePost(post.postId)}
           groupId={groupid}
+          members={members}
         />
       ))}
     </>

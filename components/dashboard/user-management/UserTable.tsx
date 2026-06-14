@@ -7,9 +7,10 @@ import UserRow from "./UserRow";
 import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
 import SuspendModal from "../pop-up/user-management-pop-up/SuspendModal";
 import ReactivateModal from "../pop-up/user-management-pop-up/ReactivateModal";
+import FilterStatusModal from "../pop-up/user-management-pop-up/FilterStatusModal";
 import { UserData } from "../../../types/user-management-type/user";
 import { PaginationDemo } from "@/components/feedback/Pagination";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -56,6 +57,8 @@ export default function UserTableClient({
   const [selectedUserForReactivate, setSelectedUserForReactivate] =
     useState<UserData | null>(null);
 
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
+
   const currentLoggedInUserNo = useMemo(() => {
     return "";
   }, []);
@@ -71,11 +74,18 @@ export default function UserTableClient({
     const filtered = users.filter((user) => {
       const matchesSearch =
         user.username.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase());
+        user.email.toLowerCase().includes(search.toLowerCase()) ||
+        `${user.firstName} ${user.lastName}`
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        user.firstName?.toLowerCase().includes(search.toLowerCase()) ||
+        user.lastName?.toLowerCase().includes(search.toLowerCase());
       const matchesGen =
         selectedGen === "all" || user.generation?.name === selectedGen;
+
       const matchesStatus =
         selectedStatus === "all" ||
+        selectedStatus === "" ||
         user.status?.toLowerCase() === selectedStatus.toLowerCase();
       return matchesSearch && matchesGen && matchesStatus;
     });
@@ -115,7 +125,7 @@ export default function UserTableClient({
               u.no === idString ? { ...u, status: "Active" } : u,
             ),
           );
-          toast.success("User reactivated successfully");
+          toast.success("user has been reactivate back");
         }
         setSelectedUserForReactivate(null);
       } catch (err) {
@@ -278,47 +288,22 @@ export default function UserTableClient({
                   </DropdownMenu>
                 </div>
               </TableHead>
+
               <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200">
-                      <span className="truncate">
-                        Status{" "}
-                        {selectedStatus !== "all" ? `(${selectedStatus})` : ""}
-                      </span>
-                      <ListFilter size={16} className="shrink-0" />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[125px]">
-                    <DropdownMenuRadioGroup
-                      value={selectedStatus}
-                      onValueChange={(v) => {
-                        setSelectedStatus(v);
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <DropdownMenuRadioItem
-                        value="all"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        All
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="Active"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Active
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="Suspended"
-                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
-                      >
-                        Suspended
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div
+                  onClick={() => setIsStatusModalOpen(true)}
+                  className="flex items-center justify-center gap-1 cursor-pointer select-none transition-colors duration-150 hover:text-blue-200"
+                >
+                  <span className="truncate">
+                    Status{" "}
+                    {selectedStatus !== "all" && selectedStatus !== ""
+                      ? `(${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)})`
+                      : ""}
+                  </span>
+                  <ListFilter size={16} className="shrink-0" />
+                </div>
               </TableHead>
+
               <TableHead className="px-1 py-3 text-white w-[20%] type-desc-semibold">
                 Action
               </TableHead>
@@ -370,6 +355,23 @@ export default function UserTableClient({
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+        />
+      )}
+
+      {isStatusModalOpen && (
+        <FilterStatusModal
+          initialStatus={selectedStatus === "all" ? "" : selectedStatus}
+          onClose={() => setIsStatusModalOpen(false)}
+          onClear={() => {
+            setSelectedStatus("all");
+            setCurrentPage(1);
+            setIsStatusModalOpen(false);
+            toast.info("Status filter cleared");
+          }}
+          onFilterChange={(newStatus) => {
+            setSelectedStatus(newStatus || "all");
+            setCurrentPage(1);
+          }}
         />
       )}
 

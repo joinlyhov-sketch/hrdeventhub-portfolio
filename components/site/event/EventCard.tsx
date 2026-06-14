@@ -3,11 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ThumbsUp,
-  Share2,
-  MessageCircleMore,
-} from "lucide-react";
+import { ThumbsUp, Share2, MessageCircleMore } from "lucide-react";
 import { UserRole, useCurrentUser } from "@/context/user-context";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
@@ -24,7 +20,6 @@ import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
-import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
 
@@ -36,7 +31,20 @@ interface EventCardProps {
   groupid: string;
   pinnedCount: number;
   onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
+  members: any[];
 }
+
+const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+  if (!commentsList || commentsList.length === 0) return 0;
+  let total = 0;
+  for (const comment of commentsList) {
+    total += 1;
+    if (comment.replies && comment.replies.length > 0) {
+      total += getTotalCommentsCount(comment.replies);
+    }
+  }
+  return total;
+};
 
 function EventItem({
   post,
@@ -45,6 +53,7 @@ function EventItem({
   groupid,
   pinnedCount,
   onTogglePin,
+  members,
 }: {
   post: Post;
   role: UserRole;
@@ -52,6 +61,7 @@ function EventItem({
   groupid: string;
   pinnedCount: number;
   onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
+  members: any[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -67,8 +77,7 @@ function EventItem({
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch } = usePostComments(post.postId);
-  const { members } = useWorkspaceMembers(groupid ?? "");
+  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const coverImage = post.media?.find((m) => m.isCover) ?? post.media?.[0];
@@ -86,21 +95,26 @@ function EventItem({
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
-    const result = await createCommentAction(post.postId, commentInput, mentionedIds);
+    const result = await createCommentAction(
+      post.postId,
+      commentInput,
+      mentionedIds,
+    );
     if (result.ok) {
       setCommentInput("");
       setMentionedIds([]);
+      if (!showComments) setShowComments(true);
       await refetch();
     }
   };
 
   return (
     <>
-      <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+     <div id={`post-${post.postId}`} className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-2 mb-3 sm:mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
                 {profilePictureUrl ? (
                   <Image
                     src={profilePictureUrl}
@@ -115,20 +129,20 @@ function EventItem({
                   </span>
                 )}
               </div>
-              <div>
-                <h3 className="type-desc-semibold text-secondary">
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm md:type-desc-semibold text-secondary truncate">
                   {creator?.fullName ?? "—"}
                 </h3>
-                <p className="text-desc-small-semibold text-grey-500">
+                <p className="text-[10px] sm:text-desc-small-semibold text-grey-500">
                   {formatEventDate(post.createdAt ?? "")}
                 </p>
               </div>
             </div>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {creator?.role && (
               <span
-                className={`type-desc-small-semibold px-4 py-3 rounded-xl uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-primary" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+                className={`type-desc-small-semibold px-2 py-0.5 sm:px-4 sm:py-3 rounded-xl uppercase shrink-0 ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-primary" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
               >
                 {creator.role}
               </span>
@@ -140,20 +154,24 @@ function EventItem({
                 onDelete={onDelete}
                 isPinned={post.pinned ?? false}
                 pinnedCount={pinnedCount}
-                onTogglePin={(currentStatus) => onTogglePin(post.postId, currentStatus)}
+                onTogglePin={(currentStatus) =>
+                  onTogglePin(post.postId, currentStatus)
+                }
               />
             )}
           </div>
         </div>
 
-        <h2 className="type-title text-primary mb-2">{post.title}</h2>
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">{post.title}</h2>
 
         <ExpandableText text={post.content} />
 
-        <div className="bg-grey-50 rounded-[6px] p-4 space-y-3 mb-6 border-l-5 border-primary">
+        <div className="bg-grey-50 rounded-[6px] p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-3 mb-3 sm:mb-6 border-l-4 sm:border-l-5 border-primary break-words">
           {post.location && (
-            <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">LOCATION: </span>
+            <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+              <span className="text-[11px] sm:text-sm font-semibold text-foreground">
+                LOCATION:{" "}
+              </span>
               <a
                 href={post.location.googleMapUrl}
                 target="_blank"
@@ -165,21 +183,25 @@ function EventItem({
             </p>
           )}
           {post.eventStart && (
-            <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">DATE: </span>
+           <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+              <span className="text-[11px] sm:text-sm font-semibold text-foreground">
+                DATE:{" "}
+              </span>
               {post.eventStart}
               {post.eventEnd && ` — ${post.eventEnd}`}
             </p>
           )}
           {post.purpose && (
-            <p className="type-detail text-grey-500">
-              <span className="type-detail-semibold text-foreground">PURPOSE: </span>
+            <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+              <span className="text-[11px] sm:text-sm font-semibold text-foreground">
+                PURPOSE:{" "}
+              </span>
               {post.purpose}
             </p>
           )}
         </div>
 
-        <div className="relative rounded-[12px] overflow-hidden mb-6 h-64 bg-grey-100">
+        <div className="relative rounded-[12px] overflow-hidden mb-4 sm:mb-6 h-40 sm:h-56 md:h-64 bg-grey-100">
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -190,7 +212,7 @@ function EventItem({
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-grey-400">
-              <div className="w-12 h-12 rounded-full bg-grey-200 flex items-center justify-center">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-grey-200 flex items-center justify-center">
                 <svg
                   width="24"
                   height="24"
@@ -206,31 +228,36 @@ function EventItem({
                   />
                 </svg>
               </div>
-              <span className="type-desc-small-semibold">No image available</span>
+              <span className="type-desc-small-semibold">
+                No image available
+              </span>
             </div>
           )}
-          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-6 text-white z-10 flex items-end justify-between gap-4">
-            <div>
-              <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-3 py-1 rounded-md tracking-wide mb-2">
-                Event
-              </span>
-              <h4 className="type-desc-semibold">{post.title}</h4>
-              <p className="type-detail-small-medium opacity-80">
-                {post.eventStart ?? "—"}
-              </p>
-            </div>
-            <Link
-              href={`/group/${groupid}/event/${post.postId}`}
-              className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white type-desc-small-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer shrink-0 text-center shadow-md mb-0.5"
-            >
-              View Detail
-            </Link>
-          </div>
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-3 sm:p-6 text-white z-10 flex items-end justify-between gap-2 sm:gap-4">
+  <div className="min-w-0 flex-1">
+    <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-md tracking-wide mb-1 sm:mb-2 text-[10px] sm:text-xs">
+      Event
+    </span>
+    <h4 className="text-xs sm:text-sm md:text-base font-semibold line-clamp-1">{post.title}</h4>
+    <p className="text-[10px] sm:text-xs opacity-80 truncate">
+      {post.eventStart ?? "—"}
+    </p>
+  </div>
+  <Link
+    href={`/group/${groupid}/event/${post.postId}`}
+    className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white type-desc-small-semibold px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg transition-colors cursor-pointer shrink-0 text-center shadow-md mb-0.5 text-[10px] sm:text-xs whitespace-nowrap"
+  >
+    View Detail
+  </Link>
+</div>
         </div>
 
-        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
-          <section className="flex items-center gap-6 py-4">
-            <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">
+            <ReactionPopover
+              selectedValue={selectedReaction}
+              onReactionSelect={handleReactionSelect}
+            >
               <button
                 onClick={handleLikeToggle}
                 className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
@@ -249,7 +276,8 @@ function EventItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> {comments?.length ?? 0}
+              <MessageCircleMore size={20} /> 
+              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -258,12 +286,13 @@ function EventItem({
               <Share2 size={20} /> Share
             </button>
           </section>
-
           <ReactionSummary payload={reactionPayload} />
         </div>
 
-        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
-          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
+        <div
+          className={`flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 ${showComments ? "mb-6 sm:mb-8" : ""}`}
+        >
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
             <Link href={`/profile/${currentUser?.id}`}>
               {currentUser?.profilePicture ? (
                 <Image
@@ -280,10 +309,13 @@ function EventItem({
               )}
             </Link>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <MentionInput
               value={commentInput}
-              onChange={(val, ids) => { setCommentInput(val); setMentionedIds(ids); }}
+              onChange={(val, ids) => {
+                setCommentInput(val);
+                setMentionedIds(ids);
+              }}
               onSubmit={handleSubmitComment}
               placeholder="Add a comment..."
               members={members}
@@ -293,8 +325,21 @@ function EventItem({
         </div>
 
         {showComments && (
-          <div className="space-y-4 pt-2">
-            {comments.length > 0 ? (
+          <div className="space-y-3 sm:space-y-4 pt-2">
+            {loading ? (
+              <div className="space-y-4 animate-pulse">
+                {[...Array(3)].map((_, idx) => (
+                  <div key={idx} className="flex gap-3 items-start px-1">
+                    <div className="w-10 h-10 rounded-full bg-grey-200 shrink-0" />
+                    <div className="flex-1 bg-grey-50 rounded-xl p-3 space-y-2">
+                      <div className="h-4 bg-grey-200 rounded w-1/4" />
+                      <div className="h-3 bg-grey-200 rounded w-3/4" />
+                      <div className="h-3 bg-grey-200 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : comments.length > 0 ? (
               comments.map((comment) => (
                 <CommentNode
                   key={comment.commentId}
@@ -333,6 +378,7 @@ export function EventCard({
   groupid,
   pinnedCount,
   onTogglePin,
+  members,
 }: EventCardProps) {
   return (
     <>
@@ -345,6 +391,7 @@ export function EventCard({
           groupid={groupid}
           pinnedCount={pinnedCount}
           onTogglePin={onTogglePin}
+          members={members}
         />
       ))}
     </>

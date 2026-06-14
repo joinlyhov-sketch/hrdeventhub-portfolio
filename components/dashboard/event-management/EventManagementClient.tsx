@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
 import { Calendar, CalendarDays } from "lucide-react";
-
 import { StatsCardsSection } from "../transaction-history/StatsCardsSection";
 import { EventManagementTable } from "./EventManagementTable";
 import { EventItem } from "@/service/event.service";
@@ -11,11 +9,12 @@ import { Transaction } from "@/service/payment.service";
 import Search from "../../site/search/Search";
 import ContentTypePopover from "@/components/site/pop-up/contents/pop-over-content";
 import { PopoverItem } from "@/components/site/pop-up/contents/pop-over-content";
-import { useParams } from "next/navigation";
 
 interface EventManagementClientProps {
   events: EventItem[];
   transactions: Transaction[];
+  attendeeCountByPostId: Record<string, number>;
+  isOrganizer: boolean;
 }
 
 const contentMenuOptions: PopoverItem[] = [
@@ -29,20 +28,19 @@ const contentMenuOptions: PopoverItem[] = [
 export function EventManagementClient({
   events,
   transactions,
+  attendeeCountByPostId,
+  isOrganizer,
 }: EventManagementClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const params = useParams();
-
-  const workspaceId = (params.workspaceId ||
-    params.id ||
-    params.groupId) as string;
   return (
     <div className="space-y-6">
-      <StatsCardsSection
-        events={events}
-        transactions={transactions}
-      />
+      <StatsCardsSection 
+  events={events} 
+  transactions={transactions}
+  attendeeCountByPostId={attendeeCountByPostId}
+  isOrganizer={isOrganizer}
+/>
 
       <div className="bg-background rounded-2xl border border-gray-200 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
@@ -65,6 +63,8 @@ export function EventManagementClient({
         <EventManagementTable
           events={events}
           searchTerm={searchTerm}
+          attendeeCountByPostId={attendeeCountByPostId}
+          isOrganizer={isOrganizer}
         />
       </div>
     </div>

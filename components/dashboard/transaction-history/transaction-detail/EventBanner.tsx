@@ -32,7 +32,7 @@ export function EventBanner({ event }: EventBannerProps) {
           </div>
 
           <Link
-            href={"/group/1/event/1%7D"}
+            href={`/group/${event.workspaceId}/event/${event.id}`}
             className="flex items-center justify-center bg-white text-secondary hover:bg-gray-100 type-desc-semibold w-[140px] h-[44px] rounded-lg"
           >
             View Detail

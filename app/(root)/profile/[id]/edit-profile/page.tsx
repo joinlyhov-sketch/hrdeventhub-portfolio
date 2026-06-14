@@ -10,9 +10,9 @@ export default function ProfilePage() {
   const { currentUser } = useCurrentUser();
   if (!currentUser) {
     return (
-     <div className="w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12 py-6">
-      <EditProfileSkeleton />
-    </div>
+      <div className="w-full min-w-0 flex flex-col px-4 sm:px-6 lg:pr-12 lg:pl-12 py-6 max-w-475 mx-auto">
+        <EditProfileSkeleton />
+      </div>
     );
   }
 
@@ -24,11 +24,11 @@ export default function ProfilePage() {
           titleSecondary="Profile"
           description="Update your profile information and manage your account settings."
         />
-        <div className="w-full min-w-0 flex flex-col lg:pr-12 lg:pl-12">
-          {currentUser.role === "admin"   ? (
+        <div className="w-full min-w-0 flex flex-col px-4 sm:px-6 lg:pr-12 lg:pl-12 max-w-475 mx-auto">
+          {currentUser.role === "admin" ? (
             <AdminProfileForm user={currentUser} />
           ) : (
-             <StudentProfileForm />
+            <StudentProfileForm />
           )}
         </div>
       </div>

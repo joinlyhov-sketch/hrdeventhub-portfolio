@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import {
-  ThumbsUp,
-  Share2,
-  MessageCircleMore,
-} from "lucide-react";
+import { ThumbsUp, Share2, MessageCircleMore } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 import {
@@ -22,7 +18,6 @@ import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
-import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import { usePostReaction } from "@/hooks/use-post-reaction";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
@@ -34,18 +29,33 @@ interface ArticleCardProps {
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
   groupId: string;
+  members: any[];
 }
+
+const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+  if (!commentsList || commentsList.length === 0) return 0;
+  let total = 0;
+  for (const comment of commentsList) {
+    total += 1;
+    if (comment.replies && comment.replies.length > 0) {
+      total += getTotalCommentsCount(comment.replies);
+    }
+  }
+  return total;
+};
 
 function ArticleItem({
   post,
   role,
   onDelete,
   groupId,
+  members,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupId: string;
+  members: any[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -57,12 +67,11 @@ function ArticleItem({
     handleLikeToggle,
     handleReactionSelect,
   } = usePostReaction(post.postId);
-  
+
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch } = usePostComments(post.postId);
-  const { members } = useWorkspaceMembers(groupId ?? "");
+  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
@@ -78,21 +87,30 @@ function ArticleItem({
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
-    const result = await createCommentAction(post.postId, commentInput, mentionedIds);
+    const result = await createCommentAction(
+      post.postId,
+      commentInput,
+      mentionedIds,
+    );
     if (result.ok) {
       setCommentInput("");
       setMentionedIds([]);
+      if (!showComments) setShowComments(true);
       await refetch();
     }
   };
+  
+  const shareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=article`
+    : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=article`;
 
   return (
     <>
-      <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
+      <div id={`post-${post.postId}`} className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
                 {profilePictureUrl ? (
                   <Image
                     src={profilePictureUrl}
@@ -107,11 +125,11 @@ function ArticleItem({
                   </span>
                 )}
               </div>
-              <div>
-                <h3 className="type-desc-semibold text-secondary">
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm md:text-base font-semibold text-secondary truncate">
                   {creator?.fullName ?? "—"}
                 </h3>
-                <p className="text-desc-small-semibold text-grey-500">
+                <p className="text-[10px] sm:text-xs md:text-sm text-grey-500">
                   {formatEventDate(post.createdAt ?? "")}
                 </p>
               </div>
@@ -120,7 +138,7 @@ function ArticleItem({
           <div className="flex items-center gap-2">
             {creator?.role && (
               <span
-                className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+                className={`type-desc-small-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase shrink-0 ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
               >
                 {creator.role}
               </span>
@@ -135,15 +153,20 @@ function ArticleItem({
           </div>
         </div>
 
-        <h2 className="type-title text-primary mb-2">{post.title}</h2>
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+          {post.title}
+        </h2>
         <ExpandableText text={post.content} />
 
-        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
-          <section className="flex items-center gap-6 py-4">
-            <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">
+            <ReactionPopover
+              selectedValue={selectedReaction}
+              onReactionSelect={handleReactionSelect}
+            >
               <button
                 onClick={handleLikeToggle}
-                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none text-sm sm:text-base ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
               >
                 {activeReaction ? (
                   <TwemojiImg emoji={activeReaction.emoji} size={20} />
@@ -157,7 +180,8 @@ function ArticleItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> {comments?.length ?? 0}
+              <MessageCircleMore size={20} /> 
+              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -187,10 +211,13 @@ function ArticleItem({
               )}
             </Link>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <MentionInput
               value={commentInput}
-              onChange={(val, ids) => { setCommentInput(val); setMentionedIds(ids); }}
+              onChange={(val, ids) => {
+                setCommentInput(val);
+                setMentionedIds(ids);
+              }}
               onSubmit={handleSubmitComment}
               placeholder="Add a comment..."
               members={members}
@@ -200,8 +227,21 @@ function ArticleItem({
         </div>
 
         {showComments && (
-          <div className="space-y-4 pt-2">
-            {comments.length > 0 ? (
+          <div className="space-y-3 sm:space-y-4 pt-2">
+            {loading ? (
+              <div className="space-y-4 animate-pulse">
+                {[...Array(3)].map((_, idx) => (
+                  <div key={idx} className="flex gap-3 items-start px-1">
+                    <div className="w-10 h-10 rounded-full bg-grey-200 shrink-0" />
+                    <div className="flex-1 bg-grey-50 rounded-xl p-3 space-y-2">
+                      <div className="h-4 bg-grey-200 rounded w-1/4" />
+                      <div className="h-3 bg-grey-200 rounded w-3/4" />
+                      <div className="h-3 bg-grey-200 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : comments.length > 0 ? (
               comments.map((comment) => (
                 <CommentNode
                   key={comment.commentId}
@@ -214,7 +254,7 @@ function ArticleItem({
                 />
               ))
             ) : (
-              <div className="text-center py-8">
+              <div className="text-center py-6 sm:py-8">
                 <p className="text-grey-400 type-detail-medium">
                   No comments yet. Be the first to comment!
                 </p>
@@ -227,7 +267,7 @@ function ArticleItem({
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/articles/${post.postId}`}
+        shareUrl={shareUrl}
       />
     </>
   );
@@ -238,6 +278,7 @@ export function ArticleCard({
   posts,
   onDeletePost,
   groupId,
+  members,
 }: ArticleCardProps) {
   return (
     <>
@@ -248,6 +289,7 @@ export function ArticleCard({
           role={role}
           onDelete={() => onDeletePost(post.postId)}
           groupId={groupId}
+          members={members}
         />
       ))}
     </>

@@ -527,7 +527,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           {error}
         </div>
       )}
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs flex items-center justify-between w-full">
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
         <div className="flex items-center gap-5">
           <div className="relative group w-20 h-20 shrink-0">
             {avatarUrl ? (
@@ -567,17 +567,17 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           </div>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <button
             onClick={() => setIsResetOpen(true)}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
+            className="w-full sm:w-auto bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
           >
             Change Password
           </button>
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-6 w-full">
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs space-y-6 w-full">
         <h2 className="type-subtitle text-secondary border-b border-border pb-2">
           Personal Information
         </h2>
@@ -706,42 +706,6 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                 Date of Birth
               </label>
 
-              {/* <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center gap-3 w-full h-10 px-3 rounded-md border border-border bg-background text-left transition-colors hover:border-primary focus:outline-none focus:border-primary"
-                  >
-                    <Cake className="w-4 h-4 text-[#93A3CA] shrink-0" />
-
-                    <span
-                      className={`text-sm ${
-                        dob ? "text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {selectedDate
-                        ? format(selectedDate, "dd/MM/yyyy")
-                        : "DD/MM/YYYY"}
-                    </span>
-                  </button>
-                </PopoverTrigger>
-
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      if (!date) return;
-
-                      setDob(format(date, "yyyy-MM-dd"));
-                    }}
-                    disabled={(date) => date > maxDate || date < startMonth}
-                    captionLayout="dropdown"
-                    startMonth={startMonth}
-                    endMonth={endMonth}
-                  />
-                </PopoverContent>
-              </Popover> */}
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -1120,7 +1084,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border p-6 shadow-xs space-y-4 w-full">
+      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs space-y-4 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
           <div>
             <h3 className="type-subtitle text-secondary flex items-center gap-2">
@@ -1162,7 +1126,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               </svg>
               WeBill365 Information
             </h3>
-            <p className="type-detail text-muted-foreground mt-0.5">
+            <p className="type-detail text-muted-foreground mt-0.5"> 
               Manage WeBill Information for room payment
             </p>
           </div>

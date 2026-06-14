@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
 import { Transaction, Event } from "@/types/transaction";
 import { TransactionDetail, EventDetail } from "@/types/transaction-detail";
+import { transactionService } from "@/service/transaction.service";
 
 const statusMap: Record<string, string> = {
   "0": "Successful",
@@ -70,10 +71,8 @@ function firstString(...values: unknown[]): string {
     if (typeof value === "number" && Number.isFinite(value)) {
       return String(value);
     }
-
     if (typeof value === "string") {
       const trimmed = value.trim();
-
       if (
         trimmed &&
         trimmed.toLowerCase() !== "undefined" &&
@@ -83,102 +82,7 @@ function firstString(...values: unknown[]): string {
       }
     }
   }
-
   return "";
-}
-
-function normalizeText(value: unknown): string {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
-
-async function findPayerIdFromTransactionList(
-  base: string | undefined,
-  headers: Record<string, string>,
-  transactionUUID: string,
-  tx: any,
-): Promise<string> {
-  if (!base) return "";
-
-  try {
-    const res = await fetch(`${base}/payments/transactions`, {
-      headers,
-      cache: "no-store",
-    });
-    const json = res.ok ? await res.json() : null;
-    const transactions = Array.isArray(json?.payload) ? json.payload : [];
-
-    const matched = transactions.find((item: any) => {
-      return (
-        firstString(item.id) === transactionUUID ||
-        firstString(item.id) === firstString(tx.id) ||
-        firstString(item.billNo) === firstString(tx.billNo) ||
-        firstString(item.transactionId) === firstString(tx.transactionId)
-      );
-    });
-
-    return firstString(
-      matched?.appUserId,
-      matched?.app_user_id,
-      matched?.userId,
-      matched?.user_id,
-      matched?.payerId,
-      matched?.payer_id,
-      matched?.payerAppUserId,
-      matched?.payer_app_user_id,
-    );
-  } catch (error) {
-    console.error("Failed to resolve payer from transaction list:", error);
-    return "";
-  }
-}
-
-async function findPayerIdFromUsers(
-  base: string | undefined,
-  headers: Record<string, string>,
-  tx: any,
-): Promise<string> {
-  if (!base) return "";
-
-  const targetEmail = normalizeText(
-    firstString(tx.email, tx.payerEmail, tx.payer_email, tx.appUser?.email, tx.payer?.email),
-  );
-  const targetPhone = normalizeText(
-    firstString(tx.phoneNumber, tx.phone, tx.payerPhone, tx.payer_phone, tx.appUser?.phoneNumber, tx.payer?.phoneNumber),
-  );
-  const targetUsername = normalizeText(
-    firstString(tx.username, tx.appUser?.username, tx.payer?.username),
-  );
-  const targetName = normalizeText(
-    firstString(tx.payerName, tx.payer_name, tx.senderAccountName, tx.sender_account_name),
-  );
-
-  if (!targetEmail && !targetPhone && !targetUsername && !targetName) return "";
-
-  try {
-    const res = await fetch(`${base}/admin/users?page=1&size=200`, {
-      headers,
-      cache: "no-store",
-    });
-    const json = res.ok ? await res.json() : null;
-    const users = Array.isArray(json?.payload) ? json.payload : [];
-
-    const matched = users.find((user: any) => {
-      const fullName = normalizeText(`${user.firstName ?? ""} ${user.lastName ?? ""}`);
-      const reverseName = normalizeText(`${user.lastName ?? ""} ${user.firstName ?? ""}`);
-
-      return (
-        (targetEmail && normalizeText(user.email) === targetEmail) ||
-        (targetPhone && normalizeText(user.phoneNumber) === targetPhone) ||
-        (targetUsername && normalizeText(user.username) === targetUsername) ||
-        (targetName && (fullName === targetName || reverseName === targetName))
-      );
-    });
-
-    return firstString(matched?.appUserId, matched?.app_user_id, matched?.userId, matched?.user_id);
-  } catch (error) {
-    console.error("Failed to resolve payer from users:", error);
-    return "";
-  }
 }
 
 export async function getTransactions(): Promise<Transaction[]> {
@@ -186,24 +90,19 @@ export async function getTransactions(): Promise<Transaction[]> {
   if (!session?.accessToken) {
     throw new Error("Unauthorized");
   }
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/transactions`, {
-    headers: { Authorization: `Bearer ${session.accessToken}` },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch transactions");
-  }
-  const json = await res.json();
-  return json.payload.map((t: any) => ({
-  id: `#TX-${String(t.transactionId).slice(-5)}`,
-  uuid: t.id,          // ← add this
-  username: t.username ?? t.payerName,
-  avatar: t.profilePicture ?? "",
-  amount: t.amount,
-  status: statusMap[t.settlementStatus] ?? "Pending",
-  timestamp: formatRelative(t.createdAt),
-  eventId: t.postId,
-}));
+
+  const json = await transactionService.getTransactions(session.accessToken);
+
+  return (json.payload ?? []).map((t: any) => ({
+    id: `#TX-${String(t.transactionId).slice(-5)}`,
+    uuid: t.id,
+    username: t.payerName ?? t.senderAccountName ?? "",
+    avatar: t.profilePicture ?? "",
+    amount: t.amount,
+    status: statusMap[t.settlementStatus] ?? "Pending",
+    timestamp: formatRelative(t.createdAt),
+    eventId: t.post?.postId ?? t.postId ?? "",
+  }));
 }
 
 export async function getEventSummaries(): Promise<Event[]> {
@@ -211,47 +110,40 @@ export async function getEventSummaries(): Promise<Event[]> {
   if (!session?.accessToken) {
     throw new Error("Unauthorized");
   }
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/posts/events/summary?size=10`, {
-    headers: { Authorization: `Bearer ${session.accessToken}` },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch event summaries");
+
+  const json = await transactionService.getTransactions(session.accessToken);
+  const transactions: any[] = json.payload ?? [];
+
+  const seenPostIds = new Set<string>();
+  const events: Event[] = [];
+
+  for (const t of transactions) {
+    const post = t.post;
+    if (!post?.postId || seenPostIds.has(post.postId)) continue;
+    seenPostIds.add(post.postId);
+
+    events.push({
+      id: post.postId,
+      title: post.title ?? "",
+      date: formatEventDate(post.eventStart ?? post.createdAt),
+      status: eventStatusMap[post.status] ?? "Published",
+      amount: Number(post.payment?.amountRaised ?? 0),
+      attendees: 0,
+      year: new Date(post.eventStart ?? post.createdAt).getFullYear(),
+    });
   }
-  const json = await res.json();
-  return (json.payload ?? []).map((e: any) => ({
-    id: e.postId,
-    title: e.title,
-    date: formatEventDate(e.eventStart),
-    status: eventStatusMap[e.status] ?? "Published",
-    amount: Number(e.amountRaised ?? 0),
-    attendees: e.attendeeCount ?? 0,
-    year: new Date(e.eventStart).getFullYear(),
-  }));
+
+  return events;
 }
 
 export async function getTransactionDetail(transactionUUID: string): Promise<TransactionDetail> {
   const session = await getServerSession(authOptions);
   if (!session?.accessToken) throw new Error("Unauthorized");
 
-  const headers = { Authorization: `Bearer ${session.accessToken}` };
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-  const txRes = await fetch(`${base}/payments/transactions/detail/${transactionUUID}`, {
-    headers,
-    cache: "no-store",
-});
-if (!txRes.ok) {
-    const body = await txRes.text();
-    console.error("=== TRANSACTION FETCH FAILED ===");
-    console.error("Status:", txRes.status);
-    console.error("URL:", `${base}/payments/transactions/detail/${transactionUUID}`);
-    console.error("Body:", body);
-    console.error("================================");
-    throw new Error(`Transaction not found (${txRes.status})`);
-}
-  const txJson = await txRes.json();
+  const token = session.accessToken;
+  const txJson = await transactionService.getTransactionDetail(transactionUUID, token);
   const tx = txJson.payload;
+
   let txAppUserId = firstString(
     tx.appUserId,
     tx.app_user_id,
@@ -278,36 +170,38 @@ if (!txRes.ok) {
   );
 
   if (!txAppUserId) {
-    txAppUserId = await findPayerIdFromTransactionList(base, headers, transactionUUID, tx);
+    txAppUserId = await transactionService.findPayerIdFromTransactionList(token, transactionUUID, tx);
   }
 
   if (!txAppUserId) {
-    txAppUserId = await findPayerIdFromUsers(base, headers, tx);
+    txAppUserId = await transactionService.findPayerIdFromUsers(token, tx);
   }
 
-  const profileRes = txAppUserId
-    ? await fetch(`${base}/profile/${txAppUserId}`, {
-        headers,
-        cache: "no-store",
-      })
-    : null;
-  const profileJson = profileRes?.ok ? await profileRes.json() : null;
+  let profileJson = null;
+  if (txAppUserId) {
+    try {
+      profileJson = await transactionService.getProfileById(txAppUserId, token);
+    } catch (e) {
+      profileJson = null;
+    }
+  }
   const profile = profileJson?.payload;
 
-  const postRes = await fetch(`${base}/posts/events/${tx.postId}`, {
-    headers,
-    cache: "no-store",
-  });
-  const postJson = postRes.ok ? await postRes.json() : null;
+  let postJson = null;
+  try {
+    postJson = await transactionService.getEventById(tx.postId, token);
+  } catch (e) {
+    postJson = null;
+  }
   const post = postJson?.payload;
 
-  const statusMap: Record<string, TransactionDetail["status"]> = {
+  const detailStatusMap: Record<string, TransactionDetail["status"]> = {
     "0": "Successful",
     "1": "Pending",
     "2": "Failed",
   };
 
-  const eventStatusMap: Record<string, EventDetail["status"]> = {
+  const detailEventStatusMap: Record<string, EventDetail["status"]> = {
     active: "Active",
     closed: "Cancel",
     draft: "Published",
@@ -347,7 +241,7 @@ if (!txRes.ok) {
     processedDate: formatDetailDate(tx.transactionDate, tx.transactionTime),
     amount: tx.amount,
     currency: tx.currencyCode ?? "USD",
-    status: statusMap[tx.settlementStatus] ?? "Pending",
+    status: detailStatusMap[tx.settlementStatus] ?? "Pending",
     referenceId: tx.billNo ?? "",
     transactionId: `#TX-${String(tx.transactionId).slice(-5)}`,
     payer: {
@@ -364,13 +258,14 @@ if (!txRes.ok) {
     },
     event: {
       id: tx.postId,
+      workspaceId: post?.workspaceId ?? "",
       title: post?.title ?? "",
       date: eventDate,
       time: eventTime,
       location: post?.location?.locationName ?? "",
       image: coverImage,
       badge: "EVENT",
-      status: eventStatusMap[post?.status] ?? "Active",
+      status: detailEventStatusMap[post?.status] ?? "Active",
     },
   };
 }

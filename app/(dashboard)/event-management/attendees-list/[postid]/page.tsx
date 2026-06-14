@@ -41,7 +41,7 @@ export default function AttendeesManagementPage({ params }: PageProps) {
   }, [postid, session]);
 
   return (
-    <div className="w-full max-w-420 mx-auto">
+    <div className="w-full max-w-475 mx-auto pr-8 lg:pr-12 lg:pl-12">
       <Breadcrumb label="All attendees list" backHref="/event-management" />
       {isLoading ? (
         <AttendeesSkeleton />

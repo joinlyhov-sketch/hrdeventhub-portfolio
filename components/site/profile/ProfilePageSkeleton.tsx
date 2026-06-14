@@ -18,7 +18,7 @@ export default function ProfilePageSkeleton() {
         <Sk className="h-2.5 w-72 rounded-full" />
       </div>
 
-      <div className="lg:px-12 w-full">
+      <div className="px-4 sm:px-6 lg:px-12 w-full">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 xl:h-[680px]">
 
           <div className="xl:col-span-4 bg-card border border-border rounded-xl p-6 flex flex-col items-center gap-4">

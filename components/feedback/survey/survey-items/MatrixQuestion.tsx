@@ -61,7 +61,7 @@ export default function MatrixQuestion({
                       variant="ghost"
                       size="icon"
                       onClick={() => onRemoveItem("matrixCols", cIdx)}
-                      className="text-muted-foreground hover:text-destructive h-5 w-5 opacity-0 group-hover/col:opacity-100 transition-opacity shrink-0"
+                      className="text-muted-foreground hover:bg-transparent hover:text-destructive h-5 w-5 opacity-0 group-hover/col:opacity-100 transition-opacity shrink-0"
                     >
                       <X size={12} />
                     </Button>

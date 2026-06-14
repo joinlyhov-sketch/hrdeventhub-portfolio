@@ -63,7 +63,7 @@ export default function SearchEvent({
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-2 relative">
+      <div className="flex items-center gap-1.5 sm:gap-2 relative">
         <div className="relative grow">
           <Search
             value={searchQuery || ""}
