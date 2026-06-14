@@ -304,11 +304,14 @@ export default function SettingVisibilityModeCard({
       setTelegramError(null);
       try {
         const result = await connectTelegramAction(userId);
-        if (result?.error) {
-          if (typeof result.error === "object" && result.error !== null) {
-            setTelegramError((result.error as any).message || JSON.stringify(result.error));
+        
+        const actionResult = result as any;
+
+        if (actionResult?.error) {
+          if (typeof actionResult.error === "object" && actionResult.error !== null) {
+            setTelegramError(actionResult.error.message || JSON.stringify(actionResult.error));
           } else {
-            setTelegramError(result.error);
+            setTelegramError(actionResult.error);
           }
         }
       } catch (err: any) {

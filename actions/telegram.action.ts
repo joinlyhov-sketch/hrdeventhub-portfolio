@@ -1,13 +1,14 @@
 "use client";
 
-export async function connectTelegramAction(userId: string) {
+type TelegramActionResponse = { ok: true; error?: never } | { ok?: never; error: string | object };
+
+export async function connectTelegramAction(userId: string): Promise<TelegramActionResponse> {
   if (!userId) {
     return { error: "User session ID is required to connect to Telegram." };
   }
 
   try {
     const botUsername = "HrdEventHubBot"; 
-    
     const telegramBotUrl = `https://t.me/${botUsername}?start=${userId}`;
 
     if (typeof window !== "undefined") {
@@ -15,8 +16,8 @@ export async function connectTelegramAction(userId: string) {
     }
 
     return { ok: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Telegram redirect routing failure:", error);
-    return { error: "Could not open Telegram application." };
+    return { error: error?.message || "Could not open Telegram application." };
   }
 }
