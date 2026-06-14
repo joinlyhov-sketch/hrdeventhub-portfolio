@@ -18,7 +18,7 @@ export default function GroupList() {
   const isAdmin = currentUser?.role === "admin";
 
   useEffect(() => {
-    setPage(1);
+    queueMicrotask(() => setPage(1));
   }, [search, type]);
 
   const adminData = useWorkspaces({ page, size: 9, name: search });

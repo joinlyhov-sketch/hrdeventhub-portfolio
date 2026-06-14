@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Loader2, X } from "lucide-react";
 import { useTransition, useEffect } from "react";
 import { useResetPasswordStore } from "@/store/useResetPasswordAdminStore";
@@ -35,6 +35,7 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
         setEmail(currentUser.email);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleClose = () => {

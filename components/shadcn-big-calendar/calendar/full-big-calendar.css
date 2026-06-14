@@ -321,18 +321,46 @@
 
 @media (max-width: 640px) {
   .upcoming-event-card {
-    align-items: flex-start;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
   }
 
   .upcoming-event-date {
-    width: 4.5rem;
-    min-height: 4rem;
+    width: 100%;
+    min-height: 0;
+    align-self: auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 0.875rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .upcoming-event-date strong {
+    font-size: 1.625rem;
+    line-height: 1;
+  }
+
+  .upcoming-event-date span {
+    margin-top: 0;
+    font-size: 0.6875rem;
+  }
+
+  .upcoming-event-content {
+    padding: 0.625rem 0.875rem;
   }
 
   .upcoming-event-link {
-    width: 100%;
+    width: calc(100% - 1.75rem);
+    margin: 0 0.875rem 0.75rem;
     justify-content: center;
+    border-radius: var(--radius-lg);
   }
 }
 
@@ -1162,14 +1190,22 @@
 
 @media (max-width: 768px) {
   .calendar-card-dayGridMonth {
-    --month-grid-height: 576px;
-    --month-row-height: 96px;
+    --month-grid-height: 480px;
+    --month-row-height: 80px;
   }
 
   .calendar-toolbar {
     align-items: stretch;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.625rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+    position: static;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .calendar-toolbar-left,
@@ -1177,14 +1213,37 @@
     width: 100%;
   }
 
+  .calendar-toolbar-left {
+    gap: 0.5rem;
+  }
+
+  .calendar-icon-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
   .calendar-date-btn {
     min-width: 0;
     flex: 1;
+    height: 2.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .calendar-view-tabs {
+    height: 2.75rem;
   }
 
   .calendar-view-tabs button {
     min-width: 0;
     flex: 1;
+    font-size: 0.8125rem;
+  }
+
+  .calendar-toolbar .calendar-status-indicator {
+    position: static;
+    transform: none;
+    justify-content: center;
+    font-size: 0.6875rem;
   }
 }
 

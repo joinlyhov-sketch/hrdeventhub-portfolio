@@ -43,12 +43,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const accessToken = session?.accessToken;
-    if (!accessToken) {
-      setIsLoading(false);
-      return;
-    }
 
     const fetchUser = async () => {
+      if (!accessToken) {
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       try {
         const profileResponse = await authService.getProfileMe(accessToken);

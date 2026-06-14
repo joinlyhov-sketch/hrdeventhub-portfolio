@@ -9,7 +9,9 @@ export default function Loading() {
         titleSecondary="Settings"
         description="Manage your profile visibility and control who can see your information and activities."
       />
-      <PrivacySettingsSkeleton />
+      <div className="w-full max-w-475 mx-auto">
+        <PrivacySettingsSkeleton />
+      </div>
     </main>
   );
 }

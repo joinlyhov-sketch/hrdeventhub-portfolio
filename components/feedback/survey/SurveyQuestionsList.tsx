@@ -241,7 +241,7 @@ export default function SurveyQuestionsList({
               onClick={() =>
                 setQuestions(questions.filter((item) => item.id !== q.id))
               }
-              className="text-muted-foreground hover:text-destructive h-9 w-9 transition-colors"
+              className="text-muted-foreground hover:bg-transparent hover:text-destructive h-9 w-9 transition-colors"
             >
               <Trash2 size={24} />
             </Button>

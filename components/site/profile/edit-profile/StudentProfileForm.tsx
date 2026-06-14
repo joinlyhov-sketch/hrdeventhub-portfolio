@@ -28,6 +28,49 @@ import {
 
 import { Calendar } from "@/components/ui/calendar";
 
+function UploadSVG() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M5.9974 6.66667C6.73378 6.66667 7.33073 6.06971 7.33073 5.33333C7.33073 4.59695 6.73378 4 5.9974 4C5.26102 4 4.66406 4.59695 4.66406 5.33333C4.66406 6.06971 5.26102 6.66667 5.9974 6.66667Z"
+        stroke="white"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.66927 1.33594H6.0026C2.66927 1.33594 1.33594 2.66927 1.33594 6.0026V10.0026C1.33594 13.3359 2.66927 14.6693 6.0026 14.6693H10.0026C13.3359 14.6693 14.6693 13.3359 14.6693 10.0026V6.66927"
+        stroke="white"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 1.33594V5.33594L13.3333 4.0026"
+        stroke="white"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11.9974 5.33333L10.6641 4"
+        stroke="white"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M1.78125 12.635L5.06792 10.4283C5.59458 10.075 6.35458 10.115 6.82792 10.5217L7.04792 10.715C7.56792 11.1617 8.40792 11.1617 8.92792 10.715L11.7012 8.335C12.2212 7.88833 13.0613 7.88833 13.5813 8.335L14.6679 9.26833"
+        stroke="white"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function StudentProfileForm() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -44,8 +87,8 @@ export default function StudentProfileForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
 
-  const [initialIdentity, setInitialIdentity] = useState<any>(null);
-  const [initialProfile, setInitialProfile] = useState<any>(null);
+  const [initialIdentity, setInitialIdentity] = useState<Record<string, unknown> | null>(null);
+  const [initialProfile, setInitialProfile] = useState<Record<string, unknown> | null>(null);
   const [educationErrors, setEducationErrors] = useState<
     {
       startYear?: string;
@@ -75,12 +118,21 @@ export default function StudentProfileForm() {
   const [cvResumeUrl, setCvResumeUrl] = useState<string | null>("");
   const [isDeleteResumeModalOpen, setIsDeleteResumeModalOpen] = useState(false);
 
-  const [profileSharingMode, setProfileSharingMode] = useState<
+  const [profileSharingMode] = useState<
     "PUBLIC" | "PRIVATE"
   >("PUBLIC");
   const [skills, setSkills] = useState<string[]>([]);
 
-  const [education, setEducation] = useState<any[]>([
+  type EducationEntry = {
+    institutionName: string;
+    institutionAbbreviation: string;
+    degree: string;
+    startYear: number | string;
+    endYear: number | null;
+    isCurrent: boolean;
+  };
+
+  const [education, setEducation] = useState<EducationEntry[]>([
     {
       institutionName: "",
       institutionAbbreviation: "",
@@ -244,23 +296,6 @@ export default function StudentProfileForm() {
 
     return isValid;
   };
-  const calculateAge = (dateString: string) => {
-    const birthDate = new Date(dateString);
-    const today = new Date();
-
-    let age = today.getFullYear() - birthDate.getFullYear();
-
-    const monthDifference = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDifference < 0 ||
-      (monthDifference === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
-  };
   const validateEducation = () => {
     const currentYear = new Date().getFullYear();
     let isValid = true;
@@ -317,6 +352,7 @@ export default function StudentProfileForm() {
   useEffect(() => {
     const pendingAvatar = sessionStorage.getItem("pending-avatar");
     if (pendingAvatar) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedImageSrc(pendingAvatar);
       setIsAdjustModalOpen(true);
     }
@@ -334,13 +370,14 @@ export default function StudentProfileForm() {
         ]);
 
         if (identityRes.status === "fulfilled" && identityRes.value) {
-          const idData = identityRes.value.payload || identityRes.value;
+          const idValue = identityRes.value as Record<string, unknown>;
+          const idData = (idValue.payload as Record<string, unknown>) || idValue;
           const identitySnapshot = {
-            firstName: idData.firstName || "",
-            lastName: idData.lastName || "",
-            username: idData.username || "",
-            dateOfBirth: idData.dateOfBirth || "",
-            phoneNumber: idData.phoneNumber || "",
+            firstName: (idData.firstName as string) || "",
+            lastName: (idData.lastName as string) || "",
+            username: (idData.username as string) || "",
+            dateOfBirth: (idData.dateOfBirth as string) || "",
+            phoneNumber: (idData.phoneNumber as string) || "",
           };
           setInitialIdentity(identitySnapshot);
           setFirstName(identitySnapshot.firstName);
@@ -348,13 +385,13 @@ export default function StudentProfileForm() {
           setUsername(identitySnapshot.username);
           setDob(identitySnapshot.dateOfBirth);
           setPhoneNumber(identitySnapshot.phoneNumber);
-          if (idData.email) setEmail(idData.email);
+          if (idData.email) setEmail(idData.email as string);
           if (idData.gender) {
-            const rawGender = idData.gender.toUpperCase();
+            const rawGender = (idData.gender as string).toUpperCase();
             if (rawGender === "M" || rawGender === "MALE") setGender("Male");
             else if (rawGender === "F" || rawGender === "FEMALE")
               setGender("Female");
-            else setGender(idData.gender);
+            else setGender(idData.gender as string);
           }
         }
 
@@ -380,29 +417,30 @@ export default function StudentProfileForm() {
             fUrl = "",
             tUrl = "";
           if (p.socialAccount && p.socialAccount.length > 0) {
-            const linkedin = p.socialAccount.find(
-              (s: any) => s.platform === "linkedin",
+            type SocialAccount = { platform: string; url: string };
+            const linkedin = (p.socialAccount as SocialAccount[]).find(
+              (s) => s.platform === "linkedin",
             );
             if (linkedin) {
               setLinkedinUrl(linkedin.url);
               lUrl = linkedin.url;
             }
-            const github = p.socialAccount.find(
-              (s: any) => s.platform === "github",
+            const github = (p.socialAccount as SocialAccount[]).find(
+              (s) => s.platform === "github",
             );
             if (github) {
               setGithubUrl(github.url);
               gUrl = github.url;
             }
-            const facebook = p.socialAccount.find(
-              (s: any) => s.platform === "facebook",
+            const facebook = (p.socialAccount as SocialAccount[]).find(
+              (s) => s.platform === "facebook",
             );
             if (facebook) {
               setFacebookUrl(facebook.url);
               fUrl = facebook.url;
             }
-            const telegram = p.socialAccount.find(
-              (s: any) => s.platform === "telegram",
+            const telegram = (p.socialAccount as SocialAccount[]).find(
+              (s) => s.platform === "telegram",
             );
             if (telegram) {
               setTelegramUrl(telegram.url);
@@ -410,7 +448,7 @@ export default function StudentProfileForm() {
             }
           }
 
-          let parsedEdu = [
+          let parsedEdu: EducationEntry[] = [
             {
               institutionName: "",
               institutionAbbreviation: "",
@@ -421,7 +459,7 @@ export default function StudentProfileForm() {
             },
           ];
           if (p.education && p.education.length > 0) {
-            parsedEdu = p.education.map((edu: any) => ({
+            parsedEdu = p.education.map((edu) => ({
               institutionName: edu.institutionName || "",
               institutionAbbreviation: edu.institutionAbbreviation || "",
               degree: edu.degree || "",
@@ -463,7 +501,7 @@ export default function StudentProfileForm() {
       return;
     }
 
-    const result = await deleteMe();
+    const result = await deleteMe() as { success?: boolean };
     console.log(result);
     if (result.success) {
       setCvResumeUrl("");
@@ -514,11 +552,11 @@ export default function StudentProfileForm() {
         setError(
           result.error || "Profile image upload was rejected by the server.",
         );
-        setProfilePicture(initialProfile?.profilePicture || "");
+        setProfilePicture((initialProfile?.profilePicture as string | null) || "");
       }
-    } catch (err) {
+    } catch {
       setError("A networking issue interrupted the asset transmission.");
-      setProfilePicture(initialProfile?.profilePicture || "");
+      setProfilePicture(initialProfile?.profilePicture as string || "");
     } finally {
       setIsUploading(false);
     }
@@ -541,20 +579,20 @@ export default function StudentProfileForm() {
         toast.success("Resume uploaded successfully.");
       } else {
         toast.error(result.error || "Failed to upload resume.");
-        setCvResumeUrl(initialProfile?.cvResumeUrl || "");
+        setCvResumeUrl((initialProfile?.cvResumeUrl as string | null) || "");
       }
-    } catch (err) {
+    } catch {
       setError(
         "A networking issue interrupted the document asset transmission.",
       );
-      setCvResumeUrl(initialProfile?.cvResumeUrl || "");
+      setCvResumeUrl(initialProfile?.cvResumeUrl as string || "");
     } finally {
       setIsUploadingResume(false);
       e.target.value = "";
     }
   };
 
-  const handleUpdateEducation = (index: number, fields: any) => {
+  const handleUpdateEducation = (index: number, fields: Record<string, unknown>) => {
     const updated = [...education];
     updated[index] = { ...updated[index], ...fields };
     setEducation(updated);
@@ -599,16 +637,23 @@ export default function StudentProfileForm() {
 
     const skillsPayload = skills.length > 0 ? [skills.join(", ")] : [];
     const validEducation = education.filter(
-      (edu) => edu.institutionName.trim() !== "",
+      (edu) => String(edu.institutionName).trim() !== "",
     );
     const currentProfilePayload = {
       bio: bio || "",
       profilePicture: profilePicture || null,
-      major: validEducation[0]?.degree || "Computer Science",
+      major: String(validEducation[0]?.degree || "Computer Science"),
       currentStatus: currentStatus.toLowerCase(),
       cvResumeUrl: cvResumeUrl || null,
       socialAccount,
-      education: validEducation,
+      education: validEducation.map((edu) => ({
+        institutionName: String(edu.institutionName),
+        institutionAbbreviation: String(edu.institutionAbbreviation),
+        degree: String(edu.degree),
+        startYear: Number(edu.startYear),
+        endYear: edu.endYear,
+        isCurrent: Boolean(edu.isCurrent),
+      })),
       skills: skillsPayload,
       profileSharingMode,
       preferences: null,
@@ -642,7 +687,7 @@ export default function StudentProfileForm() {
 
     startTransition(async () => {
       try {
-        const updatePromises: Promise<any>[] = [];
+        const updatePromises: Promise<unknown>[] = [];
         if (identityChanged)
           updatePromises.push(updateIdentityMeAction(currentIdentityPayload));
         else
@@ -657,8 +702,9 @@ export default function StudentProfileForm() {
             Promise.resolve({ success: true, skipped: true }),
           );
 
+        type ActionResult = { success?: boolean; message?: string; error?: string };
         const [identityResult, profileResult] =
-          await Promise.all(updatePromises);
+          await Promise.all(updatePromises) as [ActionResult, ActionResult];
         if (identityResult?.success && profileResult?.success) {
           router.refresh();
           router.back();
@@ -677,57 +723,13 @@ export default function StudentProfileForm() {
               profileResult?.error ||
               "Profile validation failed.",
           );
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(
-          err?.message || "An exception blocked synchronization attempts.",
-        );
-        setError(
-          err?.message || "An exception blocked synchronization attempts.",
+          (err as { message?: string })?.message || "An exception blocked synchronization attempts.",
         );
       }
     });
   };
-
-  const UploadSVG = () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M5.9974 6.66667C6.73378 6.66667 7.33073 6.06971 7.33073 5.33333C7.33073 4.59695 6.73378 4 5.9974 4C5.26102 4 4.66406 4.59695 4.66406 5.33333C4.66406 6.06971 5.26102 6.66667 5.9974 6.66667Z"
-        stroke="white"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M8.66927 1.33594H6.0026C2.66927 1.33594 1.33594 2.66927 1.33594 6.0026V10.0026C1.33594 13.3359 2.66927 14.6693 6.0026 14.6693H10.0026C13.3359 14.6693 14.6693 13.3359 14.6693 10.0026V6.66927"
-        stroke="white"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M12 1.33594V5.33594L13.3333 4.0026"
-        stroke="white"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M11.9974 5.33333L10.6641 4"
-        stroke="white"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M1.78125 12.635L5.06792 10.4283C5.59458 10.075 6.35458 10.115 6.82792 10.5217L7.04792 10.715C7.56792 11.1617 8.40792 11.1617 8.92792 10.715L11.7012 8.335C12.2212 7.88833 13.0613 7.88833 13.5813 8.335L14.6679 9.26833"
-        stroke="white"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 
   return (
     <div className="xl:col-span-8 border border-border rounded-2xl p-4 sm:p-6 flex flex-col gap-4">
@@ -748,6 +750,7 @@ export default function StudentProfileForm() {
           >
             {profilePicture ? (
               <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={profilePicture}
                   alt="Profile"

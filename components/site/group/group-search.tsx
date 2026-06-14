@@ -107,13 +107,12 @@ export default function GroupSearch({
       </div>
 
       {currentUser?.role === "admin" && (
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-base font-medium hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer h-10.5 box-border"
-        >
-          Create
-          <CirclePlus size={20} strokeWidth={2} />
-        </button>
+      <button onClick={() => setIsCreateOpen(true)}
+      className="flex items-center gap-1.5 md:gap-2 bg-primary text-white px-3 md:px-4 py-2 rounded-xl text-sm md:text-base font-medium hover:bg-[#25437a] transition-all whitespace-nowrap shrink-0 cursor-pointer h-10.5 box-border"
+      >
+        <span className="hidden sm:inline">Create</span>
+        <CirclePlus size={20} strokeWidth={2} />
+      </button>
       )}
 
       <CreateGroupModal

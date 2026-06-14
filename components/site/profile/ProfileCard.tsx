@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import {
   Mail,
   Calendar,
@@ -80,34 +81,28 @@ export default function ProfileCard({
     );
   }
 
-  const sharingMode = profile.profileSharingMode;
-  const prefs = profile.preferences?.[0];
-
-  const isVisible = (field: keyof NonNullable<typeof prefs>): boolean => {
-    if (sharingMode === "PUBLIC") return true;
-    if (sharingMode === "PRIVATE") return false;
-    return prefs?.[field] ?? true;
-  };
-
   const displayName =
     `${profile.appUser.firstName} ${profile.appUser.lastName}`.trim();
   const profileAvatar = getMediaUrl(profile.profilePicture);
   const linkedinAccount = profile.socialAccount?.find(
-    (s: any) => s.platform === "linkedin" && s.url?.trim(),
+    (s: { platform: string; url?: string }) =>
+      s.platform === "linkedin" && s.url?.trim(),
   );
   const githubAccount = profile.socialAccount?.find(
-    (s: any) => s.platform === "github" && s.url?.trim(),
+    (s: { platform: string; url?: string }) =>
+      s.platform === "github" && s.url?.trim(),
   );
   const facebookAccount = profile.socialAccount?.find(
-    (s: any) => s.platform === "facebook" && s.url?.trim(),
+    (s: { platform: string; url?: string }) =>
+      s.platform === "facebook" && s.url?.trim(),
   );
   const telegramAccount = profile.socialAccount?.find(
-    (s: any) => s.platform === "telegram" && s.url?.trim(),
+    (s: { platform: string; url?: string }) =>
+      s.platform === "telegram" && s.url?.trim(),
   );
 
   const showEdit = viewMode === "self";
-  const showEndorse =
-    viewMode === "alumni" || viewMode === "organizer";
+  const showEndorse = viewMode === "alumni" || viewMode === "organizer";
   const showMessage = viewMode !== "self";
 
   console.log("preferences:", profile.preferences);
@@ -119,9 +114,12 @@ export default function ProfileCard({
         <div className="w-full flex flex-col items-center">
           <div className="w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10 flex items-center justify-center select-none">
             {profileAvatar ? (
-              <img
+              <Image
                 src={profileAvatar}
                 alt={displayName}
+                width={128}
+                height={128}
+                unoptimized
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -164,7 +162,11 @@ export default function ProfileCard({
             />
             <InfoRow
               icon={<Phone size={16} />}
-              text={profile.appUser.phoneNumber ? `+855${profile.appUser.phoneNumber}` : "—"}
+              text={
+                profile.appUser.phoneNumber
+                  ? `+855${profile.appUser.phoneNumber}`
+                  : "—"
+              }
             />
             <InfoRow
               icon={<GraduationCap size={16} />}
@@ -174,9 +176,9 @@ export default function ProfileCard({
                       .replace(/_/g, " ")
                       .toLowerCase()
                       .replace(/\b\w/g, (char) => char.toUpperCase())
-                    : "Studying"
-                }
-              />
+                  : "Studying"
+              }
+            />
           </div>
 
           {(facebookAccount ||

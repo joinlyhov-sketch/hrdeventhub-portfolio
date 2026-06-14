@@ -1,5 +1,3 @@
-import { AnnouncementPost } from "./announcement-type";
-import { CreateAnnouncementResponse } from "./post-types";
 
 export interface FileUploadPayload {
   fileName: string;

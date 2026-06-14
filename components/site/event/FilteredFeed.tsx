@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { mutate as globalMutate } from "swr";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
@@ -16,6 +17,10 @@ import { deletePostAction, togglePinAction } from "@/actions/post.action";
 import { useFeedStore } from "@/store/useFeedStore";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CalendarX } from "lucide-react";
+import { FeedItemWrapper } from "@/types/UnifiedFeedItem";
+import { Post } from "@/types/posts";
+import { Poll } from "@/types/poll";
+import { Survey } from "@/types/survey";
 
 interface FilteredFeedProps {
   groupid: string;
@@ -27,9 +32,13 @@ const commentCacheKey = (postId: string) => [`/comments`, postId];
 
 export default function FilteredFeed({
   groupid,
-  deepLinkPostId,
-  deepLinkType,
+  deepLinkPostId: deepLinkPostIdProp,
+  deepLinkType: deepLinkTypeProp,
 }: FilteredFeedProps) {
+  const searchParams = useSearchParams();
+  const deepLinkPostId = searchParams.get("postId") ?? deepLinkPostIdProp;
+  const deepLinkType = searchParams.get("type") ?? deepLinkTypeProp;
+
   const [mounted, setMounted] = useState(false);
   const { currentUser, isLoading: userLoading } = useCurrentUser();
   const role = currentUser?.role ?? "student";
@@ -48,36 +57,38 @@ export default function FilteredFeed({
   }, []);
 
   const feedItems = useMemo(() => {
-    let rawItems: any[] = [];
+    let rawItems: FeedItemWrapper[] = [];
     if (swrItems && swrItems.length > 0) {
-      rawItems = swrItems as any[];
+      rawItems = swrItems;
     } else {
       rawItems = mounted ? cachedFeed : [];
     }
 
     return [...rawItems].sort((a, b) => {
-      const dateA = a.data?.createdAt || a.createdAt || a.data?.postedAt || a.postedAt;
-      const dateB = b.data?.createdAt || b.createdAt || b.data?.postedAt || b.postedAt;
+      const aData = a.data as Record<string, unknown> | undefined;
+      const bData = b.data as Record<string, unknown> | undefined;
+      const dateA = aData?.createdAt || a.createdAt || aData?.postedAt || a.postedAt;
+      const dateB = bData?.createdAt || b.createdAt || bData?.postedAt || b.postedAt;
 
-      const timeA = dateA ? new Date(dateA).getTime() : 0;
-      const timeB = dateB ? new Date(dateB).getTime() : 0;
+      const timeA = dateA ? new Date(dateA as string).getTime() : 0;
+      const timeB = dateB ? new Date(dateB as string).getTime() : 0;
 
       const validA = isNaN(timeA) ? 0 : timeA;
       const validB = isNaN(timeB) ? 0 : timeB;
 
       if (validB !== validA) {
-        return validB - validA; 
+        return validB - validA;
       }
 
-      const idA = String(a.data?.postId || a.data?.pollId || a.data?.surveyId || a.id || "");
-      const idB = String(b.data?.postId || b.data?.pollId || b.data?.surveyId || b.id || "");
+      const idA = String(aData?.postId || aData?.pollId || aData?.surveyId || a.id || "");
+      const idB = String(bData?.postId || bData?.pollId || bData?.surveyId || b.id || "");
       return idB.localeCompare(idA);
     });
   }, [swrItems, cachedFeed, mounted]);
 
   useEffect(() => {
     if (swrItems && swrItems.length > 0) {
-      setFeed(groupid, swrItems as any);
+      setFeed(groupid, swrItems);
     }
   }, [swrItems, groupid, setFeed]);
 
@@ -87,10 +98,11 @@ export default function FilteredFeed({
     if (!feedItems || feedItems.length === 0) return;
 
     feedItems.forEach((item) => {
-      const postId = item.data?.postId ?? item.data?.pollId ?? item.data?.surveyId;
-      const comments = item.data?.comments;
+      const d = item.data as Record<string, unknown> | undefined;
+      const postId = d?.postId ?? d?.pollId ?? d?.surveyId;
+      const comments = d?.comments;
       if (postId && Array.isArray(comments)) {
-        globalMutate(commentCacheKey(postId), comments, { revalidate: false });
+        globalMutate(commentCacheKey(postId as string), comments, { revalidate: false });
       }
     });
 
@@ -105,37 +117,60 @@ export default function FilteredFeed({
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const hasScrolled = useRef(false);
-  const isDataReady = !feedLoading || feedItems.length > 0;
 
   useEffect(() => {
-    if (!isDataReady || userLoading || !mounted) return;
-    if (hasScrolled.current || !deepLinkPostId) return;
+    if (!deepLinkPostId) return;
+    if (hasScrolled.current) return;
 
-    hasScrolled.current = true;
-
-    const tryScroll = (attemptsLeft: number) => {
-      const el = document.getElementById(`post-${deepLinkPostId}`);
-      if (el) {
+    const targetId = `post-${deepLinkPostId}`;
+    const doScroll = (el: HTMLElement) => {
+      hasScrolled.current = true;
+      setTimeout(() => {
         const TOP_OFFSET = 100;
         const y = el.getBoundingClientRect().top + window.scrollY - TOP_OFFSET;
         window.scrollTo({ top: y, behavior: "smooth" });
+        el.style.scrollMarginTop = "100px";
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.classList.add("deep-link-highlight");
         setTimeout(() => el.classList.remove("deep-link-highlight"), 2600);
-        return;
-      }
-      if (attemptsLeft > 0) setTimeout(() => tryScroll(attemptsLeft - 1), 150);
+      }, 1500);
     };
 
-    requestAnimationFrame(() => tryScroll(10));
-  }, [isDataReady, userLoading, deepLinkPostId, deepLinkType, mounted]);
+    const existing = document.getElementById(targetId);
+    if (existing) {
+      doScroll(existing);
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      const el = document.getElementById(targetId);
+      if (el) {
+        observer.disconnect();
+        doScroll(el);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    const timeout = setTimeout(() => {
+      observer.disconnect();
+    }, 15000);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeout);
+    };
+  }, [deepLinkPostId]);
 
   const pinnedCount = useMemo(
-    () => feedItems.filter((item) => item.type === "POST" && item.data?.pinned).length,
+    () => feedItems.filter((item) => item.type === "POST" && (item.data as Record<string, unknown>)?.pinned).length,
     [feedItems]
   );
 
   const pinnedPosts = useMemo(
-    () => feedItems.filter((item) => item.type === "POST" && item.data?.pinned).map((item) => item.data),
+    () => feedItems
+      .filter((item) => item.type === "POST" && (item.data as Record<string, unknown>)?.pinned)
+      .map((item) => item.data as Post),
     [feedItems]
   );
 
@@ -153,9 +188,10 @@ export default function FilteredFeed({
     if (!q) return categoryFiltered;
 
     return categoryFiltered.filter((item) => {
-      const targetTitle = (item.data?.title || item.title || "").toLowerCase();
-      const targetDesc = (item.data?.description || item.description || "").toLowerCase();
-      const rawContent = item.data?.content || "";
+      const d = item.data as Record<string, unknown> | undefined;
+      const targetTitle = ((d?.title as string) || item.title || "").toLowerCase();
+      const targetDesc = ((d?.description as string) || item.description || "").toLowerCase();
+      const rawContent = d?.content || "";
 
       const titleMatch = targetTitle.includes(q);
       const descMatch = targetDesc.includes(q);
@@ -171,9 +207,9 @@ export default function FilteredFeed({
     const nextPinState = !currentPinStatus;
     await mutate(
       (current) =>
-        (current as any[])?.map((item) =>
-          item.id === postId || (item.type === "POST" && item.data?.postId === postId)
-            ? { ...item, data: { ...item.data, pinned: nextPinState } }
+        current?.map((item) =>
+          item.id === postId || (item.type === "POST" && (item.data as Record<string, unknown>)?.postId === postId)
+            ? { ...item, data: { ...(item.data as Record<string, unknown>), pinned: nextPinState } }
             : item
         ) ?? [],
       { revalidate: false }
@@ -190,7 +226,7 @@ export default function FilteredFeed({
   const handleDeletePost = async (postId: string) => {
     mutate(
       (current) =>
-        (current as any[])?.filter((item) => item.id !== postId && item.data?.postId !== postId) ?? [],
+        current?.filter((item) => item.id !== postId && (item.data as Record<string, unknown>)?.postId !== postId) ?? [],
       false
     );
     try {
@@ -205,7 +241,7 @@ export default function FilteredFeed({
   const handleDeleteSurvey = (surveyId: string) => {
     mutate(
       (current) =>
-        (current as any[])?.filter((item) => item.id !== surveyId && item.data?.surveyId !== surveyId) ?? [],
+        current?.filter((item) => item.id !== surveyId && (item.data as Record<string, unknown>)?.surveyId !== surveyId) ?? [],
       false
     );
     setTimeout(() => mutate(), 800);
@@ -323,7 +359,7 @@ export default function FilteredFeed({
                   >
                     <EventCard
                       role={role}
-                      posts={[item.data]}
+                      posts={[item.data as Post]}
                       searchQuery={debouncedSearch}
                       onDeletePost={handleDeletePost}
                       groupid={groupid}
@@ -343,7 +379,7 @@ export default function FilteredFeed({
                   >
                     <AnnouncementCard
                       role={role}
-                      posts={[item.data]}
+                      posts={[item.data as Post]}
                       searchQuery={debouncedSearch}
                       onDeletePost={handleDeletePost}
                       groupid={groupid}
@@ -361,7 +397,7 @@ export default function FilteredFeed({
                   >
                     <PollCard
                       role={role}
-                      polls={[item.data]}
+                      polls={[item.data as Poll]}
                       searchQuery={debouncedSearch}
                       onDeletePoll={(pollId) => console.log(pollId)}
                     />
@@ -376,7 +412,7 @@ export default function FilteredFeed({
                     style={staggerStyle}
                   >
                     <SurveyCard
-                      survey={item.data}
+                      survey={item.data as Survey}
                       role={role}
                       searchQuery={debouncedSearch}
                       onVisibilityChange={() => {}}
@@ -394,7 +430,7 @@ export default function FilteredFeed({
                   >
                     <ArticleCard
                       role={role}
-                      posts={[item.data]}
+                      posts={[item.data as Post]}
                       searchQuery={debouncedSearch}
                       onDeletePost={handleDeletePost}
                       groupId={groupid}

@@ -17,7 +17,7 @@ const Sk = ({
 
 export default function PrivacySettingsSkeleton() {
   return (
-    <div className="w-full grid grid-cols-1 xl:grid-cols-12 gap-8 items-start lg:pr-12 lg:pl-12 animate-pulse">
+    <div className="w-full grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 xl:gap-8 items-start px-4 sm:px-6 lg:px-12 animate-pulse">
       <div className="xl:col-span-4">
         <div className="w-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-transparent">
           <Sk className="w-full h-32 rounded-none" />
@@ -64,7 +64,7 @@ export default function PrivacySettingsSkeleton() {
             <Sk className="h-6 w-56 rounded-md" />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             {[0, 1, 2].map((i) => (
               <div
                 key={i}

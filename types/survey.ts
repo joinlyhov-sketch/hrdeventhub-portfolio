@@ -57,7 +57,7 @@ export interface SurveyResponse {
 }
 
 export interface SurveyResponseRequest {
-  content: Record<string, any>;
+  content: Record<string, unknown>;
 }
 
 export interface SurveySubmission {
@@ -65,7 +65,7 @@ export interface SurveySubmission {
   surveyId: string;
   appUserId: string;
   username: string | null;
-  content: Record<string, any>;
+  content: Record<string, unknown>;
   submittedAt: string;
 }
 

@@ -17,7 +17,7 @@ export function SessionGuard({ children }: { children: React.ReactNode }) {
         signOut({ callbackUrl: "/login" });
       }
     }
-  }, [session?.error]);
+  }, [session?.error, session?.refreshToken]);
 
   return <>{children}</>;
 }

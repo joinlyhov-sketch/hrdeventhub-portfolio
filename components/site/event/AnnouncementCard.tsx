@@ -29,6 +29,8 @@ import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { WorkspaceMember } from "@/types/workspace-type/workspace-members";
+import { Comment } from "@/types/file-types";
 
 interface AnnouncementCardProps {
   role: UserRole;
@@ -36,10 +38,12 @@ interface AnnouncementCardProps {
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
   groupid: string;
-  members: any[];
+  members: WorkspaceMember[];
 }
 
-const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+const getTotalCommentsCount = (
+  commentsList: Comment[] | undefined | null,
+): number => {
   if (!commentsList || commentsList.length === 0) return 0;
   let total = 0;
   for (const comment of commentsList) {
@@ -56,29 +60,30 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
   const images = media.filter((m) => !m.filePath.endsWith(".pdf"));
   const displayImages = images.slice(0, 4);
   const remaining = images.length - 4;
-  
+
   if (images.length === 0) return null;
   const gridClass = images.length === 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
     <>
       <div 
-        className={`grid ${gridClass} gap-1 rounded-[12px] overflow-hidden mb-4 sm:mb-6`}
+        className={`grid ${gridClass} gap-1 rounded-[12px] overflow-hidden mb-6`}
         style={{
           contentVisibility: "auto",
-          containIntrinsicSize: images.length === 1 ? "320px" : "192px"
+          containIntrinsicSize: images.length === 1 ? "320px" : "192px",
         }}
       >
         {displayImages.map((item, index) => {
           const url = getMediaUrl(item.filePath);
           const isLast = index === 3 && remaining > 0;
-          
+
           const heightClass =
             images.length === 1
-              ? "h-48 sm:h-56 md:h-80"
+              ? "h-80"
               : images.length === 3 && index === 0
-                ? "row-span-2 h-full min-h-40 sm:min-h-48"
-                : "h-32 sm:h-40 md:h-48";
+                ? "row-span-2 h-full min-h-48"
+                : "h-48";
+                
           return (
             <div
               key={item.mediaId}
@@ -99,7 +104,7 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
               )}
               {isLast && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <span className="text-white text-xl sm:text-2xl font-bold">
+                  <span className="text-white text-2xl font-bold">
                     +{remaining + 1}
                   </span>
                 </div>
@@ -118,14 +123,14 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
             onClick={() => setPreviewIndex(null)}
           >
             <button
-              className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white p-2 hover:bg-white/10 rounded-full"
+              className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full"
               onClick={() => setPreviewIndex(null)}
             >
               <X size={24} />
             </button>
-            <div className="flex items-center gap-2 sm:gap-4 px-2 sm:px-4 w-full max-w-4xl">
+            <div className="flex items-center gap-4 px-4 w-full max-w-4xl">
               <button
-                className="text-white text-2xl sm:text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
+                className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
                 disabled={previewIndex === 0}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -135,7 +140,7 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
                 ‹
               </button>
               <div
-                className="relative flex-1 h-[50vh] sm:h-[60vh] md:h-[70vh]"
+                className="relative flex-1 h-[70vh]"
                 onClick={(e) => e.stopPropagation()}
               >
                 {getMediaUrl(images[previewIndex]?.filePath) && (
@@ -149,7 +154,7 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
                 )}
               </div>
               <button
-                className="text-white text-2xl sm:text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
+                className="text-white text-4xl p-2 hover:bg-white/10 rounded-full shrink-0 disabled:opacity-30"
                 disabled={previewIndex === images.length - 1}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -159,7 +164,7 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
                 ›
               </button>
             </div>
-            <div className="absolute bottom-2 sm:bottom-4 text-white text-xs sm:text-sm">
+            <div className="absolute bottom-4 text-white text-sm">
               {previewIndex + 1} / {images.length}
             </div>
           </div>,
@@ -180,7 +185,7 @@ function AnnouncementItem({
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupId: string;
-  members: any[];
+  members: WorkspaceMember[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -196,7 +201,10 @@ function AnnouncementItem({
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
+  const { comments, refetch, loading } = usePostComments(
+    post.postId,
+    showComments,
+  );
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
@@ -217,11 +225,7 @@ function AnnouncementItem({
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
-    const result = await createCommentAction(
-      post.postId,
-      commentInput,
-      mentionedIds,
-    );
+    const result = await createCommentAction(post.postId, commentInput, mentionedIds);
     if (result.ok) {
       setCommentInput("");
       setMentionedIds([]);
@@ -230,16 +234,23 @@ function AnnouncementItem({
     }
   };
 
+  const shareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=announcement`
+    : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=announcement`;
+
   return (
     <>
-      <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3 sm:pb-4 mb-4 sm:mb-6">
-          <div className="flex items-center gap-2 sm:gap-3">
+      <div
+        id={`post-${post.postId}`}
+        className="bg-background rounded-[12px] border border-border p-5 shadow-sm transition-all duration-300"
+      >
+        <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
+          <div className="flex items-center gap-3">
             <div className="bg-[#EBF5FB] p-2 rounded-lg text-primary">
               <Megaphone size={18} />
             </div>
             <div>
-              <h3 className="text-xs sm:text-sm md:text-base font-semibold text-secondary">
+              <h3 className="type-desc-semibold text-secondary">
                 Announcement
               </h3>
             </div>
@@ -253,10 +264,10 @@ function AnnouncementItem({
           )}
         </div>
 
-        <div className="flex flex-wrap items-start justify-between gap-2 mb-3 sm:mb-4">
+        <div className="flex items-center justify-between mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
                 {profilePictureUrl ? (
                   <Image
                     src={profilePictureUrl}
@@ -271,11 +282,11 @@ function AnnouncementItem({
                   </span>
                 )}
               </div>
-              <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm md:text-base font-semibold text-secondary truncate">
+              <div>
+                <h3 className="type-desc-semibold text-secondary">
                   {creator?.fullName ?? "—"}
                 </h3>
-                <p className="text-[10px] sm:text-xs md:text-sm text-grey-500">
+                <p className="text-desc-small-semibold text-grey-500">
                   {formatEventDate(post.createdAt ?? "")}
                 </p>
               </div>
@@ -283,22 +294,22 @@ function AnnouncementItem({
           </Link>
           {creator?.role && (
             <span
-              className={`type-desc-small-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase shrink-0  ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+              className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
             >
               {creator.role}
             </span>
           )}
         </div>
 
-        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">{post.title}</h2>
+        <h2 className="type-title text-primary mb-2">{post.title}</h2>
 
         <ExpandableText text={post.content} />
 
         {hasMetaInfo && (
-          <div className="bg-grey-50 rounded-[6px] p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-3 mb-3 sm:mb-6 border-l-4 sm:border-l-5 border-primary break-words">
+          <div className="bg-grey-50 rounded-[6px] p-4 space-y-3 mb-6 border-l-5 border-primary">
             {hasLocation && (
-              <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
-                <span className="text-[11px] sm:text-sm font-semibold text-foreground">
+              <p className="type-detail text-grey-500">
+                <span className="type-detail-semibold text-foreground">
                   LOCATION:{" "}
                 </span>
                 <a
@@ -312,8 +323,8 @@ function AnnouncementItem({
               </p>
             )}
             {hasDate && (
-              <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
-                <span className="text-[11px] sm:text-sm font-semibold text-foreground">
+              <p className="type-detail text-grey-500">
+                <span className="type-detail-semibold text-foreground">
                   DATE:{" "}
                 </span>
                 {post.eventStart}
@@ -321,8 +332,8 @@ function AnnouncementItem({
               </p>
             )}
             {hasPurpose && (
-              <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
-                <span className="text-[11px] sm:text-sm font-semibold text-foreground">
+              <p className="type-detail text-grey-500">
+                <span className="type-detail-semibold text-foreground">
                   PURPOSE:{" "}
                 </span>
                 {post.purpose}
@@ -336,15 +347,15 @@ function AnnouncementItem({
         )}
 
         {post.payment && (
-          <div className="mb-4 px-3 sm:px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 font-medium">
+          <div className="mb-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 font-medium">
             {post.payment.paymentType === "fixed"
               ? `Registration fee: $${post.payment.paymentAmount}`
               : `Donation goal: $${post.payment.donationGoal}`}
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
-           <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">
+        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center gap-6 py-4">
             <ReactionPopover
               selectedValue={selectedReaction}
               onReactionSelect={handleReactionSelect}
@@ -371,8 +382,12 @@ function AnnouncementItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> 
-              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
+              <MessageCircleMore size={20} />
+              {showComments
+                ? getTotalCommentsCount(comments)
+                : getTotalCommentsCount(comments) > 0
+                  ? `${getTotalCommentsCount(comments)} Comments`
+                  : "Comment"}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -385,10 +400,8 @@ function AnnouncementItem({
           <ReactionSummary payload={reactionPayload} />
         </div>
 
-        <div
-          className={`flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 ${showComments ? "mb-6 sm:mb-8" : ""}`}
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
+        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+          <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
             <Link href={`/profile/${currentUser?.id}`}>
               {currentUser?.profilePicture ? (
                 <Image
@@ -405,13 +418,10 @@ function AnnouncementItem({
               )}
             </Link>
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1">
             <MentionInput
               value={commentInput}
-              onChange={(val, ids) => {
-                setCommentInput(val);
-                setMentionedIds(ids);
-              }}
+              onChange={(val, ids) => { setCommentInput(val); setMentionedIds(ids); }}
               onSubmit={handleSubmitComment}
               placeholder="Add a comment..."
               members={members}
@@ -421,7 +431,7 @@ function AnnouncementItem({
         </div>
 
         {showComments && (
-          <div className="space-y-3 sm:space-y-4 pt-2">
+          <div className="space-y-4 pt-2">
             {loading ? (
               <div className="space-y-4 animate-pulse">
                 {[...Array(3)].map((_, idx) => (
@@ -446,7 +456,7 @@ function AnnouncementItem({
                 />
               ))
             ) : (
-              <div className="text-center py-6 sm:py-8">
+              <div className="text-center py-8">
                 <p className="text-grey-400 type-detail-medium">
                   No comments yet. Be the first to comment!
                 </p>
@@ -459,7 +469,7 @@ function AnnouncementItem({
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        shareUrl={`hrdeventhub.app/event-management/announcements/${post.postId}`}
+        shareUrl={shareUrl}
       />
     </>
   );

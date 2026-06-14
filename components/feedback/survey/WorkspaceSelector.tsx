@@ -1,11 +1,18 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader2, Lock } from "lucide-react"; // Imported Lock icon for clarity
+import { Loader2, Lock } from "lucide-react";
 import { workspaceService } from "../../../service/workspace.service";
 import { Workspace } from "../../../types/survey";
 import { Label } from "../../ui/label";
 import { getSession } from "next-auth/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../ui/select";
 
 interface WorkspaceSelectorProps {
   selectedWorkspaceId: string;
@@ -29,7 +36,7 @@ export default function WorkspaceSelector({
       setLoading(true);
       try {
         const session = await getSession();
-        const token = session?.accessToken || (session?.user as any)?.token;
+        const token = session?.accessToken || (session?.user as Record<string, unknown>)?.token as string | undefined;
 
         if (!token) {
           throw new Error("You are not authenticated. Please log in again.");
@@ -77,40 +84,38 @@ export default function WorkspaceSelector({
           <p className="text-sm text-yellow-700">No workspaces available</p>
         </div>
       ) : (
-        <div className="relative w-full">
-          <select
+        <Select
+          value={selectedWorkspaceId}
+          onValueChange={onSelectWorkspace}
+          disabled={disabled}
+        >
+          <SelectTrigger
             id="workspace-select"
-            value={selectedWorkspaceId}
-            onChange={(e) => onSelectWorkspace(e.target.value)}
-            required={required}
-            disabled={disabled}
-            className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all appearance-none ${
+            className={`w-full h-11 px-5 py-6 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0 ${
               disabled
-                ? "bg-slate-50 border-gray-200 text-gray-500 cursor-not-allowed opacity-90"
+                ? "opacity-90 cursor-not-allowed text-gray-500 bg-slate-50"
                 : ""
             }`}
           >
-            <option value="">-- Select a workspace --</option>
+            <SelectValue placeholder="-- Select a workspace --" />
+          </SelectTrigger>
+          <SelectContent
+            side="bottom"
+            position="popper"
+            className="bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 max-h-60 w-[var(--radix-select-trigger-width)] overflow-y-auto"
+          >
             {workspaces.map((workspace) => (
-              <option key={workspace.workspaceId} value={workspace.workspaceId}>
+              <SelectItem
+                key={workspace.workspaceId}
+                value={workspace.workspaceId}
+                className="px-3 py-2.5 text-sm rounded-lg text-gray-700 cursor-pointer focus:bg-slate-100 focus:text-primary"
+              >
                 {workspace.name}
                 {workspace.generationName && ` (${workspace.generationName})`}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-
-          {!disabled && (
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-              <svg
-                className="fill-current h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-              </svg>
-            </div>
-          )}
-        </div>
+          </SelectContent>
+        </Select>
       )}
     </div>
   );

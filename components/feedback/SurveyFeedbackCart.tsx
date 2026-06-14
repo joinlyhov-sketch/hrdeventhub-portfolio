@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import Search from "../site/search/Search";
 import { PopoverItem } from "../site/pop-up/contents/pop-over-content";
-import Link from "next/link";
 import { PaginationDemo } from "./Pagination";
 import ContentTypePopover from "../site/pop-up/contents/pop-over-content";
 import Image from "next/image";
@@ -64,11 +63,15 @@ export default function SurveyFeedbackFeature() {
           surveysData.map(async (survey) => {
             let responseCount = 0;
             try {
-              responseCount = await surveyService.countResponses(survey.surveyId);
+              responseCount = await surveyService.countResponses(
+                survey.surveyId,
+              );
             } catch {
               responseCount = 0;
             }
-            const dbIsActive = (survey as any).active ?? survey.isActive ?? false;
+            const dbIsActive: boolean = Boolean(
+              (survey as unknown as { active?: boolean }).active ?? survey.isActive ?? false
+            );
             return {
               id: survey.surveyId,
               type: "survey" as const,
@@ -78,7 +81,7 @@ export default function SurveyFeedbackFeature() {
               totalResponses: responseCount,
               targetUrl: `/dashboard/feedback/survey/${survey.surveyId}/responses`,
             };
-          })
+          }),
         );
 
         const mappedPolls: FeedbackItem[] = await Promise.all(
@@ -86,22 +89,26 @@ export default function SurveyFeedbackFeature() {
             let voteCount = 0;
             try {
               const fullPoll = await pollService.getById(poll.pollId);
+              const fp = fullPoll as unknown as Record<string, unknown>;
               voteCount =
-                (fullPoll as any).totalVotes ??
-                (fullPoll as any).voteCount ??
+                (fp.totalVotes as number | undefined) ??
+                (fp.voteCount as number | undefined) ??
                 fullPoll.options?.reduce(
-                  (sum, opt) => sum + (opt.voteCount ?? (opt as any).votes ?? 0),
-                  0
+                  (sum, opt) =>
+                    sum + (opt.voteCount ?? ((opt as unknown as Record<string, unknown>).votes as number | undefined) ?? 0),
+                  0,
                 ) ??
                 0;
             } catch {
               voteCount =
                 poll.options?.reduce(
-                  (sum, opt) => sum + (opt.voteCount ?? (opt as any).votes ?? 0),
-                  0
+                  (sum, opt) =>
+                    sum + (opt.voteCount ?? ((opt as unknown as Record<string, unknown>).votes as number | undefined) ?? 0),
+                  0,
                 ) ?? 0;
             }
-            const dbIsActive = (poll as any).active ?? (poll as any).isActive ?? true;
+            const pollRec = poll as unknown as { active?: boolean; isActive?: boolean };
+            const dbIsActive: boolean = Boolean(pollRec.isActive ?? pollRec.active ?? true);
             return {
               id: poll.pollId,
               type: "poll" as const,
@@ -111,7 +118,7 @@ export default function SurveyFeedbackFeature() {
               totalResponses: voteCount,
               targetUrl: `/polls/${poll.pollId}`,
             };
-          })
+          }),
         );
 
         setFeedbacks([...mappedSurveys, ...mappedPolls]);
@@ -120,7 +127,7 @@ export default function SurveyFeedbackFeature() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load interactive feedback modules."
+            : "Failed to load interactive feedback modules.",
         );
       } finally {
         setLoading(false);
@@ -139,7 +146,9 @@ export default function SurveyFeedbackFeature() {
         ? isAfter(new Date(), new Date(item.closingTime))
         : false;
       const trulyActive = item.isActive && !hasExpired;
-      const statusMatch = (trulyActive ? "active" : "closed").includes(searchLower);
+      const statusMatch = (trulyActive ? "active" : "closed").includes(
+        searchLower,
+      );
       return titleMatch || statusMatch || typeMatch;
     });
   }, [feedbacks, search]);
@@ -189,7 +198,10 @@ export default function SurveyFeedbackFeature() {
             }`}
           >
             {paginatedFeedbacks.map((item) => (
-              <div key={`${item.type}-${item.id}`} className="w-full block box-border min-w-0">
+              <div
+                key={`${item.type}-${item.id}`}
+                className="w-full block box-border min-w-0"
+              >
                 <FeedbackCard item={item} />
               </div>
             ))}
@@ -205,7 +217,8 @@ export default function SurveyFeedbackFeature() {
                   Feedback data doesn&apos;t exist
                 </p>
                 <p className="text-sm text-slate-400 font-medium">
-                  We couldn&apos;t find any match for your current feedback search query.
+                  We couldn&apos;t find any match for your current feedback
+                  search query.
                 </p>
               </div>
             </div>
@@ -249,7 +262,11 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
         const allResponses = [];
 
         while (true) {
-          const batch = await surveyService.getResponses(item.id, page, MAX_SIZE);
+          const batch = await surveyService.getResponses(
+            item.id,
+            page,
+            MAX_SIZE,
+          );
           allResponses.push(...batch);
           if (batch.length < MAX_SIZE) break;
           page++;
@@ -258,7 +275,7 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
         await generateSurveyCsv(allResponses, item.title);
       } else {
         const fullPoll = await pollService.getById(item.id);
-        
+
         let options = [];
         if (typeof fullPoll.options === "string") {
           options = JSON.parse(fullPoll.options);
@@ -270,7 +287,9 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
       }
     } catch (err) {
       setExportError(
-        err instanceof Error ? err.message : "Export routine failed to compile files securely."
+        err instanceof Error
+          ? err.message
+          : "Export routine failed to compile files securely.",
       );
     } finally {
       setExporting(false);
@@ -300,7 +319,9 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
 
       <div className="w-full block mt-auto">
         <div className="text-center mb-4 w-full">
-          <h1 className="text-3xl font-bold text-primary">{item.totalResponses}</h1>
+          <h1 className="text-3xl font-bold text-primary">
+            {item.totalResponses}
+          </h1>
           <p className="type-desc-semibold text-secondary text-sm">
             {item.type === "poll" ? "Total Votes" : "Total Responses"}
           </p>
