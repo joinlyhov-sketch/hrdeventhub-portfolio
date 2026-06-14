@@ -330,36 +330,21 @@ export default function EditEventForm() {
             <div>
               <Controller
                 control={control}
-                name="status"
+                name="date"
                 render={({ field }) => (
-                  <div className="flex flex-col gap-1.5 w-full">
-                    <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
-                      Visibility Status
-                    </Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full h-11 px-4 py-5 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent
-                        side="bottom"
-                        position="popper"
-                        className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
-                      >
-                        <SelectItem
-                          value="draft"
-                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
-                        >
-                          Draft
-                        </SelectItem>
-                        <SelectItem
-                          value="active"
-                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
-                        >
-                          Active
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <>
+                    <InputDate
+                      label="Schedule Event Date"
+                      value={field.value}
+                      onChange={field.onChange}
+                      isError={!!errors.date}
+                    />
+                    {errors.date && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.date.message}
+                      </p>
+                    )}
+                  </>
                 )}
               />
             </div>
@@ -426,16 +411,40 @@ export default function EditEventForm() {
             </div>
 
             <div className="flex flex-col gap-1.5 w-full text-sm">
-              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
-                Visibility Status
-              </label>
-              <select
-                {...register("status")}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
-              >
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-              </select>
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <div className="flex flex-col gap-1.5 w-full">
+                    <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                      Visibility Status
+                    </Label>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full h-11 px-4 py-5 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent
+                        side="bottom"
+                        position="popper"
+                        className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
+                      >
+                        <SelectItem
+                          value="draft"
+                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
+                        >
+                          Draft
+                        </SelectItem>
+                        <SelectItem
+                          value="active"
+                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
+                        >
+                          Active
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
             </div>
 
             {watchedStatus === "draft" && (
