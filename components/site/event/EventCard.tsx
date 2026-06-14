@@ -24,7 +24,6 @@ import { usePostComments } from "@/hooks/use-post-comments";
 import { createCommentAction } from "@/actions/comment.action";
 import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
-import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
 
@@ -36,7 +35,20 @@ interface EventCardProps {
   groupid: string;
   pinnedCount: number;
   onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
+  members: any[];
 }
+
+const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+  if (!commentsList || commentsList.length === 0) return 0;
+  let total = 0;
+  for (const comment of commentsList) {
+    total += 1;
+    if (comment.replies && comment.replies.length > 0) {
+      total += getTotalCommentsCount(comment.replies);
+    }
+  }
+  return total;
+};
 
 function EventItem({
   post,
@@ -45,6 +57,7 @@ function EventItem({
   groupid,
   pinnedCount,
   onTogglePin,
+  members,
 }: {
   post: Post;
   role: UserRole;
@@ -52,6 +65,7 @@ function EventItem({
   groupid: string;
   pinnedCount: number;
   onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
+  members: any[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -67,8 +81,7 @@ function EventItem({
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch } = usePostComments(post.postId);
-  const { members } = useWorkspaceMembers(groupid ?? "");
+  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const coverImage = post.media?.find((m) => m.isCover) ?? post.media?.[0];
@@ -90,6 +103,7 @@ function EventItem({
     if (result.ok) {
       setCommentInput("");
       setMentionedIds([]);
+      if (!showComments) setShowComments(true);
       await refetch();
     }
   };
@@ -249,7 +263,8 @@ function EventItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> {comments?.length ?? 0}
+              <MessageCircleMore size={20} /> 
+              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -294,7 +309,20 @@ function EventItem({
 
         {showComments && (
           <div className="space-y-4 pt-2">
-            {comments.length > 0 ? (
+            {loading ? (
+              <div className="space-y-4 animate-pulse">
+                {[...Array(3)].map((_, idx) => (
+                  <div key={idx} className="flex gap-3 items-start px-1">
+                    <div className="w-10 h-10 rounded-full bg-grey-200 shrink-0" />
+                    <div className="flex-1 bg-grey-50 rounded-xl p-3 space-y-2">
+                      <div className="h-4 bg-grey-200 rounded w-1/4" />
+                      <div className="h-3 bg-grey-200 rounded w-3/4" />
+                      <div className="h-3 bg-grey-200 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : comments.length > 0 ? (
               comments.map((comment) => (
                 <CommentNode
                   key={comment.commentId}
@@ -333,6 +361,7 @@ export function EventCard({
   groupid,
   pinnedCount,
   onTogglePin,
+  members,
 }: EventCardProps) {
   return (
     <>
@@ -345,6 +374,7 @@ export function EventCard({
           groupid={groupid}
           pinnedCount={pinnedCount}
           onTogglePin={onTogglePin}
+          members={members}
         />
       ))}
     </>

@@ -108,20 +108,20 @@ export default function BackgroundTab({ profile, loading }: BackgroundTabProps) 
         {hasResume ? (
           <div
             onClick={handleDownloadCV}
-            className="flex items-center justify-between p-4 border border-border rounded-lg bg-grey-50 group cursor-pointer hover:border-primary transition-colors"
+            className="flex items-center justify-between gap-3 p-4 border border-border rounded-lg bg-grey-50 group cursor-pointer hover:border-primary transition-colors"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <ClipboardList
                 size={20}
                 className="text-secondary group-hover:text-primary transition-colors shrink-0"
               />
-              <span className="type-desc-medium text-secondary">
+              <span className="type-desc-medium text-secondary truncate">
                 CV_{profile.appUser?.firstName || "User"}_Resume.pdf
               </span>
             </div>
             <Download
               size={20}
-              className="text-secondary group-hover:text-primary transition-colors"
+              className="text-secondary group-hover:text-primary transition-colors shrink-0"
             />
           </div>
         ) : (

@@ -70,7 +70,7 @@ export default function EndorsementTabs({ studentId }: EndorsementTabsProps) {
           className="pb-6 border-b border-border last:border-0 last:pb-0"
         >
           <div className="flex justify-between items-start mb-3 gap-4">
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-3 items-center min-w-0">
               <div className="w-10 h-10 rounded-full bg-grey-100 border border-border flex items-center justify-center shrink-0 overflow-hidden relative">
                 {item.alumni?.profilePicture ? (
                   <Image 
@@ -85,11 +85,11 @@ export default function EndorsementTabs({ studentId }: EndorsementTabsProps) {
                   </span>
                 )}
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="type-detail-small-medium text-muted-foreground">
                   Endorsed by
                 </p>
-                <p className="type-desc-semibold text-primary">
+                <p className="type-desc-semibold text-primary truncate">
                   {item.alumni ? `${item.alumni.firstName} ${item.alumni.lastName}` : "Unknown Alumni"}
                 </p>
               </div>

@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { getCommentsAction } from "@/actions/comment.action";
 import { Comment } from "@/types/comment";
 
-export function usePostComments(postId: string) {
+export function usePostComments(postId: string, showComments: boolean) {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(showComments);
   const [error, setError] = useState<string | null>(null);
 
   const fetchComments = useCallback(async () => {
@@ -28,10 +28,10 @@ export function usePostComments(postId: string) {
   }, [postId]);
 
   useEffect(() => {
-    if (postId) {
+    if (postId && showComments) {
       fetchComments();
     }
-  }, [postId, fetchComments]);
+  }, [postId, showComments, fetchComments]);
 
   return { comments, loading, error, refetch: fetchComments };
 }
