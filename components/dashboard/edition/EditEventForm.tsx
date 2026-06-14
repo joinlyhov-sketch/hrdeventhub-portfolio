@@ -28,8 +28,7 @@ import {
 } from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
 import { UpdateEventPayload } from "@/types/post-types";
-import { usePlatformEvents } from "@/hooks/usePlatformEvents";
-import { useSession } from "next-auth/react";
+import { usePostDetail } from "@/hooks/use-post-detail";
 
 export default function EditEventForm() {
   const router = useRouter();
@@ -40,15 +39,8 @@ export default function EditEventForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFlexible, setIsFlexible] = useState(false);
-  const { data: session } = useSession();
 
-  const token = session?.accessToken;
-
-  const { data, isLoading } = usePlatformEvents(token);
-
-  const event = data?.find(
-    (e) => e.postId === postId && e.workspaceId === workspaceId,
-  );
+  const { post: event, isLoading } = usePostDetail(workspaceId, postId);
 
   const {
     register,
