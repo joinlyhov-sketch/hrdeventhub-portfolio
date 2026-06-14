@@ -1,4 +1,5 @@
 export interface FeedItemWrapper {
+  postedAt: unknown;
   id: string;
   type: "POST" | "POLL" | "SURVEY";
   subType: "article" | "announcement" | "event" | "poll" | "survey";
