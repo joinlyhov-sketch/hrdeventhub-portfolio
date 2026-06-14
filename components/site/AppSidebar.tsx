@@ -58,67 +58,6 @@ const STATUS_OPTIONS: { value: ActiveStatus; label: string; icon: React.ReactNod
   { value: "offline", label: "Appear Offline", icon: <Moon size={10} />, color: "text-gray-400" },
 ];
 
-const MOCK_NOTIFICATIONS = [
-  { id: 1, title: "New event created", description: "Tech Summit 2025 has been published.", time: "2m ago", read: false },
-  { id: 2, title: "Workspace invitation", description: "You were added to Design Team workspace.", time: "1h ago", read: false },
-  { id: 3, title: "Registration approved", description: "Your registration for Hackathon was approved.", time: "3h ago", read: true },
-  { id: 4, title: "Event reminder", description: "Annual Meeting starts in 30 minutes.", time: "Yesterday", read: true },
-  { id: 5, title: "New message", description: "Sarah sent you a message in General.", time: "Yesterday", read: true },
-];
-
-function NotificationPanel({ onClose }: { onClose: () => void }) {
-  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
-
-  return (
-    <div className="fixed inset-0 z-[100]" onClick={onClose}>
-      <div
-        className="absolute left-[var(--sidebar-width,16rem)] top-0 h-full w-80 bg-white border-r border-l shadow-xl flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-4 py-4 border-b">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm text-gray-900">Notifications</span>
-            {unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-            <X size={16} />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {MOCK_NOTIFICATIONS.map((notification) => (
-            <div
-              key={notification.id}
-              className={`px-4 py-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors ${
-                !notification.read ? "bg-blue-50/40" : ""
-              }`}
-            >
-              <div className="flex items-start gap-2">
-                {!notification.read && (
-                  <span className="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500" />
-                )}
-                <div className={!notification.read ? "" : "pl-3.5"}>
-                  <p className="text-xs font-semibold text-gray-900 leading-snug">{notification.title}</p>
-                  <p className="text-xs text-gray-500 leading-snug mt-0.5">{notification.description}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">{notification.time}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="px-4 py-3 border-t">
-          <button className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">
-            Mark all as read
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function StatusDot({ status }: { status: ActiveStatus }) {
   const colorMap: Record<ActiveStatus, string> = {
     online: "bg-green-500",
@@ -152,8 +91,6 @@ export function AppSidebar() {
   const canSeeAdministration =
     currentUser !== null &&
     ADMIN_ROLES.includes(currentUser?.role as (typeof ADMIN_ROLES)[number]);
-
-  const unreadNotifCount = MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
 
   const handleConfirmLogout = async () => {
     setIsLogoutOpen(false);
@@ -311,32 +248,13 @@ export function AppSidebar() {
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <SidebarMenuButton isActive={pathname === "/register"} asChild tooltip="Register" className="h-11">
-                  <Link href="/register">
+                <SidebarMenuButton isActive={pathname === "/check-in"} asChild tooltip="Register" className="h-11">
+                  <Link href="/check-in">
                     <ClipboardList size={18} className="shrink-0 text-[#878787]" />
                     <span className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}>
-                      Register
+                      Check-in
                     </span>
                   </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip="Notification Center"
-                  className="h-11 cursor-pointer relative"
-                  onClick={() => setShowNotifications((v) => !v)}
-                  isActive={showNotifications}
-                >
-                  <div className="relative shrink-0">
-                    <Bell size={18} className="text-[#878787]" />
-                    {unreadNotifCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500 border border-white" />
-                    )}
-                  </div>
-                  <span className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}>
-                    Notification Center
-                  </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
@@ -595,9 +513,6 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-
-      {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
-
       <LogoutModal
         isOpen={isLogoutOpen}
         onClose={() => setIsLogoutOpen(false)}
