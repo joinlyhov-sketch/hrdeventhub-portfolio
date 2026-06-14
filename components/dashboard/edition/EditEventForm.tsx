@@ -28,7 +28,10 @@ import {
 } from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
 import { UpdateEventPayload } from "@/types/post-types";
-import { usePostDetail } from "@/hooks/use-post-detail";
+<<<<<<<<< Temporary merge branch 
+import { usePostDetail } from "@/hooks/use-post;
+import { usePlatformEvents } from "@/hooks/usePlatformEvents";
+import { useSession } from "next-auth/react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -38,6 +41,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InputDate } from "../InputDate";
+=========
+import { usePostDetail } from "@/hooks/use-post-detail";
+>>>>>>>>> Temporary merge branch 2
 
 export default function EditEventForm() {
   const router = useRouter();
