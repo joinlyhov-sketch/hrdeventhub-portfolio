@@ -29,12 +29,20 @@ export default function DropdownQuestion({
   return (
     <div className="space-y-4">
       <Select value={question.selectedChoice || ""} onValueChange={onSelect}>
-        <SelectTrigger className="w-full max-w-xs rounded-xl shadow-sm">
+        <SelectTrigger className="w-full py-2 max-w-xs rounded-xl shadow-sm">
           <SelectValue placeholder="Select Dropdown Choice" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent
+          side="bottom"
+          position="popper"
+          className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] mt-1"
+        >
           {question.options?.map((opt, idx) => (
-            <SelectItem key={idx} value={opt}>
+            <SelectItem
+              key={idx}
+              value={opt}
+              className="px-3 py-3 text-sm rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-100 focus:text-slate-800"
+            >
               {opt}
             </SelectItem>
           ))}
@@ -46,7 +54,10 @@ export default function DropdownQuestion({
           Edit Choices
         </p>
         {question.options?.map((opt, optIdx) => (
-          <div key={optIdx} className="flex items-center justify-between gap-2 max-w-md">
+          <div
+            key={optIdx}
+            className="flex items-center justify-between gap-2 max-w-md"
+          >
             <Input
               type="text"
               value={opt}

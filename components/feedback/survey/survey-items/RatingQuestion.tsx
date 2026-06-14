@@ -29,13 +29,21 @@ export default function RatingQuestion({
           value={String(maxScale)}
           onValueChange={(val) => onScaleChange(Number(val))}
         >
-          <SelectTrigger className="w-32 h-9 text-xs font-bold text-muted-foreground">
+          <SelectTrigger className="w-14 h-10 text-xs font-bold text-gray-800">
             <SelectValue placeholder="Stars Layout" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            side="bottom"
+            position="popper"
+            className="bg-white rounded-2xl border border-gray-100 px-2 py-2 z-50 text-left max-h-35 overflow-y-auto min-w-[50px] w-[50px] mt-1"
+          >
             {[3, 4, 5, 6, 7, 8, 9, 10].map((val) => (
-              <SelectItem key={val} value={String(val)}>
-                {val} Stars
+              <SelectItem
+                key={val}
+                value={String(val)}
+                className="px-2 py-1 text-sm font-semibold rounded-sm text-center text-slate-800 transition-colors cursor-pointer focus:bg-slate-100 focus:text-slate-800"
+              >
+                {val}
               </SelectItem>
             ))}
           </SelectContent>
@@ -52,7 +60,9 @@ export default function RatingQuestion({
               onClick={() => onRatingChange(starRating)}
               className="flex flex-col items-center gap-2 outline-none group"
             >
-              <span className={`text-xs font-bold transition-colors ${isSelected ? "text-secondary" : "text-muted-foreground"}`}>
+              <span
+                className={`text-xs font-bold transition-colors ${isSelected ? "text-secondary" : "text-muted-foreground"}`}
+              >
                 {starRating}
               </span>
               <Star
