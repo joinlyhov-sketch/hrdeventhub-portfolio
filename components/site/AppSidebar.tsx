@@ -65,7 +65,7 @@ export function AppSidebar() {
                     className={`overflow-hidden transition-all duration-300 ease-in-out ${state === "collapsed" ? "w-auto opacity-100 scale-100" : "w-0 hidden scale-75"}`}
                   >
                     <Image
-                      src="/images/hrd.webp"
+                      src="/images/hrdLogo.webp"
                       alt="HRD Event Hub Logo"
                       width={35}
                       height={35}
