@@ -11,7 +11,7 @@ import {
 } from "@/service/profile.service";
 import type { VisibilityMode, SelectiveVisibility } from "./PrivacySettingsClient";
 import { ALL_VISIBLE as ALL_VIS, ALL_HIDDEN as ALL_HID } from "./PrivacySettingsClient";
-
+import { connectTelegramAction } from "@/actions/telegram.action";
 interface SettingVisibilityModeCardProps {
   profile: UserProfilePayload;
   visibilityMode: VisibilityMode;
@@ -198,7 +198,8 @@ export default function SettingVisibilityModeCard({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-
+  const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
+  const [telegramError, setTelegramError] = useState<string | null>(null);
   useEffect(() => {
     if (visibilityMode === "share_all") {
       setSelectiveConfig({ ...ALL_VIS });
@@ -292,25 +293,74 @@ export default function SettingVisibilityModeCard({
   const formatDate = (d?: string) =>
     d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "—";
 
-  const SaveButtonLayout = () => (
-    <div className="flex flex-col sm:items-end gap-2 mt-6 w-full">
-      {saveError && (
-        <p className="text-xs text-destructive">{saveError}</p>
-      )}
-      {saveSuccess && (
-        <p className="text-xs text-emerald-600">Changes saved successfully.</p>
-      )}
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={isSaving}
-        className="w-full sm:w-auto px-8 py-2.5 bg-primary text-white rounded-2xl text-sm font-semibold hover:bg-[#153b6c] transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-      >
-        {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-        {isSaving ? "Saving…" : "Save changes"}
-      </button>
-    </div>
-  );
+    const SaveButtonLayout = () => {
+    const handleTelegramConnect = async () => {
+      const userId = appUser?.appUserId;
+      if (!userId) {
+        setTelegramError("Session context has expired. Please authenticate again.");
+        return;
+      }
+      setIsConnectingTelegram(true);
+      setTelegramError(null);
+      try {
+        const result = await connectTelegramAction(userId);
+        
+        const actionResult = result as any;
+
+        if (actionResult?.error) {
+          if (typeof actionResult.error === "object" && actionResult.error !== null) {
+            setTelegramError(actionResult.error.message || JSON.stringify(actionResult.error));
+          } else {
+            setTelegramError(actionResult.error);
+          }
+        }
+      } catch (err: any) {
+        if (err && typeof err === "object" && err.message) {
+          setTelegramError(err.message);
+        } else {
+          setTelegramError("An unexpected error occurred during redirection setup.");
+        }
+      } finally {
+        setIsConnectingTelegram(false);
+      }
+    };
+
+    return (
+      <div className="flex flex-col sm:items-end gap-2 mt-6 w-full">
+        {saveError && <p className="text-xs text-destructive">{saveError}</p>}
+        {telegramError && <p className="text-xs text-destructive">{telegramError}</p>}
+        {saveSuccess && <p className="text-xs text-emerald-600">Changes saved successfully.</p>}
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-2">
+          <button
+            type="button"
+            onClick={handleTelegramConnect}
+            disabled={isConnectingTelegram}
+            className="w-full sm:w-auto px-6 py-2.5 bg-[#0088cc] hover:bg-[#0077b3] text-white rounded-2xl text-sm font-semibold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+          >
+            {isConnectingTelegram ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-1-.65-.35-1 .22-1.62.15-.15 2.7-2.46 2.75-2.67.01-.03.01-.13-.05-.18-.06-.05-.14-.03-.2-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.13-.31-1.09-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+              </svg>
+            )}
+            {isConnectingTelegram ? "Connecting Bot…" : "Connect Telegram"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full sm:w-auto px-8 py-2.5 bg-primary text-white rounded-2xl text-sm font-semibold hover:bg-[#153b6c] transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+          >
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isSaving ? "Saving…" : "Save changes"}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="xl:col-span-8 flex flex-col gap-6 w-full">
