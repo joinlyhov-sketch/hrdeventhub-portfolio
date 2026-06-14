@@ -20,7 +20,7 @@ export default async function Page({
   return (
     <main className="min-h-screen w-full bg-background">
       <div className="w-full">
-        <div className="flex flex-col gap-6 xl:flex-row">
+        <div className="flex flex-col gap-4 sm:gap-6 xl:flex-row">
           <section className="min-w-0 flex-1">
             <FilteredFeed
               groupid={groupid}
