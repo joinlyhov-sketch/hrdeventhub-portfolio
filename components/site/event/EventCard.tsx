@@ -123,7 +123,7 @@ function EventItem({
 
   return (
     <>
-      <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm">
+     <div id={`post-${post.postId}`} className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-2 mb-3 sm:mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
             <div className="flex items-center gap-2 sm:gap-3">

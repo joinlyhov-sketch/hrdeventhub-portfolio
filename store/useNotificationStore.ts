@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { NotificationPayload } from "@/types/notification";
+import { notificationService } from "@/service/notification.service";
 
 const MAX_NOTIFICATIONS = 50;
 
@@ -7,16 +8,24 @@ interface NotificationStore {
   notifications: NotificationPayload[];
   unreadCount: number;
 
+  setToken: (token: string) => void;
+
   addNotification: (n: NotificationPayload) => void;
-  markAllRead: () => void;
+  hydrateNotifications: (items: NotificationPayload[]) => void;
   markRead: (id: string) => void;
+  markAllRead: () => void;
   removeNotification: (id: string) => void;
   clearAll: () => void;
+
+  _token: string | null;
 }
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
   unreadCount: 0,
+  _token: null,
+
+  setToken: (token) => set({ _token: token }),
 
   addNotification: (n) => {
     set((state) => {
@@ -33,6 +42,14 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
     });
   },
 
+  hydrateNotifications: (items) => {
+    const deduped = items.slice(0, MAX_NOTIFICATIONS);
+    set({
+      notifications: deduped,
+      unreadCount: deduped.filter((x) => !x.read).length,
+    });
+  },
+
   markRead: (id) => {
     set((state) => {
       const updated = state.notifications.map((n) =>
@@ -43,6 +60,13 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
         unreadCount: updated.filter((x) => !x.read).length,
       };
     });
+
+    const token = get()._token;
+    if (token) {
+      notificationService
+        .markRead(id, token)
+        .catch((err) => console.error("[Notifications] markRead failed", err));
+    }
   },
 
   markAllRead: () => {
@@ -50,6 +74,13 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
       notifications: state.notifications.map((n) => ({ ...n, read: true })),
       unreadCount: 0,
     }));
+
+    const token = get()._token;
+    if (token) {
+      notificationService
+        .markAllRead(token)
+        .catch((err) => console.error("[Notifications] markAllRead failed", err));
+    }
   },
 
   removeNotification: (id) => {

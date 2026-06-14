@@ -31,6 +31,7 @@ import { Post } from "@/types/posts";
 import { ReactionSummary } from "@/components/site/event/ReactionSummary";
 import { ReactionItem } from "@/hooks/use-post-reaction";
 
+
 type PostReactionResponse = {
   success: boolean;
   payload: ReactionItem[];
@@ -63,6 +64,9 @@ export default function EventDetailClient({
 
   const discussionRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tabTrackRef = useRef<HTMLDivElement>(null);
+  const tabPillRef = useRef<HTMLDivElement>(null);
+  const tabBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const [detailData, setDetailData] = useState({
     id: event?.postId || "det-4401",
@@ -97,12 +101,23 @@ export default function EventDetailClient({
     "https://images.unsplash.com/photo-1511578314322-379afb476865";
 
   useEffect(() => {
-    if (
-      status !== "authenticated" ||
-      !session?.accessToken ||
-      !initialEvent?.postId
-    )
-      return;
+    const btn = tabBtnRefs.current[0];
+    if (!btn || !tabPillRef.current) return;
+    tabPillRef.current.style.left = `${btn.offsetLeft}px`;
+    tabPillRef.current.style.width = `${btn.offsetWidth}px`;
+  }, []);
+
+  useEffect(() => {
+    const TABS: Tab[] = ["details", "price", "map"];
+    const activeIndex = TABS.indexOf(activeTab);
+    const btn = tabBtnRefs.current[activeIndex];
+    if (!btn || !tabPillRef.current) return;
+    tabPillRef.current.style.left = `${btn.offsetLeft}px`;
+    tabPillRef.current.style.width = `${btn.offsetWidth}px`;
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.accessToken || !initialEvent?.postId) return;
 
     const fetchLivePostData = async () => {
       try {
@@ -456,17 +471,26 @@ export default function EventDetailClient({
           </div>
 
           <div className="flex flex-col justify-between">
-            <div className="grid grid-cols-3 bg-grey-100 p-1 text-center rounded-xl type-desc-small-semibold">
-              {(["details", "price", "map"] as Tab[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setActiveTab(t)}
-                  className={`py-2 rounded-md capitalize cursor-pointer ${activeTab === t ? "bg-primary text-primary-foreground" : "text-primary"}`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <div className="relative flex p-[3px] rounded-xl type-desc-small-semibold"
+            style={{ background: "rgba(120,120,128,0.12)"}}
+            ref={tabTrackRef}
+            >
+              <div ref={tabPillRef} className="absolute top-[3px] h-[calc(100%-6px)] rounded-[9px] z-0 transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+              style={{ background: "#1c4d8d", boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)" }}
+              />
+              {(["details", "price", "map"] as Tab[]).map((t, i) => (
+              <button
+              key={t}
+              ref={(el) => { tabBtnRefs.current[i] = el; }}
+              onClick={() => setActiveTab(t)}
+              className={`relative z-10 flex-1 py-2 rounded-[9px] capitalize cursor-pointer transition-colors duration-200 text-sm font-medium border-none bg-transparent ${
+              activeTab === t ? "text-white" : "text-gray-500"
+              }`}
+              >
+              {t}
+              </button>
+          ))}
+          </div>
 
             <div className="grow pt-4 max-w-full items-stretch min-[1290px]:w-3xl">
               {activeTab === "details" && (

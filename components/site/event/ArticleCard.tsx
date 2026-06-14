@@ -114,7 +114,7 @@ function ArticleItem({
 
   return (
     <>
-      <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
+      <div id={`post-${post.postId}`} className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
             <div className="flex items-center gap-2 sm:gap-3">

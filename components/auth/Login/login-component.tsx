@@ -80,7 +80,7 @@ export default function LoginComponent() {
       if (res?.ok) {
         router.push(redirectUrl ?? "/group");
         toast.success(
-          "Welcome to HRD EVENTHUB! You’ve successfully logged in.",
+          "Welcome to HRD EVENTHUB! You've successfully logged in.",
         );
       }
     });
@@ -93,49 +93,49 @@ export default function LoginComponent() {
       animate="visible"
       className="flex items-center justify-center w-full"
     >
-      <div className="w-full max-w-[624px] rounded-[32px] border border-[#dce6f0] bg-[#f9fbff]/80 backdrop-blur-sm px-6 py-10 sm:px-10 sm:py-12 xl:p-18 shadow-sm">
+      <div className="w-full max-w-[624px] rounded-[32px] border border-border bg-card/80 backdrop-blur-sm px-6 py-10 sm:px-10 sm:py-12 xl:p-18 shadow-sm">
+
         <div className="mb-10 text-center hidden md:block">
-          <h1 className="text-[28px] font-bold tracking-tight text-[#17356f]">
+          <h1 className="type-title tracking-tight text-primary">
             Welcome Back !
           </h1>
-          <p className="mt-2 text-[20px] font-semibold text-[#5f6470]">
+          <p className="mt-2 type-subtitle text-secondary">
             Discover events with{" "}
-            <span className="text-[#1f4f98]">HRD EventHub</span>
+            <span className="text-primary">HRD EventHub</span>
           </p>
-          <p className="text-[14px] text-[#8a92a6] mt-1">
+          <p className="type-detail text-muted-foreground mt-1">
             Enter your credential to access the website
           </p>
         </div>
 
         <div className="mb-8 text-center md:hidden">
-          <h1 className="text-[22px] font-bold tracking-tight text-[#17356f]">
+          <h1 className="type-subtitle-24 tracking-tight text-primary">
             Welcome Back !
           </h1>
-          <p className="mt-1 text-[15px] font-semibold text-[#5f6470]">
+          <p className="mt-1 type-desc-semibold text-secondary">
             Discover events with{" "}
-            <span className="text-[#1f4f98]">HRD EventHub</span>
+            <span className="text-primary">HRD EventHub</span>
           </p>
-          <p className="text-[13px] text-[#8a92a6] mt-1">
+          <p className="type-detail text-muted-foreground mt-1">
             Enter your credential to access the website
           </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-1">
           {serverError && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 type-detail text-destructive">
               {serverError}
             </div>
           )}
 
           <div className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${errors.identifier ? "border-red-400" : "border-[#dce6f0]"}`}
+              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3.5 transition-all focus-within:border-primary ${errors.identifier ? "border-destructive" : "border-border"}`}
             >
               <Mail
                 size={18}
-                color="#b0bac9"
+                className="shrink-0 text-grey-400"
                 strokeWidth={2}
-                className="shrink-0"
               />
               <input
                 type="text"
@@ -144,7 +144,7 @@ export default function LoginComponent() {
                 onChange={(e) =>
                   handleChange("identifier", e.target.value, setIdentifier)
                 }
-                className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
+                className="w-full bg-transparent type-detail outline-none placeholder:text-muted-foreground text-foreground"
               />
             </div>
             {errors.identifier && <FieldError message={errors.identifier} />}
@@ -152,13 +152,12 @@ export default function LoginComponent() {
 
           <div className="flex flex-col gap-1 pt-4">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3.5 transition-all focus-within:border-[#24529a] ${errors.password ? "border-red-400" : "border-[#dce6f0]"}`}
+              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3.5 transition-all focus-within:border-primary ${errors.password ? "border-destructive" : "border-border"}`}
             >
               <Lock
                 size={18}
-                color="#b0bac9"
+                className="shrink-0 text-grey-400"
                 strokeWidth={2}
-                className="shrink-0"
               />
               <input
                 type={showPassword ? "text" : "password"}
@@ -167,12 +166,12 @@ export default function LoginComponent() {
                 onChange={(e) =>
                   handleChange("password", e.target.value, setPassword)
                 }
-                className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
+                className="w-full bg-transparent type-detail outline-none placeholder:text-muted-foreground text-foreground"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="text-xs font-semibold text-[#24529a] shrink-0"
+                className="type-desc-small-semibold text-primary shrink-0"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -186,13 +185,13 @@ export default function LoginComponent() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 accent-[#24529a]"
+                className="h-4 w-4 accent-primary"
               />
-              <span className="text-sm text-[#4d5663]">Remember me</span>
+              <span className="type-detail text-grey-500">Remember me</span>
             </label>
             <a
               href="/reset-password"
-              className="text-sm font-semibold text-[#17356f] underline underline-offset-2"
+              className="type-detail-semibold text-secondary underline underline-offset-2"
             >
               Forgot password?
             </a>
@@ -200,17 +199,17 @@ export default function LoginComponent() {
 
           <button
             type="submit"
-            className="mt-5 h-[58px] w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] cursor-pointer disabled:opacity-70"
+            className="mt-5 h-[50px] w-full rounded-2xl bg-primary type-desc-semibold text-primary-foreground transition-all duration-300 hover:bg-[#1f4685] cursor-pointer disabled:opacity-70"
             disabled={isPending}
           >
             {isPending ? "Signing in..." : "Login"}
           </button>
 
-          <p className="text-center text-sm text-[#5f6470] pt-2">
+          <p className="text-center type-detail text-muted-foreground pt-2">
             Don&apos;t have an account?{" "}
             <a
               href="/sign-up"
-              className="font-semibold text-[#17356f] underline underline-offset-2"
+              className="type-detail-semibold text-secondary underline underline-offset-2"
             >
               Sign up
             </a>
@@ -223,7 +222,7 @@ export default function LoginComponent() {
 
 function FieldError({ message }: { message: string }) {
   return (
-    <p className="flex items-center gap-1.5 text-sm text-red-500 px-1">
+    <p className="flex items-center gap-1.5 type-detail text-destructive px-1">
       <AlertCircle size={14} className="shrink-0" />
       {message}
     </p>

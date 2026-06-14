@@ -116,22 +116,29 @@ export default function PollSidebar({
             </div>
           </SelectTrigger>
 
-          <SelectContent className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-50 overflow-y-auto">
+          <SelectContent
+            side="bottom"
+            position="popper"
+            align="end"
+            className="bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 text-left max-h-50 overflow-y-auto min-w-[160px] max-w-[160px] w-auto mt-1"
+          >
             <SelectItem
               value="alwaysVisible"
-              className="px-2 py-3 text-sm type-desc text-secondary hover:bg-slate-50 transition-colors cursor-pointer"
+              className="px-2 py-2 text-sm rounded-md text-gray-500 transition-colors cursor-pointer focus:bg-slate-200 focus:text-blue-800 outline-none"
             >
               Always Visible
             </SelectItem>
+
             <SelectItem
               value="afterVote"
-              className="px-2 py-3 text-sm type-desc text-secondary hover:bg-slate-50 transition-colors cursor-pointer"
+              className="px-2 py-2 text-sm rounded-md text-gray-500 transition-colors cursor-pointer focus:bg-slate-200 focus:text-blue-800 outline-none"
             >
               After Voting
             </SelectItem>
+
             <SelectItem
               value="afterExpire"
-              className="px-2 py-3 text-sm type-desc text-secondary hover:bg-slate-50 transition-colors cursor-pointer"
+              className="px-2 py-2 text-sm rounded-md text-gray-500 transition-colors cursor-pointer focus:bg-slate-200 focus:text-blue-800 outline-none"
             >
               After Poll Expire
             </SelectItem>

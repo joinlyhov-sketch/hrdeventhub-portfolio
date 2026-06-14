@@ -30,7 +30,7 @@ export type QuestionType =
 
 interface SurveyCreationFormProps {
   workspaceId?: string;
-  surveyId?: string; // Add optional surveyId parameter prop configuration
+  surveyId?: string;
   onSuccess?: () => void;
 }
 

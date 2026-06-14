@@ -15,7 +15,10 @@ import {
   UpdateEventPayload,
 } from "@/types/post-types";
 import { PostsResponse, Post } from "@/types/posts";
-import { FeedItemWrapper, WorkspaceFeedApiResponse } from "@/types/UnifiedFeedItem";
+import {
+  FeedItemWrapper,
+  WorkspaceFeedApiResponse,
+} from "@/types/UnifiedFeedItem";
 
 export interface SinglePostResponse {
   success: boolean;
@@ -218,7 +221,7 @@ export const postService = {
   ): Promise<unknown> => {
     return apiGet<unknown>(
       `/posts/${postId}/participants?page=${page}&size=${size}`,
-      { authToken: token }
+      { authToken: token },
     );
   },
 };

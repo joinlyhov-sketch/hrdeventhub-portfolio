@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { mutate as globalMutate } from "swr";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
@@ -31,9 +32,13 @@ const commentCacheKey = (postId: string) => [`/comments`, postId];
 
 export default function FilteredFeed({
   groupid,
-  deepLinkPostId,
-  deepLinkType,
+  deepLinkPostId: deepLinkPostIdProp,
+  deepLinkType: deepLinkTypeProp,
 }: FilteredFeedProps) {
+  const searchParams = useSearchParams();
+  const deepLinkPostId = searchParams.get("postId") ?? deepLinkPostIdProp;
+  const deepLinkType = searchParams.get("type") ?? deepLinkTypeProp;
+
   const [mounted, setMounted] = useState(false);
   const { currentUser, isLoading: userLoading } = useCurrentUser();
   const role = currentUser?.role ?? "student";
@@ -48,7 +53,7 @@ export default function FilteredFeed({
   } = useWorkspaceFeed(groupid);
 
   useEffect(() => {
-    queueMicrotask(() => setMounted(true));
+    setMounted(true);
   }, []);
 
   const feedItems = useMemo(() => {
@@ -62,8 +67,8 @@ export default function FilteredFeed({
     return [...rawItems].sort((a, b) => {
       const aData = a.data as Record<string, unknown> | undefined;
       const bData = b.data as Record<string, unknown> | undefined;
-      const dateA = aData?.createdAt || a.createdAt || aData?.postedAt;
-      const dateB = bData?.createdAt || b.createdAt || bData?.postedAt;
+      const dateA = aData?.createdAt || a.createdAt || aData?.postedAt || a.postedAt;
+      const dateB = bData?.createdAt || b.createdAt || bData?.postedAt || b.postedAt;
 
       const timeA = dateA ? new Date(dateA as string).getTime() : 0;
       const timeB = dateB ? new Date(dateB as string).getTime() : 0;
@@ -112,29 +117,50 @@ export default function FilteredFeed({
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const hasScrolled = useRef(false);
-  const isDataReady = !feedLoading || feedItems.length > 0;
 
   useEffect(() => {
-    if (!isDataReady || userLoading || !mounted) return;
-    if (hasScrolled.current || !deepLinkPostId) return;
+    if (!deepLinkPostId) return;
+    if (hasScrolled.current) return;
 
-    hasScrolled.current = true;
-
-    const tryScroll = (attemptsLeft: number) => {
-      const el = document.getElementById(`post-${deepLinkPostId}`);
-      if (el) {
+    const targetId = `post-${deepLinkPostId}`;
+    const doScroll = (el: HTMLElement) => {
+      hasScrolled.current = true;
+      setTimeout(() => {
         const TOP_OFFSET = 100;
         const y = el.getBoundingClientRect().top + window.scrollY - TOP_OFFSET;
         window.scrollTo({ top: y, behavior: "smooth" });
+        el.style.scrollMarginTop = "100px";
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.classList.add("deep-link-highlight");
         setTimeout(() => el.classList.remove("deep-link-highlight"), 2600);
-        return;
-      }
-      if (attemptsLeft > 0) setTimeout(() => tryScroll(attemptsLeft - 1), 150);
+      }, 1500);
     };
 
-    requestAnimationFrame(() => tryScroll(10));
-  }, [isDataReady, userLoading, deepLinkPostId, deepLinkType, mounted]);
+    const existing = document.getElementById(targetId);
+    if (existing) {
+      doScroll(existing);
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      const el = document.getElementById(targetId);
+      if (el) {
+        observer.disconnect();
+        doScroll(el);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    const timeout = setTimeout(() => {
+      observer.disconnect();
+    }, 15000);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeout);
+    };
+  }, [deepLinkPostId]);
 
   const pinnedCount = useMemo(
     () => feedItems.filter((item) => item.type === "POST" && (item.data as Record<string, unknown>)?.pinned).length,

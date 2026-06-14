@@ -1,9 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "../../ui/input";
 import { Card } from "../../ui/card";
 import { Label } from "../../ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/libs/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+
 
 interface SurveyHeaderProps {
   title: string;
@@ -26,6 +37,11 @@ export default function SurveyHeader({
   isActive,
   setIsActive,
 }: SurveyHeaderProps) {
+  const [closingDate, setClosingDate] = useState<Date | undefined>(
+    closingTime ? new Date(closingTime) : undefined,
+  );
+  const [closingTimeStr, setClosingTimeStr] = useState("00:00");
+
   return (
     <Card className="bg-background rounded-2xl border-l-[6px] border-l-blue-900 border-y-border border-r-border p-8 shadow-sm mb-6">
       <h1 className="relative mb-4 w-full text-3xl font-bold text-foreground">
@@ -48,17 +64,69 @@ export default function SurveyHeader({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {closingTime !== undefined && setClosingTime && (
           <div>
-            <Label htmlFor="closing-time" className="block mb-2 text-sm font-medium">
+            <Label className="block mb-2 text-sm font-medium">
               Survey Closing Time
             </Label>
-            <Input
-              id="closing-time"
-              type="datetime-local"
-              value={closingTime}
-              onChange={(e) => setClosingTime(e.target.value)}
-              className="w-full"
-              required
-            />
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-3 flex-1 h-11 px-4 bg-background border border-input rounded-xl text-desc md:text-base transition-all outline-none focus:ring-1 focus:ring-primary cursor-pointer",
+                      closingDate ? "text-foreground" : "text-gray-400",
+                    )}
+                  >
+                    <CalendarIcon
+                      className="h-4.5 w-4.5 text-gray-400 shrink-0 pointer-events-none"
+                      strokeWidth={2}
+                    />
+                    <span>
+                      {closingDate
+                        ? format(closingDate, "dd/MM/yyyy")
+                        : "DD/MM/YYYY"}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0 rounded-xl"
+                  align="start"
+                  sideOffset={6}
+                >
+                  <Calendar
+                    mode="single"
+                    selected={closingDate}
+                    onSelect={(date) => {
+                      if (date) {
+                        setClosingDate(date);
+                        const [h, m] = closingTimeStr.split(":");
+                        const updated = new Date(date);
+                        updated.setHours(Number(h), Number(m));
+                        setClosingTime(updated.toISOString());
+                      }
+                    }}
+                    captionLayout="dropdown"
+                    startMonth={new Date(2000, 0, 1)}
+                    endMonth={new Date(2100, 11, 31)}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <input
+                type="time"
+                value={closingTimeStr}
+                onChange={(e) => {
+                  setClosingTimeStr(e.target.value);
+                  if (closingDate) {
+                    const [h, m] = e.target.value.split(":");
+                    const updated = new Date(closingDate);
+                    updated.setHours(Number(h), Number(m));
+                    setClosingTime(updated.toISOString());
+                  }
+                }}
+                className="h-11 px-2 bg-background border border-input rounded-xl text-desc md:text-base transition-all outline-none focus:ring-1 focus:ring-primary cursor-pointer w-32 "
+              />
+            </div>
           </div>
         )}
 
@@ -67,15 +135,16 @@ export default function SurveyHeader({
             <Label className="block mb-2 text-sm font-medium">
               Survey Status
             </Label>
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                className="w-4 h-4 rounded cursor-pointer"
+            <div className="flex items-center gap-3 h-11">
+              <Checkbox
                 id="survey-active"
+                checked={isActive}
+                onCheckedChange={(checked: boolean) => setIsActive(checked)}
               />
-              <label htmlFor="survey-active" className="cursor-pointer text-sm">
+              <label
+                htmlFor="survey-active"
+                className="cursor-pointer text-sm text-gray-700 font-medium"
+              >
                 {isActive ? "Active" : "Inactive"}
               </label>
             </div>

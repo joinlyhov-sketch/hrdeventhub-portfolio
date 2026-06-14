@@ -30,6 +30,16 @@ import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
 import { UpdateEventPayload } from "@/types/post-types";
 import { usePlatformEvents } from "@/hooks/usePlatformEvents";
 import { useSession } from "next-auth/react";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { InputDate } from "../InputDate";
+import { usePostDetail } from "@/hooks/use-post-detail";
 
 export default function EditEventForm() {
   const router = useRouter();
@@ -40,15 +50,8 @@ export default function EditEventForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFlexible, setIsFlexible] = useState(false);
-  const { data: session } = useSession();
 
-  const token = session?.accessToken;
-
-  const { data, isLoading } = usePlatformEvents(token);
-
-  const event = data?.find(
-    (e) => e.postId === postId && e.workspaceId === workspaceId,
-  );
+  const { post: event, isLoading } = usePostDetail(workspaceId, postId);
 
   const {
     register,
@@ -319,18 +322,25 @@ export default function EditEventForm() {
             </div>
 
             <div>
-              <FormInput
-                label="Scheduled Event Date"
-                icon={Calendar}
-                type="date"
-                {...register("date")}
-                isError={errors.date != null}
+              <Controller
+                control={control}
+                name="date"
+                render={({ field }) => (
+                  <>
+                    <InputDate
+                      label="Schedule Event Date"
+                      value={field.value}
+                      onChange={field.onChange}
+                      isError={!!errors.date}
+                    />
+                    {errors.date && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.date.message}
+                      </p>
+                    )}
+                  </>
+                )}
               />
-              {errors.date && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.date.message}
-                </p>
-              )}
             </div>
 
             <div>
@@ -395,32 +405,63 @@ export default function EditEventForm() {
             </div>
 
             <div className="flex flex-col gap-1.5 w-full text-sm">
-              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
-                Visibility Status
-              </label>
-              <select
-                {...register("status")}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
-              >
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-              </select>
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <div className="flex flex-col gap-1.5 w-full">
+                    <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                      Visibility Status
+                    </Label>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full h-11 px-4 py-5 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent
+                        side="bottom"
+                        position="popper"
+                        className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
+                      >
+                        <SelectItem
+                          value="draft"
+                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
+                        >
+                          Draft
+                        </SelectItem>
+                        <SelectItem
+                          value="active"
+                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
+                        >
+                          Active
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
             </div>
 
             {watchedStatus === "draft" && (
               <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-                <FormInput
-                  label="Post Publish Date"
-                  icon={Calendar}
-                  type="date"
-                  {...register("scheduleDate")}
-                  isError={errors.scheduleDate != null}
+                <Controller
+                  control={control}
+                  name="scheduleDate"
+                  render={({ field }) => (
+                    <>
+                      <InputDate
+                        label="Post Publish Date"
+                        value={field.value}
+                        onChange={field.onChange}
+                        isError={!!errors.date}
+                      />
+                      {errors.date && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.date.message}
+                        </p>
+                      )}
+                    </>
+                  )}
                 />
-                {errors.scheduleDate && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.scheduleDate.message}
-                  </p>
-                )}
               </div>
             )}
           </div>
@@ -464,17 +505,40 @@ export default function EditEventForm() {
           </div>
 
           <div className="flex flex-col gap-1.5 w-full text-sm">
-            <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
-              Payment Type
-            </label>
-            <select
-              {...register("paymentType")}
-              onChange={() => setIsFlexible(false)}
-              className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
-            >
-              <option value="fixed">Fixed</option>
-              <option value="flexible">Flexible</option>
-            </select>
+            <Controller
+              control={control}
+              name="paymentType"
+              render={({ field }) => (
+                <div className="flex flex-col gap-1.5 w-full">
+                  <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                    Payment Type
+                  </Label>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full h-11 px-4 py-5 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0">
+                      <SelectValue placeholder="Select payment type" />
+                    </SelectTrigger>
+                    <SelectContent
+                      side="bottom"
+                      position="popper"
+                      className="bg-white rounded-2xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
+                    >
+                      <SelectItem
+                        value="fixed"
+                        className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
+                      >
+                        Fixed
+                      </SelectItem>
+                      <SelectItem
+                        value="flexible"
+                        className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
+                      >
+                        Flexible
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            />
           </div>
 
           <div className="flex flex-col gap-1.5 w-full text-sm">
