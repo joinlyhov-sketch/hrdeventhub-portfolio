@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { mutate as globalMutate } from "swr";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
@@ -27,9 +28,13 @@ const commentCacheKey = (postId: string) => [`/comments`, postId];
 
 export default function FilteredFeed({
   groupid,
-  deepLinkPostId,
-  deepLinkType,
+  deepLinkPostId: deepLinkPostIdProp,
+  deepLinkType: deepLinkTypeProp,
 }: FilteredFeedProps) {
+  const searchParams = useSearchParams();
+  const deepLinkPostId = searchParams.get("postId") ?? deepLinkPostIdProp;
+  const deepLinkType = searchParams.get("type") ?? deepLinkTypeProp;
+
   const [mounted, setMounted] = useState(false);
   const { currentUser, isLoading: userLoading } = useCurrentUser();
   const role = currentUser?.role ?? "student";
@@ -56,8 +61,10 @@ export default function FilteredFeed({
     }
 
     return [...rawItems].sort((a, b) => {
-      const dateA = a.data?.createdAt || a.createdAt || a.data?.postedAt || a.postedAt;
-      const dateB = b.data?.createdAt || b.createdAt || b.data?.postedAt || b.postedAt;
+      const dateA =
+        a.data?.createdAt || a.createdAt || a.data?.postedAt || a.postedAt;
+      const dateB =
+        b.data?.createdAt || b.createdAt || b.data?.postedAt || b.postedAt;
 
       const timeA = dateA ? new Date(dateA).getTime() : 0;
       const timeB = dateB ? new Date(dateB).getTime() : 0;
@@ -66,11 +73,15 @@ export default function FilteredFeed({
       const validB = isNaN(timeB) ? 0 : timeB;
 
       if (validB !== validA) {
-        return validB - validA; 
+        return validB - validA;
       }
 
-      const idA = String(a.data?.postId || a.data?.pollId || a.data?.surveyId || a.id || "");
-      const idB = String(b.data?.postId || b.data?.pollId || b.data?.surveyId || b.id || "");
+      const idA = String(
+        a.data?.postId || a.data?.pollId || a.data?.surveyId || a.id || "",
+      );
+      const idB = String(
+        b.data?.postId || b.data?.pollId || b.data?.surveyId || b.id || "",
+      );
       return idB.localeCompare(idA);
     });
   }, [swrItems, cachedFeed, mounted]);
@@ -87,7 +98,8 @@ export default function FilteredFeed({
     if (!feedItems || feedItems.length === 0) return;
 
     feedItems.forEach((item) => {
-      const postId = item.data?.postId ?? item.data?.pollId ?? item.data?.surveyId;
+      const postId =
+        item.data?.postId ?? item.data?.pollId ?? item.data?.surveyId;
       const comments = item.data?.comments;
       if (postId && Array.isArray(comments)) {
         globalMutate(commentCacheKey(postId), comments, { revalidate: false });
@@ -105,38 +117,64 @@ export default function FilteredFeed({
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const hasScrolled = useRef(false);
-  const isDataReady = !feedLoading || feedItems.length > 0;
 
   useEffect(() => {
-    if (!isDataReady || userLoading || !mounted) return;
-    if (hasScrolled.current || !deepLinkPostId) return;
+    if (!deepLinkPostId) return;
+    if (hasScrolled.current) return;
 
-    hasScrolled.current = true;
-
-    const tryScroll = (attemptsLeft: number) => {
-      const el = document.getElementById(`post-${deepLinkPostId}`);
-      if (el) {
+    const targetId = `post-${deepLinkPostId}`;
+    const doScroll = (el: HTMLElement) => {
+      hasScrolled.current = true;
+      setTimeout(() => {
         const TOP_OFFSET = 100;
         const y = el.getBoundingClientRect().top + window.scrollY - TOP_OFFSET;
         window.scrollTo({ top: y, behavior: "smooth" });
+        el.style.scrollMarginTop = "100px";
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.classList.add("deep-link-highlight");
-        setTimeout(() => el.classList.remove("deep-link-highlight"), 2600);
-        return;
-      }
-      if (attemptsLeft > 0) setTimeout(() => tryScroll(attemptsLeft - 1), 150);
+        setTimeout(() => el.classList.remove("deep-wlink-highlight"), 2600);
+      }, 1500);
     };
 
-    requestAnimationFrame(() => tryScroll(10));
-  }, [isDataReady, userLoading, deepLinkPostId, deepLinkType, mounted]);
+    const existing = document.getElementById(targetId);
+    if (existing) {
+      doScroll(existing);
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      const el = document.getElementById(targetId);
+      if (el) {
+        observer.disconnect();
+        doScroll(el);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    const timeout = setTimeout(() => {
+      observer.disconnect();
+    }, 15000);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeout);
+    };
+  }, [deepLinkPostId]);
 
   const pinnedCount = useMemo(
-    () => feedItems.filter((item) => item.type === "POST" && item.data?.pinned).length,
-    [feedItems]
+    () =>
+      feedItems.filter((item) => item.type === "POST" && item.data?.pinned)
+        .length,
+    [feedItems],
   );
 
   const pinnedPosts = useMemo(
-    () => feedItems.filter((item) => item.type === "POST" && item.data?.pinned).map((item) => item.data),
-    [feedItems]
+    () =>
+      feedItems
+        .filter((item) => item.type === "POST" && item.data?.pinned)
+        .map((item) => item.data),
+    [feedItems],
   );
 
   const processedTimeline = useMemo(() => {
@@ -154,14 +192,19 @@ export default function FilteredFeed({
 
     return categoryFiltered.filter((item) => {
       const targetTitle = (item.data?.title || item.title || "").toLowerCase();
-      const targetDesc = (item.data?.description || item.description || "").toLowerCase();
+      const targetDesc = (
+        item.data?.description ||
+        item.description ||
+        ""
+      ).toLowerCase();
       const rawContent = item.data?.content || "";
 
       const titleMatch = targetTitle.includes(q);
       const descMatch = targetDesc.includes(q);
-      const contentMatch = typeof rawContent === "string"
-        ? rawContent.toLowerCase().includes(q)
-        : false;
+      const contentMatch =
+        typeof rawContent === "string"
+          ? rawContent.toLowerCase().includes(q)
+          : false;
 
       return titleMatch || descMatch || contentMatch;
     });
@@ -172,11 +215,12 @@ export default function FilteredFeed({
     await mutate(
       (current) =>
         (current as any[])?.map((item) =>
-          item.id === postId || (item.type === "POST" && item.data?.postId === postId)
+          item.id === postId ||
+          (item.type === "POST" && item.data?.postId === postId)
             ? { ...item, data: { ...item.data, pinned: nextPinState } }
-            : item
+            : item,
         ) ?? [],
-      { revalidate: false }
+      { revalidate: false },
     );
     try {
       const response = await togglePinAction(groupid, postId, nextPinState);
@@ -190,8 +234,10 @@ export default function FilteredFeed({
   const handleDeletePost = async (postId: string) => {
     mutate(
       (current) =>
-        (current as any[])?.filter((item) => item.id !== postId && item.data?.postId !== postId) ?? [],
-      false
+        (current as any[])?.filter(
+          (item) => item.id !== postId && item.data?.postId !== postId,
+        ) ?? [],
+      false,
     );
     try {
       await deletePostAction(groupid, postId);
@@ -205,16 +251,20 @@ export default function FilteredFeed({
   const handleDeleteSurvey = (surveyId: string) => {
     mutate(
       (current) =>
-        (current as any[])?.filter((item) => item.id !== surveyId && item.data?.surveyId !== surveyId) ?? [],
-      false
+        (current as any[])?.filter(
+          (item) => item.id !== surveyId && item.data?.surveyId !== surveyId,
+        ) ?? [],
+      false,
     );
     setTimeout(() => mutate(), 800);
   };
 
-  const showSkeleton = !mounted || ((feedLoading || userLoading) && feedItems.length === 0);
+  const showSkeleton =
+    !mounted || ((feedLoading || userLoading) && feedItems.length === 0);
 
   const isFeedEmpty = processedTimeline.length === 0;
-  const isSearchingOrFiltering = debouncedSearch.trim() !== "" || activeFilter !== null;
+  const isSearchingOrFiltering =
+    debouncedSearch.trim() !== "" || activeFilter !== null;
 
   if (showSkeleton) {
     return (
@@ -276,11 +326,18 @@ export default function FilteredFeed({
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-500 max-w-xs sm:max-w-sm mx-auto leading-relaxed">
                   We couldn&apos;t find any records matching &ldquo;
-                  <span className="font-semibold text-gray-800">{debouncedSearch}</span>&rdquo;
+                  <span className="font-semibold text-gray-800">
+                    {debouncedSearch}
+                  </span>
+                  &rdquo;
                   {activeFilter && (
                     <span>
-                      {" "}within the{" "}
-                      <span className="font-semibold text-gray-800">{activeFilter}</span> category
+                      {" "}
+                      within the{" "}
+                      <span className="font-semibold text-gray-800">
+                        {activeFilter}
+                      </span>{" "}
+                      category
                     </span>
                   )}
                   . Please verify your spelling or adjust your options.
@@ -301,14 +358,19 @@ export default function FilteredFeed({
                   No Posts Available
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-500 max-w-xs sm:max-w-sm mx-auto leading-relaxed">
-                  There are currently no announcements, events, or posts published here. Check back later for updates.
+                  There are currently no announcements, events, or posts
+                  published here. Check back later for updates.
                 </p>
               </>
             )}
           </div>
         ) : (
           processedTimeline.map((item, index) => {
-            const resolvedType = (item.subType || item.type || "").toLowerCase();
+            const resolvedType = (
+              item.subType ||
+              item.type ||
+              ""
+            ).toLowerCase();
             const staggerStyle = {
               animationDelay: `${index * 60}ms`,
             };
