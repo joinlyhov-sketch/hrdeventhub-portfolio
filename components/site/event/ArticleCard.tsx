@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import {
-  ThumbsUp,
-  Share2,
-  MessageCircleMore,
-} from "lucide-react";
+import { ThumbsUp, Share2, MessageCircleMore } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
 import GenericPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
 import {
@@ -91,7 +87,11 @@ function ArticleItem({
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
-    const result = await createCommentAction(post.postId, commentInput, mentionedIds);
+    const result = await createCommentAction(
+      post.postId,
+      commentInput,
+      mentionedIds,
+    );
     if (result.ok) {
       setCommentInput("");
       setMentionedIds([]);
@@ -106,14 +106,11 @@ function ArticleItem({
 
   return (
     <>
-      <div
-        id={`post-${post.postId}`}
-        className="bg-background rounded-[12px] border border-border p-5 shadow-sm transition-all duration-300"
-      >
+      <div className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center">
                 {profilePictureUrl ? (
                   <Image
                     src={profilePictureUrl}
@@ -128,11 +125,11 @@ function ArticleItem({
                   </span>
                 )}
               </div>
-              <div>
-                <h3 className="type-desc-semibold text-secondary">
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm md:text-base font-semibold text-secondary truncate">
                   {creator?.fullName ?? "—"}
                 </h3>
-                <p className="text-desc-small-semibold text-grey-500">
+                <p className="text-[10px] sm:text-xs md:text-sm text-grey-500">
                   {formatEventDate(post.createdAt ?? "")}
                 </p>
               </div>
@@ -141,7 +138,7 @@ function ArticleItem({
           <div className="flex items-center gap-2">
             {creator?.role && (
               <span
-                className={`type-desc-small-semibold px-3 py-1 rounded-full uppercase ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
+                className={`type-desc-small-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase shrink-0 ${creator.role.toLowerCase() === "admin" ? "bg-[#EBF5FB] text-[#3FA6DC]" : creator.role.toLowerCase() === "organizer" ? "bg-[#FFF7ED] text-[#F97316]" : "bg-grey-100 text-grey-500"}`}
               >
                 {creator.role}
               </span>
@@ -156,15 +153,20 @@ function ArticleItem({
           </div>
         </div>
 
-        <h2 className="type-title text-primary mb-2">{post.title}</h2>
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+          {post.title}
+        </h2>
         <ExpandableText text={post.content} />
 
-        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
-          <section className="flex items-center gap-6 py-4">
-            <ReactionPopover selectedValue={selectedReaction} onReactionSelect={handleReactionSelect}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">
+            <ReactionPopover
+              selectedValue={selectedReaction}
+              onReactionSelect={handleReactionSelect}
+            >
               <button
                 onClick={handleLikeToggle}
-                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none text-sm sm:text-base ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
               >
                 {activeReaction ? (
                   <TwemojiImg emoji={activeReaction.emoji} size={20} />
@@ -191,7 +193,6 @@ function ArticleItem({
 
           <ReactionSummary payload={reactionPayload} />
         </div>
-
         <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
             <Link href={`/profile/${currentUser?.id}`}>
@@ -210,10 +211,13 @@ function ArticleItem({
               )}
             </Link>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <MentionInput
               value={commentInput}
-              onChange={(val, ids) => { setCommentInput(val); setMentionedIds(ids); }}
+              onChange={(val, ids) => {
+                setCommentInput(val);
+                setMentionedIds(ids);
+              }}
               onSubmit={handleSubmitComment}
               placeholder="Add a comment..."
               members={members}
@@ -223,7 +227,7 @@ function ArticleItem({
         </div>
 
         {showComments && (
-          <div className="space-y-4 pt-2">
+          <div className="space-y-3 sm:space-y-4 pt-2">
             {loading ? (
               <div className="space-y-4 animate-pulse">
                 {[...Array(3)].map((_, idx) => (
@@ -250,7 +254,7 @@ function ArticleItem({
                 />
               ))
             ) : (
-              <div className="text-center py-8">
+              <div className="text-center py-6 sm:py-8">
                 <p className="text-grey-400 type-detail-medium">
                   No comments yet. Be the first to comment!
                 </p>
