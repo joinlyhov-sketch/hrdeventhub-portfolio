@@ -86,9 +86,9 @@ export default function CreateEventForm() {
       try {
         const res = await getAllWorkspacesAction();
         if (Array.isArray(res)) {
-          const formatted: SearchableSelectOption[] = res.map((ws: any) => ({
-            id: ws.id || ws.workspaceId,
-            label: ws.label || ws.name || ws.title || "Unnamed Workspace",
+          const formatted: SearchableSelectOption[] = res.map((ws) => ({
+            id: ws.workspaceId,
+            label: ws.name || "Unnamed Workspace",
           }));
 
           formatted.sort((a, b) =>

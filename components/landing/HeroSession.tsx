@@ -3,9 +3,9 @@
 import React from "react";
 import { Heart } from "lucide-react";
 import { motion } from "framer-motion";
-import { Variants } from 'framer-motion';
+import Image from "next/image";
 
-const transitionEase: any = [0.22, 1, 0.36, 1];
+const transitionEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 36 },
@@ -43,15 +43,6 @@ const slideInCenter = {
     y: 0,
     scale: 1,
     transition: { duration: 0.85, ease: transitionEase, delay: 0.4 },
-  },
-};
-
-const heartPop = {
-  hidden: { opacity: 0, scale: 0 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { type: "spring", stiffness: 400, damping: 15, delay: 1.1 },
   },
 };
 
@@ -425,9 +416,11 @@ export default function HeroSession() {
               animate="visible"
             >
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <img
+                <Image
                   src="/images/HeroSession1.webp"
                   alt="HRD Student Event Assembly"
+                  width={400}
+                  height={300}
                   className="w-full h-auto block rotate-[15deg]"
                 />
               </div>
@@ -448,9 +441,11 @@ export default function HeroSession() {
                 <Heart className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 fill-current text-destructive" />
               </motion.div>
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <img
+                <Image
                   src="/images/HeroSession2.webp"
                   alt="HRD Main Event Group Photo"
+                  width={600}
+                  height={400}
                   className="w-full h-auto block"
                 />
               </div>
@@ -463,9 +458,11 @@ export default function HeroSession() {
               animate="visible"
             >
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <img
+                <Image
                   src="/images/HeroSession3.webp"
                   alt="HRD Campus Community Event"
+                  width={400}
+                  height={300}
                   className="w-full h-auto block rotate-[-20deg]"
                 />
               </div>

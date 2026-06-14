@@ -21,7 +21,7 @@ function parseCustomEventDate(dateStr: string): Date | null {
     const parsedDate = new Date(cleanStandardString);
 
     return isNaN(parsedDate.getTime()) ? null : parsedDate;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

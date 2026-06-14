@@ -35,9 +35,12 @@ export default function ReactivateModal({
         <div className="bg-[#F2F4F7] px-3 py-4 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">
             {profileSrc ? (
-              <img
+              <Image
                 src={profileSrc}
                 alt={user.username}
+                width={48}
+                height={48}
+                unoptimized
                 className="w-12 h-12 rounded-full object-cover"
               />
             ) : (

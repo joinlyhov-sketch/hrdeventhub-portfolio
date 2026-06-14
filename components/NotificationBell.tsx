@@ -52,7 +52,7 @@ function NotificationItem({
       onClick={() => onRead(notification.notificationId)}
     >
       {notification.actorAvatar ? (
-        
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={notification.actorAvatar}
           alt={notification.actorName}

@@ -29,20 +29,23 @@ export default function ShareModal({
   useEffect(() => {
     if (!isOpen || typeof window === "undefined") return;
 
+    let resolvedUrl = "";
     if (customShareUrl) {
-      setShareUrl(customShareUrl);
-    } 
-    else if (postId) {
+      resolvedUrl = customShareUrl;
+    } else if (postId) {
       const origin = window.location.origin;
       const currentPath = window.location.pathname.replace(/\/$/, "");
-      const hasDuplicateId = new RegExp(`\\/events?\\/${postId}`, "i").test(currentPath);
+      const hasDuplicateId = new RegExp(`\\/events?\\/${postId}`, "i").test(
+        currentPath,
+      );
 
       if (hasDuplicateId) {
-        setShareUrl(`${origin}${currentPath}`);
+        resolvedUrl = `${origin}${currentPath}`;
       } else {
-        setShareUrl(`${origin}${currentPath}/event/${postId}`);
+        resolvedUrl = `${origin}${currentPath}/event/${postId}`;
       }
     }
+    queueMicrotask(() => setShareUrl(resolvedUrl));
   }, [isOpen, postId, customShareUrl]);
 
   const handleCopy = async () => {

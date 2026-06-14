@@ -29,7 +29,7 @@ export default function WorkspaceSelector({
       setLoading(true);
       try {
         const session = await getSession();
-        const token = session?.accessToken || (session?.user as any)?.token;
+        const token = session?.accessToken || (session?.user as Record<string, unknown>)?.token as string | undefined;
 
         if (!token) {
           throw new Error("You are not authenticated. Please log in again.");

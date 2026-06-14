@@ -10,16 +10,8 @@ import {
 } from "@/service/payment.service";
 import { participantService } from "@/service/participant.service";
 import {
-  ServerActionResponse,
   ServerActionResponse2,
 } from "@/types/file-types";
-
-const ALLOWED_ROLES = ["alumni", "student"] as const;
-type AllowedRole = (typeof ALLOWED_ROLES)[number];
-
-function assertAllowedRole(role?: string): role is AllowedRole {
-  return ALLOWED_ROLES.includes(role as AllowedRole);
-}
 
 const STATIC_BANK_FIELDS = {
   transaction_id: 111111,
@@ -157,7 +149,7 @@ export async function alumniFixedPaymentAction(
         { remark: input.remark, billNo: input.billNo },
         token,
       );
-    } catch (err) {
+    } catch {
     }
 
     try {
@@ -175,7 +167,7 @@ export async function alumniFixedPaymentAction(
       }
 
       return { ok: true, payload: transaction };
-    } catch (err) {
+    } catch {
       return {
         ok: false,
         error:

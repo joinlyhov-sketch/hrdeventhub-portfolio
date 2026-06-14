@@ -16,7 +16,7 @@ export default function AuthHeroSection() {
         className="w-full max-w-[700px] mx-auto xl:mx-0 px-4 xl:pl-12 text-center xl:text-left"
       >
         <h2 className="mb-3 text-[28px] sm:text-[36px] xl:text-[48px] font-bold leading-tight tracking-[-1px] xl:tracking-[-2px] text-[#17356f]">
-          Let's start
+          Let&apos;s start
         </h2>
 
         <h1 className="mb-5 text-[48px] sm:text-[64px] xl:text-[96px] font-bold leading-[0.9] tracking-[-2px] xl:tracking-[-4px] text-[#1f4f98]">

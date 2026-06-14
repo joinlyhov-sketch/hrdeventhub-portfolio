@@ -88,21 +88,25 @@ export default function EditGroupModal({
   );
 
   React.useEffect(() => {
-    setGroupName(workspace.name);
-    setDescription(workspace.description);
-    setTelegramChannelUrl(workspace.telegramChannelUrl ?? "");
-    setGroupType(workspace.isPublic ? "external" : "internal");
-
-    if (workspace.generationId) {
-      setSelectedGenerationId(workspace.generationId);
-    } else if (workspace.generationName && generations.length > 0) {
+    const name = workspace.name;
+    const description = workspace.description;
+    const telegramChannelUrl = workspace.telegramChannelUrl ?? "";
+    const groupType = workspace.isPublic ? "external" : "internal";
+    let generationId = workspace.generationId ?? null;
+    if (!generationId && workspace.generationName && generations.length > 0) {
       const matched = generations.find(
         (g) => g.name === workspace.generationName,
       );
-      if (matched) setSelectedGenerationId(matched.generationId);
+      if (matched) generationId = matched.generationId;
     }
-
-    setErrors({});
+    queueMicrotask(() => {
+      setGroupName(name);
+      setDescription(description);
+      setTelegramChannelUrl(telegramChannelUrl);
+      setGroupType(groupType);
+      if (generationId) setSelectedGenerationId(generationId);
+      setErrors({});
+    });
   }, [workspace, generations]);
 
   React.useEffect(() => {

@@ -29,4 +29,3 @@ export default async function GroupPage({ searchParams }: PageProps) {
     </div>
   );
 }
-6

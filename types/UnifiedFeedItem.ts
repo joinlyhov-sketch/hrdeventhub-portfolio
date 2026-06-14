@@ -6,7 +6,7 @@ export interface FeedItemWrapper {
   description: string;
   createdAt: string;
   new: boolean;
-  data: any;
+  data: unknown;
 }
 
 export interface WorkspaceFeedApiResponse {

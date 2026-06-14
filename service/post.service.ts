@@ -104,7 +104,7 @@ export const postService = {
     workspaceId: string,
     postId: string,
     token: string,
-  ): Promise<any> => {
+  ): Promise<unknown> => {
     return await apiDelete(`/workspaces/${workspaceId}/post/${postId}`, {
       headers: { accept: "*/*" },
       authToken: token,
@@ -188,8 +188,8 @@ export const postService = {
     postId: string,
     pinned: boolean,
     authToken: string,
-  ): Promise<any> => {
-    return apiPatch<any, undefined>(
+  ): Promise<unknown> => {
+    return apiPatch<unknown, undefined>(
       `/workspaces/${workspaceId}/post/${postId}/pin?pinned=${pinned}`,
       undefined,
       {
@@ -215,8 +215,8 @@ export const postService = {
     token: string,
     page: number = 1,
     size: number = 100
-  ): Promise<any> => {
-    return apiGet<any>(
+  ): Promise<unknown> => {
+    return apiGet<unknown>(
       `/posts/${postId}/participants?page=${page}&size=${size}`,
       { authToken: token }
     );

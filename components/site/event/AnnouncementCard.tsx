@@ -29,6 +29,8 @@ import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { WorkspaceMember } from "@/types/workspace-type/workspace-members";
+import { Comment } from "@/types/file-types";
 
 interface AnnouncementCardProps {
   role: UserRole;
@@ -36,10 +38,12 @@ interface AnnouncementCardProps {
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
   groupid: string;
-  members: any[];
+  members: WorkspaceMember[];
 }
 
-const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+const getTotalCommentsCount = (
+  commentsList: Comment[] | undefined | null,
+): number => {
   if (!commentsList || commentsList.length === 0) return 0;
   let total = 0;
   for (const comment of commentsList) {
@@ -56,23 +60,23 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
   const images = media.filter((m) => !m.filePath.endsWith(".pdf"));
   const displayImages = images.slice(0, 4);
   const remaining = images.length - 4;
-  
+
   if (images.length === 0) return null;
   const gridClass = images.length === 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
     <>
-      <div 
+      <div
         className={`grid ${gridClass} gap-1 rounded-[12px] overflow-hidden mb-4 sm:mb-6`}
         style={{
           contentVisibility: "auto",
-          containIntrinsicSize: images.length === 1 ? "320px" : "192px"
+          containIntrinsicSize: images.length === 1 ? "320px" : "192px",
         }}
       >
         {displayImages.map((item, index) => {
           const url = getMediaUrl(item.filePath);
           const isLast = index === 3 && remaining > 0;
-          
+
           const heightClass =
             images.length === 1
               ? "h-48 sm:h-56 md:h-80"
@@ -180,7 +184,7 @@ function AnnouncementItem({
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupId: string;
-  members: any[];
+  members: WorkspaceMember[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -196,7 +200,10 @@ function AnnouncementItem({
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
+  const { comments, refetch, loading } = usePostComments(
+    post.postId,
+    showComments,
+  );
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
@@ -290,7 +297,9 @@ function AnnouncementItem({
           )}
         </div>
 
-        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">{post.title}</h2>
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+          {post.title}
+        </h2>
 
         <ExpandableText text={post.content} />
 
@@ -344,7 +353,7 @@ function AnnouncementItem({
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
-           <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">
+          <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">
             <ReactionPopover
               selectedValue={selectedReaction}
               onReactionSelect={handleReactionSelect}
@@ -371,8 +380,12 @@ function AnnouncementItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> 
-              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
+              <MessageCircleMore size={20} />
+              {showComments
+                ? getTotalCommentsCount(comments)
+                : getTotalCommentsCount(comments) > 0
+                  ? `${getTotalCommentsCount(comments)} Comments`
+                  : "Comment"}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}

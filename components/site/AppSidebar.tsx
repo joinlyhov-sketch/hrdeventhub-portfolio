@@ -120,11 +120,6 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 ) : (
                   pinnedWorkspaces.map((workspace) => {
-                    const initials = workspace.name
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((word: string) => word[0]?.toUpperCase() ?? "")
-                      .join("");
                     const href = `/group/${workspace.workspaceId}`;
                     const isActive = pathname === href;
 

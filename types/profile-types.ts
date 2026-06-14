@@ -1,7 +1,7 @@
 export type SharingMode = "PUBLIC" | "PRIVATE" | "SELECTIVE";
 
 export interface Education {
-  endYear: any;
+  endYear: number | null;
   institutionName: string;
   institutionAbbreviation: string;
   degree: string;

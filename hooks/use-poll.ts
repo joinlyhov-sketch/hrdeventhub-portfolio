@@ -52,32 +52,34 @@ function saveStoredVote(pollId: string, optionIds: string[]) {
 function getPollSelectedOptionIds(poll: Poll | undefined): string[] {
   if (!poll) return [];
 
-  const data = poll as any;
+  const data = poll as unknown as Record<string, unknown>;
 
   if (Array.isArray(data.selectedOptionIds)) {
-    return data.selectedOptionIds;
+    return data.selectedOptionIds as string[];
   }
 
   if (Array.isArray(data.votedOptionIds)) {
-    return data.votedOptionIds;
+    return data.votedOptionIds as string[];
   }
 
   if (Array.isArray(data.optionIds)) {
-    return data.optionIds;
+    return data.optionIds as string[];
   }
 
-  if (Array.isArray(data.userVote?.optionIds)) {
-    return data.userVote.optionIds;
+  const userVote = data.userVote as Record<string, unknown> | undefined;
+  if (Array.isArray(userVote?.optionIds)) {
+    return userVote!.optionIds as string[];
   }
 
-  if (Array.isArray(data.myVote?.optionIds)) {
-    return data.myVote.optionIds;
+  const myVote = data.myVote as Record<string, unknown> | undefined;
+  if (Array.isArray(myVote?.optionIds)) {
+    return myVote!.optionIds as string[];
   }
 
   if (Array.isArray(data.votedOptions)) {
-    return data.votedOptions
-      .map((option: any) => option.id ?? option.optionId)
-      .filter(Boolean);
+    return (data.votedOptions as Record<string, unknown>[])
+      .map((option) => option.id ?? option.optionId)
+      .filter(Boolean) as string[];
   }
 
   return [];
@@ -86,7 +88,7 @@ function getPollSelectedOptionIds(poll: Poll | undefined): string[] {
 function getTotalVotes(poll: Poll | undefined): number {
   if (!poll) return 0;
 
-  const directTotal = Number((poll as any).totalVotes);
+  const directTotal = Number((poll as { totalVotes?: string }).totalVotes);
 
   if (!Number.isNaN(directTotal) && directTotal > 0) {
     return directTotal;
@@ -151,8 +153,7 @@ function createOptimisticPoll(poll: Poll, optionIds: string[]): Poll {
 }
 
 function isAlreadyVotedError(error: unknown): boolean {
-  const message =
-    error instanceof Error ? error.message : String(error ?? "");
+  const message = error instanceof Error ? error.message : String(error ?? "");
 
   return message.toLowerCase().includes("already voted");
 }
@@ -174,6 +175,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
   const [isClosingTimerActive, setIsClosingTimerActive] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
   const [animatingOptionIds, setAnimatingOptionIds] = useState<string[]>([]);
+  const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
 
   const {
     data: poll,
@@ -187,17 +189,17 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
       refreshInterval: enableWebSocket ? 0 : 5000,
-    }
+    },
   );
 
   useEffect(() => {
     if (!pollId) {
-      setStoredSelectedOptionIds([]);
+      queueMicrotask(() => setStoredSelectedOptionIds([]));
       return;
     }
 
     const storedVote = getStoredVote(pollId);
-    setStoredSelectedOptionIds(storedVote?.optionIds ?? []);
+    queueMicrotask(() => setStoredSelectedOptionIds(storedVote?.optionIds ?? []));
   }, [pollId]);
 
   const selectedOptionIds = useMemo(() => {
@@ -211,7 +213,10 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
   }, [poll, storedSelectedOptionIds]);
 
   const hasVoted = useMemo(() => {
-    return selectedOptionIds.length > 0 || Boolean((poll as any)?.hasVoted);
+    return (
+      selectedOptionIds.length > 0 ||
+      Boolean((poll as { hasVoted?: boolean })?.hasVoted)
+    );
   }, [selectedOptionIds, poll]);
 
   useEffect(() => {
@@ -244,6 +249,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
             if (!isMounted) return;
 
             wsConnectedRef.current = false;
+            setIsWebSocketConnected(false);
             onError?.(socketError);
 
             if (reconnectTimerRef.current) {
@@ -261,11 +267,13 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
         if (!isMounted) return;
 
         wsConnectedRef.current = true;
+        setIsWebSocketConnected(true);
         setIsClosingTimerActive(true);
       } catch (socketError) {
         if (!isMounted) return;
 
         wsConnectedRef.current = false;
+        setIsWebSocketConnected(false);
 
         const err =
           socketError instanceof Error
@@ -298,16 +306,10 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
 
       pollService.closePollConnection(pollId);
       wsConnectedRef.current = false;
+      setIsWebSocketConnected(false);
       setIsClosingTimerActive(false);
     };
-  }, [
-    enableWebSocket,
-    pollId,
-    mutate,
-    onVoteUpdate,
-    onPollClosed,
-    onError,
-  ]);
+  }, [enableWebSocket, pollId, mutate, onVoteUpdate, onPollClosed, onError]);
 
   const vote = useCallback(
     async (optionId: string) => {
@@ -324,7 +326,8 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
       }
 
       const alreadyVoted =
-        selectedOptionIds.length > 0 || Boolean((poll as any)?.hasVoted);
+        selectedOptionIds.length > 0 ||
+        Boolean((poll as { hasVoted?: boolean })?.hasVoted);
 
       if (alreadyVoted) {
         setAnimatingOptionIds(selectedOptionIds);
@@ -401,9 +404,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
         await mutate();
 
         const err =
-          voteError instanceof Error
-            ? voteError
-            : new Error(String(voteError));
+          voteError instanceof Error ? voteError : new Error(String(voteError));
 
         onError?.(err);
         throw err;
@@ -411,7 +412,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
         setIsVoting(false);
       }
     },
-    [pollId, poll, selectedOptionIds, mutate, onError]
+    [pollId, poll, selectedOptionIds, mutate, onError],
   );
 
   const voteMultiple = useCallback(
@@ -429,7 +430,8 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
       }
 
       const alreadyVoted =
-        selectedOptionIds.length > 0 || Boolean((poll as any)?.hasVoted);
+        selectedOptionIds.length > 0 ||
+        Boolean((poll as { hasVoted?: boolean })?.hasVoted);
 
       if (alreadyVoted) {
         setAnimatingOptionIds(selectedOptionIds);
@@ -495,9 +497,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
         await mutate();
 
         const err =
-          voteError instanceof Error
-            ? voteError
-            : new Error(String(voteError));
+          voteError instanceof Error ? voteError : new Error(String(voteError));
 
         onError?.(err);
         throw err;
@@ -505,7 +505,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
         setIsVoting(false);
       }
     },
-    [pollId, poll, selectedOptionIds, mutate, onError]
+    [pollId, poll, selectedOptionIds, mutate, onError],
   );
 
   const refetch = useCallback(() => {
@@ -571,7 +571,7 @@ export function usePoll(pollId: string, options: UsePollOptions = {}) {
     isPollOpen: isPollOpen(),
     getTimeRemaining,
 
-    isWebSocketConnected: wsConnectedRef.current,
+    isWebSocketConnected,
     isClosingTimerActive,
   };
 }

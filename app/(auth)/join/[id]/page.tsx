@@ -1,5 +1,6 @@
 import { getInvitationPreviewAction } from "@/actions/invitation.action";
 import GroupPreviewClient from "@/components/site/group/group-preview";
+import { InvitationPreview } from "@/types/invitation";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -8,11 +9,15 @@ interface PageProps {
 export default async function JoinPage({ params }: PageProps) {
   const { id } = await params;
 
+  let preview: InvitationPreview | null = null;
   try {
-    const preview = await getInvitationPreviewAction(id);
-    return <GroupPreviewClient preview={preview.payload} token={id} />;
+    const result = await getInvitationPreviewAction(id);
+    preview = result.payload;
   } catch (error) {
     console.log("Preview fetch error:", error);
+  }
+
+  if (!preview) {
     return (
       <div className="flex items-center justify-center p-4">
         <div className="text-center space-y-2">
@@ -22,4 +27,6 @@ export default async function JoinPage({ params }: PageProps) {
       </div>
     );
   }
+
+  return <GroupPreviewClient preview={preview} token={id} />;
 }

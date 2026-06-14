@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm, Controller, Resolver } from "react-hook-form";
+import { useForm, useWatch, Controller, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Calendar,
@@ -41,7 +41,6 @@ export default function CreateAnnouncementForm() {
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors },
   } = useForm<AnnouncementPostFormValues>({
     resolver: zodResolver(
@@ -62,7 +61,7 @@ export default function CreateAnnouncementForm() {
     },
   });
 
-  const currentStatus = watch("status");
+  const currentStatus = useWatch({ control, name: "status" });
 
   const onSubmit = async (data: AnnouncementPostFormValues) => {
     setIsSubmitting(true);

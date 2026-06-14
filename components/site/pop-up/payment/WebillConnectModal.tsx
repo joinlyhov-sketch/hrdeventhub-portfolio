@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, X, User, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import Image from "next/image";
 import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { connectBankCredentialAction } from "@/actions/payment.action";
@@ -134,9 +135,11 @@ export default function ConnectBankModal({
                 >
                   <Dialog.Title>
                     <div className="mb-8">
-                      <img
+                      <Image
                         src="/images/WeBill.png"
                         alt="WeBill365"
+                        width={120}
+                        height={32}
                         className="h-8 mb-4 object-contain"
                       />
                       <p className="type-desc text-gray-500">

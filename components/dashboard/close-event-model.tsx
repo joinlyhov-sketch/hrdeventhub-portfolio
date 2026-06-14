@@ -45,9 +45,9 @@ export function CloseEventModal({
       await onConfirm(reason.trim());
       setReason("");
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setValidationError(
-        err?.message || "Failed to alter event status parameters.",
+        (err as { message?: string })?.message || "Failed to alter event status parameters.",
       );
     } finally {
       setIsProcessing(false);

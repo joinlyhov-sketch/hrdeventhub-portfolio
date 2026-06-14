@@ -179,6 +179,35 @@ function SectionRow({
   );
 }
 
+interface SaveButtonLayoutProps {
+  saveError: string | null;
+  saveSuccess: boolean;
+  isSaving: boolean;
+  onSave: () => void;
+}
+
+function SaveButtonLayout({ saveError, saveSuccess, isSaving, onSave }: SaveButtonLayoutProps) {
+  return (
+    <div className="flex flex-col sm:items-end gap-2 mt-6 w-full">
+      {saveError && (
+        <p className="text-xs text-destructive">{saveError}</p>
+      )}
+      {saveSuccess && (
+        <p className="text-xs text-emerald-600">Changes saved successfully.</p>
+      )}
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={isSaving}
+        className="w-full sm:w-auto px-8 py-2.5 bg-primary text-white rounded-2xl text-sm font-semibold hover:bg-[#153b6c] transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+      >
+        {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+        {isSaving ? "Saving…" : "Save changes"}
+      </button>
+    </div>
+  );
+}
+
 export default function SettingVisibilityModeCard({
   profile,
   visibilityMode,
@@ -260,24 +289,25 @@ export default function SettingVisibilityModeCard({
     const computedPreferences = buildPreferencesPayload(selectiveConfig);
 
     try {
+      type ServiceResult = { success?: boolean };
       const modeResult = await profileService.updateSharingMode(
         { mode: computedMode },
         token
-      );
+      ) as ServiceResult;
       if (!modeResult?.success) throw new Error("Failed to update sharing mode.");
 
       if (computedMode === "SELECTIVE") {
         const prefResult = await profileService.updatePreferences(
           computedPreferences,
           token
-        );
+        ) as ServiceResult;
         if (!prefResult?.success) throw new Error("Failed to update preferences.");
       }
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err: any) {
-      setSaveError(err?.message ?? "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setSaveError((err as { message?: string })?.message ?? "Something went wrong. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -291,26 +321,6 @@ export default function SettingVisibilityModeCard({
 
   const formatDate = (d?: string) =>
     d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "—";
-
-  const SaveButtonLayout = () => (
-    <div className="flex flex-col sm:items-end gap-2 mt-6 w-full">
-      {saveError && (
-        <p className="text-xs text-destructive">{saveError}</p>
-      )}
-      {saveSuccess && (
-        <p className="text-xs text-emerald-600">Changes saved successfully.</p>
-      )}
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={isSaving}
-        className="w-full sm:w-auto px-8 py-2.5 bg-primary text-white rounded-2xl text-sm font-semibold hover:bg-[#153b6c] transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-      >
-        {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-        {isSaving ? "Saving…" : "Save changes"}
-      </button>
-    </div>
-  );
 
   return (
     <div className="xl:col-span-8 flex flex-col gap-6 w-full">
@@ -591,7 +601,12 @@ export default function SettingVisibilityModeCard({
           </div>
         )}
 
-        <SaveButtonLayout />
+        <SaveButtonLayout
+          saveError={saveError}
+          saveSuccess={saveSuccess}
+          isSaving={isSaving}
+          onSave={handleSave}
+        />
       </div>
     </div>
   );

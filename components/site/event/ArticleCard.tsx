@@ -22,6 +22,8 @@ import { usePostReaction } from "@/hooks/use-post-reaction";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
 import Link from "next/link";
+import { WorkspaceMember } from "@/types/workspace-type/workspace-members";
+import { Comment } from "@/types/file-types";
 
 interface ArticleCardProps {
   role: UserRole;
@@ -29,10 +31,12 @@ interface ArticleCardProps {
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
   groupId: string;
-  members: any[];
+  members: WorkspaceMember[];
 }
 
-const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+const getTotalCommentsCount = (
+  commentsList: Comment[] | undefined | null,
+): number => {
   if (!commentsList || commentsList.length === 0) return 0;
   let total = 0;
   for (const comment of commentsList) {
@@ -55,7 +59,7 @@ function ArticleItem({
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupId: string;
-  members: any[];
+  members: WorkspaceMember[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -71,7 +75,10 @@ function ArticleItem({
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
+  const { comments, refetch, loading } = usePostComments(
+    post.postId,
+    showComments,
+  );
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
@@ -99,10 +106,11 @@ function ArticleItem({
       await refetch();
     }
   };
-  
-  const shareUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=article`
-    : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=article`;
+
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=article`
+      : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=article`;
 
   return (
     <>
@@ -180,8 +188,12 @@ function ArticleItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> 
-              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
+              <MessageCircleMore size={20} />
+              {showComments
+                ? getTotalCommentsCount(comments)
+                : getTotalCommentsCount(comments) > 0
+                  ? `${getTotalCommentsCount(comments)} Comment${getTotalCommentsCount(comments) > 1 ? "s" : ""}`
+                  : "Comment"}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -193,7 +205,9 @@ function ArticleItem({
 
           <ReactionSummary payload={reactionPayload} />
         </div>
-        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+        <div
+          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
+        >
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
             <Link href={`/profile/${currentUser?.id}`}>
               {currentUser?.profilePicture ? (

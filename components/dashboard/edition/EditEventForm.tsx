@@ -119,7 +119,7 @@ export default function EditEventForm() {
       const match = timeString.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
 
       if (match) {
-        const [_, hours, minutes, modifier] = match;
+        const [, hours, minutes, modifier] = match;
         let hoursNum = parseInt(hours, 10);
 
         if (modifier.toUpperCase() === "PM" && hoursNum < 12) hoursNum += 12;

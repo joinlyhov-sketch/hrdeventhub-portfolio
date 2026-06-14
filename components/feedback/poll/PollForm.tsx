@@ -35,9 +35,7 @@ export default function PollForm({
   const [description, setDescription] = useState(
     initialData?.description ?? "",
   );
-  const [lockedOptions, setLockedOptions] = useState<
-    Array<{ id: string; text: string }>
-  >(
+  const [lockedOptions] = useState<Array<{ id: string; text: string }>>(
     isEditMode
       ? (initialData?.options ?? []).map((o) => ({ id: o.id, text: o.text }))
       : [],
@@ -86,7 +84,7 @@ export default function PollForm({
     const urlQueryId =
       searchParams.get("groupId") || searchParams.get("groupid");
     const resolvedId = urlQueryId || workspaceId;
-    if (resolvedId) setWorkspaceIdState(resolvedId);
+    if (resolvedId) queueMicrotask(() => setWorkspaceIdState(resolvedId));
   }, [searchParams, workspaceId, isEditMode]);
 
   const handleNewOptionChange = (index: number, text: string) => {
@@ -213,7 +211,9 @@ export default function PollForm({
 
       const savedWorkspaceId = workspaceIdState;
       setSuccess(true);
-      console.log(isEditMode ? "Poll updated successfully" : "Poll created successfully");
+      console.log(
+        isEditMode ? "Poll updated successfully" : "Poll created successfully",
+      );
 
       if (!isEditMode) {
         setTitle("");
@@ -235,7 +235,6 @@ export default function PollForm({
           : `Failed to ${isEditMode ? "update" : "create"} poll`,
       );
       setIsSubmitting(false);
-      
     }
   };
 

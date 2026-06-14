@@ -1,12 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-type FeedItem = Record<string, unknown>;
+import { FeedItemWrapper } from "@/types/UnifiedFeedItem";
 
 interface FeedCache {
-  feeds: Record<string, FeedItem[]>;
-  setFeed: (groupid: string, items: FeedItem[]) => void;
-  getFeed: (groupid: string) => FeedItem[] | undefined;
+  feeds: Record<string, FeedItemWrapper[]>;
+  setFeed: (groupid: string, items: FeedItemWrapper[]) => void;
+  getFeed: (groupid: string) => FeedItemWrapper[] | undefined;
 }
 
 export const useFeedStore = create<FeedCache>()(

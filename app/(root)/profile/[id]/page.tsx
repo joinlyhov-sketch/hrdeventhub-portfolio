@@ -65,10 +65,7 @@ export default function ProfilePage() {
       (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI")));
 
   const showEndorsementTab =
-    isReady &&
-    !isSelf &&
-    viewerRole === "ALUMNI" &&
-    subjectRole === "STUDENT";
+    isReady && !isSelf && viewerRole === "ALUMNI" && subjectRole === "STUDENT";
 
   const titlePrimary = isSelf
     ? "My"
@@ -83,8 +80,8 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
 
   useEffect(() => {
-    if (activeTab === "EV" && !showEventTab) setActiveTab("BG");
-    if (activeTab === "EN" && !showEndorsementTab) setActiveTab("BG");
+    if (activeTab === "EV" && !showEventTab) queueMicrotask(() => setActiveTab("BG"));
+    if (activeTab === "EN" && !showEndorsementTab) queueMicrotask(() => setActiveTab("BG"));
   }, [activeTab, showEventTab, showEndorsementTab]);
 
   const subjectName = profile
@@ -111,7 +108,9 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-stretch xl:max-h-[calc(100vh-220px)] xl:h-170">
           <div className="xl:col-span-4 xl:h-full">
             <ProfileCard
-              viewMode={!isReady ? null : isSubjectAdmin ? "student" : adjustedViewMode}
+              viewMode={
+                !isReady ? null : isSubjectAdmin ? "student" : adjustedViewMode
+              }
               profile={profile}
               loading={profileLoading || !isReady}
               profileId={userId}

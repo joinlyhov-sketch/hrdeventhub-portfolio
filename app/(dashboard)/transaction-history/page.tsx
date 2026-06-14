@@ -13,10 +13,9 @@ export default async function TransactionHistoryPage() {
 
   let events: EventItem[] = [];
   let transactions: Transaction[] = [];
-  let attendeeCountByPostId: Record<string, number> = {};
+  const attendeeCountByPostId: Record<string, number> = {};
   let isOrganizer = false;
 
-  // Fetch profile + typed data in parallel — they don't depend on each other
   const [profileResponse, typedTransactions, typedEvents] = await Promise.all([
     token ? authService.getProfileMe(token) : Promise.resolve(null),
     getTransactions(),

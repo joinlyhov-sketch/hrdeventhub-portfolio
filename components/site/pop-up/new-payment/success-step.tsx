@@ -18,7 +18,7 @@ export function SuccessStep({ post, successMessage, remark, onClose }: SuccessSt
         <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center">
           <CheckCircle2 size={44} className="text-green-500" />
         </div>
-        <p className="text-[20px] font-bold text-gray-800 text-center">You're Registered!</p>
+        <p className="text-[20px] font-bold text-gray-800 text-center">You&apos;re Registered!</p>
         <p className="text-[14px] text-gray-500 text-center max-w-[300px]">
           {successMessage}
         </p>
