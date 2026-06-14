@@ -65,7 +65,7 @@ export default function GroupSearch({
   };
 
   return (
-    <div className="flex items-center gap-x-4 mb-6 w-90% relative">
+     <div className="flex items-center gap-x-2 md:gap-x-4 mb-6 w-full relative">
       <Search
         value={search}
         onChange={(e) => handleSearchChange(e.target.value)}

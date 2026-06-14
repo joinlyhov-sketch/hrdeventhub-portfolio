@@ -45,7 +45,11 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "20mb",
     },
-    cpus: 1, 
+    staleTimes: {
+      dynamic: 60,
+      static: 300,
+    },
+    cpus: 1,
     workerThreads: false,
   },
   async rewrites() {

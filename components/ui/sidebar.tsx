@@ -63,7 +63,6 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
-  
 
   const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
@@ -263,7 +262,7 @@ function SidebarTrigger({
     >
       <ChevronLeft
         className={cn(
-          "transition-transform duration-300 ease-in-out",
+          "transition-transform duration-300 ease-in-out text-black",
           state === "collapsed" && "rotate-180",
         )}
       />
