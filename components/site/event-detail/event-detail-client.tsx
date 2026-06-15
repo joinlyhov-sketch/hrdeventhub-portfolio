@@ -79,8 +79,8 @@ export default function EventDetailClient({
     "https://api.dev.hrdevent.app/api/v4/files/preview-file?key=";
   const mediaList =
     event?.media && event.media.length > 0
-      ? event.media.map((m: any) => {
-          const path = m.filePath || m.url || "";
+      ? event.media.map((m) => {
+          const path = m.filePath || "";
           return path.startsWith("http") ? path : `${API_BASE}${path}`;
         })
       : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
@@ -124,7 +124,7 @@ export default function EventDetailClient({
         const livePost = await postService.getById(
           workspaceId,
           initialEvent.postId,
-          session.accessToken
+          session.accessToken,
         );
         if (livePost) {
           setEvent(livePost);
@@ -148,6 +148,11 @@ export default function EventDetailClient({
         : "none";
     }
   }, [currentImgIndex]);
+
+  const goToIndex = (index: number) => {
+    isTransitioning.current = true;
+    setCurrentImgIndex(index);
+  };
 
   useEffect(() => {
     if (mediaList.length <= 1) return;
@@ -179,7 +184,9 @@ export default function EventDetailClient({
 
         const reactions = data?.payload || [];
         const userReaction = reactions.find(
-          (r) => r?.reactor?.appUserId === currentUser.id || r?.reactor?.appUserId === currentUser.id,
+          (r) =>
+            r?.reactor?.appUserId === currentUser.id ||
+            r?.reactor?.appUserId === currentUser.id,
         );
 
         if (userReaction) {
@@ -207,11 +214,6 @@ export default function EventDetailClient({
     fetchUserReaction();
   }, [currentUser?.id, event?.postId, session?.accessToken, status]);
 
-  const goToIndex = (index: number) => {
-    isTransitioning.current = true;
-    setCurrentImgIndex(index);
-  };
-
   const handlePrevImage = () => goToIndex(currentImgIndex - 1);
   const handleNextImage = () => goToIndex(currentImgIndex + 1);
 
@@ -235,7 +237,7 @@ export default function EventDetailClient({
     }, 50);
   };
 
-  const activeReaction = REACTIONS.find((r: any) => r.id === selectedReaction);
+  const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const handleLikeToggle = async () => {
     if (!session?.accessToken || !event?.postId) return;
@@ -379,7 +381,8 @@ export default function EventDetailClient({
               )}
               <div>
                 <p className="text-subtitle font-medium text-secondary">
-                  {event?.creator?.fullName || (isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team")}
+                  {event?.creator?.fullName ||
+                    (isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team")}
                 </p>
                 <p className="text-desc-small-semibold font-medium text-muted-foreground">
                   {formattedCreationDate}
@@ -583,18 +586,18 @@ export default function EventDetailClient({
                 Discussion
               </button>
             </section>
-   {activeAdminTab === "overview" ? (
-  <AdminOverview event={event} workspaceId={workspaceId} />
-) : (
-  <div ref={discussionRef}>
-    <DiscussionSection event={event} workspaceId={workspaceId} />
-  </div>
-)}
+            {activeAdminTab === "overview" ? (
+              <AdminOverview event={event} workspaceId={workspaceId} />
+            ) : (
+              <div ref={discussionRef}>
+                <DiscussionSection event={event} workspaceId={workspaceId} />
+              </div>
+            )}
           </div>
         ) : (
-         <div ref={discussionRef} className="space-y-4">
-  <DiscussionSection event={event} workspaceId={workspaceId} />
-</div>
+          <div ref={discussionRef} className="space-y-4">
+            <DiscussionSection event={event} workspaceId={workspaceId} />
+          </div>
         )}
       </section>
 

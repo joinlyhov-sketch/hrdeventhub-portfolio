@@ -67,9 +67,12 @@ export default function UserRow({
       >
         <div className="flex items-center gap-2 max-w-full">
           {profileSrc ? (
-            <img
+            <Image
               src={profileSrc}
               alt={user.username}
+              width={32}
+              height={32}
+              unoptimized
               className="w-8 h-8 rounded-full object-cover shrink-0"
             />
           ) : (

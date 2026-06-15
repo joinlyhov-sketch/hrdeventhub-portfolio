@@ -18,6 +18,43 @@ interface SurveyCardProps {
   onDelete?: (surveyId: string) => void;
 }
 
+interface HeaderBadgeLayoutProps {
+  badge: React.ReactNode;
+  showMenu?: boolean;
+  title: string;
+  role: UserRole;
+  surveyId: string;
+  editUrl: string;
+  onDelete: () => void;
+}
+
+function HeaderBadgeLayout({
+  badge,
+  showMenu = false,
+  title,
+  role,
+  editUrl,
+  onDelete,
+}: HeaderBadgeLayoutProps) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+      <h2 className="text-base sm:text-lg md:text-xl font-bold text-secondary break-words">
+        {title}
+      </h2>
+      <div className="flex items-center gap-2 shrink-0">
+        {badge}
+        {showMenu && (role === "admin" || role === "organizer") && (
+          <EditPostDropDown
+            title={title}
+            editUrl={editUrl}
+            onDelete={onDelete}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 type Answers = Record<string, unknown>;
 
 function QuestionField({
@@ -294,6 +331,7 @@ export function SurveyCard({
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingStatus(true);
     surveyService
       .hasSubmitted(survey.surveyId)
@@ -353,35 +391,19 @@ export function SurveyCard({
 
   if (!isMatch) return null;
 
-  // Repositions custom indicators directly onto the right-hand side of headers
-  const HeaderBadgeLayout = ({
-    badge,
-    showMenu = false,
-  }: {
-    badge: React.ReactNode;
-    showMenu?: boolean;
-  }) => (
-    <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
-      <h2 className="text-base sm:text-lg md:text-xl font-bold text-secondary break-words">
-        {title}
-      </h2>
-      <div className="flex items-center gap-2 shrink-0">
-        {badge}
-        {showMenu && (role === "admin" || role === "organizer") && (
-          <EditPostDropDown
-            title={title}
-            editUrl={`/event-management/edition/survey?surveyId=${survey.surveyId}`}
-            onDelete={handleDelete}
-          />
-        )}
-      </div>
-    </div>
-  );
+  const sharedHeaderProps = {
+    title,
+    role,
+    surveyId: survey.surveyId,
+    editUrl: `/event-management/edition/survey?surveyId=${survey.surveyId}`,
+    onDelete: handleDelete,
+  };
 
   if (submitted || alreadySubmitted) {
     return (
       <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
         <HeaderBadgeLayout
+          {...sharedHeaderProps}
           badge={
             <span className="bg-[#EBF5FB] text-[#3FA6DC] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider whitespace-nowrap">
               Survey
@@ -407,6 +429,7 @@ export function SurveyCard({
     return (
       <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
         <HeaderBadgeLayout
+          {...sharedHeaderProps}
           showMenu
           badge={
             <span className="bg-red-50 text-red-500 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider whitespace-nowrap">
@@ -434,6 +457,7 @@ export function SurveyCard({
   return (
     <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
       <HeaderBadgeLayout
+        {...sharedHeaderProps}
         showMenu
         badge={
           <span className="bg-[#EBF5FB] text-[#3FA6DC] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider whitespace-nowrap">

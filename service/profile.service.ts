@@ -35,7 +35,7 @@ export interface UpdatePreferencesRequest {
 }
 
 export interface Education {
-  endYear: any;
+  endYear: number | null;
   institutionName: string;
   institutionAbbreviation: string;
   degree: string;
@@ -101,7 +101,7 @@ export interface UserProfilePayload {
   education: Education[];
   skills: string[];
   socialAccount: SocialAccount[];
-  preferences?: ProfilePreferences[];
+  preferences?: ProfilePreferences;
   generation: Generation;
   appUser: AppUser;
 }
@@ -130,22 +130,22 @@ export const profileService = {
     });
   },
 
-  getIdentityMe: async (token: string): Promise<any> => {
-    return await apiGet<any>("/auths/me", { authToken: token });
+  getIdentityMe: async (token: string): Promise<unknown> => {
+    return await apiGet<unknown>("/auths/me", { authToken: token });
   },
 
   updateIdentityMe: async (
     payload: UpdateIdentityRequest,
     token: string,
-  ): Promise<any> => {
-    return await apiPatch<any>("/auths/me", payload, { authToken: token });
+  ): Promise<unknown> => {
+    return await apiPatch<unknown>("/auths/me", payload, { authToken: token });
   },
 
   updateSharingMode: async (
     payload: UpdateSharingModeRequest,
     token: string,
-  ): Promise<any> => {
-    return await apiPut<any>("/profile/me/sharing-mode", payload, {
+  ): Promise<unknown> => {
+    return await apiPut<unknown>("/profile/me/sharing-mode", payload, {
       authToken: token,
     });
   },
@@ -153,8 +153,8 @@ export const profileService = {
   updatePreferences: async (
     payload: UpdatePreferencesRequest,
     token: string,
-  ): Promise<any> => {
-    return await apiPatch<any>("/profile/me/preferences", payload, {
+  ): Promise<unknown> => {
+    return await apiPatch<unknown>("/profile/me/preferences", payload, {
       authToken: token,
     });
   },
@@ -166,8 +166,8 @@ export const profileService = {
       authToken: token,
     });
   },
-  deleteMe: async (token: string): Promise<any> => {
-    return await apiDelete<any>("/profile/me/cv", {
+  deleteMe: async (token: string): Promise<unknown> => {
+    return await apiDelete<unknown>("/profile/me/cv", {
       authToken: token,
       accept: "*/*",
     });

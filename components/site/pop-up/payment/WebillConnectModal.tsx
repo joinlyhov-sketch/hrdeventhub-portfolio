@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, X, User, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import Image from "next/image";
 import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { connectBankCredentialAction } from "@/actions/payment.action";
@@ -64,7 +65,6 @@ export default function ConnectBankModal({
       errors.clientId = "Client ID credential is required";
     if (!formData.clientSecret.trim())
       errors.clientSecret = "Client secret credential is required";
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -79,7 +79,6 @@ export default function ConnectBankModal({
   const handleConfirmDisconnect = () => {
     startTransition(async () => {
       const result = await connectBankCredentialAction(formData);
-
       if (!result.ok) {
         setServerError(
           result.error || "Failed to process bank link credentials.",
@@ -87,7 +86,6 @@ export default function ConnectBankModal({
         setShowConfirmation(false);
         return;
       }
-
       handleResetAndClose();
       router.push(pathname);
       router.refresh();
@@ -105,56 +103,64 @@ export default function ConnectBankModal({
       onOpenChange={(open) => !open && handleResetAndClose()}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 transition-opacity" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" />
         <Dialog.Content
           onPointerDownOutside={(e) => isPending && e.preventDefault()}
           onInteractOutside={(e) => isPending && e.preventDefault()}
           onEscapeKeyDown={(e) => isPending && e.preventDefault()}
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[700px] bg-white rounded-[24px] shadow-2xl z-50 overflow-hidden outline-none flex flex-col p-12"
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+            w-[calc(100%-24px)] sm:w-full max-w-[520px]
+            bg-white rounded-2xl sm:rounded-3xl shadow-2xl z-50 outline-none overflow-hidden"
         >
-          <button
-            disabled={isPending}
-            onClick={handleResetAndClose}
-            className="absolute top-6 right-6 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer disabled:opacity-50"
-            aria-label="Close modal"
-          >
-            <X size={24} strokeWidth={1.5} />
-          </button>
-
-          <div className="flex flex-col justify-between grow mt-2">
+          <div className="flex items-center justify-between px-5 pt-5 pb-4 sm:items-start sm:px-8 sm:pt-8 sm:pb-5 border-b border-gray-100">
+            <div>
+              <Image
+                src="/images/WeBill.png"
+                alt="WeBill365"
+                width={160}
+                height={48}
+                className="h-8 sm:h-11 w-auto object-contain object-left"
+              />
+              <p className="text-[11px] sm:text-xs text-gray-400 mt-1 sm:mt-1.5 font-medium">
+                Payment Gateway
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={handleResetAndClose}
+              aria-label="Close modal"
+              className="text-gray-300 hover:text-gray-500 transition-colors disabled:opacity-50 sm:mt-1 cursor-pointer"
+            >
+              <X size={20} strokeWidth={2} />
+            </button>
+          </div>
+          <div className="px-5 pt-4 pb-5 sm:px-8 sm:py-6">
             <AnimatePresence mode="wait">
               {!showConfirmation ? (
                 <motion.form
                   key="form-view"
                   onSubmit={handleProceedToConfirm}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-5 grow flex flex-col justify-center"
+                  exit={{ opacity: 0, y: -6 }}
+                  className="flex flex-col gap-2.5 sm:gap-4"
                 >
-                  <Dialog.Title>
-                    <div className="mb-8">
-                      <img
-                        src="/images/WeBill.png"
-                        alt="WeBill365"
-                        className="h-8 mb-4 object-contain"
-                      />
-                      <p className="type-desc text-gray-500">
-                        Enter the correct info below to change WeBill365 account
-                      </p>
-                    </div>
+                  <Dialog.Title className="sr-only">
+                    Connect WeBill365 Account
                   </Dialog.Title>
 
-                  <div className="flex flex-col gap-2">
-                    <label className="type-subtitle text-secondary">
+                  <div className="flex flex-col gap-1 sm:gap-1.5">
+                    <label className="text-[11px] sm:text-sm font-semibold text-secondary uppercase sm:normal-case sm:tracking-normal tracking-wide">
                       Account Name
                     </label>
                     <div
-                      className={`flex items-center gap-3 rounded-xl bg-[#f8f9fc] px-4 py-3.5 transition-all border ${formErrors.accountName ? "border-red-400" : "border-transparent focus-within:border-gray-500"}`}
+                      className={`flex items-center gap-2.5 rounded-xl bg-[#f8f9fc] px-4 py-2.5 sm:py-3.5 border transition-all
+                      ${formErrors.accountName ? "border-red-400" : "border-transparent focus-within:border-gray-300"}`}
                     >
                       <User
-                        size={18}
-                        className="type-desc text-gray-300"
+                        size={15}
+                        className="text-gray-300 shrink-0"
                         strokeWidth={2}
                       />
                       <input
@@ -165,29 +171,31 @@ export default function ConnectBankModal({
                         onChange={(e) =>
                           handleInputChange("accountName", e.target.value)
                         }
-                        className="w-full bg-transparent type-desc outline-none text-gray-700 placeholder:text-gray-500"
+                        className="w-full bg-transparent text-sm outline-none text-gray-700 placeholder:text-gray-400"
                       />
                     </div>
                     {formErrors.accountName && (
-                      <p className="type-desc text-red-500">
+                      <p className="text-xs text-red-500">
                         {formErrors.accountName}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <label className="type-subtitle text-secondary">
+                  <div className="flex flex-col gap-1 sm:gap-1.5">
+                    <label className="text-[11px] sm:text-sm font-semibold text-secondary uppercase sm:normal-case sm:tracking-normal tracking-wide">
                       Account No.
                     </label>
                     <div
-                      className={`flex items-center gap-3 rounded-xl bg-[#f8f9fc] px-4 py-3.5 transition-all border ${formErrors.accountNo ? "border-red-400" : "border-transparent focus-within:border-gray-500"}`}
+                      className={`flex items-center gap-2.5 rounded-xl bg-[#f8f9fc] px-4 py-2.5 sm:py-3.5 border transition-all
+                      ${formErrors.accountNo ? "border-red-400" : "border-transparent focus-within:border-gray-300"}`}
                     >
                       <svg
-                        width="20"
-                        height="20"
+                        width="16"
+                        height="16"
                         viewBox="0 0 20 20"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
+                        className="shrink-0"
                       >
                         <path
                           d="M9.78269 14.7885H14.716C14.641 14.8552 14.566 14.9136 14.491 14.9802L10.9327 17.6469C9.75768 18.5219 7.84102 18.5219 6.65769 17.6469L3.09102 14.9802C2.30769 14.3969 1.66602 13.1052 1.66602 12.1302V5.9552C1.66602 4.93854 2.44102 3.81354 3.39102 3.4552L7.54102 1.89687C8.22435 1.63854 9.35768 1.63854 10.041 1.89687L14.1827 3.4552C14.9744 3.7552 15.6493 4.58854 15.8577 5.43854H9.77435C9.59101 5.43854 9.42434 5.44688 9.26601 5.44688C7.72434 5.53855 7.32434 6.09687 7.32434 7.8552V12.3802C7.33268 14.2969 7.82435 14.7885 9.78269 14.7885Z"
@@ -223,7 +231,6 @@ export default function ConnectBankModal({
                           strokeLinejoin="round"
                         />
                       </svg>
-
                       <input
                         placeholder="1120000811230"
                         type={showAccountNo ? "text" : "password"}
@@ -232,37 +239,38 @@ export default function ConnectBankModal({
                         onChange={(e) =>
                           handleInputChange("accountNo", e.target.value)
                         }
-                        className="w-full bg-transparent text-desc outline-none text-gray-700 placeholder:text-gray-500"
+                        className="w-full min-w-0 bg-transparent text-sm outline-none text-gray-700 placeholder:text-gray-400"
                       />
                       <button
                         type="button"
                         onClick={() => setShowAccountNo(!showAccountNo)}
-                        className="text-gray-300 hover:text-gray-500"
+                        className="text-gray-300 hover:text-gray-500 shrink-0"
                       >
                         {showAccountNo ? (
-                          <Eye size={18} />
+                          <Eye size={16} />
                         ) : (
-                          <EyeOff size={18} />
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
                     {formErrors.accountNo && (
-                      <p className="text-desc text-red-500">
+                      <p className="text-xs text-red-500">
                         {formErrors.accountNo}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <label className="type-subtitle text-secondary">
+                  <div className="flex flex-col gap-1 sm:gap-1.5">
+                    <label className="text-[11px] sm:text-sm font-semibold text-secondary uppercase sm:normal-case sm:tracking-normal tracking-wide">
                       Client ID
                     </label>
                     <div
-                      className={`flex items-center gap-3 rounded-xl bg-[#f8f9fc] px-4 py-3.5 transition-all border ${formErrors.clientId ? "border-red-400" : "border-transparent focus-within:border-gray-500"}`}
+                      className={`flex items-center gap-2.5 rounded-xl bg-[#f8f9fc] px-4 py-2.5 sm:py-3.5 border transition-all
+                      ${formErrors.clientId ? "border-red-400" : "border-transparent focus-within:border-gray-300"}`}
                     >
                       <LockKeyhole
-                        size={18}
-                        className="text-gray-400"
+                        size={16}
+                        className="text-gray-300 shrink-0"
                         strokeWidth={2}
                       />
                       <input
@@ -273,28 +281,30 @@ export default function ConnectBankModal({
                         onChange={(e) =>
                           handleInputChange("clientId", e.target.value)
                         }
-                        className="w-full bg-transparent type-desc outline-none text-gray-700 placeholder:text-gray-500"
+                        className="w-full min-w-0 bg-transparent text-sm outline-none text-gray-700 placeholder:text-gray-400 truncate"
                       />
                     </div>
                     {formErrors.clientId && (
-                      <p className="type-desc text-red-500">
+                      <p className="text-xs text-red-500">
                         {formErrors.clientId}
                       </p>
                     )}
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="type-subtitle text-secondary">
+                  <div className="flex flex-col gap-1 sm:gap-1.5">
+                    <label className="text-[11px] sm:text-sm font-semibold text-secondary uppercase sm:normal-case sm:tracking-normal tracking-wide">
                       Client Secret
                     </label>
                     <div
-                      className={`flex items-center gap-3 rounded-xl bg-[#f8f9fc] px-4 py-3.5 transition-all border ${formErrors.clientSecret ? "border-red-400" : "border-transparent focus-within:border-gray-500"}`}
+                      className={`flex items-center gap-2.5 rounded-xl bg-[#f8f9fc] px-4 py-2.5 sm:py-3.5 border transition-all
+                      ${formErrors.clientSecret ? "border-red-400" : "border-transparent focus-within:border-gray-300"}`}
                     >
                       <svg
-                        width="20"
-                        height="20"
+                        width="16"
+                        height="16"
                         viewBox="0 0 20 20"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
+                        className="shrink-0"
                       >
                         <path
                           d="M16.4912 12.4406C14.7746 14.149 12.3162 14.674 10.1579 13.999L6.23289 17.9156C5.94955 18.2073 5.39122 18.3823 4.99122 18.324L3.17455 18.074C2.57455 17.9906 2.01622 17.424 1.92455 16.824L1.67455 15.0073C1.61622 14.6073 1.80789 14.049 2.08289 13.7656L5.99955 9.84896C5.33289 7.68229 5.84955 5.22396 7.56622 3.51563C10.0246 1.05729 14.0162 1.05729 16.4829 3.51563C18.9496 5.97396 18.9496 9.98229 16.4912 12.4406Z"
@@ -325,87 +335,85 @@ export default function ConnectBankModal({
                         onChange={(e) =>
                           handleInputChange("clientSecret", e.target.value)
                         }
-                        className="flex-1 min-w-0 bg-transparent text-desc outline-none text-gray-700 placeholder:text-gray-500 tracking-widest"
+                        className="flex-1 min-w-0 bg-transparent text-sm outline-none text-gray-700 placeholder:text-gray-400 tracking-widest"
                       />
                       <button
                         type="button"
                         onClick={() => setShowClientSecret(!showClientSecret)}
-                        className="text-gray-300 hover:text-gray-500"
+                        className="text-gray-300 hover:text-gray-500 shrink-0"
                       >
                         {showClientSecret ? (
-                          <Eye size={18} />
+                          <Eye size={16} />
                         ) : (
-                          <EyeOff size={18} />
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
                     {formErrors.clientSecret && (
-                      <p className="text-desc text-red-500">
+                      <p className="text-xs text-red-500">
                         {formErrors.clientSecret}
                       </p>
                     )}
                   </div>
 
                   {serverError && (
-                    <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-2.5 text-red-600">
+                    <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600">
                       {serverError}
                     </div>
                   )}
 
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      disabled={isPending}
-                      className="w-full flex items-center justify-center gap-2 h-[52px] rounded-[14px] bg-[#FAA228] text-white hover:bg-[#F2941E]"
-                    >
-                      Disconnect
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full mt-1 h-11 sm:h-12 rounded-xl bg-[#FAA228] hover:bg-[#F2941E] text-white text-sm font-semibold transition-colors disabled:opacity-60 cursor-pointer"
+                  >
+                    Disconnect
+                  </button>
                 </motion.form>
               ) : (
                 <motion.div
                   key="disconnect-view"
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex flex-col items-start text-left w-full px-2 pt-2 pb-1"
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  className="flex flex-col gap-4 pt-2"
                 >
-                  <div className="space-y-2.5 w-full">
-                    <h3 className="type-title text-secondary tracking-tight font-bold text-xl">
-                      Disconnect
+                  <div>
+                    <h3 className="text-lg font-bold text-secondary">
+                      Disconnect Account
                     </h3>
-                    <p className="type-desc text-gray-500">
+                    <p className="text-sm text-gray-500 mt-1.5">
                       Are you sure you want to disconnect your WeBill365
                       account?
                     </p>
                   </div>
 
                   {serverError && (
-                    <div className="w-full mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-2.5 text-red-600">
+                    <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600">
                       {serverError}
                     </div>
                   )}
 
-                  <div className="flex items-center gap-4 w-full mt-8">
+                  <div className="flex gap-3 mt-4">
                     <button
                       type="button"
                       disabled={isPending}
                       onClick={handleConfirmDisconnect}
-                      className="flex-1 h-14 text-white bg-primary hover:bg-primary type-desc rounded-[16px] transition-all flex items-center justify-center"
+                      className="flex-1 h-11 sm:h-12 text-white bg-primary hover:bg-primary/90 text-sm font-semibold rounded-xl transition-all flex items-center justify-center cursor-pointer disabled:opacity-60"
                     >
                       {isPending ? (
                         <Loader2 size={18} className="animate-spin" />
                       ) : (
-                        "Yes"
+                        "Yes, Disconnect"
                       )}
                     </button>
                     <button
                       type="button"
                       disabled={isPending}
                       onClick={handleCancelAndNavigate}
-                      className="flex-1 h-14 bg-white border border-[#ef4444] hover:bg-red-50/40 text-[#ef4444] type-desc rounded-[16px] transition-all flex items-center justify-center cursor-pointer"
+                      className="flex-1 h-11 sm:h-12 bg-white border border-red-300 hover:bg-red-50 text-red-500 text-sm font-semibold rounded-xl transition-all flex items-center justify-center cursor-pointer disabled:opacity-60"
                     >
-                      No
+                      Cancel
                     </button>
                   </div>
                 </motion.div>

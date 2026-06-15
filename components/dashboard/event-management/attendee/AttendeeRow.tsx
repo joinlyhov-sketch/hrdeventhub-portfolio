@@ -6,6 +6,7 @@ import ActionDropdown from "@/components/site/pop-up/action-button/ActionDropdow
 import { User, Trash2 } from "lucide-react";
 import { DropdownAction } from "@/components/site/pop-up/action-button/ActionDropdown";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface AttendeeRowProps {
   attendee: Participant;
@@ -99,9 +100,12 @@ export default function AttendeeRow({
       <TableCell className="px-5 py-3 type-desc text-slate-700 font-semibold w-[28%]">
         <div className="flex items-center gap-3 truncate">
           {attendee.user?.profilePicture ? (
-            <img
+            <Image
               src={attendee.user.profilePicture}
               alt={attendee.user.username || ""}
+              width={32}
+              height={32}
+              unoptimized
               className="w-8 h-8 rounded-full object-cover shrink-0"
             />
           ) : (

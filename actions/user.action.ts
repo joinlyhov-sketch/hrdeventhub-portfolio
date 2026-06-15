@@ -4,6 +4,10 @@ import { userService } from "@/service/user.service";
 import { UserData } from "@/types/user-management-type/user";
 import { revalidateTag } from "next/cache";
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export async function getAllUsersAction(): Promise<UserData[]> {
   try {
     const rawUsers = await userService.getAll();
@@ -27,11 +31,11 @@ export async function suspendUserAction(userId: string, reason: string) {
     const result = await userService.suspend(userId, { reason });
     revalidateTag("users", "max");
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Server Action Mutation Failure [suspendUserAction]:", error);
     return {
       success: false,
-      message: error.message || "Failed to suspend account.",
+      message: getErrorMessage(error, "Failed to suspend account."),
     };
   }
 }
@@ -41,14 +45,14 @@ export async function reactivateUserAction(userId: string) {
     const result = await userService.reactivate(userId);
     revalidateTag("users", "max");
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(
       "Server Action Mutation Failure [reactivateUserAction]:",
       error,
     );
     return {
       success: false,
-      message: error.message || "Failed to reactivate account.",
+      message: getErrorMessage(error, "Failed to reactivate account."),
     };
   }
 }
@@ -61,14 +65,14 @@ export async function updateUserRoleAction(
     const result = await userService.updateRole(userId, { role });
     revalidateTag("users", "max");
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(
       "Server Action Mutation Failure [updateUserRoleAction]:",
       error,
     );
     return {
       success: false,
-      message: error.message || "Failed to update role.",
+      message: getErrorMessage(error, "Failed to update role."),
     };
   }
 }
@@ -77,11 +81,11 @@ export async function getUserByIdAction(userId: string) {
   try {
     const result = await userService.getUserById(userId);
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Server Action Failure [getUserByIdAction]:", error);
     return {
       success: false,
-      message: error.message || "Failed to fetch user.",
+      message: getErrorMessage(error, "Failed to fetch user."),
     };
   }
 }

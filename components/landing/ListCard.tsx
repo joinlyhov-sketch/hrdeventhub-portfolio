@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion, type Variants } from "framer-motion";
+import Image from "next/image";
 
 interface MediaItem {
   id: string;
@@ -40,11 +41,11 @@ export default function MediaListSection() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { 
-        staggerChildren: 0.2,
-        delayChildren: 1.0   
-      }
-    }
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
   };
 
   return (
@@ -77,11 +78,13 @@ const ListCard: React.FC<{ item: MediaItem }> = ({ item }) => {
       variants={cardVariants}
       className="flex flex-col md:flex-row items-stretch md:items-start w-full gap-4 p-4 border border-border rounded-xl bg-card shadow-sm"
     >
-      <div className="relative w-full h-48 md:w-25 md:h-25 rounded-lg overflow-hidden shrink-0 bg-grey-100">
-        <img 
-          src={item.imageUrl} 
-          alt={item.title} 
-          className="w-full h-full object-cover" 
+      <div className="relative w-full h-40 md:w-25 md:h-25 rounded-lg overflow-hidden shrink-0 bg-grey-100">
+        <Image
+          src={item.imageUrl}
+          alt={item.title}
+          width={100}
+          height={100}
+          className="w-full h-full object-cover"
         />
       </div>
       <div className="flex flex-col items-start gap-1 flex-1 min-w-0 mt-2 md:mt-0">

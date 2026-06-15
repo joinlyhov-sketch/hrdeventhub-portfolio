@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useTransition, useRef } from "react";
+import NextImage from "next/image";
 import { User, Mails, Cake, Link2, Camera } from "lucide-react";
 
 import { format } from "date-fns";
@@ -31,6 +32,25 @@ interface CurrentUser {
   avatarInitials: string;
 }
 
+interface IdentitySnapshot {
+  firstName: string;
+  lastName: string;
+  username: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+}
+
+interface ProfileSnapshot {
+  bio: string;
+  avatar: string | null;
+  socials: {
+    linkedin: string;
+    github: string;
+    facebook: string;
+    telegram: string;
+  };
+}
+
 export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -49,8 +69,8 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [initialIdentity, setInitialIdentity] = useState<any>(null);
-  const [initialProfile, setInitialProfile] = useState<any>(null);
+  const [initialIdentity, setInitialIdentity] = useState<IdentitySnapshot | null>(null);
+  const [initialProfile, setInitialProfile] = useState<ProfileSnapshot | null>(null);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("Admin");
@@ -86,14 +106,15 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
         let identityAvatarFallback = null;
         if (identityRes.status === "fulfilled" && identityRes.value) {
+          const identityVal = identityRes.value as Record<string, unknown>;
           const idData =
-            (identityRes.value as any).payload || identityRes.value;
+            (identityVal.payload as Record<string, unknown>) || identityVal;
           const identitySnapshot = {
-            firstName: idData.firstName || "Admin",
-            lastName: idData.lastName || "",
-            username: idData.username || "",
-            dateOfBirth: idData.dateOfBirth || "2005-05-15",
-            phoneNumber: idData.phoneNumber || "012345678",
+            firstName: (idData.firstName as string) || "Admin",
+            lastName: (idData.lastName as string) || "",
+            username: (idData.username as string) || "",
+            dateOfBirth: (idData.dateOfBirth as string) || "2005-05-15",
+            phoneNumber: (idData.phoneNumber as string) || "012345678",
           };
 
           setInitialIdentity(identitySnapshot);
@@ -103,46 +124,43 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           setDob(identitySnapshot.dateOfBirth);
           setPhoneNumber(identitySnapshot.phoneNumber);
 
-          if (idData.email) setEmail(idData.email);
+          if (idData.email) setEmail(idData.email as string);
 
           if (idData.avatar || idData.profilePicture || idData.avatarUrl) {
             identityAvatarFallback =
-              idData.avatar || idData.profilePicture || idData.avatarUrl;
+              (idData.avatar || idData.profilePicture || idData.avatarUrl) as string;
           }
 
           if (idData.gender) {
-            const rawGender = idData.gender.toUpperCase();
+            const rawGender = (idData.gender as string).toUpperCase();
             if (rawGender === "M" || rawGender === "MALE") {
               setGender("Male");
             } else if (rawGender === "F" || rawGender === "FEMALE") {
               setGender("Female");
             } else {
-              setGender(idData.gender);
+              setGender(idData.gender as string);
             }
           }
         }
 
         if (
           profileRes.status === "fulfilled" &&
-          (profileRes.value as any)?.success
+          profileRes.value?.success
         ) {
-          const p = (profileRes.value as any).payload as any;
+          const p = profileRes.value.payload;
           let lUrl = "",
             gUrl = "",
             fUrl = "",
             tUrl = "";
 
-          const resolvedAvatar =
-            p.avatar ||
-            p.profilePicture ||
-            p.avatarUrl ||
-            identityAvatarFallback;
+          const resolvedAvatar: string | null =
+            p.profilePicture || identityAvatarFallback || null;
           if (resolvedAvatar) {
             setAvatarUrl(resolvedAvatar);
           }
 
           if (p.socialAccount && p.socialAccount.length > 0) {
-            p.socialAccount.forEach((s: any) => {
+            p.socialAccount.forEach((s) => {
               if (s.platform === "linkedin") lUrl = s.url;
               else if (s.platform === "github") gUrl = s.url;
               else if (s.platform === "facebook") fUrl = s.url;
@@ -171,7 +189,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         } else if (identityAvatarFallback) {
           setAvatarUrl(identityAvatarFallback);
         }
-      } catch (err) {}
+      } catch {}
     };
     loadAllUserData();
   }, [session]);
@@ -197,8 +215,10 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     const pendingAvatar = sessionStorage.getItem("pending-avatar");
 
     if (pendingAvatar) {
-      setSelectedImageSrc(pendingAvatar);
-      setIsAdjustOpen(true);
+      queueMicrotask(() => {
+        setSelectedImageSrc(pendingAvatar);
+        setIsAdjustOpen(true);
+      });
     }
   }, []);
   const validateField = (name: string, value: string) => {
@@ -360,27 +380,25 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     dataPayload.append("file", croppedBlob, "admin-avatar.jpg");
 
     try {
-      const result = (await uploadFileAction(dataPayload)) as any;
+      const result = (await uploadFileAction(dataPayload)) as Record<string, unknown>;
+      const resultPayload = result?.payload as Record<string, unknown> | undefined;
       const fileUrl =
-        result?.payload?.fileUrl ||
-        result?.payload?.url ||
+        resultPayload?.fileUrl ||
+        resultPayload?.url ||
         result?.fileUrl ||
         result?.url;
 
       if (fileUrl) {
-        setAvatarUrl(fileUrl);
+        setAvatarUrl(fileUrl as string);
       } else {
         setError(
-          result?.payload?.error ||
-            result?.error ||
-            result?.message ||
-            "Upload failed.",
+          (resultPayload?.error || result?.error || result?.message || "Upload failed.") as string,
         );
         setAvatarUrl(initialProfile?.avatar || null);
       }
-    } catch (err: any) {
-      setError(err?.message || "Upload failed.");
-      setAvatarUrl(initialProfile?.avatar || null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+      setAvatarUrl((initialProfile?.avatar as string) || null);
     }
 
     if (fileInputRef.current) {
@@ -441,7 +459,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
       },
     ];
 
-    const currentProfilePayload: any = {
+    const currentProfilePayload: Record<string, unknown> = {
       bio: bio.trim(),
       avatar: avatarUrl,
       profilePicture: avatarUrl,
@@ -474,7 +492,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
     startTransition(async () => {
       try {
-        const updatePromises: Promise<any>[] = [];
+        const updatePromises: Promise<unknown>[] = [];
 
         if (identityChanged) {
           updatePromises.push(updateIdentityMeAction(currentIdentityPayload));
@@ -483,13 +501,14 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         }
 
         if (profileChanged) {
-          updatePromises.push(updateProfileMeAction(currentProfilePayload));
+          updatePromises.push(updateProfileMeAction(currentProfilePayload as unknown as import("@/types/profile-edit-type").UpdateProfileRequest));
         } else {
           updatePromises.push(Promise.resolve({ success: true }));
         }
 
+        type ActionResult = { success?: boolean; message?: string; error?: string };
         const [identityResult, profileResult] =
-          await Promise.all(updatePromises);
+          await Promise.all(updatePromises) as [ActionResult, ActionResult];
 
         if (identityResult?.success && profileResult?.success) {
           router.refresh();
@@ -512,9 +531,9 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               "Profile validation failed.",
           );
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(
-          err?.message || "An exception blocked synchronization attempts.",
+          err instanceof Error ? err.message : "An exception blocked synchronization attempts.",
         );
       }
     });
@@ -532,9 +551,12 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           <div className="relative group w-20 h-20 shrink-0">
             {avatarUrl ? (
               <div className="w-full h-full relative rounded-full overflow-hidden">
-                <img
+                <NextImage
                   src={avatarUrl}
                   alt="Profile Avatar"
+                  width={80}
+                  height={80}
+                  unoptimized
                   className="w-full h-full object-cover border border-border"
                 />
                 {isUploading && (
@@ -1126,7 +1148,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               </svg>
               WeBill365 Information
             </h3>
-            <p className="type-detail text-muted-foreground mt-0.5"> 
+            <p className="type-detail text-muted-foreground mt-0.5">
               Manage WeBill Information for room payment
             </p>
           </div>

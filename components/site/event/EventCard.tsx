@@ -22,6 +22,8 @@ import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
 import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
+import { WorkspaceMember } from "@/types/workspace-type/workspace-members";
+import { Comment } from "@/types/file-types";
 
 interface EventCardProps {
   role: UserRole;
@@ -30,11 +32,16 @@ interface EventCardProps {
   onDeletePost: (postId: string) => Promise<void> | void;
   groupid: string;
   pinnedCount: number;
-  onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
-  members: any[];
+  onTogglePin: (
+    postId: string,
+    currentPinStatus: boolean,
+  ) => Promise<void> | void;
+  members: WorkspaceMember[];
 }
 
-const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+const getTotalCommentsCount = (
+  commentsList: Comment[] | undefined | null,
+): number => {
   if (!commentsList || commentsList.length === 0) return 0;
   let total = 0;
   for (const comment of commentsList) {
@@ -60,8 +67,11 @@ function EventItem({
   onDelete: () => Promise<void> | void;
   groupid: string;
   pinnedCount: number;
-  onTogglePin: (postId: string, currentPinStatus: boolean) => Promise<void> | void;
-  members: any[];
+  onTogglePin: (
+    postId: string,
+    currentPinStatus: boolean,
+  ) => Promise<void> | void;
+  members: WorkspaceMember[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -77,7 +87,10 @@ function EventItem({
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
+  const { comments, refetch, loading } = usePostComments(
+    post.postId,
+    showComments,
+  );
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const coverImage = post.media?.find((m) => m.isCover) ?? post.media?.[0];
@@ -108,9 +121,17 @@ function EventItem({
     }
   };
 
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/group/${groupid}?postId=${post.postId}&type=event`
+      : `https://hrdevent.app/group/${groupid}?postId=${post.postId}&type=event`;
+
   return (
     <>
-     <div id={`post-${post.postId}`} className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm">
+      <div
+        id={`post-${post.postId}`}
+        className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm"
+      >
         <div className="flex flex-wrap items-start justify-between gap-2 mb-3 sm:mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -118,7 +139,7 @@ function EventItem({
                 {profilePictureUrl ? (
                   <Image
                     src={profilePictureUrl}
-                    alt={creator!.fullName}
+                    alt={creator?.fullName ?? "User"}
                     width={48}
                     height={48}
                     className="w-full h-full object-cover rounded-full border-2 border-primary"
@@ -162,7 +183,9 @@ function EventItem({
           </div>
         </div>
 
-        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">{post.title}</h2>
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+          {post.title}
+        </h2>
 
         <ExpandableText text={post.content} />
 
@@ -183,7 +206,7 @@ function EventItem({
             </p>
           )}
           {post.eventStart && (
-           <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+            <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
               <span className="text-[11px] sm:text-sm font-semibold text-foreground">
                 DATE:{" "}
               </span>
@@ -192,7 +215,7 @@ function EventItem({
             </p>
           )}
           {post.purpose && (
-            <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+            <p className="text-[11px] sm:text-sm text-grey-500 hover:leading-snug">
               <span className="text-[11px] sm:text-sm font-semibold text-foreground">
                 PURPOSE:{" "}
               </span>
@@ -234,22 +257,24 @@ function EventItem({
             </div>
           )}
           <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-3 sm:p-6 text-white z-10 flex items-end justify-between gap-2 sm:gap-4">
-  <div className="min-w-0 flex-1">
-    <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-md tracking-wide mb-1 sm:mb-2 text-[10px] sm:text-xs">
-      Event
-    </span>
-    <h4 className="text-xs sm:text-sm md:text-base font-semibold line-clamp-1">{post.title}</h4>
-    <p className="text-[10px] sm:text-xs opacity-80 truncate">
-      {post.eventStart ?? "—"}
-    </p>
-  </div>
-  <Link
-    href={`/group/${groupid}/event/${post.postId}`}
-    className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white type-desc-small-semibold px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg transition-colors cursor-pointer shrink-0 text-center shadow-md mb-0.5 text-[10px] sm:text-xs whitespace-nowrap"
-  >
-    View Detail
-  </Link>
-</div>
+            <div className="min-w-0 flex-1">
+              <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-md tracking-wide mb-1 sm:mb-2 text-[10px] sm:text-xs">
+                Event
+              </span>
+              <h4 className="text-xs sm:text-sm md:text-base font-semibold line-clamp-1">
+                {post.title}
+              </h4>
+              <p className="text-[10px] sm:text-xs opacity-80 truncate">
+                {post.eventStart ?? "—"}
+              </p>
+            </div>
+            <Link
+              href={`/group/${groupid}/event/${post.postId}`}
+              className="bg-[#0F2854] hover:bg-[#1C4D8D] text-white type-desc-small-semibold px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg transition-colors cursor-pointer shrink-0 text-center shadow-md mb-0.5 text-[10px] sm:text-xs whitespace-nowrap"
+            >
+              View Detail
+            </Link>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
@@ -276,8 +301,12 @@ function EventItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> 
-              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
+              <MessageCircleMore size={20} />
+              {showComments
+                ? getTotalCommentsCount(comments)
+                : getTotalCommentsCount(comments) > 0
+                  ? `${getTotalCommentsCount(comments)} Comment${getTotalCommentsCount(comments) > 1 ? "s" : ""}`
+                  : "Comment"}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -366,6 +395,7 @@ function EventItem({
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         postId={post.postId}
+        shareUrl={shareUrl}
       />
     </>
   );

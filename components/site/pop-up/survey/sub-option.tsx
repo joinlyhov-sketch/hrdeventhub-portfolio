@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Plus, Search, ChartColumnBig, X } from "lucide-react";
+import { CheckCircle2, Plus, ChartColumnBig } from "lucide-react";
 
 import { Button } from "../../../ui/button";
 import {

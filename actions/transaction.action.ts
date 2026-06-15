@@ -1,11 +1,11 @@
 "use server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
-import { Transaction, Event } from "@/types/transaction";
+import { Transaction, TransactionStatus, Event } from "@/types/transaction";
 import { TransactionDetail, EventDetail } from "@/types/transaction-detail";
 import { transactionService } from "@/service/transaction.service";
 
-const statusMap: Record<string, string> = {
+const statusMap: Record<string, TransactionStatus> = {
   "0": "Successful",
   "1": "Pending",
   "2": "Failed",
@@ -51,16 +51,23 @@ function formatDetailDate(dateStr: string, timeStr: string): string {
   });
 }
 
-function formatEventDateTime(isoString: string): { date: string; time: string } {
+function formatEventDateTime(isoString: string): {
+  date: string;
+  time: string;
+} {
   if (!isoString) return { date: "", time: "" };
   const d = new Date(isoString);
   return {
     date: d.toLocaleDateString("en-US", {
-      weekday: "long", month: "long", day: "2-digit", year: "numeric",
+      weekday: "long",
+      month: "long",
+      day: "2-digit",
+      year: "numeric",
       timeZone: "Asia/Phnom_Penh",
     }),
     time: d.toLocaleTimeString("en-US", {
-      hour: "2-digit", minute: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
       timeZone: "Asia/Phnom_Penh",
     }),
   };
@@ -93,15 +100,15 @@ export async function getTransactions(): Promise<Transaction[]> {
 
   const json = await transactionService.getTransactions(session.accessToken);
 
-  return (json.payload ?? []).map((t: any) => ({
+  return ((json.payload as Record<string, unknown>[]) ?? []).map((t) => ({
     id: `#TX-${String(t.transactionId).slice(-5)}`,
-    uuid: t.id,
-    username: t.payerName ?? t.senderAccountName ?? "",
-    avatar: t.profilePicture ?? "",
-    amount: t.amount,
-    status: statusMap[t.settlementStatus] ?? "Pending",
-    timestamp: formatRelative(t.createdAt),
-    eventId: t.post?.postId ?? t.postId ?? "",
+    uuid: t.id as string,
+    username: (t.payerName ?? t.senderAccountName ?? "") as string,
+    avatar: (t.profilePicture ?? "") as string,
+    amount: t.amount as number,
+    status: statusMap[String(t.settlementStatus)] ?? "Pending",
+    timestamp: formatRelative(String(t.createdAt ?? "")),
+    eventId: ((t.post as Record<string, unknown>)?.postId ?? t.postId ?? "") as string,
   }));
 }
 
@@ -112,37 +119,48 @@ export async function getEventSummaries(): Promise<Event[]> {
   }
 
   const json = await transactionService.getTransactions(session.accessToken);
-  const transactions: any[] = json.payload ?? [];
+  const transactions = ((json.payload as unknown[]) ?? []) as Record<string, unknown>[];
 
   const seenPostIds = new Set<string>();
   const events: Event[] = [];
 
   for (const t of transactions) {
-    const post = t.post;
-    if (!post?.postId || seenPostIds.has(post.postId)) continue;
-    seenPostIds.add(post.postId);
+    const post = t.post as Record<string, unknown> | undefined;
+    if (!post?.postId || seenPostIds.has(post.postId as string)) continue;
+    seenPostIds.add(post.postId as string);
+
+    const payment = post.payment as Record<string, unknown> | undefined;
+    const eventStart = post.eventStart as string | undefined;
+    const createdAt = post.createdAt as string | undefined;
 
     events.push({
-      id: post.postId,
-      title: post.title ?? "",
-      date: formatEventDate(post.eventStart ?? post.createdAt),
-      status: eventStatusMap[post.status] ?? "Published",
-      amount: Number(post.payment?.amountRaised ?? 0),
+      id: post.postId as string,
+      title: (post.title ?? "") as string,
+      date: formatEventDate(eventStart ?? createdAt ?? ""),
+      status: eventStatusMap[post.status as string] ?? "Published",
+      amount: Number(payment?.amountRaised ?? 0),
       attendees: 0,
-      year: new Date(post.eventStart ?? post.createdAt).getFullYear(),
+      year: new Date(eventStart ?? createdAt ?? "").getFullYear(),
     });
   }
 
   return events;
 }
 
-export async function getTransactionDetail(transactionUUID: string): Promise<TransactionDetail> {
+export async function getTransactionDetail(
+  transactionUUID: string,
+): Promise<TransactionDetail> {
   const session = await getServerSession(authOptions);
   if (!session?.accessToken) throw new Error("Unauthorized");
 
   const token = session.accessToken;
-  const txJson = await transactionService.getTransactionDetail(transactionUUID, token);
-  const tx = txJson.payload;
+  const txJson = await transactionService.getTransactionDetail(
+    transactionUUID,
+    token,
+  );
+  const tx = txJson.payload as Record<string, unknown>;
+  const txPayer = (tx.payer ?? {}) as Record<string, unknown>;
+  const txAppUser = (tx.appUser ?? {}) as Record<string, unknown>;
 
   let txAppUserId = firstString(
     tx.appUserId,
@@ -157,20 +175,24 @@ export async function getTransactionDetail(transactionUUID: string): Promise<Tra
     tx.customer_id,
     tx.memberId,
     tx.member_id,
-    tx.payer?.appUserId,
-    tx.payer?.app_user_id,
-    tx.payer?.userId,
-    tx.payer?.user_id,
-    tx.payer?.id,
-    tx.appUser?.appUserId,
-    tx.appUser?.app_user_id,
-    tx.appUser?.userId,
-    tx.appUser?.user_id,
-    tx.appUser?.id,
+    txPayer.appUserId,
+    txPayer.app_user_id,
+    txPayer.userId,
+    txPayer.user_id,
+    txPayer.id,
+    txAppUser.appUserId,
+    txAppUser.app_user_id,
+    txAppUser.userId,
+    txAppUser.user_id,
+    txAppUser.id,
   );
 
   if (!txAppUserId) {
-    txAppUserId = await transactionService.findPayerIdFromTransactionList(token, transactionUUID, tx);
+    txAppUserId = await transactionService.findPayerIdFromTransactionList(
+      token,
+      transactionUUID,
+      tx,
+    );
   }
 
   if (!txAppUserId) {
@@ -181,19 +203,19 @@ export async function getTransactionDetail(transactionUUID: string): Promise<Tra
   if (txAppUserId) {
     try {
       profileJson = await transactionService.getProfileById(txAppUserId, token);
-    } catch (e) {
+    } catch {
       profileJson = null;
     }
   }
-  const profile = profileJson?.payload;
+  const profile = profileJson?.payload as Record<string, unknown> | undefined;
 
   let postJson = null;
   try {
-    postJson = await transactionService.getEventById(tx.postId, token);
-  } catch (e) {
+    postJson = await transactionService.getEventById(tx.postId as string, token);
+  } catch {
     postJson = null;
   }
-  const post = postJson?.payload;
+  const post = postJson?.payload as Record<string, unknown> | undefined;
 
   const detailStatusMap: Record<string, TransactionDetail["status"]> = {
     "0": "Successful",
@@ -207,15 +229,19 @@ export async function getTransactionDetail(transactionUUID: string): Promise<Tra
     draft: "Published",
   };
 
-  const { date: eventDate, time: eventTime } = post?.eventStart
-    ? formatEventDateTime(post.eventStart)
+  const postEventStart = post?.eventStart as string | undefined;
+  const { date: eventDate, time: eventTime } = postEventStart
+    ? formatEventDateTime(postEventStart)
     : { date: "", time: "" };
 
-  const coverImage = post?.media?.find((m: any) => m.isCover)?.filePath
-    ?? post?.media?.[0]?.filePath
-    ?? "";
+  const postMedia = post?.media as Record<string, unknown>[] | undefined;
+  const coverImage =
+    postMedia?.find((m) => m.isCover)?.filePath as string ??
+    postMedia?.[0]?.filePath as string ??
+    "";
 
-  const appUser = profile?.appUser;
+  const appUser = profile?.appUser as Record<string, unknown> | undefined;
+  const profileUser = profile?.user as Record<string, unknown> | undefined;
   const payerProfileId = firstString(
     appUser?.appUserId,
     appUser?.app_user_id,
@@ -226,46 +252,51 @@ export async function getTransactionDetail(transactionUUID: string): Promise<Tra
     profile?.app_user_id,
     profile?.userId,
     profile?.user_id,
-    profile?.user?.appUserId,
-    profile?.user?.app_user_id,
-    profile?.user?.userId,
-    profile?.user?.user_id,
+    profileUser?.appUserId,
+    profileUser?.app_user_id,
+    profileUser?.userId,
+    profileUser?.user_id,
     txAppUserId,
   );
   const skills = profile?.skills;
-  const firstSkill = Array.isArray(skills) && skills.length > 0 ? skills[0] : "";
-  const generation = profile?.generation?.name ?? "";
+  const firstSkill =
+    Array.isArray(skills) && skills.length > 0 ? (skills[0] as string) : "";
+  const profileGeneration = profile?.generation as Record<string, unknown> | undefined;
+  const generation = (profileGeneration?.name ?? "") as string;
+
+  const postLocation = post?.location as Record<string, unknown> | undefined;
 
   return {
-    id: tx.id,
-    processedDate: formatDetailDate(tx.transactionDate, tx.transactionTime),
-    amount: tx.amount,
-    currency: tx.currencyCode ?? "USD",
-    status: detailStatusMap[tx.settlementStatus] ?? "Pending",
-    referenceId: tx.billNo ?? "",
+    id: tx.id as string,
+    processedDate: formatDetailDate(tx.transactionDate as string, tx.transactionTime as string),
+    amount: tx.amount as number,
+    currency: (tx.currencyCode ?? "USD") as string,
+    status: detailStatusMap[tx.settlementStatus as string] ?? "Pending",
+    referenceId: (tx.billNo ?? "") as string,
     transactionId: `#TX-${String(tx.transactionId).slice(-5)}`,
     payer: {
       id: payerProfileId,
       name: appUser
-        ? `${appUser.firstName ?? ""} ${appUser.lastName ?? ""}`.trim() || appUser.username
-        : tx.payerName,
-      avatar: profile?.profilePicture ?? "",
-      badge: (profile?.roles ?? "ALUMNI").toString().toUpperCase(),
+        ? `${(appUser.firstName ?? "") as string} ${(appUser.lastName ?? "") as string}`.trim() ||
+          (appUser.username as string)
+        : (tx.payerName as string),
+      avatar: (profile?.profilePicture ?? "") as string,
+      badge: ((profile?.roles ?? "ALUMNI") as { toString(): string }).toString().toUpperCase(),
       generation,
       skill: firstSkill,
-      email: appUser?.email ?? "",
-      phone: appUser?.phoneNumber ?? "",
+      email: (appUser?.email ?? "") as string,
+      phone: (appUser?.phoneNumber ?? "") as string,
     },
     event: {
-      id: tx.postId,
-      workspaceId: post?.workspaceId ?? "",
-      title: post?.title ?? "",
+      id: tx.postId as string,
+      workspaceId: (post?.workspaceId ?? "") as string,
+      title: (post?.title ?? "") as string,
       date: eventDate,
       time: eventTime,
-      location: post?.location?.locationName ?? "",
+      location: (postLocation?.locationName ?? "") as string,
       image: coverImage,
       badge: "EVENT",
-      status: detailEventStatusMap[post?.status] ?? "Active",
+      status: detailEventStatusMap[post?.status as string] ?? "Active",
     },
   };
 }
