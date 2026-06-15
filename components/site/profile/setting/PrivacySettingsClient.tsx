@@ -66,7 +66,7 @@ function apiModeToUiMode(mode: SharingMode): VisibilityMode {
 }
 
 function deriveSelectiveConfig(profile: UserProfilePayload): SelectiveVisibility {
-  const prefs = profile.preferences?.[0];
+  const prefs = profile.preferences;
   if (!prefs) return { ...ALL_VISIBLE };
   return {
     showProfilePicture: prefs.showProfilePicture ?? true,
@@ -93,6 +93,9 @@ export default function PrivacySettingsClient({ profile }: Props) {
     deriveSelectiveConfig(profile)
   );
 
+  console.log("profileSharingMode:", profile.profileSharingMode);
+  console.log("preferences:", profile.preferences);
+  
   return (
     <div className="w-full grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 xl:gap-8 items-start px-4 sm:px-6 lg:px-12">
       <div className="xl:col-span-4">

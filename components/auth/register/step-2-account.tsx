@@ -159,7 +159,7 @@ export default function Step2Account() {
               placeholder="Email"
               type="email"
               value={form.email}
-              onChange={(e) => handleChange("email", e.target.value)}
+              onChange={(e) => handleChange("email", e.target.value.toLowerCase())}
               className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
             />
           </div>
@@ -228,14 +228,14 @@ export default function Step2Account() {
       <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-3 sm:gap-4 w-full">
         <button
           onClick={() => setStep(1)}
-          className="h-[50px] sm:h-[58px] rounded-xl sm:rounded-2xl border border-[#c8d6ee] bg-white text-base sm:text-lg font-semibold text-[#17356f] transition-all hover:bg-[#f0f5ff]"
+          className="h-11 sm:h-14.5 rounded-xl sm:rounded-2xl border border-[#c8d6ee] bg-white text-base sm:text-lg font-semibold text-[#17356f] transition-all hover:bg-[#f0f5ff]"
         >
           Back
         </button>
         <button
           onClick={handleRegister}
           disabled={isPending}
-          className="h-[50px] sm:h-[58px] rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all hover:bg-[#1f4685] disabled:opacity-70"
+          className="h-11 sm:h-14.5 rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all hover:bg-[#1f4685] disabled:opacity-70"
         >
           {isPending ? "Registering..." : "Register"}
         </button>

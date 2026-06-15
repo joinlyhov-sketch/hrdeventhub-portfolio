@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import {
   Mail,
@@ -105,15 +105,42 @@ export default function ProfileCard({
   const showEndorse = viewMode === "alumni" || viewMode === "organizer";
   const showMessage = viewMode !== "self";
 
-  console.log("preferences:", profile.preferences);
+  const coverIndex = useMemo(() => {
+    const hash = (profile.appUser.username || "user")
+      .split("")
+      .reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return (hash % 3) + 1;
+  }, [profile.appUser.username]);
+
+  const sharingMode = profile.profileSharingMode;
+  const prefs = profile.preferences;
+
+  const isVisible = (field: keyof NonNullable<typeof prefs>): boolean => {
+    if (sharingMode === "PUBLIC") return true;
+    if (sharingMode === "PRIVATE") return false;
+    return prefs?.[field] ?? true;
+  };
+
+  console.log("sharingMode:", profile.profileSharingMode);
+  console.log("prefs:", profile.preferences);
+  console.log("isVisible showEmail:", isVisible("showEmail"));
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full w-full overflow-hidden">
-      <div className="h-32 bg-primary w-full rounded-xl shrink-0" />
+      <div className="h-32 w-full rounded-xl shrink-0 relative overflow-hidden">
+        <img
+          src={`/covers/cover${coverIndex}.jpg`}
+          alt="Cover"
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/covers/cover1.jpg";
+          }}
+        />
+      </div>
       <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow justify-between">
         <div className="w-full flex flex-col items-center">
           <div className="w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10 flex items-center justify-center select-none">
-            {profileAvatar ? (
+            {isVisible("showProfilePicture") && profileAvatar ? (
               <Image
                 src={profileAvatar}
                 alt={displayName}
@@ -135,153 +162,172 @@ export default function ProfileCard({
             <h2 className="type-title text-primary font-bold text-xl">
               {displayName}
             </h2>
-            <p className="text-[20px] text-secondary mb-4 border-b pb-2.5 border-border">
+            <p className="text-detail text-secondary mb-4 border-b pb-2.5 border-border">
               @{profile.appUser.username.split("@")[0]}
             </p>
-            <p className="type-desc text-secondary mb-2 leading-relaxed italic">
-              {profile.bio ? `"${profile.bio}"` : "No bio provided yet."}
-            </p>
+            {isVisible("showBio") && profile.bio && (
+              <p className="text-detail font-medium text-secondary mb-2 leading-relaxed italic">
+                {profile.bio ? `"${profile.bio}"` : "No bio provided yet."}
+              </p>
+            )}
           </div>
 
-          <div className="w-full space-y-3 pt-6 text-left">
-            <h3 className="type-subtitle-24 text-secondary font-semibold mb-4">
-              Personal Information
-            </h3>
-            <InfoRow icon={<Mail size={16} />} text={profile.appUser.email} />
-            <InfoRow
-              icon={<Calendar size={16} />}
-              text={formatDate(profile.appUser.dateOfBirth)}
-            />
-            <InfoRow
-              icon={<Users size={16} />}
-              text={profile.generation?.name || "N/A"}
-            />
-            <InfoRow
-              icon={<Code size={16} />}
-              text={formatSkills(profile.skills)}
-            />
-            <InfoRow
-              icon={<Phone size={16} />}
-              text={
-                profile.appUser.phoneNumber
-                  ? `+855${profile.appUser.phoneNumber}`
-                  : "—"
-              }
-            />
-            <InfoRow
-              icon={<GraduationCap size={16} />}
-              text={
-                profile.currentStatus
-                  ? profile.currentStatus
-                      .replace(/_/g, " ")
-                      .toLowerCase()
-                      .replace(/\b\w/g, (char) => char.toUpperCase())
-                  : "Studying"
-              }
-            />
-          </div>
-
-          {(facebookAccount ||
-            telegramAccount ||
-            githubAccount ||
-            linkedinAccount) && (
-            <div className="w-full flex items-center gap-4 pt-6 justify-start">
-              {facebookAccount && (
-                <a
-                  href={facebookAccount.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105 shrink-0"
-                >
-                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                    <rect width="40" height="40" rx="20" fill="#1877F2" />
-                    <path
-                      d="M22.5 14H20.5C18.57 14 17 15.57 17 17.5V20H15V22.5H17V28H20.5V22.5H23L23.5 20H20.5V17.5C20.5 17.22 20.72 17 21 17H23.5V14Z"
-                      fill="white"
+          <div className="w-full space-y-3 pt-3 text-left">
+            {sharingMode === "PRIVATE" ? (
+              <div className="w-full pt-6">
+                <div className="border py-2.5 rounded-2xl text-center flex items-center justify-center">
+                  <span className="text-grey-400 type-desc tracking-wide">
+                    {displayName}&apos;s profile is locked
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full space-y-3 text-left">
+                <h3 className="type-subtitle-24 text-secondary font-semibold mb-4">
+                Personal Information
+                </h3>
+                  {isVisible("showEmail") && profile.appUser.email && (
+                    <InfoRow icon={<Mail size={16} />} text={profile.appUser.email} />
+                  )}
+                  {isVisible("showBirthdate") && profile.appUser.dateOfBirth && (
+                    <InfoRow
+                      icon={<Calendar size={16} />}
+                      text={formatDate(profile.appUser.dateOfBirth)}
                     />
-                  </svg>
-                </a>
-              )}
-              {telegramAccount && (
-                <a
-                  href={telegramAccount.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105 shrink-0"
-                >
-                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                    <rect width="40" height="40" rx="20" fill="#24A1DE" />
-                    <path
-                      d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z"
-                      stroke="#F9F9F9"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  )}
+                  {isVisible("showGeneration") && profile.generation?.name && (
+                    <InfoRow
+                      icon={<Users size={16} />}
+                      text={profile.generation.name}
                     />
-                    <path
-                      d="M18.1094 21.6525L21.6894 18.0625"
-                      stroke="#F9F9F9"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  )}
+                  {isVisible("showSkills") && profile.skills?.length > 0 && (
+                    <InfoRow
+                      icon={<Code size={16} />}
+                      text={formatSkills(profile.skills)}
                     />
-                  </svg>
-                </a>
-              )}
-              {githubAccount && (
-                <a
-                  href={githubAccount.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105 shrink-0"
-                >
-                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                    <rect width="40" height="40" rx="20" fill="#0F172A" />
-                    <path
-                      d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034"
-                      stroke="white"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  )}
+                  {isVisible("showPhoneNumber") && profile.appUser.phoneNumber && (
+                    <InfoRow
+                      icon={<Phone size={16} />}
+                      text={`${profile.appUser.phoneNumber}`}
                     />
-                  </svg>
-                </a>
-              )}
-              {linkedinAccount && (
-                <a
-                  href={linkedinAccount.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105 shrink-0"
-                >
-                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                    <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                    <path
-                      d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883"
-                      stroke="#F9F9F9"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  )}
+                  {isVisible("showCurrentStatus") && profile.currentStatus && (
+                    <InfoRow
+                      icon={<GraduationCap size={16} />}
+                      text={profile.currentStatus
+                        .replace(/_/g, " ")
+                        .toLowerCase()
+                        .replace(/\b\w/g, (char) => char.toUpperCase())}
                     />
-                    <path
-                      d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17"
-                      stroke="#F9F9F9"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M16 20H24"
-                      stroke="#F9F9F9"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
-              )}
-            </div>
+                  )}
+              </div>
           )}
+          </div>
+
+          {isVisible("showSocial") &&
+            (facebookAccount ||
+              telegramAccount ||
+              githubAccount ||
+              linkedinAccount) && (
+              <div className="w-full flex items-center gap-4 pt-6 justify-start">
+                {facebookAccount && (
+                  <a
+                    href={facebookAccount.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-transform hover:scale-105 shrink-0"
+                  >
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                      <rect width="40" height="40" rx="20" fill="#1877F2" />
+                      <path
+                        d="M22.5 14H20.5C18.57 14 17 15.57 17 17.5V20H15V22.5H17V28H20.5V22.5H23L23.5 20H20.5V17.5C20.5 17.22 20.72 17 21 17H23.5V14Z"
+                        fill="white"
+                      />
+                    </svg>
+                  </a>
+                )}
+                {telegramAccount && (
+                  <a
+                    href={telegramAccount.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-transform hover:scale-105 shrink-0"
+                  >
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                      <rect width="40" height="40" rx="20" fill="#24A1DE" />
+                      <path
+                        d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z"
+                        stroke="#F9F9F9"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M18.1094 21.6525L21.6894 18.0625"
+                        stroke="#F9F9F9"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </a>
+                )}
+                {githubAccount && (
+                  <a
+                    href={githubAccount.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-transform hover:scale-105 shrink-0"
+                  >
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                      <rect width="40" height="40" rx="20" fill="#0F172A" />
+                      <path
+                        d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </a>
+                )}
+                {linkedinAccount && (
+                  <a
+                    href={linkedinAccount.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-transform hover:scale-105 shrink-0"
+                  >
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                      <rect width="40" height="40" rx="20" fill="#1C4D8D" />
+                      <path
+                        d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883"
+                        stroke="#F9F9F9"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17"
+                        stroke="#F9F9F9"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M16 20H24"
+                        stroke="#F9F9F9"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </a>
+                )}
+              </div>
+            )}
         </div>
 
         <div className="grow w-full min-h-[20px]" />
@@ -292,7 +338,7 @@ export default function ProfileCard({
               href={`/profile/${profileId}/edit-profile`}
               className="block w-full"
             >
-              <button className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
+              <button className="w-full bg-primary text-primary-foreground py-3 rounded-lg type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
                 Edit Profile
               </button>
             </Link>

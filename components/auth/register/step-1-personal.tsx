@@ -36,7 +36,7 @@ const step1Schema = z.object({
   phoneNumber: z
     .string()
     .min(1, "Phone number is required")
-    .regex(/^855\d{8,9}$/, "Please enter a valid Cambodian phone number"),
+    .regex(/^855\d{9}$/, "Please enter a valid 9-digit phone number"),
 });
 
 type Step1Errors = Partial<Record<keyof z.infer<typeof step1Schema>, string>>;
@@ -97,21 +97,23 @@ export default function Step1Personal() {
   const selectedDate = form.dateOfBirth ? parseISO(form.dateOfBirth) : undefined;
 
   const getDisplayPhoneNumber = () => {
-    if (form.phoneNumber.startsWith("855")) {
-      return form.phoneNumber.slice(3);
-    }
-    return form.phoneNumber;
+    const raw = form.phoneNumber.startsWith("855")
+      ? form.phoneNumber.slice(3)
+      : form.phoneNumber;
+    if (raw.length <= 2) return raw;
+    if (raw.length <= 5) return `${raw.slice(0, 2)} ${raw.slice(2)}`;
+    return `${raw.slice(0, 2)} ${raw.slice(2, 5)} ${raw.slice(5)}`;
   };
 
   return (
     <motion.div
-      className="flex flex-col gap-4 sm:gap-5"
+      className="flex flex-col gap-3 sm:gap-5"
       initial="hidden"
       animate="visible"
       exit={{ opacity: 0, x: 20 }}
       variants={itemVars}
     >
-      <div className="mb-3 sm:mb-5 text-center">
+      <div className="mb-2 sm:mb-5 text-center">
         <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-[-1px] sm:tracking-[-2px] text-[#17356f]">
           Create Your Account
         </h2>
@@ -124,7 +126,7 @@ export default function Step1Personal() {
         <div className="grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
+              className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-2.5 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
                 errors.firstName ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
@@ -140,7 +142,7 @@ export default function Step1Personal() {
           </div>
           <div className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
+              className={`flex items-center gap-3 rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-2.5 sm:py-3.5 transition-all focus-within:border-[#24529a] ${
                 errors.lastName ? "border-red-400" : "border-[#dce6f0]"
               }`}
             >
@@ -156,12 +158,12 @@ export default function Step1Personal() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
+        <div className="flex flex-col gap-1 pt-2 sm:pt-4">
           <Popover open={genderOpen} onOpenChange={setGenderOpen}>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`relative flex items-center gap-3 w-full rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 text-left transition-all outline-none focus:border-[#24529a] cursor-pointer ${
+                className={`relative flex items-center gap-3 w-full rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-2.5 sm:py-3.5 text-left transition-all outline-none focus:border-[#24529a] cursor-pointer ${
                   errors.gender ? "border-red-400" : "border-[#dce6f0]"
                 }`}
               >
@@ -180,7 +182,7 @@ export default function Step1Personal() {
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[--radix-popover-trigger-width] p-1.5 rounded-xl sm:rounded-2xl shadow-lg border border-[#dce6f0]"
+              className="w-(--radix-popover-trigger-width) flex flex-col gap-1 p-2 rounded-xl sm:rounded-2xl shadow-md border border-[#dce6f0] bg-white"
               align="start"
               sideOffset={6}
             >
@@ -192,7 +194,7 @@ export default function Step1Personal() {
                     handleChange("gender", option.value);
                     setGenderOpen(false);
                   }}
-                  className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm transition-colors cursor-pointer ${
+                  className={`flex items-center justify-between w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl text-sm transition-colors cursor-pointer ${
                     form.gender === option.value
                       ? "bg-blue-50 text-[#24529a] font-semibold"
                       : "text-[#2d3748] hover:bg-gray-50"
@@ -209,12 +211,12 @@ export default function Step1Personal() {
           {errors.gender && <FieldError message={errors.gender} />}
         </div>
 
-        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
+        <div className="flex flex-col gap-1 pt-2 sm:pt-4">
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`flex items-center gap-3 w-full rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-3 sm:py-3.5 text-left transition-all outline-none focus:border-[#24529a] focus:ring-1 focus:ring-[#24529a] cursor-pointer ${
+                className={`flex items-center gap-3 w-full rounded-xl sm:rounded-2xl border bg-white px-3 sm:px-4 py-2.5 sm:py-3.5 text-left transition-all outline-none focus:border-[#24529a] focus:ring-1 focus:ring-[#24529a] cursor-pointer ${
                   errors.dateOfBirth ? "border-red-400" : "border-[#dce6f0]"
                 }`}
               >
@@ -249,13 +251,13 @@ export default function Step1Personal() {
           {errors.dateOfBirth && <FieldError message={errors.dateOfBirth} />}
         </div>
 
-        <div className="flex flex-col gap-1 pt-3 sm:pt-4">
+        <div className="flex flex-col gap-1 pt-2 sm:pt-4">
           <div
             className={`flex items-center rounded-xl sm:rounded-2xl border bg-white overflow-hidden transition-all focus-within:border-[#24529a] ${
               errors.phoneNumber ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <div className="flex items-center gap-2 bg-gray-50 border-r border-[#dce6f0] h-[50px] sm:h-[54px] px-3 sm:px-4 select-none shrink-0 text-sm font-medium text-gray-500">
+            <div className="flex items-center gap-2 bg-gray-50 border-r border-[#dce6f0] h-11 sm:h-13.5 px-3 sm:px-4 select-none shrink-0 text-sm font-medium text-gray-500">
               <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center shadow-sm">
                 <Flags.KH className="w-full h-full object-cover" />
               </span>
@@ -263,7 +265,7 @@ export default function Step1Personal() {
             </div>
             <Input
               type="tel"
-              placeholder="12 345 678"
+              placeholder="89 124 5768"
               value={getDisplayPhoneNumber()}
               onChange={(e) => {
                 const input = e.target.value.replace(/\D/g, "");
@@ -272,9 +274,10 @@ export default function Step1Personal() {
                   return;
                 }
                 const rawDigits = input.startsWith("0") ? input.slice(1) : input;
-                handleChange("phoneNumber", `855${rawDigits}`);
+                const capped = rawDigits.slice(0, 9);
+                handleChange("phoneNumber", `855${capped}`);
               }}
-              className="w-full border-0 rounded-none bg-transparent h-[50px] sm:h-[54px] text-sm outline-none focus-visible:ring-0 shadow-none placeholder:text-[#aab3c0] text-[#2d3748] px-3 sm:px-4"
+              className="w-full border-0 rounded-none bg-transparent h-11 sm:h-13.5 text-sm outline-none focus-visible:ring-0 shadow-none placeholder:text-[#aab3c0] text-[#2d3748] px-3 sm:px-4"
             />
           </div>
           {errors.phoneNumber && <FieldError message={errors.phoneNumber} />}
@@ -282,8 +285,9 @@ export default function Step1Personal() {
       </div>
 
       <button
+        type="button"
         onClick={handleNext}
-        className="mt-2 sm:mt-3 h-[50px] sm:h-[58px] w-full rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] cursor-pointer"
+        className="mt-2 sm:mt-3 h-11 sm:h-14.5 w-full rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] cursor-pointer"
       >
         Next
       </button>
