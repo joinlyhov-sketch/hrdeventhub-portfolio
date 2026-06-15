@@ -65,6 +65,8 @@ export default function ProfilePage() {
   const showEventTab =
     !isPrivate &&
     isReady &&
+    viewerRole !== "" &&
+    subjectRole !== "" &&
     ((isSelf && (viewerRole === "STUDENT" || viewerRole === "ALUMNI")) ||
       (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI")));
 

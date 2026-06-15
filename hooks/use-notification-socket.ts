@@ -1,3 +1,4 @@
+"use no memo";
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -87,48 +88,41 @@ export function useNotificationSocket({
 }: UseNotificationSocketOptions) {
   const addNotification = useNotificationStore((s) => s.addNotification);
   const addNotificationRef = useRef(addNotification);
-  const clientRef = useRef<Client | null>(null);
+  addNotificationRef.current = addNotification;
   const workspaceKey = workspaceIds.join(",");
 
   useEffect(() => {
-    addNotificationRef.current = addNotification;
-  }, [addNotification]);
+    if (!token || !appUserId) return;
 
-  useEffect(() => {
+    const base =
+      process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api/v5", "") ||
+      "https://api.hrdevent.app";
+
     const ids = workspaceKey ? workspaceKey.split(",") : [];
-    if (!token || !appUserId || ids.length === 0) return;
 
     const client = new Client({
-      webSocketFactory: () => {
-        const base =
-          process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api/v5", "") ||
-          "https://api.hrdevent.app";
-        const url = `${base}/ws?token=${encodeURIComponent(token)}`;
-        return new SockJS(url);
-      },
+      webSocketFactory: () => new SockJS(`${base}/ws?token=${encodeURIComponent(token)}`),
       connectHeaders: {},
       reconnectDelay: 5000,
 
       onConnect: () => {
+        console.log("[WS] Connected. Subscribing to mentions + workspace topics.");
         client.subscribe("/user/queue/mentions", (message) => {
           try {
             const raw: WsMentionNotification = JSON.parse(message.body);
             const payload = toNotificationPayload(raw);
             addNotificationRef.current(payload);
-
             toast(TOAST_LABELS[raw.type] ?? "Notification", {
               description: payload.message,
               duration: 4000,
             });
-          } catch {
-            console.error("[Notification] parse error", message.body);
+          } catch (err) {
+            console.error("[WS] /user/queue/mentions parse error", err, message.body);
           }
         });
+
         ids.forEach((wsId) => {
-          console.log(
-            "[WS] Subscribing to topic:",
-            `/topic/workspace/${wsId}/notifications`,
-          );
+          console.log("[WS] Subscribing to /topic/workspace/" + wsId + "/notifications");
           client.subscribe(
             `/topic/workspace/${wsId}/notifications`,
             (message) => {
@@ -136,13 +130,12 @@ export function useNotificationSocket({
                 const raw: WsPostNotification = JSON.parse(message.body);
                 const payload = toNotificationPayload(raw);
                 addNotificationRef.current(payload);
-
                 toast(TOAST_LABELS[raw.type] ?? "Notification", {
                   description: payload.message,
                   duration: 4000,
                 });
-              } catch {
-                console.error("[Notification] parse error", message.body);
+              } catch (err) {
+                console.error("[WS] workspace topic parse error", err, message.body);
               }
             },
           );
@@ -150,7 +143,7 @@ export function useNotificationSocket({
       },
 
       onStompError: (frame) => {
-        console.error("[STOMP] error:", frame.headers["message"], frame);
+        console.error("[WS] STOMP error:", frame.headers["message"], frame.body);
       },
 
       onDisconnect: () => {
@@ -163,11 +156,10 @@ export function useNotificationSocket({
     });
 
     client.activate();
-    clientRef.current = client;
 
     return () => {
+      console.log("[WS] Deactivating client");
       client.deactivate();
-      clientRef.current = null;
     };
   }, [token, appUserId, workspaceKey]);
 }
@@ -177,9 +169,7 @@ export function useNotificationListener(workspaceIds: string[]) {
 
   useNotificationSocket({
     workspaceIds,
-    appUserId: (session as unknown as { appUserId?: string })?.appUserId as
-      | string
-      | undefined,
+    appUserId: session?.appUserId,
     token: session?.accessToken as string | undefined,
   });
 }

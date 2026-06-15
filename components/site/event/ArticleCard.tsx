@@ -114,7 +114,10 @@ function ArticleItem({
 
   return (
     <>
-      <div id={`post-${post.postId}`} className="bg-background rounded-[12px] border border-border p-5 shadow-sm">
+      <div
+        id={`post-${post.postId}`}
+        className="bg-background rounded-[12px] border border-border p-5 shadow-sm"
+      >
         <div className="flex items-center justify-between mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -174,14 +177,16 @@ function ArticleItem({
             >
               <button
                 onClick={handleLikeToggle}
-                className={`flex items-center gap-2 transition-colors cursor-pointer select-none text-sm sm:text-base ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
               >
                 {activeReaction ? (
                   <TwemojiImg emoji={activeReaction.emoji} size={20} />
                 ) : (
                   <ThumbsUp size={20} />
                 )}
-                {activeReaction?.displayText ?? "Like"}
+                <span>
+                  {activeReaction ? activeReaction.displayText : "Like"}
+                </span>
               </button>
             </ReactionPopover>
             <button
@@ -202,7 +207,6 @@ function ArticleItem({
               <Share2 size={20} /> Share
             </button>
           </section>
-
           <ReactionSummary payload={reactionPayload} />
         </div>
         <div
