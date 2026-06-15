@@ -165,9 +165,8 @@ export default function ProfilePrivacy({
     const hash = (appUser.username || "user")
       .split("")
       .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return (hash % 3) + 1; 
+    return (hash % 3) + 1;
   }, [appUser.username]);
-  
 
   if (visibilityMode === "private") {
     return (
@@ -187,11 +186,11 @@ export default function ProfilePrivacy({
             />
           </div>
           <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow">
-              <div className="w-28 h-28 rounded-full border-4 border-card overflow-hidden bg-grey-100  shadow-sm mb-3 shrink-0 relative z-10 flex items-center justify-center bg-primary/10">
-                <span className="text-2xl font-bold text-primary">
-                  {initials}
-                </span>
-              </div>
+            <div className="w-28 h-28 rounded-full border-4 border-card overflow-hidden bg-grey-100  shadow-sm mb-3 shrink-0 relative z-10 flex items-center justify-center bg-primary/10">
+              <span className="text-2xl font-bold text-primary">
+                {initials}
+              </span>
+            </div>
             <div className="text-center w-full ">
               <h3 className="type-title text-primary text-base leading-tight mb-0.5 tracking-tight">
                 {displayName}
