@@ -93,72 +93,58 @@ export default function LoginComponent() {
       animate="visible"
       className="flex items-center justify-center w-full"
     >
-      <div className="w-full max-w-[624px] rounded-[32px] border border-border bg-card/80 backdrop-blur-sm px-6 py-10 sm:px-10 sm:py-12 xl:p-18 shadow-sm">
+      <div className="w-full max-w-156 rounded-[28px] border border-border bg-card/80 backdrop-blur-sm px-6 py-8 sm:px-10 sm:py-12 xl:px-16 xl:py-14 shadow-sm">
 
-        <div className="mb-10 text-center hidden md:block">
-          <h1 className="type-title tracking-tight text-primary">
-            Welcome Back !
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-[22px] sm:text-[30px] font-extrabold tracking-tight text-primary">
+            Welcome Back!
           </h1>
-          <p className="mt-2 type-subtitle text-secondary">
+          <p className="mt-1.5 text-sm sm:text-base font-semibold text-secondary">
             Discover events with{" "}
             <span className="text-primary">HRD EventHub</span>
           </p>
-          <p className="type-detail text-muted-foreground mt-1">
-            Enter your credential to access the website
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Enter your credentials to access the website
           </p>
         </div>
 
-        <div className="mb-8 text-center md:hidden">
-          <h1 className="type-subtitle-24 tracking-tight text-primary">
-            Welcome Back !
-          </h1>
-          <p className="mt-1 type-desc-semibold text-secondary">
-            Discover events with{" "}
-            <span className="text-primary">HRD EventHub</span>
-          </p>
-          <p className="type-detail text-muted-foreground mt-1">
-            Enter your credential to access the website
-          </p>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-1">
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
           {serverError && (
-            <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 type-detail text-destructive">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
               {serverError}
             </div>
           )}
 
-          <div className="flex flex-col gap-1">
+          {/* Identifier */}
+          <div className="flex flex-col gap-1.5">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3.5 transition-all focus-within:border-primary ${errors.identifier ? "border-destructive" : "border-border"}`}
+              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:py-3.5 transition-all focus-within:border-primary ${
+                errors.identifier ? "border-destructive" : "border-border"
+              }`}
             >
-              <Mail
-                size={18}
-                className="shrink-0 text-grey-400"
-                strokeWidth={2}
-              />
+              <Mail size={18} className="shrink-0 text-muted-foreground" strokeWidth={2} />
               <input
                 type="text"
                 placeholder="Email or Username"
                 value={identifier}
                 onChange={(e) =>
-                  handleChange("identifier", e.target.value, setIdentifier)
+                  handleChange("identifier", e.target.value.toLowerCase(), setIdentifier)
                 }
-                className="w-full bg-transparent type-detail outline-none placeholder:text-muted-foreground text-foreground"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground text-foreground"
               />
             </div>
             {errors.identifier && <FieldError message={errors.identifier} />}
           </div>
 
-          <div className="flex flex-col gap-1 pt-4">
+          {/* Password */}
+          <div className="flex flex-col gap-1.5">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3.5 transition-all focus-within:border-primary ${errors.password ? "border-destructive" : "border-border"}`}
+              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:py-3.5 transition-all focus-within:border-primary ${
+                errors.password ? "border-destructive" : "border-border"
+              }`}
             >
-              <Lock
-                size={18}
-                className="shrink-0 text-grey-400"
-                strokeWidth={2}
-              />
+              <Lock size={18} className="shrink-0 text-muted-foreground" strokeWidth={2} />
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
@@ -166,12 +152,12 @@ export default function LoginComponent() {
                 onChange={(e) =>
                   handleChange("password", e.target.value, setPassword)
                 }
-                className="w-full bg-transparent type-detail outline-none placeholder:text-muted-foreground text-foreground"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground text-foreground"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="type-desc-small-semibold text-primary shrink-0"
+                className="text-xs font-semibold text-primary shrink-0"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -179,37 +165,39 @@ export default function LoginComponent() {
             {errors.password && <FieldError message={errors.password} />}
           </div>
 
-          <div className="flex items-center justify-between px-1 pt-4">
-            <label className="flex items-center gap-2 cursor-pointer">
+          {/* Remember me + Forgot password */}
+          <div className="flex items-center justify-between px-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 accent-primary"
               />
-              <span className="type-detail text-grey-500">Remember me</span>
+              <span className="text-sm text-muted-foreground">Remember me</span>
             </label>
             <a
               href="/reset-password"
-              className="type-detail-semibold text-secondary underline underline-offset-2"
+              className="text-sm font-semibold text-secondary underline underline-offset-2"
             >
               Forgot password?
             </a>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
-            className="mt-5 h-[50px] w-full rounded-2xl bg-primary type-desc-semibold text-primary-foreground transition-all duration-300 hover:bg-[#1f4685] cursor-pointer disabled:opacity-70"
+            className="h-12 sm:h-12.5 w-full rounded-2xl bg-primary text-sm sm:text-base font-semibold text-primary-foreground transition-all duration-300 hover:bg-[#1f4685] cursor-pointer disabled:opacity-70"
             disabled={isPending}
           >
             {isPending ? "Signing in..." : "Login"}
           </button>
 
-          <p className="text-center type-detail text-muted-foreground pt-2">
+          <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <a
               href="/sign-up"
-              className="type-detail-semibold text-secondary underline underline-offset-2"
+              className="font-semibold text-secondary underline underline-offset-2"
             >
               Sign up
             </a>
@@ -222,7 +210,7 @@ export default function LoginComponent() {
 
 function FieldError({ message }: { message: string }) {
   return (
-    <p className="flex items-center gap-1.5 type-detail text-destructive px-1">
+    <p className="flex items-center gap-1.5 text-xs text-destructive px-1">
       <AlertCircle size={14} className="shrink-0" />
       {message}
     </p>

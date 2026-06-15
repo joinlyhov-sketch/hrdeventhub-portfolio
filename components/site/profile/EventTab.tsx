@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { eventService, Participant } from "@/service/event.service";
 import { useSession } from "next-auth/react";
+import { getMediaUrl } from "@/libs/media";
 
 interface EventTabProps {
   userId?: string;
@@ -60,7 +61,7 @@ export default function EventTab({ userId }: EventTabProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="h-full overflow-y-auto space-y-4 pr-1 scrollbar-thumb-grey-200 scrollbar-track-transparent scrollbar-none">
       <h3 className="type-subtitle text-primary mb-2">
         {userId ? "Registered Events" : "My registrations"}
       </h3>
@@ -69,9 +70,9 @@ export default function EventTab({ userId }: EventTabProps) {
           events.map((item, index) => {
             const eventDetails = item.post;
             const coverImage =
-              eventDetails?.media?.find((m) => m.isCover)?.filePath ||
-              "/images/placeholder.png";
-
+              getMediaUrl(
+                eventDetails?.media?.find((m) => m.isCover)?.filePath,
+              ) || "/images/placeholder.png";
             return (
               <div
                 key={item.participantId || index}
