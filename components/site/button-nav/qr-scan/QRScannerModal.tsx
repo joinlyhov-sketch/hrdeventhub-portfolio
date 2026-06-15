@@ -80,12 +80,17 @@ export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
 
     scannerRef.current = scanner;
 
-    scanner.start().catch(() => {
-      if (cancelled) return;
-      setCameraError(
-        "Camera access denied. Allow camera permission and try again.",
-      );
-    });
+    scanner
+      .start()
+      .then(() => {
+        scanner.setCamera("environment");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setCameraError(
+          "Camera access denied. Allow camera permission and try again.",
+        );
+      });
 
     return () => {
       cancelled = true;
