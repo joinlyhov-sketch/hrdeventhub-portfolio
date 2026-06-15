@@ -1,11 +1,11 @@
 "use client";
 
 import { CheckCircle2,AlertTriangle,XCircle } from "lucide-react";
-interface Step3Props {
-  studentName: string;
-  selectedSkill: string | null;
-}
-import { RegistrationPayloadItem } from "@/types/endorsement";
+// Step3Props kept for potential future use
+// interface Step3Props {
+//   studentName: string;
+//   selectedSkill: string | null;
+// }
  function getInitials(name: string): string {
   return name
     .trim()
@@ -15,11 +15,6 @@ import { RegistrationPayloadItem } from "@/types/endorsement";
     .join("");
 }
  
-function getEventLabel(reg: RegistrationPayloadItem): string {
-
-  if (reg.postTitle?.trim()) return reg.postTitle.trim();
-  return `Event ${reg.postId.substring(0, 8)}…`;
-}
  
 
  
@@ -75,7 +70,7 @@ export default function StepSuccess({
           Endorsement Submitted!
         </h3>
         <p className="text-sm text-grey-500 leading-relaxed">
-          You've successfully endorsed{" "}
+          You&apos;ve successfully endorsed{" "}
           <span className="font-semibold text-secondary">{firstName}</span> for{" "}
           <span className="font-semibold text-secondary">{selectedSkill}</span>. It
           will appear on their profile after review.

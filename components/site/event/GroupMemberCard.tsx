@@ -57,7 +57,7 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
           {headerVisibleMembers.map((member) => {
             const firstLetter = member.firstName?.[0] ?? "";
             const lastLetter = member.lastName?.[0] ?? "";
-            const mediaUrl = getMediaUrl((member as any).profileImage);
+            const mediaUrl = getMediaUrl(member.profileImage);
 
             return (
               <div
@@ -109,7 +109,7 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
           displayedMembers.map((member) => {
             const firstLetter = member.firstName?.[0] ?? "";
             const lastLetter = member.lastName?.[0] ?? "";
-            const mediaUrl = getMediaUrl((member as any).profileImage);
+            const mediaUrl = getMediaUrl(member.profileImage);
 
             return (
               <Link

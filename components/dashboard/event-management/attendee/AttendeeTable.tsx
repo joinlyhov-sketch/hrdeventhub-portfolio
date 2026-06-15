@@ -35,8 +35,11 @@ export default function AttendeeTableClient({
   const itemsPerPage = 10;
 
   useEffect(() => {
-    console.log("[AttendeeTableClient] initialAttendees prop changed! New data:", initialAttendees);
-    setAttendees(initialAttendees);
+    console.log(
+      "[AttendeeTableClient] initialAttendees prop changed! New data:",
+      initialAttendees,
+    );
+    queueMicrotask(() => setAttendees(initialAttendees));
   }, [initialAttendees]);
 
   const uniqueStatuses = useMemo(() => {
@@ -159,7 +162,8 @@ export default function AttendeeTableClient({
           <TableBody>
             {paginatedAttendees.length > 0 ? (
               paginatedAttendees.map((attendee, index) => {
-                const absoluteIndex = (currentPage - 1) * itemsPerPage + index + 1;
+                const absoluteIndex =
+                  (currentPage - 1) * itemsPerPage + index + 1;
                 return (
                   <AttendeeRow
                     key={attendee.participantId}
@@ -170,7 +174,7 @@ export default function AttendeeTableClient({
                     }}
                     onDeleteAttendee={(id) => {
                       setAttendees((prev) =>
-                        prev.filter((item) => item.participantId !== id)
+                        prev.filter((item) => item.participantId !== id),
                       );
                     }}
                   />

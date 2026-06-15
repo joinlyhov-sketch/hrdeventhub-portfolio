@@ -1,4 +1,4 @@
-import type { NextAuthOptions, Session, User } from "next-auth";
+import type { NextAuthOptions, User } from "next-auth";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { authService } from "../service/auth.service";

@@ -17,6 +17,10 @@ import { deletePostAction, togglePinAction } from "@/actions/post.action";
 import { useFeedStore } from "@/store/useFeedStore";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CalendarX } from "lucide-react";
+import { FeedItemWrapper } from "@/types/UnifiedFeedItem";
+import { Post } from "@/types/posts";
+import { Poll } from "@/types/poll";
+import { Survey } from "@/types/survey";
 
 interface FilteredFeedProps {
   groupid: string;
@@ -53,21 +57,21 @@ export default function FilteredFeed({
   }, []);
 
   const feedItems = useMemo(() => {
-    let rawItems: any[] = [];
+    let rawItems: FeedItemWrapper[] = [];
     if (swrItems && swrItems.length > 0) {
-      rawItems = swrItems as any[];
+      rawItems = swrItems;
     } else {
       rawItems = mounted ? cachedFeed : [];
     }
 
     return [...rawItems].sort((a, b) => {
-      const dateA =
-        a.data?.createdAt || a.createdAt || a.data?.postedAt || a.postedAt;
-      const dateB =
-        b.data?.createdAt || b.createdAt || b.data?.postedAt || b.postedAt;
+      const aData = a.data as Record<string, unknown> | undefined;
+      const bData = b.data as Record<string, unknown> | undefined;
+      const dateA = aData?.createdAt || a.createdAt || aData?.postedAt || a.postedAt;
+      const dateB = bData?.createdAt || b.createdAt || bData?.postedAt || b.postedAt;
 
-      const timeA = dateA ? new Date(dateA).getTime() : 0;
-      const timeB = dateB ? new Date(dateB).getTime() : 0;
+      const timeA = dateA ? new Date(dateA as string).getTime() : 0;
+      const timeB = dateB ? new Date(dateB as string).getTime() : 0;
 
       const validA = isNaN(timeA) ? 0 : timeA;
       const validB = isNaN(timeB) ? 0 : timeB;
@@ -76,19 +80,15 @@ export default function FilteredFeed({
         return validB - validA;
       }
 
-      const idA = String(
-        a.data?.postId || a.data?.pollId || a.data?.surveyId || a.id || "",
-      );
-      const idB = String(
-        b.data?.postId || b.data?.pollId || b.data?.surveyId || b.id || "",
-      );
+      const idA = String(aData?.postId || aData?.pollId || aData?.surveyId || a.id || "");
+      const idB = String(bData?.postId || bData?.pollId || bData?.surveyId || b.id || "");
       return idB.localeCompare(idA);
     });
   }, [swrItems, cachedFeed, mounted]);
 
   useEffect(() => {
     if (swrItems && swrItems.length > 0) {
-      setFeed(groupid, swrItems as any);
+      setFeed(groupid, swrItems);
     }
   }, [swrItems, groupid, setFeed]);
 
@@ -98,11 +98,11 @@ export default function FilteredFeed({
     if (!feedItems || feedItems.length === 0) return;
 
     feedItems.forEach((item) => {
-      const postId =
-        item.data?.postId ?? item.data?.pollId ?? item.data?.surveyId;
-      const comments = item.data?.comments;
+      const d = item.data as Record<string, unknown> | undefined;
+      const postId = d?.postId ?? d?.pollId ?? d?.surveyId;
+      const comments = d?.comments;
       if (postId && Array.isArray(comments)) {
-        globalMutate(commentCacheKey(postId), comments, { revalidate: false });
+        globalMutate(commentCacheKey(postId as string), comments, { revalidate: false });
       }
     });
 
@@ -132,7 +132,7 @@ export default function FilteredFeed({
         el.style.scrollMarginTop = "100px";
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.classList.add("deep-link-highlight");
-        setTimeout(() => el.classList.remove("deep-wlink-highlight"), 2600);
+        setTimeout(() => el.classList.remove("deep-link-highlight"), 2600);
       }, 1500);
     };
 
@@ -163,18 +163,15 @@ export default function FilteredFeed({
   }, [deepLinkPostId]);
 
   const pinnedCount = useMemo(
-    () =>
-      feedItems.filter((item) => item.type === "POST" && item.data?.pinned)
-        .length,
-    [feedItems],
+    () => feedItems.filter((item) => item.type === "POST" && (item.data as Record<string, unknown>)?.pinned).length,
+    [feedItems]
   );
 
   const pinnedPosts = useMemo(
-    () =>
-      feedItems
-        .filter((item) => item.type === "POST" && item.data?.pinned)
-        .map((item) => item.data),
-    [feedItems],
+    () => feedItems
+      .filter((item) => item.type === "POST" && (item.data as Record<string, unknown>)?.pinned)
+      .map((item) => item.data as Post),
+    [feedItems]
   );
 
   const processedTimeline = useMemo(() => {
@@ -191,20 +188,16 @@ export default function FilteredFeed({
     if (!q) return categoryFiltered;
 
     return categoryFiltered.filter((item) => {
-      const targetTitle = (item.data?.title || item.title || "").toLowerCase();
-      const targetDesc = (
-        item.data?.description ||
-        item.description ||
-        ""
-      ).toLowerCase();
-      const rawContent = item.data?.content || "";
+      const d = item.data as Record<string, unknown> | undefined;
+      const targetTitle = ((d?.title as string) || item.title || "").toLowerCase();
+      const targetDesc = ((d?.description as string) || item.description || "").toLowerCase();
+      const rawContent = d?.content || "";
 
       const titleMatch = targetTitle.includes(q);
       const descMatch = targetDesc.includes(q);
-      const contentMatch =
-        typeof rawContent === "string"
-          ? rawContent.toLowerCase().includes(q)
-          : false;
+      const contentMatch = typeof rawContent === "string"
+        ? rawContent.toLowerCase().includes(q)
+        : false;
 
       return titleMatch || descMatch || contentMatch;
     });
@@ -214,13 +207,12 @@ export default function FilteredFeed({
     const nextPinState = !currentPinStatus;
     await mutate(
       (current) =>
-        (current as any[])?.map((item) =>
-          item.id === postId ||
-          (item.type === "POST" && item.data?.postId === postId)
-            ? { ...item, data: { ...item.data, pinned: nextPinState } }
-            : item,
+        current?.map((item) =>
+          item.id === postId || (item.type === "POST" && (item.data as Record<string, unknown>)?.postId === postId)
+            ? { ...item, data: { ...(item.data as Record<string, unknown>), pinned: nextPinState } }
+            : item
         ) ?? [],
-      { revalidate: false },
+      { revalidate: false }
     );
     try {
       const response = await togglePinAction(groupid, postId, nextPinState);
@@ -234,10 +226,8 @@ export default function FilteredFeed({
   const handleDeletePost = async (postId: string) => {
     mutate(
       (current) =>
-        (current as any[])?.filter(
-          (item) => item.id !== postId && item.data?.postId !== postId,
-        ) ?? [],
-      false,
+        current?.filter((item) => item.id !== postId && (item.data as Record<string, unknown>)?.postId !== postId) ?? [],
+      false
     );
     try {
       await deletePostAction(groupid, postId);
@@ -251,20 +241,16 @@ export default function FilteredFeed({
   const handleDeleteSurvey = (surveyId: string) => {
     mutate(
       (current) =>
-        (current as any[])?.filter(
-          (item) => item.id !== surveyId && item.data?.surveyId !== surveyId,
-        ) ?? [],
-      false,
+        current?.filter((item) => item.id !== surveyId && (item.data as Record<string, unknown>)?.surveyId !== surveyId) ?? [],
+      false
     );
     setTimeout(() => mutate(), 800);
   };
 
-  const showSkeleton =
-    !mounted || ((feedLoading || userLoading) && feedItems.length === 0);
+  const showSkeleton = !mounted || ((feedLoading || userLoading) && feedItems.length === 0);
 
   const isFeedEmpty = processedTimeline.length === 0;
-  const isSearchingOrFiltering =
-    debouncedSearch.trim() !== "" || activeFilter !== null;
+  const isSearchingOrFiltering = debouncedSearch.trim() !== "" || activeFilter !== null;
 
   if (showSkeleton) {
     return (
@@ -326,18 +312,11 @@ export default function FilteredFeed({
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-500 max-w-xs sm:max-w-sm mx-auto leading-relaxed">
                   We couldn&apos;t find any records matching &ldquo;
-                  <span className="font-semibold text-gray-800">
-                    {debouncedSearch}
-                  </span>
-                  &rdquo;
+                  <span className="font-semibold text-gray-800">{debouncedSearch}</span>&rdquo;
                   {activeFilter && (
                     <span>
-                      {" "}
-                      within the{" "}
-                      <span className="font-semibold text-gray-800">
-                        {activeFilter}
-                      </span>{" "}
-                      category
+                      {" "}within the{" "}
+                      <span className="font-semibold text-gray-800">{activeFilter}</span> category
                     </span>
                   )}
                   . Please verify your spelling or adjust your options.
@@ -358,19 +337,14 @@ export default function FilteredFeed({
                   No Posts Available
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-500 max-w-xs sm:max-w-sm mx-auto leading-relaxed">
-                  There are currently no announcements, events, or posts
-                  published here. Check back later for updates.
+                  There are currently no announcements, events, or posts published here. Check back later for updates.
                 </p>
               </>
             )}
           </div>
         ) : (
           processedTimeline.map((item, index) => {
-            const resolvedType = (
-              item.subType ||
-              item.type ||
-              ""
-            ).toLowerCase();
+            const resolvedType = (item.subType || item.type || "").toLowerCase();
             const staggerStyle = {
               animationDelay: `${index * 60}ms`,
             };
@@ -385,7 +359,7 @@ export default function FilteredFeed({
                   >
                     <EventCard
                       role={role}
-                      posts={[item.data]}
+                      posts={[item.data as Post]}
                       searchQuery={debouncedSearch}
                       onDeletePost={handleDeletePost}
                       groupid={groupid}
@@ -405,7 +379,7 @@ export default function FilteredFeed({
                   >
                     <AnnouncementCard
                       role={role}
-                      posts={[item.data]}
+                      posts={[item.data as Post]}
                       searchQuery={debouncedSearch}
                       onDeletePost={handleDeletePost}
                       groupid={groupid}
@@ -423,7 +397,7 @@ export default function FilteredFeed({
                   >
                     <PollCard
                       role={role}
-                      polls={[item.data]}
+                      polls={[item.data as Poll]}
                       searchQuery={debouncedSearch}
                       onDeletePoll={(pollId) => console.log(pollId)}
                     />
@@ -438,7 +412,7 @@ export default function FilteredFeed({
                     style={staggerStyle}
                   >
                     <SurveyCard
-                      survey={item.data}
+                      survey={item.data as Survey}
                       role={role}
                       searchQuery={debouncedSearch}
                       onVisibilityChange={() => {}}
@@ -456,7 +430,7 @@ export default function FilteredFeed({
                   >
                     <ArticleCard
                       role={role}
-                      posts={[item.data]}
+                      posts={[item.data as Post]}
                       searchQuery={debouncedSearch}
                       onDeletePost={handleDeletePost}
                       groupId={groupid}

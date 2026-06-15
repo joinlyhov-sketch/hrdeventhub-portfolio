@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock } from "lucide-react";
+import Image from "next/image";
 import { EventDetail } from "../../../../types/transaction-detail";
 import Link from "next/link";
 
@@ -11,10 +12,12 @@ interface EventBannerProps {
 export function EventBanner({ event }: EventBannerProps) {
   return (
     <div className="relative rounded-2xl overflow-hidden h-64 bg-gray-800">
-      <img
+      <Image
         src={event.image}
         alt={event.title}
-        className="w-full h-64 object-cover"
+        fill
+        unoptimized
+        className="object-cover"
       />
       <div className="absolute inset-0 bg-linear-to-t from-black/78 to-transparent flex flex-col justify-between p-6">
         <span className="bg-[#7AF8DD] text-[#007261] type-detail-semibold font-bold px-3 py-1 rounded-full w-fit">

@@ -3,7 +3,7 @@
 import useSWR from "swr";
 import { eventService } from "@/service/event.service";
 
-const fetchEvents = async ([_, token]: [string, string]) => {
+const fetchEvents = async ([, token]: [string, string]) => {
   return eventService.getAllPlatformEventsWithAttendees(token);
 };
 

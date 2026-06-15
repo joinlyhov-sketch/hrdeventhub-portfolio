@@ -29,6 +29,8 @@ import { ReactionSummary } from "./ReactionSummary";
 import { formatEventDate } from "@/libs/format-date";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { WorkspaceMember } from "@/types/workspace-type/workspace-members";
+import { Comment } from "@/types/file-types";
 
 interface AnnouncementCardProps {
   role: UserRole;
@@ -36,10 +38,12 @@ interface AnnouncementCardProps {
   searchQuery: string;
   onDeletePost: (postId: string) => Promise<void> | void;
   groupid: string;
-  members: any[];
+  members: WorkspaceMember[];
 }
 
-const getTotalCommentsCount = (commentsList: any[] | undefined | null): number => {
+const getTotalCommentsCount = (
+  commentsList: Comment[] | undefined | null,
+): number => {
   if (!commentsList || commentsList.length === 0) return 0;
   let total = 0;
   for (const comment of commentsList) {
@@ -56,30 +60,30 @@ function MediaGrid({ media }: { media: NonNullable<Post["media"]> }) {
   const images = media.filter((m) => !m.filePath.endsWith(".pdf"));
   const displayImages = images.slice(0, 4);
   const remaining = images.length - 4;
-  
+
   if (images.length === 0) return null;
   const gridClass = images.length === 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
     <>
-      <div 
+      <div
         className={`grid ${gridClass} gap-1 rounded-[12px] overflow-hidden mb-6`}
         style={{
           contentVisibility: "auto",
-          containIntrinsicSize: images.length === 1 ? "320px" : "192px"
+          containIntrinsicSize: images.length === 1 ? "320px" : "192px",
         }}
       >
         {displayImages.map((item, index) => {
           const url = getMediaUrl(item.filePath);
           const isLast = index === 3 && remaining > 0;
-          
+
           const heightClass =
             images.length === 1
               ? "h-80"
               : images.length === 3 && index === 0
                 ? "row-span-2 h-full min-h-48"
                 : "h-48";
-                
+
           return (
             <div
               key={item.mediaId}
@@ -181,7 +185,7 @@ function AnnouncementItem({
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupId: string;
-  members: any[];
+  members: WorkspaceMember[];
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -197,7 +201,10 @@ function AnnouncementItem({
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
-  const { comments, refetch, loading } = usePostComments(post.postId, showComments);
+  const { comments, refetch, loading } = usePostComments(
+    post.postId,
+    showComments,
+  );
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
@@ -218,7 +225,11 @@ function AnnouncementItem({
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
-    const result = await createCommentAction(post.postId, commentInput, mentionedIds);
+    const result = await createCommentAction(
+      post.postId,
+      commentInput,
+      mentionedIds,
+    );
     if (result.ok) {
       setCommentInput("");
       setMentionedIds([]);
@@ -227,9 +238,10 @@ function AnnouncementItem({
     }
   };
 
-  const shareUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=announcement`
-    : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=announcement`;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/group/${groupId}?postId=${post.postId}&type=announcement`
+      : `https://hrdevent.app/group/${groupId}?postId=${post.postId}&type=announcement`;
 
   return (
     <>
@@ -294,39 +306,41 @@ function AnnouncementItem({
           )}
         </div>
 
-        <h2 className="type-title text-primary mb-2">{post.title}</h2>
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+          {post.title}
+        </h2>
 
         <ExpandableText text={post.content} />
 
         {hasMetaInfo && (
-          <div className="bg-grey-50 rounded-[6px] p-4 space-y-3 mb-6 border-l-5 border-primary">
-            {hasLocation && (
-              <p className="type-detail text-grey-500">
-                <span className="type-detail-semibold text-foreground">
+          <div className="bg-grey-50 rounded-[6px] p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-3 mb-3 sm:mb-6 border-l-4 sm:border-l-5 border-primary break-words">
+            {post.location && (
+              <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+                <span className="text-[11px] sm:text-sm font-semibold text-foreground">
                   LOCATION:{" "}
                 </span>
                 <a
-                  href={post.location!.googleMapUrl}
+                  href={post.location.googleMapUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline text-primary"
+                  className="text-primary hover:underline"
                 >
-                  {post.location!.locationName}
+                  {post.location.locationName ?? "View on map"}
                 </a>
               </p>
             )}
-            {hasDate && (
-              <p className="type-detail text-grey-500">
-                <span className="type-detail-semibold text-foreground">
+            {post.eventStart && (
+              <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+                <span className="text-[11px] sm:text-sm font-semibold text-foreground">
                   DATE:{" "}
                 </span>
                 {post.eventStart}
                 {post.eventEnd && ` — ${post.eventEnd}`}
               </p>
             )}
-            {hasPurpose && (
-              <p className="type-detail text-grey-500">
-                <span className="type-detail-semibold text-foreground">
+            {post.purpose && (
+              <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+                <span className="text-[11px] sm:text-sm font-semibold text-foreground">
                   PURPOSE:{" "}
                 </span>
                 {post.purpose}
@@ -347,27 +361,23 @@ function AnnouncementItem({
           </div>
         )}
 
-        <div className="flex items-center justify-between border-b border-border type-detail-medium text-grey-500">
-          <section className="flex items-center gap-6 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
+          <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">
             <ReactionPopover
               selectedValue={selectedReaction}
               onReactionSelect={handleReactionSelect}
             >
               <button
                 onClick={handleLikeToggle}
-                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${
-                  activeReaction
-                    ? `${activeReaction.color} font-semibold`
-                    : "hover:text-primary"
-                }`}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
               >
-                <span className="flex items-center gap-1.5">
-                  {activeReaction ? (
-                    <TwemojiImg emoji={activeReaction.emoji} size={20} />
-                  ) : (
-                    <ThumbsUp size={20} />
-                  )}
-                  {activeReaction?.displayText ?? "Like"}
+                {activeReaction ? (
+                  <TwemojiImg emoji={activeReaction.emoji} size={20} />
+                ) : (
+                  <ThumbsUp size={20} />
+                )}
+                <span>
+                  {activeReaction ? activeReaction.displayText : "Like"}
                 </span>
               </button>
             </ReactionPopover>
@@ -375,8 +385,12 @@ function AnnouncementItem({
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
-              <MessageCircleMore size={20} /> 
-              {showComments ? getTotalCommentsCount(comments) : getTotalCommentsCount(post.comments)}
+              <MessageCircleMore size={20} />
+              {showComments
+                ? getTotalCommentsCount(comments)
+                : getTotalCommentsCount(comments) > 0
+                  ? `${getTotalCommentsCount(comments)} Comment${getTotalCommentsCount(comments) > 1 ? "s" : ""}`
+                  : "Comment"}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -385,11 +399,12 @@ function AnnouncementItem({
               <Share2 size={20} /> Share
             </button>
           </section>
-
           <ReactionSummary payload={reactionPayload} />
         </div>
 
-        <div className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}>
+        <div
+          className={`flex items-center gap-3 mt-6 ${showComments ? "mb-8" : ""}`}
+        >
           <div className="w-10 h-10 rounded-full bg-grey-200 overflow-hidden shrink-0 flex items-center justify-center border">
             <Link href={`/profile/${currentUser?.id}`}>
               {currentUser?.profilePicture ? (
@@ -410,7 +425,10 @@ function AnnouncementItem({
           <div className="flex-1">
             <MentionInput
               value={commentInput}
-              onChange={(val, ids) => { setCommentInput(val); setMentionedIds(ids); }}
+              onChange={(val, ids) => {
+                setCommentInput(val);
+                setMentionedIds(ids);
+              }}
               onSubmit={handleSubmitComment}
               placeholder="Add a comment..."
               members={members}

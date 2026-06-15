@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Trash2, Eye, BarChart3 } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Card } from "../../ui/card";
-import { Survey } from "../../../types/survey";
 import { surveyService } from "../../../service/survey.service";
 import { useSurveyListStore } from "../../../store/useSurveyStore";
 
@@ -37,7 +36,7 @@ export default function SurveyList({ workspaceId, showActions = true }: SurveyLi
         for (const survey of data) {
           try {
             counts[survey.surveyId] = await surveyService.countResponses(survey.surveyId);
-          } catch (err) {
+          } catch {
             counts[survey.surveyId] = 0;
           }
         }

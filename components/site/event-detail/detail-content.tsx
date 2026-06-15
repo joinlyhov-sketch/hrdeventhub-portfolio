@@ -24,18 +24,22 @@ export default function DetailContentComponent({
   const [joinedCount, setJoinedCount] = useState<number | null>(null);
   const { data: session } = useSession();
 
-  const fetchRegistrants = async () => {
-    if (!postId || !session?.accessToken) return;
-    try {
-      const data = await postService.getParticipants(postId, session.accessToken, 1, 100);
-      setJoinedCount(data?.payload?.length ?? 0);
-    } catch {
-      setJoinedCount(0);
-    }
-  };
-
   useEffect(() => {
     if (!postId || !session?.accessToken) return;
+    const token = session.accessToken;
+    const fetchRegistrants = async () => {
+      try {
+        const data = (await postService.getParticipants(
+          postId,
+          token,
+          1,
+          100,
+        )) as { payload?: Array<unknown> };
+        setJoinedCount(data.payload?.length ?? 0);
+      } catch {
+        setJoinedCount(0);
+      }
+    };
     fetchRegistrants();
   }, [postId, session?.accessToken]);
 

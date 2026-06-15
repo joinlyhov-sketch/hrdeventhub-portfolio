@@ -23,7 +23,7 @@ export async function getPollAction(pollId: string): Promise<Poll> {
   return pollService.getById(pollId);
 }
 
-export async function getPollOptionsAction(pollId: string): Promise<any> {
+export async function getPollOptionsAction(pollId: string): Promise<unknown> {
   return pollService.getOptions(pollId);
 }
 

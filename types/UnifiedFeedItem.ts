@@ -1,4 +1,5 @@
 export interface FeedItemWrapper {
+  postedAt: unknown;
   id: string;
   type: "POST" | "POLL" | "SURVEY";
   subType: "article" | "announcement" | "event" | "poll" | "survey";
@@ -6,7 +7,7 @@ export interface FeedItemWrapper {
   description: string;
   createdAt: string;
   new: boolean;
-  data: any;
+  data: unknown;
 }
 
 export interface WorkspaceFeedApiResponse {

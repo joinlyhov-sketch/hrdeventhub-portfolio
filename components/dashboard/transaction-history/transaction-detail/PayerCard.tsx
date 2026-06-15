@@ -4,7 +4,6 @@ import {
   User,
   ExternalLink,
   GraduationCap,
-  BookOpen,
   Mail,
   Phone,
 } from "lucide-react";

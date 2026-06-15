@@ -28,7 +28,7 @@ export default function StepFirst({
     <div className="flex flex-col gap-4">
       <p className="text-sm text-grey-500 leading-relaxed">
         Select the skill that best reflects{" "}
-        <span className="font-semibold text-secondary">{firstName}</span>'s
+        <span className="font-semibold text-secondary">{firstName}</span>&apos;s
         contribution during your shared event.
       </p>
  

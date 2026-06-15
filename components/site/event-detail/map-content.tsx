@@ -17,8 +17,11 @@ export default function MapContentComponent({
   longitude,
 }: MapContentProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const initializingRef = useRef(false); 
+  const mapInstanceRef = useRef<{
+    invalidateSize: () => void;
+    remove: () => void;
+  } | null>(null);
+  const initializingRef = useRef(false);
   const [geocodeFailed, setGeocodeFailed] = useState(false);
 
   const lat = latitude && latitude !== 0 ? latitude : null;
@@ -30,7 +33,7 @@ export default function MapContentComponent({
       mapInstanceRef.current.invalidateSize();
       return;
     }
-    if (initializingRef.current) return; 
+    if (initializingRef.current) return;
     initializingRef.current = true;
 
     const initMap = async (resolvedLat: number, resolvedLng: number) => {
@@ -38,18 +41,23 @@ export default function MapContentComponent({
 
       const L = (await import("leaflet")).default;
 
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      delete (L.Icon.Default.prototype as { _getIconUrl?: () => void })
+        ._getIconUrl;
       L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconRetinaUrl:
+          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
         iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        shadowUrl:
+          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
-      if ((mapRef.current as any)._leaflet_id) return;
+      if ((mapRef.current as unknown as Record<string, unknown>)._leaflet_id)
+        return;
 
       const map = L.map(mapRef.current).setView([resolvedLat, resolvedLng], 15);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution:
+          '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
       L.marker([resolvedLat, resolvedLng])
@@ -71,7 +79,7 @@ export default function MapContentComponent({
         if (locationName) {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=1`,
-            { headers: { "Accept-Language": "en" } }
+            { headers: { "Accept-Language": "en" } },
           );
           const data = await res.json();
           if (data?.length > 0) {
@@ -102,7 +110,10 @@ export default function MapContentComponent({
 
   return (
     <section className="flex flex-col items-start justify-between h-full pt-2">
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      />
 
       {geocodeFailed ? (
         googleMapUrl || locationName ? (

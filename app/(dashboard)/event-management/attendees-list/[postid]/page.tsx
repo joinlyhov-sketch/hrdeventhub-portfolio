@@ -14,31 +14,22 @@ interface PageProps {
 
 export default function AttendeesManagementPage({ params }: PageProps) {
   const { postid } = use(params);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [attendees, setAttendees] = useState<Participant[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [attendeesLoaded, setAttendeesLoaded] = useState(false);
 
   useEffect(() => {
-    async function loadAttendees() {
-      try {
-        const token = session?.accessToken || "";
-        if (!token) return;
+    if (status !== "authenticated" || !postid || !session?.accessToken) return;
 
-        const data = await eventService.getParticipants(token, postid, 1, 100);
-        setAttendees(data || []);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    eventService
+      .getParticipants(session.accessToken!, postid, 1, 100)
+      .then((data) => setAttendees(data || []))
+      .catch(console.error)
+      .finally(() => setAttendeesLoaded(true));
+  }, [postid, session?.accessToken, status]);
 
-    if (postid && session?.accessToken) {
-      loadAttendees();
-    } else if (session && !session.accessToken) {
-      setIsLoading(false);
-    }
-  }, [postid, session]);
+  const isLoading =
+    status === "loading" || (status === "authenticated" && !attendeesLoaded);
 
   return (
     <div className="w-full max-w-475 mx-auto pr-8 lg:pr-12 lg:pl-12">

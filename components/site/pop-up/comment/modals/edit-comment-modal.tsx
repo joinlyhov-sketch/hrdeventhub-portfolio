@@ -1,9 +1,8 @@
 "use client";
 
-import { Info, X } from "lucide-react";
+import { Info } from "lucide-react";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,

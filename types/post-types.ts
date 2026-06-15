@@ -406,7 +406,7 @@ export interface PostPayload {
   location: LocationInfo;
   media: MediaItem[];
   payment: PaymentInfo;
-  comments: any[];
+  comments: Record<string, unknown>[];
   creator: CreatorInfo;
   workspaceId: string;
   pinned: boolean;

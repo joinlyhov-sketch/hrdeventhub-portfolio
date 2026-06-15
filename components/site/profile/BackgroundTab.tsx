@@ -36,7 +36,7 @@ export default function BackgroundTab({ profile, loading }: BackgroundTabProps) 
     profile.cvResumeUrl.trim() !== ""
   );
 
-  const handleDownloadCV = async (e: React.MouseEvent) => {
+  const handleDownloadCV = async () => {
     if (!hasResume || !profile.cvResumeUrl) return;
     
     try {
@@ -53,7 +53,7 @@ export default function BackgroundTab({ profile, loading }: BackgroundTabProps) 
       
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
-    } catch (error) {
+    } catch {
       window.open(profile.cvResumeUrl, "_blank", "noopener,noreferrer");
     }
   };
