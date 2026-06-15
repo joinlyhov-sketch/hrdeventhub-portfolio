@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useRef, useEffect } from "react";
 import FilteredFeed from "./FilteredFeed";
 import UpComingEventCard from "./UpComingEventCard";
@@ -12,13 +11,19 @@ interface Props {
 }
 
 const TABS = ["Feed", "Upcoming", "Members"] as const;
-type Tab = typeof TABS[number];
+type Tab = (typeof TABS)[number];
 
-export default function MobileFeedTabs({ groupid, deepLinkPostId, deepLinkType }: Props) {
+export default function MobileFeedTabs({
+  groupid,
+  deepLinkPostId,
+  deepLinkType,
+}: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("Feed");
-  const trackRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
   const pillRef = useRef<HTMLDivElement>(null);
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
 
   const movePill = (btn: HTMLButtonElement) => {
     if (!pillRef.current) return;
@@ -42,11 +47,54 @@ export default function MobileFeedTabs({ groupid, deepLinkPostId, deepLinkType }
     return () => window.removeEventListener("resize", handleResize);
   }, [activeTab]);
 
+  useEffect(() => {
+    const THRESHOLD = 6;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const onScroll = () => {
+      if (ticking.current) return;
+      ticking.current = true;
+
+      requestAnimationFrame(() => {
+        const currentY = window.scrollY;
+        const delta = currentY - lastScrollY.current;
+
+        if (Math.abs(delta) > THRESHOLD) {
+          setVisible(delta < 0 || currentY < 60);
+          lastScrollY.current = currentY;
+        }
+
+        if (idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          setVisible(true);
+        }, 300);
+
+        ticking.current = false;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (idleTimer) clearTimeout(idleTimer);
+    };
+  }, []);
+
   return (
     <>
-      <div className="xl:hidden sticky top-0 z-10 bg-background/80 backdrop-blur-sm px-1 py-3">
+      <div
+        className="xl:hidden sticky top-[66px] z-10 px-1 py-0.5 rounded-2xl bg-white/80 dark:bg-neutral-900/80"
+        style={{
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          transform: visible ? "translateY(0)" : "translateY(-110%)",
+          opacity: visible ? 1 : 0,
+          transition:
+            "transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms ease",
+          willChange: "transform, opacity",
+        }}
+      >
         <div
-          ref={trackRef}
           role="tablist"
           className="relative flex w-full rounded-xl p-[3px]"
           style={{
@@ -56,24 +104,26 @@ export default function MobileFeedTabs({ groupid, deepLinkPostId, deepLinkType }
         >
           <div
             ref={pillRef}
-            className="absolute top-[3px] h-[calc(100%-6px)] rounded-[9px] transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)] z-0"
+            className="absolute top-[3px] h-[calc(100%-6px)] rounded-[9px] z-0"
             style={{
               background: "white",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)",
+              boxShadow:
+                "0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)",
+              transition:
+                "left 250ms cubic-bezier(0.4,0,0.2,1), width 250ms cubic-bezier(0.4,0,0.2,1)",
             }}
           />
-
           {TABS.map((tab, i) => (
             <button
               key={tab}
-              ref={(el) => { btnRefs.current[i] = el; }}
+              ref={(el) => {
+                btnRefs.current[i] = el;
+              }}
               role="tab"
               aria-selected={activeTab === tab}
               onClick={() => setActiveTab(tab)}
               className={`relative z-10 flex-1 py-1.5 px-1 rounded-[9px] text-[13px] font-medium transition-colors duration-200 whitespace-nowrap border-none bg-transparent cursor-pointer ${
-                activeTab === tab
-                  ? "text-[#1c4d8d]"
-                  : "text-gray-500"
+                activeTab === tab ? "text-[#1c4d8d]" : "text-gray-500"
               }`}
             >
               {tab}
@@ -81,7 +131,6 @@ export default function MobileFeedTabs({ groupid, deepLinkPostId, deepLinkType }
           ))}
         </div>
       </div>
-
       <div className="xl:hidden mt-2">
         {activeTab === "Feed" && (
           <FilteredFeed
