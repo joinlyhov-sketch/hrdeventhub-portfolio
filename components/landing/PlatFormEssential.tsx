@@ -213,7 +213,7 @@ export default function PlatformEssentials() {
   return (
     <section className="min-h-0 lg:min-h-screen overflow-hidden py-8 lg:py-14 mb-10 lg:mb-25 mt-6 lg:mt-12">
       <div className="mx-auto max-w-3xl text-center">
-        <h1 className="font-black leading-none text-secondary text-[24px] md:text-[56px]">
+        <h1 className="font-black leading-none text-secondary text-[22px] sm:text-[24px] md:text-[56px]">
           <span className="text-primary">Platform </span>
           <span className="text-action">Essentials</span>
         </h1>
@@ -228,10 +228,10 @@ export default function PlatformEssentials() {
         ref={sectionRef}
         className="hidden md:flex justify-center items-center w-full overflow-hidden py-4 mt-8"
       >
-        <div className="relative w-[1280px] h-[860px] origin-center scale-[0.56] lg:scale-[0.76] xl:scale-[0.9] 2xl:scale-100 my-[-170px] lg:my-[-100px] xl:my-[-40px] 2xl:my-0 transition-all duration-300 shrink-0">
+        <div className="relative w-7xl h-215 origin-center scale-[0.56] lg:scale-[0.76] xl:scale-[0.9] 2xl:scale-100 -my-42.5 lg:-my-25 xl:-my-10 2xl:my-0 transition-all duration-300 shrink-0">
           <div className="flex justify-center py-24 overflow-visible w-full">
             <motion.div
-              className="relative w-[350px] h-[300px] shrink-0 origin-center scale-[0.8] min-[375px]:scale-[0.9] sm:scale-100 transition-transform"
+              className="relative w-87.5 h-75 shrink-0 origin-center scale-[0.8] min-[375px]:scale-[0.9] sm:scale-100 transition-transform"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={
                 sectionInView
@@ -245,8 +245,8 @@ export default function PlatformEssentials() {
                 delay: 0.1,
               }}
             >
-              <div className="absolute w-[350px] h-[350px] rounded-full border-b-4 -top-[60px] left-0" />
-              <div className="absolute w-[230px] h-[230px] left-[60px] bg-white rounded-full border border-slate-100 flex items-center justify-center text-center p-6 transition-transform duration-300 hover:scale-105">
+              <div className="absolute w-87.5 h-87.5 rounded-full border-b-4 -top-15 left-0" />
+              <div className="absolute w-57.5 h-57.5 left-15 bg-white rounded-full border border-slate-100 flex items-center justify-center text-center p-6 transition-transform duration-300 hover:scale-105">
                 <h2 className="text-center text-[24px] font-black leading-tight text-primary">
                   Core
                   <br />
@@ -254,27 +254,27 @@ export default function PlatformEssentials() {
                 </h2>
               </div>
 
-              <div className="absolute -left-[3px] top-[135px]">
+              <div className="absolute -left-0.75 top-33.75">
                 <div className="w-3.5 h-3.5 rounded-full bg-[#1C4E8D] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </div>
               </div>
-              <div className="absolute left-[40px] top-[225px]">
+              <div className="absolute left-10 top-56.25">
                 <div className="w-3.5 h-3.5 rounded-full bg-[#1C4E8D] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </div>
               </div>
-              <div className="absolute left-[169px] top-[282px]">
+              <div className="absolute left-42.25 top-70.5">
                 <div className="w-3.5 h-3.5 rounded-full bg-[#1C4E8D] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </div>
               </div>
-              <div className="absolute right-[49px] top-[235px]">
+              <div className="absolute right-12.25 top-58.75">
                 <div className="w-3.5 h-3.5 rounded-full bg-[#1C4E8D] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </div>
               </div>
-              <div className="absolute -right-[3px] top-[145px]">
+              <div className="absolute -right-0.75 top-36.25">
                 <div className="w-3.5 h-3.5 rounded-full bg-[#1C4E8D] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </div>
@@ -297,7 +297,7 @@ export default function PlatformEssentials() {
         variants={mobileContainerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.5 }}
+        viewport={{ once: true, amount: 0.1 }}
         className="md:hidden grid grid-cols-1 gap-6 mt-8 max-w-md mx-auto px-4"
       >
         {cards.map((item, index) => (
