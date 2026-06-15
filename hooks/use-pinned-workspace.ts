@@ -25,7 +25,7 @@ export function usePinnedWorkspaces() {
   const [pinnedId, setPinnedId] = useState<string | null>(null);
 
   useEffect(() => {
-    setPinnedId(getStoredId());
+    queueMicrotask(() => setPinnedId(getStoredId()));
   }, []);
 
   const isPinned = useCallback(

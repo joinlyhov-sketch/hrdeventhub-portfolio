@@ -51,7 +51,7 @@ export default function SurveyCreationForm({
 
   useEffect(() => {
     if (!surveyId) {
-      setQuestions([
+      queueMicrotask(() => setQuestions([
         {
           id: "1",
           type: "rating",
@@ -66,7 +66,7 @@ export default function SurveyCreationForm({
           linearStart: 1,
           linearEnd: 5,
         },
-      ]);
+      ]));
       return;
     }
 
@@ -77,7 +77,7 @@ export default function SurveyCreationForm({
 
         formStore.setTitle(survey.title);
         formStore.setDescription(survey.description || "");
-        const isActiveSafe = (survey as any).active ?? survey.isActive ?? true;
+        const isActiveSafe: boolean = Boolean((survey as unknown as { active?: boolean }).active ?? survey.isActive ?? true);
         formStore.setIsActive(isActiveSafe);
         if (survey.closingTime) {
           formStore.setClosingTime(
@@ -116,7 +116,7 @@ export default function SurveyCreationForm({
     };
 
     loadExistingSurveyData();
-  }, [surveyId]);
+  }, [surveyId, formStore]);
 
   useEffect(() => {
     const urlQueryId =
@@ -125,7 +125,7 @@ export default function SurveyCreationForm({
     if (resolvedId && !isEditMode) {
       formStore.setSelectedWorkspaceId(resolvedId);
     }
-  }, [searchParams, workspaceId, isEditMode]);
+  }, [searchParams, workspaceId, isEditMode, formStore]);
 
   const addQuestionByType = (type: QuestionType) => {
     const templates: Record<QuestionType, Partial<Question>> = {

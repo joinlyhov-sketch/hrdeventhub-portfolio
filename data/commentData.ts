@@ -1,6 +1,6 @@
 import type { CommentItem } from "../types/comment";
 
-const comments: CommentItem[] = [
+export const comments: CommentItem[] = [
   {
     id: 1,
     user: {

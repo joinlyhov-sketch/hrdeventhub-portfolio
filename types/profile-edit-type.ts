@@ -29,6 +29,6 @@ export interface UpdateProfileResponse {
   success: boolean;
   message: string;
   status: string;
-  payload: any;
+  payload: unknown;
   timestamp: string;
 }

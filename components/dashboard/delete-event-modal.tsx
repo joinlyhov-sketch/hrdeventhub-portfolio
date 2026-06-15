@@ -36,8 +36,8 @@ export function DeleteEventModal({
       setIsDeleting(true);
       await onConfirm();
       onClose();
-    } catch (err: any) {
-      setError(err?.message || "Failed to delete the event post.");
+    } catch (err: unknown) {
+      setError((err as { message?: string })?.message || "Failed to delete the event post.");
     } finally {
       setIsDeleting(false);
     }

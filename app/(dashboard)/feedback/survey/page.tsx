@@ -17,7 +17,7 @@ export default async function SurveysPage() {
   if (!session) {
     redirect("/auth/login");
   }
-  const workspaceId = (session.user as any)?.workspaceId || undefined;
+  const workspaceId = (session.user as Record<string, unknown>)?.workspaceId as string | undefined;
 
   return (
     <div className="z-20">

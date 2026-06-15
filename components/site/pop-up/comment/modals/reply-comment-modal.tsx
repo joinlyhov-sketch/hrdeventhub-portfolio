@@ -5,7 +5,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/comment-modal/dialog";
-import { X } from "lucide-react";
 import { DialogContent } from "@/components/ui/comment-modal/dialog";
 import { Textarea } from "@/components/ui/comment-modal/textarea";
 import { Button } from "@/components/ui/button";

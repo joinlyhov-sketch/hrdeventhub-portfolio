@@ -26,8 +26,6 @@ export default async function SurveyResponsesPage({
     redirect("/auth/login");
   }
 
-  const userRole = (session.user as any)?.role;
-
   const { surveyId } = params;
 
   return (

@@ -1,5 +1,5 @@
 import React from "react";
-import { Delete, X } from "lucide-react";
+import { Delete } from "lucide-react";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 

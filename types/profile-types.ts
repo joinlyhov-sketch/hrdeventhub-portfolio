@@ -1,7 +1,7 @@
 export type SharingMode = "PUBLIC" | "PRIVATE" | "SELECTIVE";
 
 export interface Education {
-  endYear: any;
+  endYear: number | null;
   institutionName: string;
   institutionAbbreviation: string;
   degree: string;
@@ -70,11 +70,19 @@ export interface UpdatePreferencesRequest {
 
 
 export interface ProfilePreferences {
-  showBirthdate: boolean;
   showEmail: boolean;
-  showSocial: boolean;
   showPhoneNumber: boolean;
+  showBirthdate: boolean;
+  showGender: boolean;
+  showBio: boolean;
+  showProfilePicture: boolean;
+  showMajor: boolean;
   showCurrentStatus: boolean;
+  showCv: boolean;
+  showEducation: boolean;
+  showSkills: boolean;
+  showSocial: boolean;
+  showGeneration: boolean;
 }
 
 export interface UserProfilePayload {
@@ -90,7 +98,7 @@ export interface UserProfilePayload {
   education: Education[];
   skills: string[];
   socialAccount?: Array<{ platform: string; url: string }>;
-  preferences?: ProfilePreferences[];
+  preferences?: ProfilePreferences;
   generation: Generation;
   appUser: AppUser;
 }

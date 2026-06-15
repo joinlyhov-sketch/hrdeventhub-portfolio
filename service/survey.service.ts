@@ -14,11 +14,11 @@ const getLiveToken = async (): Promise<string | undefined> => {
   
   if (typeof window === "undefined") {
     const session = await getServerSession(authOptions);
-    return session?.accessToken || (session?.user as any)?.token;
+    return session?.accessToken || (session?.user as Record<string, unknown>)?.token as string | undefined;
   }
 
   const session = await getSession();
-  return session?.accessToken || (session?.user as any)?.token;
+  return session?.accessToken || (session?.user as Record<string, unknown>)?.token as string | undefined;
 };
 
 interface BackendApiResponse<T> {
@@ -83,7 +83,7 @@ export const surveyService = {
 
   deleteSurvey: async (surveyId: string): Promise<void> => {
     const token = await getLiveToken();
-    await apiDelete<any>(`/survey/${surveyId}`, { authToken: token });
+    await apiDelete<unknown>(`/survey/${surveyId}`, { authToken: token });
   },
 
   submitSurveyResponse: async (
@@ -129,8 +129,9 @@ export const surveyService = {
         { authToken: token }
       );
       return response.payload || null;
-    } catch (error: any) {
-      if (error.status === 404 || error.message?.includes("404")) return null;
+    } catch (error: unknown) {
+      const err = error as { status?: number; message?: string };
+      if (err.status === 404 || err.message?.includes("404")) return null;
       throw error;
     }
   },

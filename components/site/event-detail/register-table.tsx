@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import {
   ArrowUp,
@@ -509,9 +510,11 @@ export function AdminOverview({ event, workspaceId }: AdminOverviewProps) {
                       className="hover:bg-gray-50/70 transition-colors"
                     >
                       <td className="p-3.5 pl-5 flex items-center gap-x-3 overflow-hidden">
-                        <img
+                        <Image
                           src={user.avatar}
                           alt={user.name}
+                          width={28}
+                          height={28}
                           className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-gray-100"
                         />
                         <div className="flex flex-col min-w-0">

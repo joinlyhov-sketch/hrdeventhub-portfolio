@@ -19,16 +19,6 @@ export default function GroupPreviewClient({ preview, token }: GroupPreviewClien
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
 
-  useEffect(() => {
-    if (!userLoading && currentUser) {
-      const pendingToken = sessionStorage.getItem("pendingJoinToken");
-      if (pendingToken === token) {
-        sessionStorage.removeItem("pendingJoinToken");
-        handleJoin();
-      }
-    }
-  }, [currentUser, userLoading]);
-
   const handleJoin = async () => {
     if (!currentUser) {
       sessionStorage.setItem("pendingJoinToken", token);
@@ -47,6 +37,18 @@ export default function GroupPreviewClient({ preview, token }: GroupPreviewClien
     }
   };
 
+  useEffect(() => {
+    if (!userLoading && currentUser) {
+      const pendingToken = sessionStorage.getItem("pendingJoinToken");
+      if (pendingToken === token) {
+        sessionStorage.removeItem("pendingJoinToken");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        handleJoin();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, userLoading]);
+
   const visibleMembers = preview.members.slice(0, 2);
   const extraCount = preview.memberCount - visibleMembers.length;
 
@@ -58,9 +60,9 @@ export default function GroupPreviewClient({ preview, token }: GroupPreviewClien
             Group Preview
           </h1>
           <p className="text-base sm:text-sm text-gray-700 type-detail leading-relaxed">
-            You're invited to be a part of a growing network of HRD community.
+            You&apos;re invited to be a part of a growing network of HRD community.
             <br className="hidden sm:inline" />
-            See who's already inside!
+            See who&apos;s already inside!
           </p>
         </div>
 

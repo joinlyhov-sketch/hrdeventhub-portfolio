@@ -33,7 +33,6 @@ export default function GroupDropDown({ workspace, userRole, pinnedCount }: Grou
 
   const isAdmin = userRole === "admin";
   const isAlreadyPinned = workspace.isPinned;
-  const canPin = isAlreadyPinned || pinnedCount < MAX_PINNED;
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
