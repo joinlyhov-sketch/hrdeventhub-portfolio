@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   ThumbsUp,
@@ -31,6 +31,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { WorkspaceMember } from "@/types/workspace-type/workspace-members";
 import { Comment } from "@/types/file-types";
+import { useSearchParams } from "next/navigation";
 
 interface AnnouncementCardProps {
   role: UserRole;
@@ -180,12 +181,14 @@ function AnnouncementItem({
   onDelete,
   groupId,
   members,
+  isTargeted,
 }: {
   post: Post;
   role: UserRole;
   onDelete: () => Promise<void> | void;
   groupId: string;
   members: WorkspaceMember[];
+  isTargeted: boolean;
 }) {
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
@@ -203,8 +206,16 @@ function AnnouncementItem({
 
   const { comments, refetch, loading } = usePostComments(
     post.postId,
-    showComments,
+    showComments || isTargeted, // Keep comments open if deep linked
   );
+
+  // Auto-open comments section if this specific post was pasted in the browser URL
+  useEffect(() => {
+    if (isTargeted) {
+      setShowComments(true);
+    }
+  }, [isTargeted]);
+
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
 
   const creator = post.creator;
@@ -247,7 +258,9 @@ function AnnouncementItem({
     <>
       <div
         id={`post-${post.postId}`}
-        className="bg-background rounded-[12px] border border-border p-5 shadow-sm transition-all duration-300"
+        className={`bg-background rounded-[12px] border p-5 shadow-sm transition-all duration-300 ${
+          isTargeted ? "border-primary ring-2 ring-primary/20 scale-[1.01]" : "border-border"
+        }`}
       >
         <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
           <div className="flex items-center gap-3">
@@ -386,7 +399,7 @@ function AnnouncementItem({
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
               <MessageCircleMore size={20} />
-              {showComments
+              {(showComments || isTargeted)
                 ? getTotalCommentsCount(comments)
                 : getTotalCommentsCount(comments) > 0
                   ? `${getTotalCommentsCount(comments)} Comment${getTotalCommentsCount(comments) > 1 ? "s" : ""}`
@@ -437,7 +450,7 @@ function AnnouncementItem({
           </div>
         </div>
 
-        {showComments && (
+        {(showComments || isTargeted) && (
           <div className="space-y-4 pt-2">
             {loading ? (
               <div className="space-y-4 animate-pulse">
@@ -489,6 +502,21 @@ export function AnnouncementCard({
   groupid,
   members,
 }: AnnouncementCardProps) {
+  const searchParams = useSearchParams();
+  const targetPostId = searchParams.get("postId");
+
+
+  useEffect(() => {
+    if (targetPostId) {
+      const element = document.getElementById(`post-${targetPostId}`);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300); 
+      }
+    }
+  }, [targetPostId, posts]);
+
   return (
     <>
       {posts.map((post) => (
@@ -499,6 +527,7 @@ export function AnnouncementCard({
           onDelete={() => onDeletePost(post.postId)}
           groupId={groupid}
           members={members}
+          isTargeted={post.postId === targetPostId}
         />
       ))}
     </>
