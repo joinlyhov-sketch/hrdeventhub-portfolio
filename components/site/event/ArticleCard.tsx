@@ -177,7 +177,7 @@ function ArticleItem({
             >
               <button
                 onClick={handleLikeToggle}
-                className={`flex items-center gap-2 transition-colors cursor-pointer select-none ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
+                className={`flex items-center gap-2 transition-colors cursor-pointer select-none text-sm sm:text-base ${activeReaction ? `${activeReaction.color} font-semibold` : "hover:text-primary"}`}
               >
                 {activeReaction ? (
                   <TwemojiImg emoji={activeReaction.emoji} size={20} />

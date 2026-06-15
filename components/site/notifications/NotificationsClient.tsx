@@ -236,7 +236,7 @@ function NotificationRow({
   return (
     <div
       className={cn(
-        "relative flex items-center gap-3 px-3 py-3 transition-colors",
+        "relative flex items-center gap-3 px-3 py-3  transition-colors",
         !n.read ? "hover:bg-white" : "bg-white hover:bg-gray-100",
         href ? "cursor-pointer" : "cursor-default"
       )}
@@ -301,7 +301,7 @@ export function NotificationsClient() {
   const hasAny = filtered.length > 0;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f0f2f5]">
+    <div className="flex flex-col min-h-screen bg-white">
       <div className="sticky top-0 z-10 bg-white px-4 pt-5 pb-0 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-2xl font-bold" style={{ color: "#1c4d8d" }}>

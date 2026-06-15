@@ -39,10 +39,10 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         setProfileLoading(true);
-        const res = isSelf
-          ? await profileService.getProfileMe(session.accessToken!)
-          : await profileService.getProfileById(userId, session.accessToken!);
-
+        const res = await profileService.getProfileById(
+          userId,
+          session.accessToken!,
+        );
         if (res.success) setProfile(res.payload);
       } catch (e) {
         console.error("Profile fetch failed:", e);
@@ -52,14 +52,18 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, [isReady, session?.accessToken, userId, isSelf]);
+  }, [isReady, session?.accessToken, userId]);
 
   const subjectRole = profile?.roles ? String(profile.roles).toUpperCase() : "";
   const viewerRole = currentUser?.role
     ? String(currentUser.role).toUpperCase()
     : "";
 
+  const sharingMode = profile?.profileSharingMode;
+  const isPrivate = sharingMode === "PRIVATE";
+
   const showEventTab =
+    !isPrivate &&
     isReady &&
     viewerRole !== "" &&
     subjectRole !== "" &&
@@ -67,9 +71,8 @@ export default function ProfilePage() {
       (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI")));
 
   const showEndorsementTab =
+    !isPrivate &&
     isReady &&
-    viewerRole !== "" &&
-    subjectRole !== "" &&
     !isSelf &&
     viewerRole === "ALUMNI" &&
     subjectRole === "STUDENT";
@@ -87,8 +90,10 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
 
   useEffect(() => {
-    if (activeTab === "EV" && !showEventTab) queueMicrotask(() => setActiveTab("BG"));
-    if (activeTab === "EN" && !showEndorsementTab) queueMicrotask(() => setActiveTab("BG"));
+    if (activeTab === "EV" && !showEventTab)
+      queueMicrotask(() => setActiveTab("BG"));
+    if (activeTab === "EN" && !showEndorsementTab)
+      queueMicrotask(() => setActiveTab("BG"));
   }, [activeTab, showEventTab, showEndorsementTab]);
 
   const subjectName = profile
@@ -102,7 +107,11 @@ export default function ProfilePage() {
       : `You are viewing ${subjectName ?? "this user"}'s profile.`;
 
   const isSubjectAdmin = subjectRole === "ADMIN";
-  const adjustedViewMode = viewerRole === "ADMIN" ? "student" : viewMode;
+  const adjustedViewMode = isSelf
+    ? "self"
+    : viewerRole === "ADMIN"
+      ? "student"
+      : viewMode;
 
   if (!isReady || profileLoading) {
     return <ProfilePageSkeleton />;
@@ -125,7 +134,7 @@ export default function ProfilePage() {
             />
           </div>
           <div className="xl:col-span-8 xl:h-full bg-card border border-border rounded-xl p-4 sm:p-6 shadow-sm flex flex-col gap-6 xl:overflow-hidden">
-            <div className="flex bg-muted p-1.5 rounded-lg border border-border gap-1 shrink-0 overflow-x-auto">
+            <div className="flex bg-muted p-1.5 rounded-xl border border-border gap-1 shrink-0 overflow-x-auto">
               <Tabnav
                 active={activeTab === "BG"}
                 label="Background"
@@ -147,17 +156,25 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="w-full flex-1 min-h-0 xl:overflow-hidden">
-              {activeTab === "BG" && (
-                <BackgroundTab
-                  profile={profile}
-                  loading={profileLoading || !isReady}
-                />
-              )}
-              {activeTab === "EV" && showEventTab && (
-                <EventTab userId={userId} />
-              )}
-              {activeTab === "EN" && showEndorsementTab && (
-                <EndorsementTabs studentId={isSelf ? undefined : userId} />
+              {isPrivate ? (
+                <div className="flex items-center justify-center h-full text-muted-foreground type-desc">
+                  This profile is private.
+                </div>
+              ) : (
+                <>
+                  {activeTab === "BG" && (
+                    <BackgroundTab
+                      profile={profile}
+                      loading={profileLoading || !isReady}
+                    />
+                  )}
+                  {activeTab === "EV" && showEventTab && (
+                    <EventTab userId={userId} />
+                  )}
+                  {activeTab === "EN" && showEndorsementTab && (
+                    <EndorsementTabs studentId={isSelf ? undefined : userId} />
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -178,7 +195,7 @@ const Tabnav = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex-1 shrink-0 whitespace-nowrap py-2.5 px-4 rounded-md type-desc-semibold transition-all duration-100 ${
+    className={`flex-1 shrink-0 whitespace-nowrap py-2.5 px-4 rounded-lg type-desc-semibold transition-all duration-100 ${
       active
         ? "bg-primary text-primary-foreground shadow-sm cursor-pointer"
         : "text-muted-foreground hover:bg-grey-50 hover:text-foreground cursor-pointer"

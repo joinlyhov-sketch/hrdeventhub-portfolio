@@ -101,7 +101,7 @@ export interface UserProfilePayload {
   education: Education[];
   skills: string[];
   socialAccount: SocialAccount[];
-  preferences?: ProfilePreferences[];
+  preferences?: ProfilePreferences;
   generation: Generation;
   appUser: AppUser;
 }
