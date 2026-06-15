@@ -86,6 +86,7 @@ export default function StudentProfileForm() {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [hasRole, setHasRole] = useState(false);
 
   const [initialIdentity, setInitialIdentity] = useState<Record<string, unknown> | null>(null);
   const [initialProfile, setInitialProfile] = useState<Record<string, unknown> | null>(null);
@@ -393,6 +394,7 @@ export default function StudentProfileForm() {
               setGender("Female");
             else setGender(idData.gender as string);
           }
+          setHasRole(!!idData.role);
         }
 
         if (profileRes.status === "fulfilled" && profileRes.value?.success) {
@@ -1402,188 +1404,113 @@ export default function StudentProfileForm() {
         </div>
       </div>
 
-      <div className="space-y-4 w-full">
-        <label className="type-subtitle text-primary block">Resume</label>
-        <input
-          type="file"
-          ref={resumeInputRef}
-          onChange={handleResumeFileChange}
-          accept=".pdf,.docx"
-          className="hidden"
-          disabled={isUploadingResume}
-        />
-        <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-200 rounded-xl">
-          <div className="p-3 bg-[#E5EEFF] text-primary rounded-full mb-2 flex items-center justify-center">
-            {isUploadingResume ? (
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M9 17V11L7 13"
-                  stroke="#292D32"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M9 11L11 13"
-                  stroke="#292D32"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14"
-                  stroke="#292D32"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M22 10H18C15 10 14 9 14 6V2L22 10Z"
-                  stroke="#292D32"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </div>
-          <span className="text-gray-900 type-desc">Upload New CV</span>
-          <span className="text-gray-500 type-desc-small-semibold mt-0.5 mb-4">
-            PDF, DOCX up to 10MB
-          </span>
-          <button
-            type="button"
-            disabled={isUploadingResume}
-            onClick={() => resumeInputRef.current?.click()}
-            className="px-6 py-2.5 bg-[#4663AC] primary-hover disabled:opacity-50 text-white type-desc-medium rounded-2xl transition-colors cursor-pointer border-0 shadow-xs"
-          >
-            Select file
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-white w-full">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-2 rounded-lg text-gray-500 flex items-center justify-center shrink-0">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 36 36"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-gray-600"
-              >
-                <path
-                  d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12 19.5H18"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12 25.5H24"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <span
-              className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}
-            >
-              {cvResumeUrl
-                ? `CV_${username}.` + cvResumeUrl.split(".").pop()
-                : "CV_Example.pdf"}
-            </span>
-          </div>
-          {cvResumeUrl && (
-            <button
-              type="button"
-              onClick={() => setIsDeleteResumeModalOpen(true)}
-            >
-              <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
-            </button>
-          )}
-        </div>
+      {hasRole && (
+  <div className="space-y-4 w-full">
+    <label className="type-subtitle text-primary block">Resume</label>
+    <input
+      type="file"
+      ref={resumeInputRef}
+      onChange={handleResumeFileChange}
+      accept=".pdf,.docx"
+      className="hidden"
+      disabled={isUploadingResume}
+    />
+    <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-200 rounded-xl">
+      <div className="p-3 bg-[#E5EEFF] text-primary rounded-full mb-2 flex items-center justify-center">
+        {isUploadingResume ? (
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 17V11L7 13" stroke="#292D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9 11L11 13" stroke="#292D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14" stroke="#292D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M22 10H18C15 10 14 9 14 6V2L22 10Z" stroke="#292D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
       </div>
-      <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
-        <button
-          type="button"
-          onClick={() => {
-            sessionStorage.removeItem("pending-avatar");
-            router.back();
-          }}
-          className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
-        >
-          Discard Changes
-        </button>
-        <button
-          type="button"
-          disabled={isPending || isUploading || isUploadingResume}
-          onClick={handleSaveChanges}
-          className="w-full sm:w-auto px-5 py-2 bg-primary text-white rounded-lg type-detail-semibold hover:bg-primary-hover shadow-xs border-0 cursor-pointer order-1 sm:order-2 disabled:opacity-50"
-        >
-          {isPending ? "Saving..." : "Save changes"}
-        </button>
-      </div>
-      {selectedImageSrc && (
-        <ImageAdjustModal
-          imageSrc={selectedImageSrc}
-          isOpen={isAdjustModalOpen}
-          onClose={() => {
-            sessionStorage.removeItem("pending-avatar");
-            setSelectedImageSrc(null);
-            setIsAdjustModalOpen(false);
-          }}
-          onSave={handleCroppedImageSave}
-        />
-      )}
-
-      <AddSkillModal
-        isOpen={isSkillModalOpen}
-        onClose={() => setIsSkillModalOpen(false)}
-        onAddSkill={(skill) => {
-          if (skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
-            toast.error("This skill already exists.");
-            return;
-          }
-
-          setSkills((prev) => [...prev, skill]);
-          toast.success("Skill added successfully.");
-        }}
-      />
-      <DeleteResumeModal
-        isOpen={isDeleteResumeModalOpen}
-        onClose={() => setIsDeleteResumeModalOpen(false)}
-        fileName={
-          cvResumeUrl
-            ? `CV_${username}.${cvResumeUrl.split(".").pop()}`
-            : undefined
-        }
-        onConfirm={confirmDeleteResume}
-      />
+      <span className="text-gray-900 type-desc">Upload New CV</span>
+      <span className="text-gray-500 type-desc-small-semibold mt-0.5 mb-4">PDF, DOCX up to 10MB</span>
+      <button
+        type="button"
+        disabled={isUploadingResume}
+        onClick={() => resumeInputRef.current?.click()}
+        className="px-6 py-2.5 bg-[#4663AC] primary-hover disabled:opacity-50 text-white type-desc-medium rounded-2xl transition-colors cursor-pointer border-0 shadow-xs"
+      >
+        Select file
+      </button>
     </div>
-  );
+    <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-white w-full">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className="p-2 rounded-lg text-gray-500 flex items-center justify-center shrink-0">
+          <svg width="24" height="24" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-600">
+            <path d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 19.5H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 25.5H24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <span className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}>
+          {cvResumeUrl ? `CV_${username}.` + cvResumeUrl.split(".").pop() : "CV_Example.pdf"}
+        </span>
+      </div>
+      {cvResumeUrl && (
+        <button type="button" onClick={() => setIsDeleteResumeModalOpen(true)}>
+          <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
+        </button>
+      )}
+    </div>
+  </div>
+)}
+<div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
+  <button
+    type="button"
+    onClick={() => {
+      sessionStorage.removeItem("pending-avatar");
+      router.back();
+    }}
+    className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
+  >
+    Discard Changes
+  </button>
+  <button
+    type="button"
+    disabled={isPending || isUploading || isUploadingResume}
+    onClick={handleSaveChanges}
+    className="w-full sm:w-auto px-5 py-2 bg-primary text-white rounded-lg type-detail-semibold hover:bg-primary-hover shadow-xs border-0 cursor-pointer order-1 sm:order-2 disabled:opacity-50"
+  >
+    {isPending ? "Saving..." : "Save changes"}
+  </button>
+</div>
+{selectedImageSrc && (
+  <ImageAdjustModal
+    imageSrc={selectedImageSrc}
+    isOpen={isAdjustModalOpen}
+    onClose={() => {
+      sessionStorage.removeItem("pending-avatar");
+      setSelectedImageSrc(null);
+      setIsAdjustModalOpen(false);
+    }}
+    onSave={handleCroppedImageSave}
+  />
+)}
+<AddSkillModal
+  isOpen={isSkillModalOpen}
+  onClose={() => setIsSkillModalOpen(false)}
+  onAddSkill={(skill) => {
+    if (skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
+      toast.error("This skill already exists.");
+      return;
+    }
+    setSkills((prev) => [...prev, skill]);
+    toast.success("Skill added successfully.");
+  }}
+/>
+<DeleteResumeModal
+  isOpen={isDeleteResumeModalOpen}
+  onClose={() => setIsDeleteResumeModalOpen(false)}
+  fileName={cvResumeUrl ? `CV_${username}.${cvResumeUrl.split(".").pop()}` : undefined}
+  onConfirm={confirmDeleteResume}
+/>
+</div>
+);
 }
