@@ -61,11 +61,18 @@ export default function ProfilePage() {
 
   const showEventTab =
     isReady &&
+    viewerRole !== "" &&
+    subjectRole !== "" &&
     ((isSelf && (viewerRole === "STUDENT" || viewerRole === "ALUMNI")) ||
       (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI")));
 
   const showEndorsementTab =
-    isReady && !isSelf && viewerRole === "ALUMNI" && subjectRole === "STUDENT";
+    isReady &&
+    viewerRole !== "" &&
+    subjectRole !== "" &&
+    !isSelf &&
+    viewerRole === "ALUMNI" &&
+    subjectRole === "STUDENT";
 
   const titlePrimary = isSelf
     ? "My"
