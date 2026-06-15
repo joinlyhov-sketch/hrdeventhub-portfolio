@@ -121,9 +121,17 @@ function EventItem({
     }
   };
 
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/group/${groupid}?postId=${post.postId}&type=event`
+      : `https://hrdevent.app/group/${groupid}?postId=${post.postId}&type=event`;
+
   return (
     <>
-     <div id={`post-${post.postId}`} className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm">
+      <div
+        id={`post-${post.postId}`}
+        className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm"
+      >
         <div className="flex flex-wrap items-start justify-between gap-2 mb-3 sm:mb-4">
           <Link href={`/profile/${currentUser?.id}`}>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -131,7 +139,7 @@ function EventItem({
                 {profilePictureUrl ? (
                   <Image
                     src={profilePictureUrl}
-                    alt={creator!.fullName}
+                    alt={creator?.fullName ?? "User"}
                     width={48}
                     height={48}
                     className="w-full h-full object-cover rounded-full border-2 border-primary"
@@ -207,7 +215,7 @@ function EventItem({
             </p>
           )}
           {post.purpose && (
-            <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+            <p className="text-[11px] sm:text-sm text-grey-500 hover:leading-snug">
               <span className="text-[11px] sm:text-sm font-semibold text-foreground">
                 PURPOSE:{" "}
               </span>
@@ -387,6 +395,7 @@ function EventItem({
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         postId={post.postId}
+        shareUrl={shareUrl}
       />
     </>
   );
