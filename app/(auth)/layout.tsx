@@ -25,14 +25,14 @@ export default function AuthLayout({
       <div className="absolute left-[43%] top-[35%] h-16 w-16 bg-[#dce6f4]" />
       <div className="absolute left-[48%] top-[45%] h-12 w-12 bg-[#edf3fb]" />
       <div className="absolute right-[5%] bottom-[7%] h-16 w-16 bg-[#edf3fb]" />
-      <div className="relative z-10 flex min-h-screen flex-col px-8 py-8 lg:px-16">
+      <div className="relative z-10 flex min-h-screen flex-col px-5 pt-10 pb-8 sm:px-8 sm:py-8 lg:px-16">
         <Image
           src="/images/Logo.webp"
           alt="HRD EventHub"
           width={170}
           height={70}
           priority
-          className="h-auto w-[250px]"
+          className="h-auto w-36 sm:w-50 lg:w-62.5 mx-auto sm:mx-0"
         />
         {children}
       </div>
