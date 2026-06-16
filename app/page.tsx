@@ -30,7 +30,7 @@ export default function LandingPage() {
       </div>
       <div className="min-h-0 lg:min-h-screen bg-background px-4 md:px-12 lg:px-32 py-12">
         <div className="mb-6 ml-0 md:ml-6 lg:ml-18">
-          <h1 className="font-black leading-none text-secondary text-[24px] md:text-[56px]">
+          <h1 className="font-black leading-none text-secondary text-[22px] sm:text-[24px] md:text-[56px]">
             Community <span className="text-action">Updates</span>
           </h1>
           <p className="type-desc text-secondary mt-2 ">

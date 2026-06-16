@@ -6,11 +6,10 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
-  AlertDialogMedia,
   AlertDialogTitle,
 } from "@/components/ui/alert-modal/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { TriangleAlert, X } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
 interface DeleteModalProps {
@@ -21,7 +20,13 @@ interface DeleteModalProps {
   onConfirm: () => Promise<void> | void;
 }
 
-export function DeleteModal({ isOpen, onClose, title, description, onConfirm }: DeleteModalProps) {
+export function DeleteModal({
+  isOpen,
+  onClose,
+  title,
+  description,
+  onConfirm,
+}: DeleteModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirm = async () => {
@@ -38,57 +43,45 @@ export function DeleteModal({ isOpen, onClose, title, description, onConfirm }: 
 
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent className="sm:max-w-[800px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden gap-0">
-        <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-6">
-          <AlertDialogHeader className="flex flex-row items-center gap-4 space-y-0">
-            <AlertDialogMedia className="flex items-center justify-center bg-destructive/10 text-destructive rounded-full w-12 h-12 shrink-0">
-              <TriangleAlert size={24} />
-            </AlertDialogMedia>
-            <div className="space-y-1">
-              <AlertDialogTitle className="text-[26px] font-bold text-[#1e3a8a]">
-                Delete {title}
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-[15px] text-gray-500 font-normal">
-                This action is permanent and cannot be reversed.
-              </AlertDialogDescription>
-            </div>
-          </AlertDialogHeader>
-          <button
-            onClick={onClose}
-            className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-            aria-label="Close dialog"
-          >
-            <X size={22} strokeWidth={2.5} />
-          </button>
+      <AlertDialogContent className="sm:max-w-[420px] w-full rounded-2xl border-none bg-white p-8 shadow-2xl gap-0">
+        <div className="flex justify-center mb-5">
+          <div className="flex items-center justify-center bg-red-100 rounded-full w-16 h-16">
+            <TriangleAlert size={32} className="text-red-600" />
+          </div>
         </div>
 
-        <div className="px-8 py-8 bg-white">
-          <p className="text-[16px] text-gray-700 leading-relaxed font-medium">
+        <AlertDialogHeader className="text-center space-y-3 mb-6">
+          <AlertDialogTitle className="text-[26px] font-bold text-secondary text-center w-full">
+            Delete {title}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-[15px] text-gray-600 font-normal text-center">
             {description ?? (
               <>
                 Are you sure you want to delete{" "}
-                <span className="font-bold text-gray-900">&apos;{title}&apos;</span>?
-                All data linked to this will be permanently removed.
+                <span className="font-bold text-gray-900">
+                  &apos;{title}&apos;
+                </span>
+                ? This action cannot be undone.
               </>
             )}
-          </p>
-        </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
 
-        <div className="flex justify-end items-center gap-3 bg-[#f8fafc] px-8 py-5 border-t border-gray-50">
-          <AlertDialogCancel asChild>
+        <div className="flex items-center gap-3">
+          <AlertDialogCancel asChild className="flex-1 m-0">
             <Button
               variant="outline"
               onClick={onClose}
-              className="h-[46px] px-7 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg text-[15px] transition-colors"
+              className="h-[48px] w-full border border-primary text-primary hover:bg-gray-50 hover:text-primary type-desc rounded-xl text-[15px] transition-colors"
             >
               Cancel
             </Button>
           </AlertDialogCancel>
-          <AlertDialogAction asChild>
+          <AlertDialogAction asChild className="flex-1">
             <Button
               onClick={handleConfirm}
               disabled={isDeleting}
-              className="h-[46px] px-7 bg-destructive hover:bg-destructive/90 text-white font-semibold rounded-lg text-[15px] shadow-sm transition-colors disabled:opacity-50"
+              className="h-[48px] w-full bg-red-700 hover:bg-red-600 text-white type-desc rounded-xl text-[15px] shadow-sm transition-colors disabled:opacity-50"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </Button>

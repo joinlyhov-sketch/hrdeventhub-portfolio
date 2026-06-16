@@ -358,9 +358,9 @@ export default function HeroSession() {
         </motion.div>
 
         <div className="min-h-0 lg:min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start px-4 py-6 md:px-12 md:py-10 max-w-7xl mx-auto relative z-[12] text-center">
-          <div className="w-full flex flex-col items-center justify-center mb-4 sm:mb-8 md:mb-12">
+          <div className="w-full flex flex-col items-center justify-center mb-3 sm:mb-8 md:mb-12">
             <motion.h2
-              className="text-xl sm:text-3xl md:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2"
+              className="text-base sm:text-3xl md:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -368,7 +368,7 @@ export default function HeroSession() {
             >
               <span>Bring Together</span>
               <motion.span
-                className="text-secondary text-2xl sm:text-4xl md:text-[50px]"
+                className="text-secondary text-lg sm:text-4xl md:text-[50px]"
                 variants={fadeUp}
                 custom={0.1}
               >
@@ -376,7 +376,7 @@ export default function HeroSession() {
               </motion.span>
               <span className="text-action">&amp;</span>
               <motion.span
-                className="text-secondary text-2xl sm:text-4xl md:text-[50px]"
+                className="text-secondary text-lg sm:text-4xl md:text-[50px]"
                 variants={fadeUp}
                 custom={0.18}
               >
@@ -385,7 +385,7 @@ export default function HeroSession() {
             </motion.h2>
 
             <motion.h1
-              className="text-3xl sm:text-5xl md:text-[60px] text-secondary mt-3 mb-4 md:mb-6 max-w-5xl font-bold leading-tight"
+              className="text-2xl sm:text-5xl md:text-[60px] text-secondary mt-2 sm:mt-3 mb-3 sm:mb-4 md:mb-6 max-w-5xl font-bold leading-tight"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -408,7 +408,7 @@ export default function HeroSession() {
             </motion.p>
           </div>
 
-          <div className="relative w-full top-[-20px] sm:top-[-40px] md:top-[-80px] lg:top-[-100px] max-w-[1280px] h-[130px] sm:h-[220px] md:h-[320px] lg:h-[480px] flex items-center justify-center px-1 md:px-0 md:overflow-visible">
+          <div className="relative w-full top-0 sm:-top-10 md:-top-20 lg:-top-25 max-w-7xl h-50 sm:h-55 md:h-80 lg:h-120 flex items-center justify-center px-1 md:px-0 md:overflow-visible">
             <motion.div
               className="absolute left-[-2%] sm:left-[-1%] md:left-[-3%] w-[32%] md:w-[33%] translate-y-4 sm:translate-y-8 md:translate-y-16 z-30"
               variants={slideInLeft}
@@ -529,7 +529,7 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="type-title text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-[110px] md:max-w-[130px] xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base font-semibold text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-27.5 md:max-w-32.5 xl:max-w-none mx-auto leading-tight">
                 Digital Payment
               </h3>
             </motion.div>
@@ -594,7 +594,7 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="type-title text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-[110px] md:max-w-[130px] xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base font-semibold text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-27.5 md:max-w-32.5 xl:max-w-none mx-auto leading-tight">
                 Event Management
               </h3>
             </motion.div>
@@ -635,7 +635,7 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="type-title text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-[110px] md:max-w-[130px] xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base font-semibold text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-27.5 md:max-w-32.5 xl:max-w-none mx-auto leading-tight">
                 Community Engagement
               </h3>
             </motion.div>

@@ -20,7 +20,7 @@ export default function RegisterWizard() {
         rounded-[20px] sm:rounded-[30px]
         border border-[#c8d6ee]
         bg-[#f9fbff]
-        p-5 sm:p-8 md:p-10
+        px-5 pt-5 pb-4 sm:p-8 md:p-10
         shadow-sm overflow-hidden
       "
     >
@@ -34,7 +34,7 @@ export default function RegisterWizard() {
         </AnimatePresence>
       </div>
 
-      <p className="mt-8 text-center text-sm text-[#5f6470]">
+      <p className="mt-4 text-center text-sm text-[#5f6470]">
         Already have an account?{" "}
         <a
           href="/login"
