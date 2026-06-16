@@ -385,7 +385,7 @@ export default function HeroSession() {
             </motion.h2>
 
             <motion.h1
-              className="text-2xl sm:text-5xl md:text-[60px] text-secondary mt-2 sm:mt-3 mb-3 sm:mb-4 md:mb-6 max-w-5xl font-bold leading-tight"
+              className="text-lg sm:text-5xl md:text-[60px] text-secondary mt-2 sm:mt-3 mb-3 sm:mb-4 md:mb-6 max-w-5xl font-bold leading-tight"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -529,7 +529,7 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base font-semibold text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-27.5 md:max-w-32.5 xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
                 Digital Payment
               </h3>
             </motion.div>
@@ -594,7 +594,7 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base font-semibold text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-27.5 md:max-w-32.5 xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
                 Event Management
               </h3>
             </motion.div>
@@ -635,7 +635,7 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base font-semibold text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-27.5 md:max-w-32.5 xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
                 Community Engagement
               </h3>
             </motion.div>
