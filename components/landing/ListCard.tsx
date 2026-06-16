@@ -41,11 +41,11 @@ export default function MediaListSection() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { 
-        staggerChildren: 0.2,
-        delayChildren: 1.0   
-      }
-    }
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
   };
 
   return (
@@ -78,7 +78,7 @@ const ListCard: React.FC<{ item: MediaItem }> = ({ item }) => {
       variants={cardVariants}
       className="flex flex-col md:flex-row items-stretch md:items-start w-full gap-4 p-4 border border-border rounded-xl bg-card shadow-sm"
     >
-      <div className="relative w-full h-48 md:w-25 md:h-25 rounded-lg overflow-hidden shrink-0 bg-grey-100">
+      <div className="relative w-full h-40 md:w-25 md:h-25 rounded-lg overflow-hidden shrink-0 bg-grey-100">
         <Image
           src={item.imageUrl}
           alt={item.title}
