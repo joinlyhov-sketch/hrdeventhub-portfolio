@@ -16,22 +16,31 @@ export const eventPostSchema = z
 
     googleMapUrl: z
       .string()
+      .trim()
       .min(1, "Google Maps URL is required")
-      .url("Please enter a valid URL protocol (e.g., https://)"),
+      .url("Please enter a valid URL")
+      .refine((url) => {
+        try {
+          const { hostname, pathname } = new URL(url);
 
-    status: z.enum(["draft", "active"]),
-
+          return (
+            hostname === "maps.app.goo.gl" ||
+            hostname === "maps.google.com" ||
+            ((hostname === "www.google.com" || hostname === "google.com") &&
+              pathname.startsWith("/maps"))
+          );
+        } catch {
+          return false;
+        }
+      }, "Please enter a valid Google Maps URL"),
+    status: z.enum(["active", "draft"]),
     scheduleDate: z.string().optional(),
     isPinned: z.boolean().default(false),
-    price: z.coerce
-      .number()
-      .min(1, "Price at least 1$ and cannot be negative value"),
+    price: z.coerce.number().optional(),
 
     targetGoal: z.coerce.number().optional(),
 
-    description: z
-      .string()
-      .min(10, "Description must be at least 10 characters long"),
+    description: z.string().optional(),
 
     media: z
       .array(
@@ -91,6 +100,25 @@ export const eventPostSchema = z
               "Schedule publish date must be at least 1 day before the event date",
           });
         }
+      }
+    }
+    if (data.paymentType === "fixed") {
+      if (!data.price || Number(data.price) < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["price"],
+          message: "Price is required and must be at least $1",
+        });
+      }
+    }
+
+    if (data.paymentType === "flexible") {
+      if (!data.targetGoal || Number(data.targetGoal) < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["targetGoal"],
+          message: "Target goal is required and must be at least $1",
+        });
       }
     }
 

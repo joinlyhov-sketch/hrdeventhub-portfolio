@@ -6,7 +6,6 @@ import { useForm, Controller, useWatch, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
-  Calendar,
   Clock,
   MapPin,
   FileText,
@@ -31,16 +30,12 @@ import {
 } from "@/schemas/announcement-schema";
 import { UpdateEventPayload } from "@/types/post-types";
 import { usePostDetail } from "@/hooks/use-post-detail";
-import { useWorkspacePosts } from "@/hooks/use-workspace-posts";
 import { InputDate } from "../InputDate";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+import { CustomSelect } from "../CustomSelect";
+import { NavigationGuard } from "../NavigationGuard";
+import Loading from "@/app/loading";
 
 export default function EditAnnouncementForm() {
   const router = useRouter();
@@ -57,8 +52,10 @@ export default function EditAnnouncementForm() {
     register,
     handleSubmit,
     control,
+    setValue,
+    watch,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<AnnouncementPostFormValues>({
     resolver: zodResolver(
       announcementPostSchema,
@@ -189,14 +186,14 @@ export default function EditAnnouncementForm() {
 
     const payload: UpdateEventPayload = {
       title: data.title.trim(),
-      content: data.description.trim(),
+      content: data.description,
       purpose: data.purpose?.trim() || "Community Announcement",
       eventStart: startIso,
       eventEnd: endIso,
       scheduledAt: data.status === "active" ? startIso : scheduledIso,
       expiresAt: endIso,
       isPublished: data.status === "active",
-      status: data.status as "draft" | "active" | "closed",
+      status: "draft",
       isPinned: data.isPinned,
       location: {
         locationName: data.locationName,
@@ -216,9 +213,18 @@ export default function EditAnnouncementForm() {
         payload,
       );
       if (result.ok) {
-        if (data.status === "active") {
-          await publishDraftPostAction(workspaceId, postId);
+        if (data.status === "active" && postId) {
+          const publishRes = await publishDraftPostAction(workspaceId, postId);
+          if (!publishRes.ok) {
+            console.error("Failed to set active:", publishRes);
+            toast.error(
+              `Draft saved, but failed to change status to active: ${publishRes.error}`,
+            );
+            setIsSubmitting(false);
+            return;
+          }
         }
+
         toast.success(
           data.status === "active"
             ? "Announcement updated and published successfully!"
@@ -245,15 +251,23 @@ export default function EditAnnouncementForm() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-medium">
-        Loading target announcement parameters context...
-      </div>
-    );
+    return <Loading />;
   }
+  const handleCancel = () => {
+    const fallbackUrl = `/group/${workspaceId}`;
+    if (isDirty) {
+      const customEvent = new CustomEvent("trigger-unsaved-guard", {
+        detail: { fallbackUrl },
+      });
+      window.dispatchEvent(customEvent);
+    } else {
+      router.push(fallbackUrl);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+      <NavigationGuard isDirty={isDirty} />
       <Breadcrumb
         label="Announcement Edition"
         backHref={`/group/${workspaceId}`}
@@ -381,7 +395,14 @@ export default function EditAnnouncementForm() {
                 icon={LinkIcon}
                 placeholder="https://maps.google.com/..."
                 type="text"
-                {...register("googleMapUrl")}
+                {...register("googleMapUrl", {
+                  onChange: (e) => {
+                    const sanitized = e.target.value
+                      .replace(/\\/g, "/")
+                      .replace(/^(https?):\/+/, "$1://");
+                    setValue("googleMapUrl", sanitized);
+                  },
+                })}
                 isError={errors.googleMapUrl != null}
               />
               {errors.googleMapUrl && (
@@ -400,29 +421,16 @@ export default function EditAnnouncementForm() {
                     <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
                       Visibility Status
                     </Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full h-11 px-4 py-5 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent
-                        side="bottom"
-                        position="popper"
-                        className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
-                      >
-                        <SelectItem
-                          value="draft"
-                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
-                        >
-                          Draft
-                        </SelectItem>
-                        <SelectItem
-                          value="active"
-                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
-                        >
-                          Active
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <CustomSelect
+                      value={watch("status")}
+                      onChange={(val) =>
+                        setValue("status", val as "draft" | "active")
+                      }
+                      options={[
+                        { value: "draft", label: "Draft" },
+                        { value: "active", label: "Active" },
+                      ]}
+                    />
                   </div>
                 )}
               />
@@ -515,7 +523,7 @@ export default function EditAnnouncementForm() {
 
           <div>
             <FormTextarea
-              label="Description"
+              label="Description (Optional)"
               placeholder="Describe the mission and scope of this announcement..."
               {...register("description")}
               isError={errors.description != null}
@@ -549,7 +557,7 @@ export default function EditAnnouncementForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${workspaceId}`)}
+          onClick={handleCancel}
           className="order-2 sm:order-1 w-full hover:bg-transparent hover:text-primary sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
         >
           Cancel
