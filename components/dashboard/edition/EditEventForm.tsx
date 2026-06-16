@@ -28,18 +28,10 @@ import {
 } from "@/actions/post.action";
 import { eventPostSchema, EventPostFormValues } from "@/schemas/event-schema";
 import { UpdateEventPayload } from "@/types/post-types";
-import { usePlatformEvents } from "@/hooks/usePlatformEvents";
-import { useSession } from "next-auth/react";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { InputDate } from "../InputDate";
 import { usePostDetail } from "@/hooks/use-post-detail";
+import { CustomSelect } from "../CustomSelect";
+import { NavigationGuard } from "../NavigationGuard";
+import Loading from "@/app/loading";
 
 export default function EditEventForm() {
   const router = useRouter();
@@ -49,7 +41,6 @@ export default function EditEventForm() {
   const isAdmin = searchParams.get("admin");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isFlexible, setIsFlexible] = useState(false);
 
   const { post: event, isLoading } = usePostDetail(workspaceId, postId);
 
@@ -57,8 +48,10 @@ export default function EditEventForm() {
     register,
     handleSubmit,
     control,
+    setValue,
+    watch,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<EventPostFormValues>({
     resolver: zodResolver(eventPostSchema) as Resolver<EventPostFormValues>,
     defaultValues: {
@@ -84,6 +77,18 @@ export default function EditEventForm() {
     name: "status",
     defaultValue: "draft",
   });
+  const watchedPaymentType = useWatch({
+    control,
+    name: "paymentType",
+    defaultValue: "fixed",
+  });
+  useEffect(() => {
+    if (watchedPaymentType === "fixed") {
+      setValue("targetGoal", 0);
+    } else {
+      setValue("price", 0);
+    }
+  }, [watchedPaymentType, setValue]);
 
   function formatDateForInput(dateString?: string): string {
     if (!dateString) return "";
@@ -122,7 +127,7 @@ export default function EditEventForm() {
       const match = timeString.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
 
       if (match) {
-        const [, hours, minutes, modifier] = match;
+        const [_, hours, minutes, modifier] = match;
         let hoursNum = parseInt(hours, 10);
 
         if (modifier.toUpperCase() === "PM" && hoursNum < 12) hoursNum += 12;
@@ -169,13 +174,6 @@ export default function EditEventForm() {
   }, [event, reset]);
 
   const onSubmit = async (data: EventPostFormValues) => {
-    if (data.paymentType === "flexible" && !Number(data.targetGoal)) {
-      setIsFlexible(true);
-      return;
-    } else {
-      setIsFlexible(false);
-    }
-
     if (!workspaceId || !postId) {
       toast.error("Error: Workspace or Event missing identifier paths.");
       return;
@@ -195,14 +193,14 @@ export default function EditEventForm() {
 
     const payload: UpdateEventPayload = {
       title: data.title.trim(),
-      content: data.description.trim(),
+      content: data.description,
       purpose: data.purpose.trim() || "Community Event",
       eventStart: startIso,
       eventEnd: endIso,
       scheduledAt: data.status === "active" ? null : scheduledIso,
       expiresAt: endIso,
       isPublished: data.status === "active",
-      status: data.status as "draft" | "active" | "closed",
+      status: "draft",
       isPinned: data.isPinned,
       location: {
         locationName: data.locationName,
@@ -211,17 +209,29 @@ export default function EditEventForm() {
       media: data.media,
       payment: {
         paymentType: data.paymentType,
-        paymentAmount: Number(data.price),
-        donationGoal: Number(data.targetGoal) || 0,
+        paymentAmount: data.paymentType === "fixed" ? Number(data.price) : null,
+        donationGoal:
+          data.paymentType === "flexible" ? Number(data.targetGoal) : null,
       },
     };
-
+    console.log(
+      "MATCHED SWAGGER ARTICLE PAYLOAD:",
+      JSON.stringify(payload, null, 2),
+    );
     try {
       const result = await updatePostAction(workspaceId, postId, payload);
 
       if (result.ok) {
-        if (data.status === "active") {
-          await publishDraftPostAction(workspaceId, postId);
+        if (data.status === "active" && postId) {
+          const publishRes = await publishDraftPostAction(workspaceId, postId);
+          if (!publishRes.ok) {
+            console.error("Failed to set active:", publishRes);
+            toast.error(
+              `Draft saved, but failed to change status to active: ${publishRes.error}`,
+            );
+            setIsSubmitting(false);
+            return;
+          }
         }
 
         toast.success(
@@ -249,10 +259,14 @@ export default function EditEventForm() {
     }
   };
   const handleCancel = () => {
-    if (isAdmin) {
-      router.push("/event-management");
+    const fallbackUrl = isAdmin ? "/event-management" : `/group/${workspaceId}`;
+    if (isDirty) {
+      const customEvent = new CustomEvent("trigger-unsaved-guard", {
+        detail: { fallbackUrl },
+      });
+      window.dispatchEvent(customEvent);
     } else {
-      router.push(`/group/${workspaceId}`);
+      router.push(fallbackUrl);
     }
   };
 
@@ -263,15 +277,12 @@ export default function EditEventForm() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-100 text-slate-500 font-medium">
-        Loading target event parameters context...
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+      <NavigationGuard isDirty={isDirty} />
       <Breadcrumb label="Event Edition" backHref={`/group/${workspaceId}`} />
 
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col grow mb-4">
@@ -322,25 +333,18 @@ export default function EditEventForm() {
             </div>
 
             <div>
-              <Controller
-                control={control}
-                name="date"
-                render={({ field }) => (
-                  <>
-                    <InputDate
-                      label="Schedule Event Date"
-                      value={field.value}
-                      onChange={field.onChange}
-                      isError={!!errors.date}
-                    />
-                    {errors.date && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.date.message}
-                      </p>
-                    )}
-                  </>
-                )}
+              <FormInput
+                label="Scheduled Event Date"
+                icon={Calendar}
+                type="date"
+                {...register("date")}
+                isError={errors.date != null}
               />
+              {errors.date && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.date.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -394,7 +398,14 @@ export default function EditEventForm() {
                 icon={LinkIcon}
                 placeholder="https://maps.google.com/..."
                 type="text"
-                {...register("googleMapUrl")}
+                {...register("googleMapUrl", {
+                  onChange: (e) => {
+                    const sanitized = e.target.value
+                      .replace(/\\/g, "/")
+                      .replace(/^(https?):\/+/, "$1://");
+                    setValue("googleMapUrl", sanitized);
+                  },
+                })}
                 isError={errors.googleMapUrl != null}
               />
               {errors.googleMapUrl && (
@@ -405,78 +416,66 @@ export default function EditEventForm() {
             </div>
 
             <div className="flex flex-col gap-1.5 w-full text-sm">
-              <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <div className="flex flex-col gap-1.5 w-full">
-                    <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
-                      Visibility Status
-                    </Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full h-11 px-4 py-5 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent
-                        side="bottom"
-                        position="popper"
-                        className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
-                      >
-                        <SelectItem
-                          value="draft"
-                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
-                        >
-                          Draft
-                        </SelectItem>
-                        <SelectItem
-                          value="active"
-                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
-                        >
-                          Active
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                Visibility Status
+              </label>
+              <CustomSelect
+                value={watch("status")}
+                onChange={(val) =>
+                  setValue("status", val as "draft" | "active")
+                }
+                options={[
+                  { value: "draft", label: "Draft" },
+                  { value: "active", label: "Active" },
+                ]}
               />
             </div>
 
             {watchedStatus === "draft" && (
               <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-                <Controller
-                  control={control}
-                  name="scheduleDate"
-                  render={({ field }) => (
-                    <>
-                      <InputDate
-                        label="Post Publish Date"
-                        value={field.value}
-                        onChange={field.onChange}
-                        isError={!!errors.date}
-                      />
-                      {errors.date && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.date.message}
-                        </p>
-                      )}
-                    </>
-                  )}
+                <FormInput
+                  label="Post Publish Date"
+                  icon={Calendar}
+                  type="date"
+                  {...register("scheduleDate")}
+                  isError={errors.scheduleDate != null}
                 />
+                {errors.scheduleDate && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.scheduleDate.message}
+                  </p>
+                )}
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-12 gap-y-5">
             <div>
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg flex items-center gap-1">
+                Price
+                {watchedPaymentType === "fixed" && (
+                  <span className="text-red-500">*</span>
+                )}
+              </label>
               <FormInput
-                label="Price"
+                label=""
                 icon={BadgeDollarSign}
-                placeholder="0.00"
+                placeholder={
+                  watchedPaymentType === "flexible"
+                    ? "N/A — using flexible"
+                    : "0.00"
+                }
                 type="number"
                 step="0.01"
                 min={0}
+                disabled={watchedPaymentType === "flexible"}
                 {...register("price")}
                 isError={errors.price != null}
+                className={
+                  watchedPaymentType === "flexible"
+                    ? "opacity-50 cursor-not-allowed bg-slate-100"
+                    : ""
+                }
               />
               {errors.price && (
                 <p className="text-red-500 text-xs mt-1">
@@ -486,58 +485,56 @@ export default function EditEventForm() {
             </div>
 
             <div>
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg flex items-center gap-1">
+                Target Goal
+                {watchedPaymentType === "flexible" && (
+                  <span className="text-red-500">*</span>
+                )}
+                {watchedPaymentType === "fixed" && (
+                  <span className="text-slate-400 text-xs font-normal">
+                    (N/A)
+                  </span>
+                )}
+              </label>
               <FormInput
-                label="Target goal ( Optional )"
+                label=""
                 icon={BadgeDollarSign}
-                placeholder="0.00"
+                placeholder={
+                  watchedPaymentType === "fixed" ? "N/A — using fixed" : "0.00"
+                }
                 type="number"
                 min={0}
                 step="0.01"
+                disabled={watchedPaymentType === "fixed"}
                 {...register("targetGoal")}
-                isError={isFlexible}
+                isError={errors.targetGoal != null}
+                className={
+                  watchedPaymentType === "fixed"
+                    ? "opacity-50 cursor-not-allowed bg-slate-100"
+                    : ""
+                }
               />
-              {isFlexible && (
+              {errors.targetGoal && (
                 <p className="text-red-500 text-xs mt-1">
-                  Target goal is required with Flexible paymentType
+                  {errors.targetGoal.message}
                 </p>
               )}
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5 w-full text-sm">
-            <Controller
-              control={control}
-              name="paymentType"
-              render={({ field }) => (
-                <div className="flex flex-col gap-1.5 w-full">
-                  <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
-                    Payment Type
-                  </Label>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full h-11 px-4 py-5 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0">
-                      <SelectValue placeholder="Select payment type" />
-                    </SelectTrigger>
-                    <SelectContent
-                      side="bottom"
-                      position="popper"
-                      className="bg-white rounded-2xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
-                    >
-                      <SelectItem
-                        value="fixed"
-                        className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
-                      >
-                        Fixed
-                      </SelectItem>
-                      <SelectItem
-                        value="flexible"
-                        className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
-                      >
-                        Flexible
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+            <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+              Payment Type
+            </label>
+            <CustomSelect
+              value={watch("paymentType")}
+              onChange={(val) =>
+                setValue("paymentType", val as "fixed" | "flexible")
+              }
+              options={[
+                { value: "fixed", label: "Fixed" },
+                { value: "flexible", label: "Flexible" },
+              ]}
             />
           </div>
 
@@ -603,7 +600,7 @@ export default function EditEventForm() {
 
           <div>
             <FormTextarea
-              label="Description"
+              label="Description (Optional)"
               placeholder="Describe the mission and scope of this event..."
               {...register("description")}
               isError={errors.description != null}

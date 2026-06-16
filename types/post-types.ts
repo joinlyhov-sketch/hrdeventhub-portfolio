@@ -12,13 +12,13 @@ export interface PostMediaItem {
 
 export interface PostPayment {
   paymentType?: "fixed" | "flexible";
-  paymentAmount: number;
-  donationGoal: number;
+  paymentAmount?: number | null;
+  donationGoal?: number | null;
 }
 
 export interface CreatePostPayload {
   title: string;
-  content: string;
+  content?: string;
   purpose: string;
   eventStart: string;
   eventEnd: string;
@@ -60,7 +60,7 @@ export interface AnnouncementMediaPayload {
 
 export interface CreateAnnouncementPayload {
   title: string;
-  content: string;
+  content?: string | unknown;
   purpose: string;
   eventStart: string;
   eventEnd: string;
@@ -93,7 +93,7 @@ export interface ServerActionResponse<T> {
 
 export interface CreateArticlePayload {
   title: string;
-  content: string;
+  content?: string | undefined;
   isPublished: boolean;
   status: "draft" | "active";
   isPinned: boolean;
@@ -178,7 +178,7 @@ export type CreatePostActionResponse =
 
 export interface UpdateEventPayload {
   title: string;
-  content: string;
+  content?: string | undefined;
   purpose: string;
   eventStart: string;
   eventEnd: string;
@@ -208,7 +208,7 @@ export type UpdatePostActionResponse =
 
 export interface UpdateArticlePayload {
   title: string;
-  content: string;
+  content?: string | undefined;
   isPublished: boolean;
   status: "draft" | "active";
   isPinned: boolean;
@@ -374,7 +374,7 @@ export interface MediaItem {
 
 export interface PaymentInfo {
   postPaymentId: string;
-  paymentType: "fixed" | "free" | "donation"; // Adjusted based on common configurations, expand as needed
+  paymentType: "fixed" | "free" | "donation";
   paymentAmount: number;
   donationGoal: number;
   amountRaised: number;

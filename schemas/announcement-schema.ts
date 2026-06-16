@@ -14,12 +14,25 @@ export const announcementPostSchema = z
       .min(1, "Location descriptive layout name is required"),
     googleMapUrl: z
       .string()
-      .min(1, "GoogleMapUrl is required")
-      .url("Please enter a valid URL protocol (e.g., https://)"),
+      .trim()
+      .min(1, "Google Maps URL is required")
+      .url("Please enter a valid URL")
+      .refine((url) => {
+        try {
+          const { hostname, pathname } = new URL(url);
+
+          return (
+            hostname === "maps.app.goo.gl" ||
+            hostname === "maps.google.com" ||
+            ((hostname === "www.google.com" || hostname === "google.com") &&
+              pathname.startsWith("/maps"))
+          );
+        } catch {
+          return false;
+        }
+      }, "Please enter a valid Google Maps URL"),
     scheduleDate: z.string().optional().or(z.literal("")),
-    description: z
-      .string()
-      .min(1, "Content description statement body field is required"),
+    description: z.string().optional(),
     media: z
       .array(
         z.object({

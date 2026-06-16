@@ -25,6 +25,7 @@ import ConnectBankModal from "@/components/site/pop-up/payment/WebillConnectModa
 import ImageAdjustModal from "@/components/site/profile/ImageAdjustModal";
 import * as Flags from "country-flag-icons/react/3x2";
 import { toast } from "sonner";
+import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
 
 interface CurrentUser {
   name: string;
@@ -61,6 +62,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [isAdjustOpen, setIsAdjustOpen] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const { data: session } = useSession();
   const router = useRouter();
@@ -69,8 +71,11 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [initialIdentity, setInitialIdentity] = useState<IdentitySnapshot | null>(null);
-  const [initialProfile, setInitialProfile] = useState<ProfileSnapshot | null>(null);
+  const [initialIdentity, setInitialIdentity] =
+    useState<IdentitySnapshot | null>(null);
+  const [initialProfile, setInitialProfile] = useState<ProfileSnapshot | null>(
+    null,
+  );
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("Admin");
@@ -82,11 +87,12 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [email, setEmail] = useState("admin@gmail.com");
   const [bio, setBio] = useState("");
   const selectedDate = dob ? new Date(dob) : undefined;
+  const currentYear = new Date().getFullYear();
+  const maxBirthYear = currentYear - 18;
+  const minBirthYear = currentYear - 100;
 
-  const maxDate = new Date();
-
-  const startMonth = new Date(1950, 0);
-  const endMonth = new Date();
+  const startMonth = new Date(minBirthYear, 0);
+  const endMonth = new Date(maxBirthYear, 11);
 
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
@@ -103,6 +109,10 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           profileService.getProfileMe(token),
           getIdentityMeAction(),
         ]);
+        if (!profileRes) {
+          setIsLoadingData(false);
+          return;
+        }
 
         let identityAvatarFallback = null;
         if (identityRes.status === "fulfilled" && identityRes.value) {
@@ -127,8 +137,9 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           if (idData.email) setEmail(idData.email as string);
 
           if (idData.avatar || idData.profilePicture || idData.avatarUrl) {
-            identityAvatarFallback =
-              (idData.avatar || idData.profilePicture || idData.avatarUrl) as string;
+            identityAvatarFallback = (idData.avatar ||
+              idData.profilePicture ||
+              idData.avatarUrl) as string;
           }
 
           if (idData.gender) {
@@ -143,10 +154,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           }
         }
 
-        if (
-          profileRes.status === "fulfilled" &&
-          profileRes.value?.success
-        ) {
+        if (profileRes.status === "fulfilled" && profileRes.value?.success) {
           const p = profileRes.value.payload;
           let lUrl = "",
             gUrl = "",
@@ -189,7 +197,10 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         } else if (identityAvatarFallback) {
           setAvatarUrl(identityAvatarFallback);
         }
-      } catch {}
+      } catch {
+      } finally {
+        setIsLoadingData(false);
+      }
     };
     loadAllUserData();
   }, [session]);
@@ -380,8 +391,13 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     dataPayload.append("file", croppedBlob, "admin-avatar.jpg");
 
     try {
-      const result = (await uploadFileAction(dataPayload)) as Record<string, unknown>;
-      const resultPayload = result?.payload as Record<string, unknown> | undefined;
+      const result = (await uploadFileAction(dataPayload)) as Record<
+        string,
+        unknown
+      >;
+      const resultPayload = result?.payload as
+        | Record<string, unknown>
+        | undefined;
       const fileUrl =
         resultPayload?.fileUrl ||
         resultPayload?.url ||
@@ -392,7 +408,10 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         setAvatarUrl(fileUrl as string);
       } else {
         setError(
-          (resultPayload?.error || result?.error || result?.message || "Upload failed.") as string,
+          (resultPayload?.error ||
+            result?.error ||
+            result?.message ||
+            "Upload failed.") as string,
         );
         setAvatarUrl(initialProfile?.avatar || null);
       }
@@ -501,14 +520,23 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         }
 
         if (profileChanged) {
-          updatePromises.push(updateProfileMeAction(currentProfilePayload as unknown as import("@/types/profile-edit-type").UpdateProfileRequest));
+          updatePromises.push(
+            updateProfileMeAction(
+              currentProfilePayload as unknown as import("@/types/profile-edit-type").UpdateProfileRequest,
+            ),
+          );
         } else {
           updatePromises.push(Promise.resolve({ success: true }));
         }
 
-        type ActionResult = { success?: boolean; message?: string; error?: string };
-        const [identityResult, profileResult] =
-          await Promise.all(updatePromises) as [ActionResult, ActionResult];
+        type ActionResult = {
+          success?: boolean;
+          message?: string;
+          error?: string;
+        };
+        const [identityResult, profileResult] = (await Promise.all(
+          updatePromises,
+        )) as [ActionResult, ActionResult];
 
         if (identityResult?.success && profileResult?.success) {
           router.refresh();
@@ -533,692 +561,754 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         }
       } catch (err: unknown) {
         setError(
-          err instanceof Error ? err.message : "An exception blocked synchronization attempts.",
+          err instanceof Error
+            ? err.message
+            : "An exception blocked synchronization attempts.",
         );
       }
     });
   };
 
+  const identityChanged =
+    initialIdentity?.firstName !== firstName.trim() ||
+    initialIdentity?.lastName !== lastName.trim() ||
+    initialIdentity?.username !== username.trim() ||
+    initialIdentity?.dateOfBirth !== dob.trim() ||
+    initialIdentity?.phoneNumber !== phoneNumber.trim();
+
+  const socialsChanged =
+    initialProfile?.socials.linkedin !== linkedinUrl.trim() ||
+    initialProfile?.socials.github !== githubUrl.trim() ||
+    initialProfile?.socials.facebook !== facebookUrl.trim() ||
+    initialProfile?.socials.telegram !== telegramUrl.trim();
+
+  const profileChanged =
+    initialProfile?.bio !== bio.trim() ||
+    initialProfile?.avatar !== avatarUrl ||
+    socialsChanged;
+
+  const isFormDirty = (identityChanged || profileChanged) && !isPending;
+
   return (
     <div className="space-y-6 w-full text-left">
-      {error && (
-        <div className="p-4 text-sm bg-destructive/10 text-destructive rounded-lg font-mono whitespace-pre-wrap">
-          {error}
+      {isLoadingData ? (
+        <div className="flex flex-col items-center justify-center min-h-[500px] gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-secondary type-detail">Loading profile...</p>
         </div>
-      )}
-      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
-        <div className="flex items-center gap-5">
-          <div className="relative group w-20 h-20 shrink-0">
-            {avatarUrl ? (
-              <div className="w-full h-full relative rounded-full overflow-hidden">
-                <NextImage
-                  src={avatarUrl}
-                  alt="Profile Avatar"
-                  width={80}
-                  height={80}
-                  unoptimized
-                  className="w-full h-full object-cover border border-border"
-                />
-                {isUploading && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      ) : (
+        <>
+          <NavigationGuard isDirty={isFormDirty} />
+          {error && (
+            <div className="p-4 text-sm bg-destructive/10 text-destructive rounded-lg font-mono whitespace-pre-wrap">
+              {error}
+            </div>
+          )}
+          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-5">
+              <div className="relative group w-20 h-20 shrink-0">
+                {avatarUrl ? (
+                  <div className="w-full h-full relative rounded-full overflow-hidden">
+                    <NextImage
+                      src={avatarUrl}
+                      alt="Profile Avatar"
+                      width={80}
+                      height={80}
+                      unoptimized
+                      className="w-full h-full object-cover border border-border"
+                    />
+                    {isUploading && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-secondary rounded-full flex items-center justify-center border border-border text-primary-foreground type-subtitle-24 uppercase">
+                    {user.avatarInitials || "A"}
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="w-full h-full bg-secondary rounded-full flex items-center justify-center border border-border text-primary-foreground type-subtitle-24 uppercase">
-                {user.avatarInitials || "A"}
-              </div>
-            )}
 
-            <label className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-              <Camera className="w-5 h-5" />
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="hidden"
-                disabled={isUploading}
-              />
-            </label>
+                <label className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <Camera className="w-5 h-5" />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                </label>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="type-title text-secondary">Admin Profile</h3>
+              </div>
+            </div>
+
+            <div className="w-full sm:w-auto">
+              <button
+                onClick={() => setIsResetOpen(true)}
+                className="w-full sm:w-auto bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
+              >
+                Change Password
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-1">
-            <h3 className="type-title text-secondary">Admin Profile</h3>
-          </div>
-        </div>
+          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs space-y-6 w-full">
+            <h2 className="type-subtitle text-secondary border-b border-border pb-2">
+              Personal Information
+            </h2>
 
-        <div className="w-full sm:w-auto">
-          <button
-            onClick={() => setIsResetOpen(true)}
-            className="w-full sm:w-auto bg-primary text-primary-foreground px-4 py-2 rounded-md type-detail-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
-          >
-            Change Password
-          </button>
-        </div>
-      </div>
+            <div className="space-y-6 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    First Name
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFirstName(value);
 
-      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs space-y-6 w-full">
-        <h2 className="type-subtitle text-secondary border-b border-border pb-2">
-          Personal Information
-        </h2>
-
-        <div className="space-y-6 w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                First Name
-              </label>
-              <div className="relative flex items-center w-full">
-                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                  <User className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFirstName(value);
-
-                    setErrors((prev) => ({
-                      ...prev,
-                      firstName: validateField("firstName", value),
-                    }));
-                  }}
-                  className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md
+                        setErrors((prev) => ({
+                          ...prev,
+                          firstName: validateField("firstName", value),
+                        }));
+                      }}
+                      className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md
                 ${
                   errors.firstName
                     ? "border-red-500"
                     : "border-border focus:border-primary"
                 }`}
-                />
-              </div>
-              {errors.firstName && (
-                <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                Last Name
-              </label>
-              <div className="relative flex items-center w-full">
-                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                  <User className="w-4 h-4" />
+                    />
+                  </div>
+                  {errors.firstName && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.firstName}
+                    </p>
+                  )}
                 </div>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setLastName(value);
 
-                    setErrors((prev) => ({
-                      ...prev,
-                      lastName: validateField("lastName", value),
-                    }));
-                  }}
-                  className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    Last Name
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setLastName(value);
+
+                        setErrors((prev) => ({
+                          ...prev,
+                          lastName: validateField("lastName", value),
+                        }));
+                      }}
+                      className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md
                 ${
                   errors.lastName
                     ? "border-red-500"
                     : "border-border focus:border-primary"
                 }`}
-                />
-              </div>
-              {errors.lastName && (
-                <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                Username
-              </label>
-              <div className="relative flex items-center w-full">
-                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                  <User className="w-4 h-4" />
+                    />
+                  </div>
+                  {errors.lastName && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.lastName}
+                    </p>
+                  )}
                 </div>
 
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setUsername(value);
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    Username
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                      <User className="w-4 h-4" />
+                    </div>
 
-                    setErrors((prev) => ({
-                      ...prev,
-                      username: validateField("username", value),
-                    }));
-                  }}
-                  className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setUsername(value);
+
+                        setErrors((prev) => ({
+                          ...prev,
+                          username: validateField("username", value),
+                        }));
+                      }}
+                      className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md
                 ${
                   errors.username
                     ? "border-red-500"
                     : "border-border focus:border-primary"
                 }`}
-                />
-              </div>
-              {errors.username && (
-                <p className="text-xs text-red-500 mt-1">{errors.username}</p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                Gender
-              </label>
-              <div className="relative flex items-center w-full">
-                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                  <User className="w-4 h-4" />
+                    />
+                  </div>
+                  {errors.username && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.username}
+                    </p>
+                  )}
                 </div>
-                <input
-                  type="text"
-                  value={gender}
-                  disabled
-                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-muted-foreground opacity-70 focus:outline-none cursor-not-allowed"
-                />
-              </div>
-            </div>
 
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                Date of Birth
-              </label>
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    Gender
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      value={gender}
+                      disabled
+                      className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-muted-foreground opacity-70 focus:outline-none cursor-not-allowed"
+                    />
+                  </div>
+                </div>
 
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border border-border bg-background text-left ${errors.dateOfBirth ? "border-red-500" : ""}`}
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    Date of Birth
+                  </label>
+
+                  <Popover
+                    open={isCalendarOpen}
+                    onOpenChange={setIsCalendarOpen}
                   >
-                    <Cake className="w-4 h-4 text-[#93A3CA] shrink-0" />
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border border-border bg-background text-left ${errors.dateOfBirth ? "border-red-500" : ""}`}
+                      >
+                        <Cake className="w-4 h-4 text-[#93A3CA] shrink-0" />
 
-                    <span
-                      className={`text-sm ${
-                        dob ? "text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {selectedDate
-                        ? format(selectedDate, "dd/MM/yyyy")
-                        : "DD/MM/YYYY"}
-                    </span>
-                  </button>
-                </PopoverTrigger>
+                        <span
+                          className={`text-sm ${
+                            dob ? "text-foreground" : "text-muted-foreground"
+                          }`}
+                        >
+                          {selectedDate
+                            ? format(selectedDate, "dd/MM/yyyy")
+                            : "DD/MM/YYYY"}
+                        </span>
+                      </button>
+                    </PopoverTrigger>
 
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      if (!date) return;
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) => {
+                          if (!date) return;
 
-                      setDob(format(date, "yyyy-MM-dd"));
+                          setDob(format(date, "yyyy-MM-dd"));
 
-                      setIsCalendarOpen(false);
-                    }}
-                    disabled={(date) => date > maxDate || date < startMonth}
-                    captionLayout="dropdown"
-                    startMonth={startMonth}
-                    endMonth={endMonth}
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.dateOfBirth && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.dateOfBirth}
-                </p>
-              )}
-            </div>
+                          setIsCalendarOpen(false);
+                        }}
+                        disabled={(date) => {
+                          const today = new Date();
 
-            <div className="flex flex-col gap-1.5">
-              <label className="type-desc text-secondary">Phone Number</label>
+                          const maxBirthDate = new Date(
+                            today.getFullYear() - 16,
+                            today.getMonth(),
+                            today.getDate(),
+                          );
 
-              <div
-                className={`flex items-center h-10 rounded-lg border bg-white overflow-hidden transition-all focus-within:border-primary `}
-              >
-                <div className="flex items-center gap-2 bg-gray-50 border-r border-border h-full px-3 shrink-0 text-sm font-medium text-gray-500">
-                  <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center">
-                    <Flags.KH className="w-full object-cover" />
-                  </span>
-
-                  <span className="text-primary">+855</span>
+                          return date > maxBirthDate;
+                        }}
+                        captionLayout="dropdown"
+                        startMonth={startMonth}
+                        endMonth={endMonth}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {errors.dateOfBirth && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.dateOfBirth}
+                    </p>
+                  )}
                 </div>
 
-                <input
-                  type="text"
-                  value={phoneNumber}
-                  onChange={(e) => {
-                    setPhoneNumber(e.target.value);
-                  }}
-                  className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
-                  placeholder="123 456 789"
-                />
-              </div>
-              {errors.phoneNumber && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.phoneNumber}
-                </p>
-              )}
-            </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="type-desc text-secondary">
+                    Phone Number
+                  </label>
 
-            <div className="flex flex-col gap-1.5 md:col-span-2 w-full">
-              <label className="type-detail-semibold text-secondary">
-                Email
-              </label>
-              <div className="relative flex items-center w-full">
-                <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                  <Mails className="w-4 h-4" />
+                  <div
+                    className={`flex items-center h-10 rounded-lg border bg-white overflow-hidden transition-all focus-within:border-primary `}
+                  >
+                    <div className="flex items-center gap-2 bg-gray-50 border-r border-border h-full px-3 shrink-0 text-sm font-medium text-gray-500">
+                      <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center">
+                        <Flags.KH className="w-full object-cover" />
+                      </span>
+
+                      <span className="text-primary">+855</span>
+                    </div>
+
+                    <input
+                      type="number"
+                      maxLength={9}
+                      value={phoneNumber}
+                      onChange={(e) => {
+                        const value = e.target.value;
+
+                        if (/^\d{0,9}$/.test(value)) {
+                          setPhoneNumber(value);
+
+                          setErrors((prev) => ({
+                            ...prev,
+                            phoneNumber: "",
+                          }));
+                        }
+                      }}
+                      className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
+                      placeholder="123 456 789"
+                    />
+                  </div>
+                  {errors.phoneNumber && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.phoneNumber}
+                    </p>
+                  )}
                 </div>
-                <input
-                  type="email"
-                  value={email}
-                  disabled
-                  className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-muted-foreground focus:outline-none opacity-70 cursor-not-allowed"
+
+                <div className="flex flex-col gap-1.5 md:col-span-2 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    Email
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
+                      <Mails className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="email"
+                      value={email}
+                      disabled
+                      className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-muted-foreground focus:outline-none opacity-70 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="type-detail-semibold text-secondary">
+                  Profile Bio
+                </label>
+                <textarea
+                  rows={3}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="w-full p-3 bg-background border border-border rounded-md type-detail text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+                  placeholder="Tell us about yourself..."
                 />
               </div>
-            </div>
-          </div>
 
-          <div className="flex flex-col gap-1.5 w-full">
-            <label className="type-detail-semibold text-secondary">
-              Profile Bio
-            </label>
-            <textarea
-              rows={3}
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className="w-full p-3 bg-background border border-border rounded-md type-detail text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
-              placeholder="Tell us about yourself..."
-            />
-          </div>
+              <div className="border-t border-border pt-5 space-y-4">
+                <h3 className="type-detail-semibold text-secondary text-base">
+                  Connected Networks
+                </h3>
 
-          <div className="border-t border-border pt-5 space-y-4">
-            <h3 className="type-detail-semibold text-secondary text-base">
-              Connected Networks
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-              <div className="space-y-1">
-                <div
-                  className={`flex items-center gap-3 p-3 rounded-xl bg-background shadow-xs transition-colors
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                  <div className="space-y-1">
+                    <div
+                      className={`flex items-center gap-3 p-3 rounded-xl bg-background shadow-xs transition-colors
                     ${
                       errors.linkedinUrl
                         ? "border border-red-500"
                         : "border border-border focus-within:border-primary"
                     }`}
-                >
-                  <div className="shrink-0">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                      <path
-                        d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883"
-                        stroke="#F9F9F9"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17"
-                        stroke="#F9F9F9"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M16 20H24"
-                        stroke="#F9F9F9"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                      <div className="shrink-0">
+                        <svg
+                          width="40"
+                          height="40"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect width="40" height="40" rx="20" fill="#1C4D8D" />
+                          <path
+                            d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883"
+                            stroke="#F9F9F9"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17"
+                            stroke="#F9F9F9"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M16 20H24"
+                            stroke="#F9F9F9"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-accent uppercase tracking-wider mb-1">
+                          LinkedIn URL
+                        </label>
+
+                        <input
+                          type="text"
+                          value={linkedinUrl}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setLinkedinUrl(value);
+
+                            setErrors((prev) => ({
+                              ...prev,
+                              linkedinUrl: validateField("linkedinUrl", value),
+                            }));
+                          }}
+                          placeholder="https://linkedin.com/in/username"
+                          className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                        />
+                      </div>
+                    </div>
+
+                    {errors.linkedinUrl && (
+                      <p className="text-xs text-red-500 px-1">
+                        {errors.linkedinUrl}
+                      </p>
+                    )}
                   </div>
-
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-accent uppercase tracking-wider mb-1">
-                      LinkedIn URL
-                    </label>
-
-                    <input
-                      type="text"
-                      value={linkedinUrl}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setLinkedinUrl(value);
-
-                        setErrors((prev) => ({
-                          ...prev,
-                          linkedinUrl: validateField("linkedinUrl", value),
-                        }));
-                      }}
-                      placeholder="https://linkedin.com/in/username"
-                      className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                    />
-                  </div>
-                </div>
-
-                {errors.linkedinUrl && (
-                  <p className="text-xs text-red-500 px-1">
-                    {errors.linkedinUrl}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <div
-                  className={`flex items-center gap-3 p-3 rounded-xl bg-background shadow-xs transition-colors
+                  <div className="space-y-1">
+                    <div
+                      className={`flex items-center gap-3 p-3 rounded-xl bg-background shadow-xs transition-colors
                   ${
                     errors.githubUrl
                       ? "border border-red-500"
                       : "border border-border focus-within:border-primary"
                   }`}
-                >
-                  <div className="shrink-0">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <rect width="40" height="40" rx="20" fill="#0F172A" />
-                      <path
-                        d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034"
-                        stroke="white"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                      <div className="shrink-0">
+                        <svg
+                          width="40"
+                          height="40"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect width="40" height="40" rx="20" fill="#0F172A" />
+                          <path
+                            d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034"
+                            stroke="white"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-accent uppercase tracking-wider mb-1">
+                          GitHub URL
+                        </label>
+
+                        <input
+                          type="text"
+                          value={githubUrl}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setGithubUrl(value);
+
+                            setErrors((prev) => ({
+                              ...prev,
+                              githubUrl: validateField("githubUrl", value),
+                            }));
+                          }}
+                          placeholder="https://github.com/..."
+                          className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                        />
+                      </div>
+                    </div>
+
+                    {errors.githubUrl && (
+                      <p className="text-xs text-red-500 px-1">
+                        {errors.githubUrl}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-accent uppercase tracking-wider mb-1">
-                      GitHub URL
-                    </label>
-
-                    <input
-                      type="text"
-                      value={githubUrl}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setGithubUrl(value);
-
-                        setErrors((prev) => ({
-                          ...prev,
-                          githubUrl: validateField("githubUrl", value),
-                        }));
-                      }}
-                      placeholder="https://github.com/..."
-                      className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                    />
-                  </div>
-                </div>
-
-                {errors.githubUrl && (
-                  <p className="text-xs text-red-500 px-1">
-                    {errors.githubUrl}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <div
-                  className={`flex items-center gap-3 p-3 rounded-xl bg-background shadow-xs transition-colors
+                  <div className="space-y-1">
+                    <div
+                      className={`flex items-center gap-3 p-3 rounded-xl bg-background shadow-xs transition-colors
                 ${
                   errors.facebookUrl
                     ? "border border-red-500"
                     : "border border-border focus-within:border-primary"
                 }`}
-                >
-                  <div className="shrink-0">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <rect width="40" height="40" rx="20" fill="#1877F2" />
-                      <path
-                        d="M22.5 14H20.5C18.57 14 17 15.57 17 17.5V20H15V22.5H17V28H20.5V22.5H23L23.5 20H20.5V17.5C20.5 17.22 20.72 17 21 17H23.5V14Z"
-                        fill="white"
-                      />
-                    </svg>
+                      <div className="shrink-0">
+                        <svg
+                          width="40"
+                          height="40"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect width="40" height="40" rx="20" fill="#1877F2" />
+                          <path
+                            d="M22.5 14H20.5C18.57 14 17 15.57 17 17.5V20H15V22.5H17V28H20.5V22.5H23L23.5 20H20.5V17.5C20.5 17.22 20.72 17 21 17H23.5V14Z"
+                            fill="white"
+                          />
+                        </svg>
+                      </div>
+
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-accent uppercase tracking-wider mb-1">
+                          Facebook URL
+                        </label>
+
+                        <input
+                          type="text"
+                          value={facebookUrl}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFacebookUrl(value);
+
+                            setErrors((prev) => ({
+                              ...prev,
+                              facebookUrl: validateField("facebookUrl", value),
+                            }));
+                          }}
+                          placeholder="https://facebook.com/username"
+                          className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                        />
+                      </div>
+                    </div>
+
+                    {errors.facebookUrl && (
+                      <p className="text-xs text-red-500 px-1">
+                        {errors.facebookUrl}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-accent uppercase tracking-wider mb-1">
-                      Facebook URL
-                    </label>
-
-                    <input
-                      type="text"
-                      value={facebookUrl}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setFacebookUrl(value);
-
-                        setErrors((prev) => ({
-                          ...prev,
-                          facebookUrl: validateField("facebookUrl", value),
-                        }));
-                      }}
-                      placeholder="https://facebook.com/username"
-                      className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                    />
-                  </div>
-                </div>
-
-                {errors.facebookUrl && (
-                  <p className="text-xs text-red-500 px-1">
-                    {errors.facebookUrl}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <div
-                  className={`flex items-center gap-3 p-3 rounded-xl bg-background shadow-xs transition-colors
+                  <div className="space-y-1">
+                    <div
+                      className={`flex items-center gap-3 p-3 rounded-xl bg-background shadow-xs transition-colors
                   ${
                     errors.telegramUrl
                       ? "border border-red-500"
                       : "border border-border focus-within:border-primary"
                   }`}
-                >
-                  <div className="shrink-0">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <rect width="40" height="40" rx="20" fill="#24A1DE" />
-                      <path
-                        d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z"
-                        stroke="#F9F9F9"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M18.1094 21.6525L21.6894 18.0625"
-                        stroke="#F9F9F9"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                      <div className="shrink-0">
+                        <svg
+                          width="40"
+                          height="40"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect width="40" height="40" rx="20" fill="#24A1DE" />
+                          <path
+                            d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z"
+                            stroke="#F9F9F9"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M18.1094 21.6525L21.6894 18.0625"
+                            stroke="#F9F9F9"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
 
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-accent uppercase tracking-wider mb-1">
-                      Telegram URL
-                    </label>
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-accent uppercase tracking-wider mb-1">
+                          Telegram URL
+                        </label>
 
-                    <input
-                      type="text"
-                      value={telegramUrl}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setTelegramUrl(value);
+                        <input
+                          type="text"
+                          value={telegramUrl}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setTelegramUrl(value);
 
-                        setErrors((prev) => ({
-                          ...prev,
-                          telegramUrl: validateField("telegramUrl", value),
-                        }));
-                      }}
-                      placeholder="https://t.me/..."
-                      className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                    />
+                            setErrors((prev) => ({
+                              ...prev,
+                              telegramUrl: validateField("telegramUrl", value),
+                            }));
+                          }}
+                          placeholder="https://t.me/..."
+                          className="w-full bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                        />
+                      </div>
+                    </div>
+
+                    {errors.telegramUrl && (
+                      <p className="text-xs text-red-500 px-1">
+                        {errors.telegramUrl}
+                      </p>
+                    )}
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {errors.telegramUrl && (
-                  <p className="text-xs text-red-500 px-1">
-                    {errors.telegramUrl}
-                  </p>
-                )}
+            <div className="flex justify-end pt-4 border-t border-border">
+              <button
+                type="button"
+                onClick={handleSaveChanges}
+                disabled={isPending || isUploading}
+                className="px-5 py-2 bg-primary text-primary-foreground rounded-md type-detail-semibold hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity disabled:opacity-50"
+              >
+                {isPending ? "Saving..." : "Save Change"}
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs space-y-4 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+              <div>
+                <h3 className="type-subtitle text-secondary flex items-center gap-2">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M18.04 13.55C17.62 13.96 17.38 14.55 17.44 15.18C17.53 16.26 18.52 17.05 19.6 17.05H21.5V18.24C21.5 20.31 19.81 22 17.74 22C6.26 22 2.5 20.31 2.5 18.24V11.51C2.5 9.44001 4.19 7.75 6.26 7.75H17.74C19.81 7.75 21.5 9.44001 21.5 11.51V12.95H19.48C18.92 12.95 18.41 13.17 18.04 13.55Z"
+                      stroke="#0F2854"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M2.5 12.4113V7.84132C2.5 6.65132 3.23 5.59128 4.34 5.17128L12.28 2.17128C13.52 1.70128 14.85 2.62131 14.85 3.95131V7.7513"
+                      stroke="#0F2854"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M22.5588 13.9731V16.0331C22.5588 16.5831 22.1188 17.0331 21.5588 17.0531H19.5988C18.5188 17.0531 17.5288 16.2631 17.4388 15.1831C17.3788 14.5531 17.6188 13.9631 18.0388 13.5531C18.4088 13.1731 18.9188 12.9531 19.4788 12.9531H21.5588C22.1188 12.9731 22.5588 13.4231 22.5588 13.9731Z"
+                      stroke="#0F2854"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M7 12H14"
+                      stroke="#0F2854"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  WeBill365 Information
+                </h3>
+                <p className="type-detail text-muted-foreground mt-0.5">
+                  Manage WeBill Information for room payment
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBankOpen(true)}
+                className="bg-action text-white px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
+              >
+                <Link2 className="w-4 h-4" />
+                Connect WeBill365
+              </button>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 bg-grey-50 border border-border rounded-2xl w-full">
+              <div className="shrink-0 mt-0.5">
+                <svg
+                  width="45"
+                  height="45"
+                  viewBox="0 0 45 45"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/xl"
+                >
+                  <path
+                    d="M22.5 41.25C32.8125 41.25 41.25 32.8125 41.25 22.5C41.25 12.1875 32.8125 3.75 22.5 3.75C12.1875 3.75 3.75 12.1875 3.75 22.5C3.75 32.8125 12.1875 41.25 22.5 41.25Z"
+                    stroke="#2A9D8F"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M14.5312 22.5016L19.8375 27.8078L30.4688 17.1953"
+                    stroke="#2A9D8F"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div>
+                <div className="type-detail-semibold text-grey-900">
+                  Account Connected
+                  <span className="type-detail text-grey-500 flex mt-0.5 leading-relaxed">
+                    Your account is successfully connected for payment. You can
+                    now receive monthly payments from renters.
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-end pt-4 border-t border-border">
-          <button
-            type="button"
-            onClick={handleSaveChanges}
-            disabled={isPending || isUploading}
-            className="px-5 py-2 bg-primary text-primary-foreground rounded-md type-detail-semibold hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity disabled:opacity-50"
-          >
-            {isPending ? "Saving..." : "Save Change"}
-          </button>
-        </div>
-      </div>
+          <ResetPasswordModal
+            isOpen={isResetOpen}
+            onClose={() => setIsResetOpen(false)}
+          />
+          <ConnectBankModal
+            isOpen={isBankOpen}
+            onClose={() => setIsBankOpen(false)}
+          />
 
-      <div className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-xs space-y-4 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
-          <div>
-            <h3 className="type-subtitle text-secondary flex items-center gap-2">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18.04 13.55C17.62 13.96 17.38 14.55 17.44 15.18C17.53 16.26 18.52 17.05 19.6 17.05H21.5V18.24C21.5 20.31 19.81 22 17.74 22C6.26 22 2.5 20.31 2.5 18.24V11.51C2.5 9.44001 4.19 7.75 6.26 7.75H17.74C19.81 7.75 21.5 9.44001 21.5 11.51V12.95H19.48C18.92 12.95 18.41 13.17 18.04 13.55Z"
-                  stroke="#0F2854"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2.5 12.4113V7.84132C2.5 6.65132 3.23 5.59128 4.34 5.17128L12.28 2.17128C13.52 1.70128 14.85 2.62131 14.85 3.95131V7.7513"
-                  stroke="#0F2854"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M22.5588 13.9731V16.0331C22.5588 16.5831 22.1188 17.0331 21.5588 17.0531H19.5988C18.5188 17.0531 17.5288 16.2631 17.4388 15.1831C17.3788 14.5531 17.6188 13.9631 18.0388 13.5531C18.4088 13.1731 18.9188 12.9531 19.4788 12.9531H21.5588C22.1188 12.9731 22.5588 13.4231 22.5588 13.9731Z"
-                  stroke="#0F2854"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7 12H14"
-                  stroke="#0F2854"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              WeBill365 Information
-            </h3>
-            <p className="type-detail text-muted-foreground mt-0.5">
-              Manage WeBill Information for room payment
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsBankOpen(true)}
-            className="bg-action text-white px-4 py-2 rounded-md type-detail-semibold flex items-center gap-2 hover:opacity-90 shadow-xs border-0 cursor-pointer transition-opacity"
-          >
-            <Link2 className="w-4 h-4" />
-            Connect WeBill365
-          </button>
-        </div>
-
-        <div className="flex items-start gap-3 p-4 bg-grey-50 border border-border rounded-2xl w-full">
-          <div className="shrink-0 mt-0.5">
-            <svg
-              width="45"
-              height="45"
-              viewBox="0 0 45 45"
-              fill="none"
-              xmlns="http://www.w3.org/2000/xl"
-            >
-              <path
-                d="M22.5 41.25C32.8125 41.25 41.25 32.8125 41.25 22.5C41.25 12.1875 32.8125 3.75 22.5 3.75C12.1875 3.75 3.75 12.1875 3.75 22.5C3.75 32.8125 12.1875 41.25 22.5 41.25Z"
-                stroke="#2A9D8F"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M14.5312 22.5016L19.8375 27.8078L30.4688 17.1953"
-                stroke="#2A9D8F"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div>
-            <div className="type-detail-semibold text-grey-900">
-              Account Connected
-              <span className="type-detail text-grey-500 flex mt-0.5 leading-relaxed">
-                Your account is successfully connected for payment. You can now
-                receive monthly payments from renters.
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <ResetPasswordModal
-        isOpen={isResetOpen}
-        onClose={() => setIsResetOpen(false)}
-      />
-      <ConnectBankModal
-        isOpen={isBankOpen}
-        onClose={() => setIsBankOpen(false)}
-      />
-
-      {selectedImageSrc && (
-        <ImageAdjustModal
-          imageSrc={selectedImageSrc}
-          isOpen={isAdjustOpen}
-          onClose={() => {
-            sessionStorage.removeItem("pending-avatar");
-            setSelectedImageSrc(null);
-            setIsAdjustOpen(false);
-          }}
-          onSave={handleSaveCroppedAvatar}
-        />
+          {selectedImageSrc && (
+            <ImageAdjustModal
+              imageSrc={selectedImageSrc}
+              isOpen={isAdjustOpen}
+              onClose={() => {
+                sessionStorage.removeItem("pending-avatar");
+                setSelectedImageSrc(null);
+                setIsAdjustOpen(false);
+              }}
+              onSave={handleSaveCroppedAvatar}
+            />
+          )}
+        </>
       )}
     </div>
   );

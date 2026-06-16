@@ -34,12 +34,21 @@ import SearchableSelect, {
   SearchableSelectOption,
 } from "@/components/site/event/SearchableSelect";
 import { Workspace } from "@/types/survey";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { CustomSelect } from "../CustomSelect";
+import { NavigationGuard } from "../NavigationGuard";
 
 export default function CreateEventForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [select, setSelect] = useState(false);
-  const [isFlexible, setIsFlexible] = useState(false);
 
   const urlWorkspaceId = params.get("groupId") || "";
   const isAdmin = params.get("admin") || "";
@@ -51,8 +60,10 @@ export default function CreateEventForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     control,
-    formState: { errors },
+    watch,
+    formState: { errors, isDirty },
   } = useForm<EventPostFormValues>({
     resolver: zodResolver(eventPostSchema) as Resolver<EventPostFormValues>,
     defaultValues: {
@@ -118,15 +129,20 @@ export default function CreateEventForm() {
     name: "status",
     defaultValue: "draft",
   });
+  const watchedPaymentType = useWatch({
+    control,
+    name: "paymentType",
+    defaultValue: "fixed",
+  });
+  useEffect(() => {
+    if (watchedPaymentType === "fixed") {
+      setValue("targetGoal", 0);
+    } else {
+      setValue("price", 0);
+    }
+  }, [watchedPaymentType, setValue]);
 
   const onSubmit = async (data: EventPostFormValues) => {
-    if (data.paymentType === "flexible" && !Number(data.targetGoal)) {
-      setIsFlexible(true);
-      return;
-    } else {
-      setIsFlexible(false);
-    }
-
     if (!urlWorkspaceId && !data.workspaceId) {
       toast.error("Please select a target workspace destination group!");
       setSelect(true);
@@ -147,7 +163,7 @@ export default function CreateEventForm() {
 
     const payload: CreatePostPayload = {
       title: data.title.trim(),
-      content: data.description.trim(),
+      content: data.description,
       purpose: data.purpose.trim() || "Community Event",
       eventStart: startIso,
       eventEnd: endIso,
@@ -163,8 +179,9 @@ export default function CreateEventForm() {
       media: data.media,
       payment: {
         paymentType: data.paymentType,
-        paymentAmount: Number(data.price),
-        donationGoal: Number(data.targetGoal) || 0,
+        paymentAmount: data.paymentType === "fixed" ? Number(data.price) : null,
+        donationGoal:
+          data.paymentType === "flexible" ? Number(data.targetGoal) : null,
       },
     };
 
@@ -213,15 +230,23 @@ export default function CreateEventForm() {
   };
 
   const handleCancel = () => {
-    if (isAdmin) {
-      router.push("/event-management");
+    const fallbackUrl = isAdmin
+      ? "/event-management"
+      : `/group/${activeWorkspaceId}`;
+
+    if (isDirty) {
+      const customEvent = new CustomEvent("trigger-unsaved-guard", {
+        detail: { fallbackUrl },
+      });
+      window.dispatchEvent(customEvent);
     } else {
-      router.push(`/group/${activeWorkspaceId}`);
+      router.push(fallbackUrl);
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+      <NavigationGuard isDirty={isDirty} />
       <Breadcrumb
         label="Event Creation"
         backHref={`/group/${activeWorkspaceId || ""}`}
@@ -377,7 +402,14 @@ export default function CreateEventForm() {
                 icon={LinkIcon}
                 placeholder="https://maps.google.com/..."
                 type="text"
-                {...register("googleMapUrl")}
+                {...register("googleMapUrl", {
+                  onChange: (e) => {
+                    const sanitized = e.target.value
+                      .replace(/\\/g, "/")
+                      .replace(/^(https?):\/+/, "$1://");
+                    setValue("googleMapUrl", sanitized);
+                  },
+                })}
                 isError={errors.googleMapUrl != null}
               />
               {errors.googleMapUrl && (
@@ -388,16 +420,43 @@ export default function CreateEventForm() {
             </div>
 
             <div className="flex flex-col gap-1.5 w-full">
-              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
-                Visibility Status
-              </label>
-              <select
-                {...register("status")}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
-              >
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-              </select>
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <div className="flex flex-col gap-1.5 w-full">
+                    <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
+                      Visibility Status
+                    </Label>
+
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full h-11 px-4 py-5 bg-slate-50 border border-slate-200 rounded-xl text-gray-700 focus:ring-0 focus:border-primary transition-all">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+
+                      <SelectContent
+                        side="bottom"
+                        position="popper"
+                        className="bg-white rounded-xl border border-slate-200 shadow-md p-1 w-[var(--radix-select-trigger-width)] -mt-1"
+                      >
+                        <SelectItem
+                          value="draft"
+                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
+                        >
+                          Draft
+                        </SelectItem>
+
+                        <SelectItem
+                          value="active"
+                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
+                        >
+                          Active
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
             </div>
 
             {watchedStatus === "draft" && (
@@ -420,15 +479,31 @@ export default function CreateEventForm() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-12 gap-y-5">
             <div>
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg flex items-center gap-1">
+                Price
+                {watchedPaymentType === "fixed" && (
+                  <span className="text-red-500">*</span>
+                )}
+              </label>
               <FormInput
-                label="Price"
+                label=""
                 icon={BadgeDollarSign}
-                placeholder="0.00"
+                placeholder={
+                  watchedPaymentType === "flexible"
+                    ? "N/A — using flexible"
+                    : "0.00"
+                }
                 type="number"
                 step="0.01"
                 min={0}
+                disabled={watchedPaymentType === "flexible"}
                 {...register("price")}
                 isError={errors.price != null}
+                className={
+                  watchedPaymentType === "flexible"
+                    ? "opacity-50 cursor-not-allowed bg-slate-100"
+                    : ""
+                }
               />
               {errors.price && (
                 <p className="text-red-500 text-xs mt-1">
@@ -438,19 +513,38 @@ export default function CreateEventForm() {
             </div>
 
             <div>
+              <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg flex items-center gap-1">
+                Target Goal
+                {watchedPaymentType === "flexible" && (
+                  <span className="text-red-500">*</span>
+                )}
+                {watchedPaymentType === "fixed" && (
+                  <span className="text-slate-400 text-xs font-normal">
+                    (N/A)
+                  </span>
+                )}
+              </label>
               <FormInput
-                label="Target goal ( Optional )"
+                label=""
                 icon={BadgeDollarSign}
-                placeholder="0.00"
+                placeholder={
+                  watchedPaymentType === "fixed" ? "N/A — using fixed" : "0.00"
+                }
                 type="number"
                 min={0}
                 step="0.01"
+                disabled={watchedPaymentType === "fixed"}
                 {...register("targetGoal")}
-                isError={isFlexible}
+                isError={errors.targetGoal != null}
+                className={
+                  watchedPaymentType === "fixed"
+                    ? "opacity-50 cursor-not-allowed bg-slate-100"
+                    : ""
+                }
               />
-              {isFlexible && (
+              {errors.targetGoal && (
                 <p className="text-red-500 text-xs mt-1">
-                  Target goal is require with Flexible paymentType
+                  {errors.targetGoal.message}
                 </p>
               )}
             </div>
@@ -460,18 +554,21 @@ export default function CreateEventForm() {
             <label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
               Payment Type
             </label>
-            <select
-              {...register("paymentType")}
-              className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all text-gray-700 h-11"
-            >
-              <option value="fixed">Fixed</option>
-              <option value="flexible">Flexible</option>
-            </select>
+            <CustomSelect
+              value={watch("paymentType")}
+              onChange={(val) =>
+                setValue("paymentType", val as "fixed" | "flexible")
+              }
+              options={[
+                { value: "fixed", label: "Fixed" },
+                { value: "flexible", label: "Flexible" },
+              ]}
+            />
           </div>
 
           <div>
             <FormTextarea
-              label="Description"
+              label="Description (Optional)"
               placeholder="Describe the mission and scope of this event..."
               {...register("description")}
               isError={errors.description != null}

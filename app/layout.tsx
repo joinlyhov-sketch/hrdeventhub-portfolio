@@ -10,7 +10,6 @@ import { Toaster } from "sonner";
 import { NotificationProvider } from "@/context/NotificationProvider";
 import { NotificationBell } from "@/components/NotificationBell";
 
-
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const getGoogleSansFlex = localFont({
@@ -43,7 +42,7 @@ export default function RootLayout({
       )}
     >
       <body
-        className={`${getGoogleSansFlex.className} min-h-full flex flex-col`}
+        className={`${getGoogleSansFlex.className} min-h-full flex flex-col hide-scrollbar overflow-y-auto`}
       >
         <Providers>
           <UserProvider>
