@@ -50,6 +50,7 @@ export async function createPostAction(
           response.message || "Endpoint validation rejected the body payload.",
       };
     }
+    revalidatePath(`/event-management`);
 
     return { ok: true, payload: response };
   } catch (error) {
@@ -381,7 +382,10 @@ export async function togglePinAction(
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
     if (!token) {
-      return { ok: false, error: "Authorization credentials expired or not found." };
+      return {
+        ok: false,
+        error: "Authorization credentials expired or not found.",
+      };
     }
 
     await postService.togglePin(workspaceId, postId, pinned, token);
@@ -392,7 +396,10 @@ export async function togglePinAction(
     console.error("Action error pinning post resource:", error);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Internal system endpoint timeout exception.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Internal system endpoint timeout exception.",
     };
   }
 }

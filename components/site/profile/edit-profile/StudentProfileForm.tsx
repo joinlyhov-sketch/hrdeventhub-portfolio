@@ -27,6 +27,14 @@ import {
 } from "@/components/ui/popover";
 
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
 
 function UploadSVG() {
   return (
@@ -82,14 +90,21 @@ export default function StudentProfileForm() {
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const [initialCvResumeUrl, setInitialCvResumeUrl] = useState("");
 
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [hasRole, setHasRole] = useState(false);
 
-  const [initialIdentity, setInitialIdentity] = useState<Record<string, unknown> | null>(null);
-  const [initialProfile, setInitialProfile] = useState<Record<string, unknown> | null>(null);
+  const [initialIdentity, setInitialIdentity] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+  const [initialProfile, setInitialProfile] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [educationErrors, setEducationErrors] = useState<
     {
       startYear?: string;
@@ -107,11 +122,12 @@ export default function StudentProfileForm() {
   const selectedDate =
     dob && !isNaN(new Date(dob).getTime()) ? new Date(dob) : undefined;
 
-  const maxBirthDate = new Date();
-  maxBirthDate.setFullYear(maxBirthDate.getFullYear() - 16);
+  const currentYear = new Date().getFullYear();
+  const maxBirthYear = currentYear - 18;
+  const minBirthYear = currentYear - 100;
 
-  const startMonth = new Date(1950, 0);
-  const endMonth = new Date();
+  const startMonth = new Date(minBirthYear, 0);
+  const endMonth = new Date(maxBirthYear, 11);
 
   const [bio, setBio] = useState("");
   const [currentStatus, setCurrentStatus] = useState("studying");
@@ -119,9 +135,7 @@ export default function StudentProfileForm() {
   const [cvResumeUrl, setCvResumeUrl] = useState<string | null>("");
   const [isDeleteResumeModalOpen, setIsDeleteResumeModalOpen] = useState(false);
 
-  const [profileSharingMode] = useState<
-    "PUBLIC" | "PRIVATE"
-  >("PUBLIC");
+  const [profileSharingMode] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
   const [skills, setSkills] = useState<string[]>([]);
 
   type EducationEntry = {
@@ -297,6 +311,49 @@ export default function StudentProfileForm() {
 
     return isValid;
   };
+
+  const handleDiscardClick = () => {
+    if (isFormDirty) {
+      const event = new CustomEvent("trigger-unsaved-guard", {
+        detail: { isBack: true },
+      });
+      window.dispatchEvent(event);
+    } else {
+      router.back();
+    }
+  };
+  const currentIdentityPayload = {
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
+    username: username.trim(),
+    dateOfBirth: dob.trim(),
+    phoneNumber: phoneNumber.trim(),
+  };
+
+  const validEducation = education.filter(
+    (edu) => String(edu.institutionName).trim() !== "",
+  );
+
+  const identityChanged =
+    JSON.stringify(currentIdentityPayload) !== JSON.stringify(initialIdentity);
+
+  const profileChanged =
+    initialProfile?.bio !== bio ||
+    initialProfile?.currentStatus !== currentStatus.toLowerCase() ||
+    initialProfile?.profilePicture !== profilePicture ||
+    initialProfile?.cvResumeUrl !== cvResumeUrl ||
+    JSON.stringify(initialProfile?.skills) !== JSON.stringify(skills) ||
+    JSON.stringify(initialProfile?.education) !==
+      JSON.stringify(validEducation) ||
+    JSON.stringify(initialProfile?.socials) !==
+      JSON.stringify({
+        linkedin: linkedinUrl.trim(),
+        github: githubUrl.trim(),
+        facebook: facebookUrl.trim(),
+        telegram: telegramUrl.trim(),
+      });
+
+  const isFormDirty = (identityChanged || profileChanged) && !isPending;
   const validateEducation = () => {
     const currentYear = new Date().getFullYear();
     let isValid = true;
@@ -369,10 +426,15 @@ export default function StudentProfileForm() {
           profileService.getProfileMe(token),
           getIdentityMeAction(),
         ]);
+        if (!profileRes) {
+          setIsLoadingData(false);
+          return;
+        }
 
         if (identityRes.status === "fulfilled" && identityRes.value) {
           const idValue = identityRes.value as Record<string, unknown>;
-          const idData = (idValue.payload as Record<string, unknown>) || idValue;
+          const idData =
+            (idValue.payload as Record<string, unknown>) || idValue;
           const identitySnapshot = {
             firstName: (idData.firstName as string) || "",
             lastName: (idData.lastName as string) || "",
@@ -491,6 +553,8 @@ export default function StudentProfileForm() {
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setIsLoadingData(false);
       }
     };
     loadAllUserData();
@@ -503,7 +567,7 @@ export default function StudentProfileForm() {
       return;
     }
 
-    const result = await deleteMe() as { success?: boolean };
+    const result = (await deleteMe()) as { success?: boolean };
     console.log(result);
     if (result.success) {
       setCvResumeUrl("");
@@ -554,11 +618,13 @@ export default function StudentProfileForm() {
         setError(
           result.error || "Profile image upload was rejected by the server.",
         );
-        setProfilePicture((initialProfile?.profilePicture as string | null) || "");
+        setProfilePicture(
+          (initialProfile?.profilePicture as string | null) || "",
+        );
       }
     } catch {
       setError("A networking issue interrupted the asset transmission.");
-      setProfilePicture(initialProfile?.profilePicture as string || "");
+      setProfilePicture((initialProfile?.profilePicture as string) || "");
     } finally {
       setIsUploading(false);
     }
@@ -587,14 +653,17 @@ export default function StudentProfileForm() {
       setError(
         "A networking issue interrupted the document asset transmission.",
       );
-      setCvResumeUrl(initialProfile?.cvResumeUrl as string || "");
+      setCvResumeUrl((initialProfile?.cvResumeUrl as string) || "");
     } finally {
       setIsUploadingResume(false);
       e.target.value = "";
     }
   };
 
-  const handleUpdateEducation = (index: number, fields: Record<string, unknown>) => {
+  const handleUpdateEducation = (
+    index: number,
+    fields: Record<string, unknown>,
+  ) => {
     const updated = [...education];
     updated[index] = { ...updated[index], ...fields };
     setEducation(updated);
@@ -704,9 +773,14 @@ export default function StudentProfileForm() {
             Promise.resolve({ success: true, skipped: true }),
           );
 
-        type ActionResult = { success?: boolean; message?: string; error?: string };
-        const [identityResult, profileResult] =
-          await Promise.all(updatePromises) as [ActionResult, ActionResult];
+        type ActionResult = {
+          success?: boolean;
+          message?: string;
+          error?: string;
+        };
+        const [identityResult, profileResult] = (await Promise.all(
+          updatePromises,
+        )) as [ActionResult, ActionResult];
         if (identityResult?.success && profileResult?.success) {
           router.refresh();
           router.back();
@@ -727,7 +801,8 @@ export default function StudentProfileForm() {
           );
       } catch (err: unknown) {
         setError(
-          (err as { message?: string })?.message || "An exception blocked synchronization attempts.",
+          (err as { message?: string })?.message ||
+            "An exception blocked synchronization attempts.",
         );
       }
     });
@@ -735,782 +810,905 @@ export default function StudentProfileForm() {
 
   return (
     <div className="xl:col-span-8 border border-border rounded-2xl p-4 sm:p-6 flex flex-col gap-4">
-      {error && (
-        <div className="p-4 text-sm bg-destructive/10 text-destructive rounded-lg font-mono whitespace-pre-wrap">
-          {error}
+      {isLoadingData ? (
+        <div className="flex flex-col items-center justify-center min-h-[500px] gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-secondary type-detail">Loading profile...</p>
         </div>
-      )}
+      ) : (
+        <>
+          <NavigationGuard isDirty={isFormDirty} />
+          {error && (
+            <div className="p-4 text-sm bg-destructive/10 text-destructive rounded-lg font-mono whitespace-pre-wrap">
+              {error}
+            </div>
+          )}
 
-      <div className="space-y-4">
-        <h2 className="type-subtitle-24 text-secondary pb-2">
-          Edit Information
-        </h2>
-        <div className="flex flex-col sm:flex-row gap-4 items-start">
-          <div
-            onClick={handleContainerClick}
-            className="relative w-[80px] h-[80px] rounded-full overflow-hidden cursor-pointer shrink-0 border-[3px] border-[#444] mt-1"
-          >
-            {profilePicture ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={profilePicture}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute opacity-0 hover:opacity-100 duration-300 ease-in-out inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
-                  {isUploading ? (
-                    <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <UploadSVG />
-                      <span className="text-white text-[9px] text-center leading-tight px-1">
-                        Upload Profile
-                      </span>
-                    </>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="absolute inset-0 bg-[#2f2f2f] flex flex-col items-center justify-center gap-1">
-                {isUploading ? (
-                  <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
-                ) : (
+          <div className="space-y-4">
+            <h2 className="type-subtitle-24 text-secondary pb-2">
+              Edit Information
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <div
+                onClick={handleContainerClick}
+                className="relative w-[80px] h-[80px] rounded-full overflow-hidden cursor-pointer shrink-0 border-[3px] border-[#444] mt-1"
+              >
+                {profilePicture ? (
                   <>
-                    <UploadSVG />
-                    <span className="text-white text-[9px] text-center leading-tight px-1">
-                      Upload Profile
-                    </span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={profilePicture}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute opacity-0 hover:opacity-100 duration-300 ease-in-out inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
+                      {isUploading ? (
+                        <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <UploadSVG />
+                          <span className="text-white text-[9px] text-center leading-tight px-1">
+                            Upload Profile
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </>
+                ) : (
+                  <div className="absolute inset-0 bg-[#2f2f2f] flex flex-col items-center justify-center gap-1">
+                    {isUploading ? (
+                      <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <UploadSVG />
+                        <span className="text-white text-[9px] text-center leading-tight px-1">
+                          Upload Profile
+                        </span>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/png, image/jpeg, image/jpg, image/webp"
-            className="hidden"
-            disabled={isUploading}
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1 w-full min-w-0">
-            <div className="flex flex-col gap-1.5">
-              <label className="type-desc text-secondary">First Name</label>
 
               <input
-                type="text"
-                value={firstName}
-                onChange={(e) => {
-                  setFirstName(e.target.value);
-
-                  setErrors((prev) => ({
-                    ...prev,
-                    firstName: "",
-                  }));
-                }}
-                className={`w-full h-10 px-3 bg-white border rounded-lg ${
-                  errors.firstName ? "border-red-500" : "border-border"
-                }`}
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/png, image/jpeg, image/jpg, image/webp"
+                className="hidden"
+                disabled={isUploading}
               />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1 w-full min-w-0">
+                <div className="flex flex-col gap-1.5">
+                  <label className="type-desc text-secondary">First Name</label>
 
-              {errors.firstName && (
-                <p className="text-red-500 text-xs">{errors.firstName}</p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="type-desc text-secondary">Last Name</label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => {
-                  setLastName(e.target.value);
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
 
-                  setErrors((prev) => ({
-                    ...prev,
-                    lastName: "",
-                  }));
-                }}
-                className={`w-full h-10 px-3 bg-white border rounded-lg ${
-                  errors.lastName ? "border-red-500" : "border-border"
-                }`}
-              />
-
-              {errors.lastName && (
-                <p className="text-red-500 text-xs">{errors.lastName}</p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="type-desc text-secondary">Username</label>
-
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  setUsername(value);
-
-                  setErrors((prev) => ({
-                    ...prev,
-                    username: /\s/.test(value)
-                      ? "Username cannot contain spaces"
-                      : "",
-                  }));
-                }}
-                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail-medium text-primary ${
-                  errors.username ? "border-red-500" : "border-border"
-                }`}
-              />
-
-              {errors.username && (
-                <p className="text-red-500 text-xs">{errors.username}</p>
-              )}
-            </div>
-          </div>
-        </div>
-        <div
-          className="grid grid-cols-1 sm:[grid-template-columns:calc(96px_+_((100%_-_96px_-_32px)/3))_1fr_1fr] gap-4 w-full"
-        >
-          <div className="flex flex-col gap-1.5">
-            <label className="type-desc text-secondary">Date of Birth</label>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className={`flex items-center gap-3 w-full h-10 px-3 border rounded-lg bg-white text-left transition-all ${
-                    errors.dob ? "border-red-500" : "border-border"
-                  }`}
-                >
-                  <CalendarIcon
-                    size={16}
-                    className="text-muted-foreground shrink-0"
+                      setErrors((prev) => ({
+                        ...prev,
+                        firstName: "",
+                      }));
+                    }}
+                    className={`w-full h-10 px-3 text-primary bg-white border rounded-lg ${
+                      errors.firstName ? "border-red-500" : "border-border"
+                    }`}
                   />
 
-                  <span
-                    className={
-                      dob
-                        ? "text-primary type-detail-medium"
-                        : "text-muted-foreground type-detail-medium"
-                    }
+                  {errors.firstName && (
+                    <p className="text-red-500 text-xs">{errors.firstName}</p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="type-desc text-secondary">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+
+                      setErrors((prev) => ({
+                        ...prev,
+                        lastName: "",
+                      }));
+                    }}
+                    className={`w-full h-10 px-3 bg-white border rounded-lg text-primary ${
+                      errors.lastName ? "border-red-500" : "border-border"
+                    }`}
+                  />
+
+                  {errors.lastName && (
+                    <p className="text-red-500 text-xs">{errors.lastName}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="type-desc text-secondary">Username</label>
+
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      setUsername(value);
+
+                      setErrors((prev) => ({
+                        ...prev,
+                        username: /\s/.test(value)
+                          ? "Username cannot contain spaces"
+                          : "",
+                      }));
+                    }}
+                    className={`w-full h-10 px-3 bg-white border rounded-lg type-detail-medium text-primary ${
+                      errors.username ? "border-red-500" : "border-border"
+                    }`}
+                  />
+
+                  {errors.username && (
+                    <p className="text-red-500 text-xs">{errors.username}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:[grid-template-columns:calc(96px_+_((100%_-_96px_-_32px)/3))_1fr_1fr] gap-4 w-full">
+              <div className="flex flex-col gap-1.5">
+                <label className="type-desc text-secondary">
+                  Date of Birth
+                </label>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={`flex items-center gap-3 w-full h-10 px-3 border rounded-lg bg-white text-left transition-all ${
+                        errors.dob ? "border-red-500" : "border-border"
+                      }`}
+                    >
+                      <CalendarIcon
+                        size={16}
+                        className="text-muted-foreground shrink-0"
+                      />
+
+                      <span
+                        className={
+                          dob
+                            ? "text-primary type-detail-medium"
+                            : "text-muted-foreground type-detail-medium"
+                        }
+                      >
+                        {selectedDate
+                          ? format(selectedDate, "dd/MM/yyyy")
+                          : "DD/MM/YYYY"}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+
+                  <PopoverContent
+                    className="w-auto p-0 rounded-xl"
+                    align="start"
+                    sideOffset={6}
                   >
-                    {selectedDate
-                      ? format(selectedDate, "dd/MM/yyyy")
-                      : "DD/MM/YYYY"}
-                  </span>
-                </button>
-              </PopoverTrigger>
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      captionLayout="dropdown"
+                      startMonth={startMonth}
+                      endMonth={endMonth}
+                      disabled={(date) => {
+                        const today = new Date();
 
-              <PopoverContent
-                className="w-auto p-0 rounded-xl"
-                align="start"
-                sideOffset={6}
-              >
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  captionLayout="dropdown"
-                  startMonth={startMonth}
-                  endMonth={endMonth}
-                  disabled={(date) => {
-                    const today = new Date();
+                        const maxBirthDate = new Date(
+                          today.getFullYear() - 16,
+                          today.getMonth(),
+                          today.getDate(),
+                        );
 
-                    const maxBirthDate = new Date(
-                      today.getFullYear() - 16,
-                      today.getMonth(),
-                      today.getDate(),
-                    );
+                        return date > maxBirthDate;
+                      }}
+                      onSelect={(date) => {
+                        if (!date) return;
 
-                    return date > maxBirthDate;
-                  }}
-                  onSelect={(date) => {
-                    if (!date) return;
+                        setDob(format(date, "yyyy-MM-dd"));
 
-                    setDob(format(date, "yyyy-MM-dd"));
+                        setErrors((prev) => ({
+                          ...prev,
+                          dob: "",
+                        }));
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
 
-                    setErrors((prev) => ({
-                      ...prev,
-                      dob: "",
-                    }));
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-
-            {errors.dob && <p className="text-red-500 text-xs">{errors.dob}</p>}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="type-desc text-secondary">Current Status</label>
-            <select
-              value={currentStatus.toLowerCase()}
-              onChange={(e) => setCurrentStatus(e.target.value)}
-              className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail-medium text-primary focus:outline-hidden focus:border-primary"
-            >
-              <option value="studying">Studying</option>
-              <option value="working">Working</option>
-              <option value="job_seeking">Job Seeking</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="type-desc text-secondary">
-              Gender (Read Only)
-            </label>
-            <input
-              type="text"
-              value={gender}
-              disabled
-              className="w-full h-10 px-3 border border-border rounded-lg type-detail text-primary focus:outline-hidden bg-white"
-            />
-          </div>
-        </div>
-        <div
-          className="grid grid-cols-1 sm:[grid-template-columns:calc(96px_+_((100%_-_96px_-_32px)/3))_1fr] gap-4 w-full"
-        >
-          <div className="flex flex-col gap-1.5">
-            <label className="type-desc text-secondary">Phone Number</label>
-
-            <div
-              className={`flex items-center h-10 rounded-lg border bg-white overflow-hidden transition-all focus-within:border-primary ${
-                errors.phoneNumber ? "border-red-500" : "border-border"
-              }`}
-            >
-              <div className="flex items-center gap-2 bg-gray-50 border-r border-border h-full px-3 shrink-0 text-sm font-medium text-gray-500">
-                <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center">
-                  <Flags.KH className="w-full object-cover" />
-                </span>
-
-                <span className="text-primary">+855</span>
+                {errors.dob && (
+                  <p className="text-red-500 text-xs">{errors.dob}</p>
+                )}
               </div>
 
-              <input
-                type="number"
-                value={phoneNumber}
-                onChange={(e) => {
-                  setPhoneNumber(e.target.value);
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="type-desc text-secondary">
+                  Current Status
+                </label>
 
-                  setErrors((prev) => ({
-                    ...prev,
-                    phoneNumber: "",
-                  }));
-                }}
-                className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
-                placeholder="123 456 789"
+                <Select
+                  value={currentStatus.toLowerCase()}
+                  onValueChange={(value) => setCurrentStatus(value)}
+                >
+                  <SelectTrigger className="w-full h-10 px-4 py-5 bg-white border-border rounded-xl text-primary type-detail-medium focus:ring-1 focus:ring-primary focus:ring-offset-0">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+
+                  <SelectContent
+                    side="bottom"
+                    position="popper"
+                    className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)]"
+                  >
+                    <SelectItem
+                      value="studying"
+                      className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
+                    >
+                      Studying
+                    </SelectItem>
+
+                    <SelectItem
+                      value="working"
+                      className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
+                    >
+                      Working
+                    </SelectItem>
+
+                    <SelectItem
+                      value="job_seeking"
+                      className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
+                    >
+                      Job Seeking
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="type-desc text-secondary">
+                  Gender (Read Only)
+                </label>
+                <input
+                  type="text"
+                  value={gender}
+                  disabled
+                  className="w-full h-10 px-3 border border-border rounded-lg type-detail text-gray-400 focus:outline-hidden bg-white"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:[grid-template-columns:calc(96px_+_((100%_-_96px_-_32px)/3))_1fr] gap-4 w-full">
+              <div className="flex flex-col gap-1.5">
+                <label className="type-desc text-secondary">Phone Number</label>
+
+                <div
+                  className={`flex items-center h-10 rounded-lg border bg-white overflow-hidden transition-all focus-within:border-primary ${
+                    errors.phoneNumber ? "border-red-500" : "border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 bg-gray-50 border-r border-border h-full px-3 shrink-0 text-sm font-medium text-gray-500">
+                    <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center">
+                      <Flags.KH className="w-full object-cover" />
+                    </span>
+
+                    <span className="text-primary">+855</span>
+                  </div>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={9}
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      if (/^\d{0,9}$/.test(value)) {
+                        setPhoneNumber(value);
+
+                        setErrors((prev) => ({
+                          ...prev,
+                          phoneNumber: "",
+                        }));
+                      }
+                    }}
+                    className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
+                    placeholder="123 456 789"
+                  />
+                </div>
+
+                {errors.phoneNumber && (
+                  <p className="text-red-500 text-xs">{errors.phoneNumber}</p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="type-desc text-secondary">
+                  Email (Read Only)
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  disabled
+                  className="w-full h-10 px-3 border border-border rounded-lg type-detail text-primary focus:outline-hidden bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="type-desc text-secondary">Profile Bio</label>
+              <textarea
+                rows={3}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="w-full p-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary resize-none"
               />
             </div>
-
-            {errors.phoneNumber && (
-              <p className="text-red-500 text-xs">{errors.phoneNumber}</p>
-            )}
           </div>
+          <section className="space-y-4">
+            <h2 className="type-subtitle-24 text-primary">Social Accounts</h2>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="type-desc text-secondary">
-              Email (Read Only)
-            </label>
-            <input
-              type="email"
-              value={email}
-              disabled
-              className="w-full h-10 px-3 border border-border rounded-lg type-detail text-primary focus:outline-hidden bg-white"
-            />
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+              <div className="flex items-end gap-3 w-full">
+                <div className="shrink-0 mb-1">
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect width="40" height="40" rx="20" fill="#1C4D8D" />
+                    <path
+                      d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883"
+                      stroke="#F9F9F9"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17"
+                      stroke="#F9F9F9"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M16 20H24"
+                      stroke="#F9F9F9"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
 
-        <div className="flex flex-col gap-1.5 w-full">
-          <label className="type-desc text-secondary">Profile Bio</label>
-          <textarea
-            rows={3}
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            className="w-full p-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary resize-none"
-          />
-        </div>
-      </div>
-      <section className="space-y-4">
-        <h2 className="type-subtitle-24 text-primary">Social Accounts</h2>
+                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                  <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
+                    LinkedIn
+                  </label>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          <div className="flex items-end gap-3 w-full">
-            <div className="shrink-0 mb-1">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                <path
-                  d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M16 20H24"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+                  <div
+                    className={`flex items-center h-12 px-3 border rounded-xl bg-white transition-all focus-within:border-primary ${
+                      errors.linkedinUrl ? "border-red-500" : "border-border"
+                    }`}
+                  >
+                    <input
+                      type="text"
+                      value={linkedinUrl}
+                      placeholder="https://linkedin.com/in/username"
+                      onChange={(e) => {
+                        setLinkedinUrl(e.target.value);
 
-            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-              <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
-                LinkedIn
-              </label>
+                        setErrors((prev) => ({
+                          ...prev,
+                          linkedinUrl: "",
+                        }));
+                      }}
+                      className="w-full bg-transparent outline-none type-detail text-foreground font-medium placeholder:text-gray-400"
+                    />
+                  </div>
 
-              <div
-                className={`flex items-center h-12 px-3 border rounded-xl bg-white transition-all focus-within:border-primary ${
-                  errors.linkedinUrl ? "border-red-500" : "border-border"
-                }`}
-              >
-                <input
-                  type="text"
-                  value={linkedinUrl}
-                  placeholder="https://linkedin.com/in/username"
-                  onChange={(e) => {
-                    setLinkedinUrl(e.target.value);
-
-                    setErrors((prev) => ({
-                      ...prev,
-                      linkedinUrl: "",
-                    }));
-                  }}
-                  className="w-full bg-transparent outline-none type-detail text-foreground font-medium placeholder:text-gray-400"
-                />
+                  {errors.linkedinUrl && (
+                    <p className="text-xs text-red-500">{errors.linkedinUrl}</p>
+                  )}
+                </div>
               </div>
 
-              {errors.linkedinUrl && (
-                <p className="text-xs text-red-500">{errors.linkedinUrl}</p>
-              )}
-            </div>
-          </div>
+              <div className="flex items-end gap-3 w-full">
+                <div className="shrink-0 mb-1">
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect width="40" height="40" rx="20" fill="#1C4D8D" />
+                    <path
+                      d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034"
+                      stroke="white"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
+                    GitHub
+                  </label>
+                  <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
+                    <input
+                      type="text"
+                      placeholder="https://github.com/username"
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
+                    />
+                  </div>
 
-          <div className="flex items-end gap-3 w-full">
-            <div className="shrink-0 mb-1">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                <path
-                  d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034"
-                  stroke="white"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="flex flex-col gap-1.5 flex-1">
-              <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
-                GitHub
-              </label>
-              <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
-                <input
-                  type="text"
-                  placeholder="https://github.com/username"
-                  value={githubUrl}
-                  onChange={(e) => setGithubUrl(e.target.value)}
-                  className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
-                />
+                  {errors.githubUrl && (
+                    <p className="text-xs text-red-500">{errors.githubUrl}</p>
+                  )}
+                </div>
               </div>
 
-              {errors.githubUrl && (
-                <p className="text-xs text-red-500">{errors.githubUrl}</p>
-              )}
-            </div>
-          </div>
+              <div className="flex items-end gap-3 w-full">
+                <div className="shrink-0 mb-1">
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect width="40" height="40" rx="20" fill="#1C4D8D" />
+                    <path
+                      d="M22 17.3V20.2H24.6C24.8 20.2 24.9 20.4 24.9 20.6L24.5 22.5C24.5 22.6 24.3 22.7 24.2 22.7H22V30H19V22.8H17.3C17.1 22.8 17 22.7 17 22.5V20.6C17 20.4 17.1 20.3 17.3 20.3H19V17C19 15.3 20.3 14 22 14H24.7C24.9 14 25 14.1 25 14.3V16.7C25 16.9 24.9 17 24.7 17H22.3C22.1 17 22 17.1 22 17.3Z"
+                      stroke="#F9F9F9"
+                      strokeWidth="1.5"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M23 30H17C12 30 10 28 10 23V17C10 12 12 10 17 10H23C28 10 30 12 30 17V23C30 28 28 30 23 30Z"
+                      stroke="#F9F9F9"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
+                    Facebook
+                  </label>
+                  <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
+                    <input
+                      type="text"
+                      placeholder="https://facebook.com/username"
+                      value={facebookUrl}
+                      onChange={(e) => setFacebookUrl(e.target.value)}
+                      className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
+                    />
+                  </div>
 
-          <div className="flex items-end gap-3 w-full">
-            <div className="shrink-0 mb-1">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                <path
-                  d="M22 17.3V20.2H24.6C24.8 20.2 24.9 20.4 24.9 20.6L24.5 22.5C24.5 22.6 24.3 22.7 24.2 22.7H22V30H19V22.8H17.3C17.1 22.8 17 22.7 17 22.5V20.6C17 20.4 17.1 20.3 17.3 20.3H19V17C19 15.3 20.3 14 22 14H24.7C24.9 14 25 14.1 25 14.3V16.7C25 16.9 24.9 17 24.7 17H22.3C22.1 17 22 17.1 22 17.3Z"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeMiterlimit="10"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M23 30H17C12 30 10 28 10 23V17C10 12 12 10 17 10H23C28 10 30 12 30 17V23C30 28 28 30 23 30Z"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="flex flex-col gap-1.5 flex-1">
-              <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
-                Facebook
-              </label>
-              <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
-                <input
-                  type="text"
-                  placeholder="https://facebook.com/username"
-                  value={facebookUrl}
-                  onChange={(e) => setFacebookUrl(e.target.value)}
-                  className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
-                />
+                  {errors.facebookUrl && (
+                    <p className="text-xs text-red-500">{errors.facebookUrl}</p>
+                  )}
+                </div>
               </div>
 
-              {errors.facebookUrl && (
-                <p className="text-xs text-red-500">{errors.facebookUrl}</p>
-              )}
-            </div>
-          </div>
+              <div className="flex items-end gap-3 w-full">
+                <div className="shrink-0 mb-1">
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect width="40" height="40" rx="20" fill="#1C4D8D" />
+                    <path
+                      d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z"
+                      stroke="#F9F9F9"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M18.1094 21.6525L21.6894 18.0625"
+                      stroke="#F9F9F9"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
+                    Telegram
+                  </label>
+                  <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
+                    <input
+                      type="text"
+                      placeholder="https://t.me/username"
+                      value={telegramUrl}
+                      onChange={(e) => setTelegramUrl(e.target.value)}
+                      className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
+                    />
+                  </div>
 
-          <div className="flex items-end gap-3 w-full">
-            <div className="shrink-0 mb-1">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                <path
-                  d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M18.1094 21.6525L21.6894 18.0625"
-                  stroke="#F9F9F9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <div className="flex flex-col gap-1.5 flex-1">
-              <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
-                Telegram
-              </label>
-              <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
-                <input
-                  type="text"
-                  placeholder="https://t.me/username"
-                  value={telegramUrl}
-                  onChange={(e) => setTelegramUrl(e.target.value)}
-                  className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
-                />
+                  {errors.telegramUrl && (
+                    <p className="text-xs text-red-500">{errors.telegramUrl}</p>
+                  )}
+                </div>
               </div>
-
-              {errors.telegramUrl && (
-                <p className="text-xs text-red-500">{errors.telegramUrl}</p>
-              )}
             </div>
-          </div>
-        </div>
-      </section>
-      <div className="space-y-4 w-full mt-4">
-        <div className="flex justify-between items-center gap-2">
-          <h2 className="type-subtitle-24 text-primary">Education</h2>
-          <button
-            type="button"
-            onClick={() =>
-              setEducation([
-                ...education,
-                {
-                  institutionName: "",
-                  institutionAbbreviation: "",
-                  degree: "",
-                  startYear: 2026,
-                  endYear: null,
-                  isCurrent: true,
-                },
-              ])
-            }
-            className="text-subtle type-detail-semibold flex items-center gap-1 hover:underline bg-transparent border-0 cursor-pointer"
-          >
-            + add
-          </button>
-        </div>
-        {education.map((edu, idx) => (
-          <div
-            key={idx}
-            className="type-desc-semibold text-primary grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full border-b border-dashed border-border pb-4 last:border-0 relative"
-          >
-            {idx > 0 && (
+          </section>
+          <div className="space-y-4 w-full mt-4">
+            <div className="flex justify-between items-center gap-2">
+              <h2 className="type-subtitle-24 text-primary">Education</h2>
               <button
                 type="button"
                 onClick={() =>
-                  setEducation(education.filter((_, i) => i !== idx))
+                  setEducation([
+                    ...education,
+                    {
+                      institutionName: "",
+                      institutionAbbreviation: "",
+                      degree: "",
+                      startYear: 2026,
+                      endYear: null,
+                      isCurrent: true,
+                    },
+                  ])
                 }
-                className="absolute -top-1 -right-1 text-destructive hover:opacity-80 cursor-pointer border-0 bg-transparent"
+                className="text-subtle type-detail-semibold flex items-center gap-1 hover:underline bg-transparent border-0 cursor-pointer"
               >
-                <Trash2 size={14} />
+                + add
               </button>
-            )}
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                University/Institute/Center
-              </label>
-              <input
-                type="text"
-                value={edu.institutionName}
-                placeholder="University Name"
-                onChange={(e) =>
-                  handleUpdateEducation(idx, {
-                    institutionName: e.target.value,
-                  })
-                }
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
-              />
             </div>
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                Major/Course
-              </label>
-              <input
-                type="text"
-                value={edu.degree}
-                placeholder="Computer Science"
-                onChange={(e) =>
-                  handleUpdateEducation(idx, { degree: e.target.value })
-                }
-                className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
-              />
-            </div>
+            {education.map((edu, idx) => (
+              <div
+                key={idx}
+                className="type-desc-semibold text-primary grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full border-b border-dashed border-border pb-4 last:border-0 relative"
+              >
+                {idx > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEducation(education.filter((_, i) => i !== idx))
+                    }
+                    className="absolute -top-1 -right-1 text-destructive hover:opacity-80 cursor-pointer border-0 bg-transparent"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    University/Institute/Center
+                  </label>
+                  <input
+                    type="text"
+                    value={edu.institutionName}
+                    placeholder="University Name"
+                    onChange={(e) =>
+                      handleUpdateEducation(idx, {
+                        institutionName: e.target.value,
+                      })
+                    }
+                    className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    Major/Course
+                  </label>
+                  <input
+                    type="text"
+                    value={edu.degree}
+                    placeholder="Computer Science"
+                    onChange={(e) =>
+                      handleUpdateEducation(idx, { degree: e.target.value })
+                    }
+                    className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
+                  />
+                </div>
 
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                Start year
-              </label>
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    Start year
+                  </label>
 
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
-                value={edu.startYear || ""}
-                placeholder="2023"
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={edu.startYear || ""}
+                    placeholder="2023"
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
 
-                  handleUpdateEducation(idx, {
-                    startYear: value ? Number(value) : "",
-                  });
+                      handleUpdateEducation(idx, {
+                        startYear: value ? Number(value) : "",
+                      });
 
-                  setEducationErrors((prev) => {
-                    const copy = [...prev];
-                    copy[idx] = {
-                      ...copy[idx],
-                      startYear: "",
-                    };
-                    return copy;
-                  });
-                }}
-                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
+                      setEducationErrors((prev) => {
+                        const copy = [...prev];
+                        copy[idx] = {
+                          ...copy[idx],
+                          startYear: "",
+                        };
+                        return copy;
+                      });
+                    }}
+                    className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
       ${educationErrors[idx]?.startYear ? "border-red-500" : "border-border"}`}
-              />
+                  />
 
-              {educationErrors[idx]?.startYear && (
-                <p className="text-red-500 text-xs">
-                  {educationErrors[idx].startYear}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5 w-full">
-              <label className="type-detail-semibold text-secondary">
-                End year
-              </label>
+                  {educationErrors[idx]?.startYear && (
+                    <p className="text-red-500 text-xs">
+                      {educationErrors[idx].startYear}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label className="type-detail-semibold text-secondary">
+                    End year
+                  </label>
 
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
-                value={edu.endYear ?? ""}
-                placeholder="2026"
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={edu.endYear ?? ""}
+                    placeholder="2026"
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
 
-                  handleUpdateEducation(idx, {
-                    endYear: value ? Number(value) : null,
-                  });
+                      handleUpdateEducation(idx, {
+                        endYear: value ? Number(value) : null,
+                      });
 
-                  setEducationErrors((prev) => {
-                    const copy = [...prev];
-                    copy[idx] = {
-                      ...copy[idx],
-                      endYear: "",
-                    };
-                    return copy;
-                  });
-                }}
-                className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
+                      setEducationErrors((prev) => {
+                        const copy = [...prev];
+                        copy[idx] = {
+                          ...copy[idx],
+                          endYear: "",
+                        };
+                        return copy;
+                      });
+                    }}
+                    className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
       ${educationErrors[idx]?.endYear ? "border-red-500" : "border-border"}`}
-              />
+                  />
 
-              {educationErrors[idx]?.endYear && (
-                <p className="text-red-500 text-xs font-light">
-                  {educationErrors[idx].endYear}
-                </p>
+                  {educationErrors[idx]?.endYear && (
+                    <p className="text-red-500 text-xs font-light">
+                      {educationErrors[idx].endYear}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3 w-full">
+            <label className="type-desc text-secondary block">
+              Skills & Expertise
+            </label>
+            <div className="flex flex-wrap gap-2 items-center">
+              {skills.map((skill, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-1.5 bg-[#E1F1FD] text-primary px-2.5 py-3 rounded-xl type-detail-medium"
+                >
+                  {skill}
+                  <CircleX
+                    className="w-3 h-3 text-primary cursor-pointer hover:text-destructive transition-colors"
+                    onClick={() =>
+                      setSkills(skills.filter((_, i) => i !== index))
+                    }
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setIsSkillModalOpen(true)}
+                className="flex items-center gap-1 px-2.5 py-3 border border-[#C1D8F0] rounded-xl text-secondary type-detail-medium bg-white hover:bg-grey-50 cursor-pointer"
+              >
+                + Add Skill
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4 w-full">
+            <label className="type-subtitle text-primary block">Resume</label>
+            <input
+              type="file"
+              ref={resumeInputRef}
+              onChange={handleResumeFileChange}
+              accept=".pdf,.docx"
+              className="hidden"
+              disabled={isUploadingResume}
+            />
+            <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-200 rounded-xl">
+              <div className="p-3 bg-[#E5EEFF] text-primary rounded-full mb-2 flex items-center justify-center">
+                {isUploadingResume ? (
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M9 17V11L7 13"
+                      stroke="#292D32"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M9 11L11 13"
+                      stroke="#292D32"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14"
+                      stroke="#292D32"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M22 10H18C15 10 14 9 14 6V2L22 10Z"
+                      stroke="#292D32"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+              <span className="text-gray-900 type-desc">Upload New CV</span>
+              <span className="text-gray-500 type-desc-small-semibold mt-0.5 mb-4">
+                PDF, DOCX up to 10MB
+              </span>
+              <button
+                type="button"
+                disabled={isUploadingResume}
+                onClick={() => resumeInputRef.current?.click()}
+                className="px-6 py-2.5 bg-[#4663AC] primary-hover disabled:opacity-50 text-white type-desc-medium rounded-2xl transition-colors cursor-pointer border-0 shadow-xs"
+              >
+                Select file
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-white w-full">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 rounded-lg text-gray-500 flex items-center justify-center shrink-0">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 36 36"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-gray-600"
+                  >
+                    <path
+                      d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 19.5H18"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 25.5H24"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <span
+                  className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}
+                >
+                  {cvResumeUrl
+                    ? `CV_${username}.` + cvResumeUrl.split(".").pop()
+                    : "CV_Example.pdf"}
+                </span>
+              </div>
+              {cvResumeUrl && (
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteResumeModalOpen(true)}
+                >
+                  <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
+                </button>
               )}
             </div>
           </div>
-        ))}
-      </div>
-      <div className="space-y-3 w-full">
-        <label className="type-desc text-secondary block">
-          Skills & Expertise
-        </label>
-        <div className="flex flex-wrap gap-2 items-center">
-          {skills.map((skill, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-1.5 bg-[#E1F1FD] text-primary px-2.5 py-3 rounded-xl type-detail-medium"
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
+            <button
+              type="button"
+              onClick={() => {
+                sessionStorage.removeItem("pending-avatar");
+                handleDiscardClick();
+              }}
+              className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
             >
-              {skill}
-              <CircleX
-                className="w-3 h-3 text-primary cursor-pointer hover:text-destructive transition-colors"
-                onClick={() => setSkills(skills.filter((_, i) => i !== index))}
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setIsSkillModalOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-3 border border-[#C1D8F0] rounded-xl text-secondary type-detail-medium bg-white hover:bg-grey-50 cursor-pointer"
-          >
-            + Add Skill
-          </button>
-        </div>
-      </div>
+              Discard Changes
+            </button>
+            <button
+              type="button"
+              disabled={isPending || isUploading || isUploadingResume}
+              onClick={handleSaveChanges}
+              className="w-full sm:w-auto px-5 py-2 bg-primary text-white rounded-lg type-detail-semibold hover:bg-primary-hover shadow-xs border-0 cursor-pointer order-1 sm:order-2 disabled:opacity-50"
+            >
+              {isPending ? "Saving..." : "Save changes"}
+            </button>
+          </div>
+          {selectedImageSrc && (
+            <ImageAdjustModal
+              imageSrc={selectedImageSrc}
+              isOpen={isAdjustModalOpen}
+              onClose={() => {
+                sessionStorage.removeItem("pending-avatar");
+                setSelectedImageSrc(null);
+                setIsAdjustModalOpen(false);
+              }}
+              onSave={handleCroppedImageSave}
+            />
+          )}
 
-      {hasRole && (
-  <div className="space-y-4 w-full">
-    <label className="type-subtitle text-primary block">Resume</label>
-    <input
-      type="file"
-      ref={resumeInputRef}
-      onChange={handleResumeFileChange}
-      accept=".pdf,.docx"
-      className="hidden"
-      disabled={isUploadingResume}
-    />
-    <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-200 rounded-xl">
-      <div className="p-3 bg-[#E5EEFF] text-primary rounded-full mb-2 flex items-center justify-center">
-        {isUploadingResume ? (
-          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 17V11L7 13" stroke="#292D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M9 11L11 13" stroke="#292D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14" stroke="#292D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M22 10H18C15 10 14 9 14 6V2L22 10Z" stroke="#292D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </div>
-      <span className="text-gray-900 type-desc">Upload New CV</span>
-      <span className="text-gray-500 type-desc-small-semibold mt-0.5 mb-4">PDF, DOCX up to 10MB</span>
-      <button
-        type="button"
-        disabled={isUploadingResume}
-        onClick={() => resumeInputRef.current?.click()}
-        className="px-6 py-2.5 bg-[#4663AC] primary-hover disabled:opacity-50 text-white type-desc-medium rounded-2xl transition-colors cursor-pointer border-0 shadow-xs"
-      >
-        Select file
-      </button>
-    </div>
-    <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-white w-full">
-      <div className="flex items-center gap-2.5 min-w-0">
-        <div className="p-2 rounded-lg text-gray-500 flex items-center justify-center shrink-0">
-          <svg width="24" height="24" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-600">
-            <path d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M12 19.5H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M12 25.5H24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <span className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}>
-          {cvResumeUrl ? `CV_${username}.` + cvResumeUrl.split(".").pop() : "CV_Example.pdf"}
-        </span>
-      </div>
-      {cvResumeUrl && (
-        <button type="button" onClick={() => setIsDeleteResumeModalOpen(true)}>
-          <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
-        </button>
+          <AddSkillModal
+            isOpen={isSkillModalOpen}
+            onClose={() => setIsSkillModalOpen(false)}
+            onAddSkill={(skill) => {
+              if (skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
+                toast.error("This skill already exists.");
+                return;
+              }
+
+              setSkills((prev) => [...prev, skill]);
+              toast.success("Skill added successfully.");
+            }}
+          />
+          <DeleteResumeModal
+            isOpen={isDeleteResumeModalOpen}
+            onClose={() => setIsDeleteResumeModalOpen(false)}
+            fileName={
+              cvResumeUrl
+                ? `CV_${username}.${cvResumeUrl.split(".").pop()}`
+                : undefined
+            }
+            onConfirm={confirmDeleteResume}
+          />
+        </>
       )}
     </div>
-  </div>
-)}
-<div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
-  <button
-    type="button"
-    onClick={() => {
-      sessionStorage.removeItem("pending-avatar");
-      router.back();
-    }}
-    className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
-  >
-    Discard Changes
-  </button>
-  <button
-    type="button"
-    disabled={isPending || isUploading || isUploadingResume}
-    onClick={handleSaveChanges}
-    className="w-full sm:w-auto px-5 py-2 bg-primary text-white rounded-lg type-detail-semibold hover:bg-primary-hover shadow-xs border-0 cursor-pointer order-1 sm:order-2 disabled:opacity-50"
-  >
-    {isPending ? "Saving..." : "Save changes"}
-  </button>
-</div>
-{selectedImageSrc && (
-  <ImageAdjustModal
-    imageSrc={selectedImageSrc}
-    isOpen={isAdjustModalOpen}
-    onClose={() => {
-      sessionStorage.removeItem("pending-avatar");
-      setSelectedImageSrc(null);
-      setIsAdjustModalOpen(false);
-    }}
-    onSave={handleCroppedImageSave}
-  />
-)}
-<AddSkillModal
-  isOpen={isSkillModalOpen}
-  onClose={() => setIsSkillModalOpen(false)}
-  onAddSkill={(skill) => {
-    if (skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
-      toast.error("This skill already exists.");
-      return;
-    }
-    setSkills((prev) => [...prev, skill]);
-    toast.success("Skill added successfully.");
-  }}
-/>
-<DeleteResumeModal
-  isOpen={isDeleteResumeModalOpen}
-  onClose={() => setIsDeleteResumeModalOpen(false)}
-  fileName={cvResumeUrl ? `CV_${username}.${cvResumeUrl.split(".").pop()}` : undefined}
-  onConfirm={confirmDeleteResume}
-/>
-</div>
-);
+  );
 }

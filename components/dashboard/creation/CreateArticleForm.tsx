@@ -24,7 +24,14 @@ import { toast } from "sonner";
 import { ServerActionResponse2 } from "@/types/file-types";
 import { CreateArticleResponseV2 } from "@/types/article-types";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { NavigationGuard } from "../NavigationGuard";
 
 export default function CreateArticleForm() {
   const router = useRouter();
@@ -36,7 +43,7 @@ export default function CreateArticleForm() {
     register,
     handleSubmit,
     control,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ArticlePostFormValues>({
     resolver: zodResolver(articlePostSchema) as Resolver<ArticlePostFormValues>,
     defaultValues: {
@@ -45,6 +52,17 @@ export default function CreateArticleForm() {
       status: "active",
     },
   });
+  const handleCancel = () => {
+    const fallbackUrl = `/group/${workspaceId}`;
+    if (isDirty) {
+      const customEvent = new CustomEvent("trigger-unsaved-guard", {
+        detail: { fallbackUrl },
+      });
+      window.dispatchEvent(customEvent);
+    } else {
+      router.push(fallbackUrl);
+    }
+  };
 
   const onSubmit = async (data: ArticlePostFormValues) => {
     setIsSubmitting(true);
@@ -52,15 +70,10 @@ export default function CreateArticleForm() {
     const payload: CreateArticlePayload = {
       title: data.title,
       content: data.description,
-      status: data.status,
+      status: "draft",
       isPublished: false,
       isPinned: false,
     };
-
-    console.log(
-      "MATCHED SWAGGER ARTICLE PAYLOAD:",
-      JSON.stringify(payload, null, 2),
-    );
 
     try {
       const result: ServerActionResponse2<CreateArticleResponseV2> =
@@ -69,7 +82,18 @@ export default function CreateArticleForm() {
 
       if (result.ok) {
         if (data.status === "active" && generatedPostId) {
-          await publishDraftPostAction(workspaceId, generatedPostId);
+          const publishRes = await publishDraftPostAction(
+            workspaceId,
+            generatedPostId,
+          );
+          if (!publishRes.ok) {
+            console.error("Failed to set active:", publishRes);
+            toast.error(
+              `Draft saved, but failed to change status to active: ${publishRes.error}`,
+            );
+            setIsSubmitting(false);
+            return;
+          }
         }
 
         toast.success(
@@ -93,6 +117,7 @@ export default function CreateArticleForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col w-full">
+      <NavigationGuard isDirty={isDirty} />
       <Breadcrumb label="Article Creation" backHref={`/group/${workspaceId}`} />
 
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col grow mb-4">
@@ -164,7 +189,7 @@ export default function CreateArticleForm() {
 
           <div>
             <FormTextarea
-              label="Description"
+              label="Description (Optional)"
               placeholder="Describe the mission and scope of this article..."
               {...register("description")}
               isError={errors.description != null}
@@ -183,10 +208,10 @@ export default function CreateArticleForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${workspaceId}`)}
+          onClick={handleCancel}
           className="order-2 sm:order-1 w-full hover:bg-transparent sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl hover:text-primary hover:border-primary transition-all active:scale-95 text-sm shadow-sm"
         >
-          Cancel 
+          Cancel
         </Button>
         <Button
           type="submit"
