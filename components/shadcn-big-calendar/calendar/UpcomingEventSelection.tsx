@@ -83,8 +83,11 @@ export default function UpcomingEventSection({ workspaceId, role }: Props) {
             <div className="upcoming-event-list">
               {group.events.map((event) => {
                 const startDate = new Date(event.eventStart);
-                const endDate = new Date(event.eventEnd);
-                const hasEndDate = !Number.isNaN(endDate.getTime());
+                const parsedEnd = new Date(event.eventEnd);
+                const endDate =
+                  !Number.isNaN(parsedEnd.getTime()) && parsedEnd > startDate
+                    ? parsedEnd
+                    : new Date(startDate.getTime() + 60 * 60 * 1000);
                 const eventWorkspaceId = event.sourceWorkspaceId || workspaceId;
 
                 return (
@@ -106,8 +109,7 @@ export default function UpcomingEventSection({ workspaceId, role }: Props) {
                       <div className="upcoming-event-meta">
                         <span>
                           <Clock3 size={13} />
-                          {formatTime(startDate)}
-                          {hasEndDate && ` - ${formatTime(endDate)}`}
+                          {formatTime(startDate)} - {formatTime(endDate)}
                         </span>
                         <span>
                           <MapPin size={13} />

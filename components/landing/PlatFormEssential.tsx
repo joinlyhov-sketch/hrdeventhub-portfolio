@@ -211,7 +211,7 @@ export default function PlatformEssentials() {
   const sectionInView = useInView(sectionRef, { once: true, amount: 0.15 });
 
   return (
-    <section className="min-h-0 lg:min-h-screen overflow-hidden py-8 lg:py-14 mb-10 lg:mb-25 mt-6 lg:mt-12">
+    <section className="min-h-0 lg:min-h-screen overflow-hidden py-4 lg:py-14 mb-5 lg:mb-25 mt-3 lg:mt-12">
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="font-black leading-none text-secondary text-[22px] sm:text-[24px] md:text-[56px]">
           <span className="text-primary">Platform </span>
