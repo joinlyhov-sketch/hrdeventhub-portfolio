@@ -25,12 +25,12 @@ export default function LandingPage() {
   return (
     <>
       <Navbar />
-      <div className="relative min-h-0 lg:min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden pt-28 pb-12 md:pt-32 md:pb-16 lg:py-36 px-6 md:px-12 select-none">
+      <div className="relative min-h-0 lg:min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden pt-28 pb-6 md:pt-32 md:pb-16 lg:py-36 px-6 md:px-12 select-none">
         <HeroSession />
       </div>
-      <div className="min-h-0 lg:min-h-screen bg-background px-4 md:px-12 lg:px-32 py-12">
+      <div className="min-h-0 lg:min-h-screen bg-background px-4 md:px-12 lg:px-32 pt-6 pb-6 md:py-12">
         <div className="mb-6 ml-0 md:ml-6 lg:ml-18">
-          <h1 className="font-black leading-none text-secondary text-[24px] md:text-[56px]">
+          <h1 className="font-black leading-none text-secondary text-[22px] sm:text-[24px] md:text-[56px]">
             Community <span className="text-action">Updates</span>
           </h1>
           <p className="type-desc text-secondary mt-2 ">

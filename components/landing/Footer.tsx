@@ -4,7 +4,7 @@ import Image from "next/image";
 export default function Footer() {
   return (
     <footer className="bg-white pt-8 pb-6 px-4 md:px-24 lg:px-48 w-full">
-      <div className="w-full grid grid-cols-1 md:grid-cols-3">
+      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
         <div>
           <div className="flex items-center mb-3">
             <Image
@@ -47,7 +47,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h5 className="type-detail-semibold mb-4 uppercase text-slate-900">
+          <h5 className="text-xs font-bold md:text-sm md:font-semibold md:tracking-normal mb-4 uppercase tracking-wider text-slate-800 md:text-slate-900">
             Contact & Support
           </h5>
           <ul className="space-y-3 type-detail text-slate-500">
@@ -67,7 +67,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h5 className="type-detail-semibold mb-4 uppercase text-slate-900">
+          <h5 className="text-xs font-bold md:text-sm md:font-semibold md:tracking-normal mb-4 uppercase tracking-wider text-slate-800 md:text-slate-900">
             Our Location
           </h5>
           <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm w-full aspect-video">

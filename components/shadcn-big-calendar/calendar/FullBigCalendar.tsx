@@ -65,7 +65,7 @@ function renderEventContent(info: EventContentArg) {
     return (
       <div className={`event-box event-box-${tone}`}>
         <span className="event-dot" />
-        <span className="event-time">{eventTime}</span>
+        <span className="event-time">{startTime}</span>
         <span className="event-title">{info.event.title}</span>
       </div>
     );

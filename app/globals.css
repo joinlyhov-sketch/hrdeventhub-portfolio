@@ -199,6 +199,14 @@
     font-weight: var(--fw-title, 700);
   }
 
+  @media (min-width: 768px) {
+    .md-type-title {
+      font-size: var(--fs-title);
+      line-height: var(--lh-title);
+      font-weight: var(--fw-title, 700);
+    }
+  }
+
   .type-subtitle {
     font-size: var(--fs-subtitle);
     line-height: var(--lh-subtitle);
