@@ -162,10 +162,10 @@ function NotificationMenu({ onRemove }: { onRemove: () => void }) {
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
+        className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors hover:cursor-pointer" 
         aria-label="More options"
       >
-        <MoreHorizontal className="w-3.5 h-3.5" />
+        <MoreHorizontal className="w-3.5 h-3.5"  />
       </button>
 
       {open && (
@@ -299,7 +299,7 @@ export function NotificationBell() {
       <button
         ref={buttonRef}
         onClick={() => setOpen((v) => !v)}
-        className="fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors"
+        className="fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors hover:cursor-pointer"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5 text-white" />
