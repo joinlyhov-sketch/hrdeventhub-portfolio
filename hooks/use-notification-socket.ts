@@ -95,8 +95,7 @@ export function useNotificationSocket({
     if (!token || !appUserId) return;
 
     const base =
-      process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api/v5", "") ||
-      "https://api.hrdevent.app";
+      process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api/v5", "");
 
     const ids = workspaceKey ? workspaceKey.split(",") : [];
 
