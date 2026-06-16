@@ -338,7 +338,7 @@ export default function SurveyCreationForm({
             type="button"
             variant="outline"
             onClick={() => addQuestionByType("choice")}
-            className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-detail font-semibold text-gray-500 shadow-sm hover:bg-slate-50/50"
+            className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-detail font-semibold text-gray-500 shadow-sm hover:text-gray-500 hover:bg-slate-50/50"
           >
             <Plus size={24} />
             Add Questions
