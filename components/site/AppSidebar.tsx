@@ -423,47 +423,30 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={pathname === profileHref}
+                  asChild
+                  tooltip="Profile"
+                  className="h-11"
+                >
+                  <Link href={profileHref}>
+                    <User size={18} className="shrink-0 text-[#878787]" />
+                    <span
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-50 opacity-100 translate-x-0"
+                      }`}
+                    >
+                      Profile
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
               {!isStudentOrAlumni && (
                 <>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      isActive={pathname === profileHref}
-                      asChild
-                      tooltip="Profile"
-                      className="h-11"
-                    >
-                      <Link href={profileHref}>
-                        <svg
-                          width={18}
-                          height={18}
-                          viewBox="0 0 18 18"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
-                            stroke="#878787"
-                            strokeWidth={1.5}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M15.4436 16.5C15.4436 13.5975 12.5561 11.25 9.00109 11.25C5.44609 11.25 2.55859 13.5975 2.55859 16.5"
-                            stroke="#878787"
-                            strokeWidth={1.5}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span
-                          className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
-                        >
-                          Profile
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
 
                   <SidebarMenuItem>
                     <SidebarMenuButton
@@ -842,15 +825,6 @@ export function AppSidebar() {
                     sideOffset={8}
                     className="w-56 mb-2"
                   >
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href={profileHref}
-                        className="flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
-                      >
-                        <User size={14} className="text-gray-500" />
-                        <span className="text-sm">Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link
                         href={`${profileHref}/edit-profile`}
