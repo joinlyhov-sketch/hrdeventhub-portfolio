@@ -32,7 +32,6 @@ export default function CommentDemo() {
           </div>
 
           <EditCommentModal open={editOpen} onOpenChange={setEditOpen} />
-          <DeleteCommentModal open={deleteOpen} onOpenChange={setDeleteOpen} />
           <ReplyCommentModal open={replyOpen} onOpenChange={setReplyOpen} />
         </div>
       ))}

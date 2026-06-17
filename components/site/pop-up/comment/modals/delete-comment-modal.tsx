@@ -10,7 +10,7 @@ import {
 import { AlertTriangle } from "lucide-react";
 
 type Props = {
-  isOpen: boolean;
+  isOpen: boolean | null;
   onClose: () => void;
   onConfirm: () => Promise<void>;
 };
