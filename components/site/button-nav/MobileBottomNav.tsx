@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCurrentUser } from "@/context/user-context";
 import { useSession, signOut } from "next-auth/react";
 import { logoutAction } from "@/actions/auth.action";
-import { LogOut, MessagesSquare } from "lucide-react"; // Added MessagesSquare import
+import { LogOut, MessagesSquare } from "lucide-react";
 import { cn } from "@/libs/utils";
 import { useState } from "react";
 import Image from "next/image";
