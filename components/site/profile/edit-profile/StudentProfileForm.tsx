@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useTransition, useRef } from "react";
-import { Trash2, CircleX } from "lucide-react";
+import { Trash2, CircleX, ChevronDown, Building2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   Select,
@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { profileService } from "@/service/profile.service";
+import { profileService, University } from "@/service/profile.service";
 import {
   deleteMe,
   getIdentityMeAction,
@@ -113,7 +113,7 @@ export default function StudentProfileForm() {
     }[]
   >([]);
   const [appUserId, setAppUserId] = useState("");
-const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
+  const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -143,23 +143,53 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
   type EducationEntry = {
     institutionName: string;
     institutionAbbreviation: string;
+    institutionLogo: string;
     degree: string;
     startYear: number | string;
     endYear: number | null;
     isCurrent: boolean;
   };
+  const DEGREE_ABBREVIATION_OPTIONS = [
+    {
+      value: "AA",
+      label: "Associate's Degree",
+    },
+    {
+      value: "BA",
+      label: "Bachelor's Degree",
+    },
+    {
+      value: "MA",
+      label: "Master's Degree",
+    },
+    {
+      value: "PhD",
+      label: "PhD: Doctor of Philosophy",
+    },
+  ];
 
   const [education, setEducation] = useState<EducationEntry[]>([
     {
       institutionName: "",
       institutionAbbreviation: "",
+      institutionLogo: "",
       degree: "",
       startYear: 2026,
       endYear: null,
       isCurrent: true,
     },
   ]);
-
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [isLoadingUniversities, setIsLoadingUniversities] = useState(false);
+  const [openUniversityIndex, setOpenUniversityIndex] = useState<number | null>(
+    null,
+  );
+  const [openAbbreviationIndex, setOpenAbbreviationIndex] = useState<
+    number | null
+  >(null);
+  const [universitySearch, setUniversitySearch] = useState<
+    Record<number, string>
+  >({});
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
@@ -416,6 +446,25 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
       setIsAdjustModalOpen(true);
     }
   }, []);
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      const token = session?.accessToken;
+      if (!token) return;
+
+      try {
+        setIsLoadingUniversities(true);
+        const result = await profileService.getUniversities(token);
+        setUniversities(result);
+      } catch (error) {
+        console.error("Failed to fetch universities:", error);
+        setUniversities([]);
+      } finally {
+        setIsLoadingUniversities(false);
+      }
+    };
+
+    fetchUniversities();
+  }, [session?.accessToken]);
 
   useEffect(() => {
     const loadAllUserData = async () => {
@@ -436,7 +485,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
           const idValue = identityRes.value as Record<string, unknown>;
           const idData =
             (idValue.payload as Record<string, unknown>) || idValue;
-            setAppUserId((idData.appUserId as string) || "");
+          setAppUserId((idData.appUserId as string) || "");
           const rawPhoneNumber =
             (idData.phoneNumber as string) ||
             (idData.phone_number as string) ||
@@ -529,6 +578,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
             {
               institutionName: "",
               institutionAbbreviation: "",
+              institutionLogo: "",
               degree: "",
               startYear: 2026,
               endYear: null,
@@ -539,6 +589,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
             parsedEdu = p.education.map((edu) => ({
               institutionName: edu.institutionName || "",
               institutionAbbreviation: edu.institutionAbbreviation || "",
+              institutionLogo: edu.institutionLogo || "",
               degree: edu.degree || "",
               startYear: edu.startYear || 2026,
               endYear: edu.endYear || null,
@@ -733,6 +784,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
       education: validEducation.map((edu) => ({
         institutionName: String(edu.institutionName),
         institutionAbbreviation: String(edu.institutionAbbreviation),
+        institutionLogo: String(edu.institutionLogo || ""),
         degree: String(edu.degree),
         startYear: Number(edu.startYear),
         endYear: edu.endYear,
@@ -836,51 +888,50 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
             </div>
           )}
 
-      <div className="space-y-4">
-        <h2 className="type-subtitle-24 text-secondary pb-2">
-          Edit Information
-        </h2>
-        <div className="flex flex-col sm:flex-row gap-4 items-start">
-          <div
-            onClick={handleContainerClick}
-            className="relative w-[80px] h-[80px] rounded-full overflow-hidden cursor-pointer shrink-0 border-[3px] border-[#444] mt-1"
-          >
-            {profilePicture ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={profilePicture}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute opacity-0 hover:opacity-100 duration-300 ease-in-out inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
-                  {isUploading ? (
-                    <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <UploadSVG />
-                      <span className="text-white text-[9px] text-center leading-tight px-1">
-                        Upload Profile
-                      </span>
-                    </>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="absolute inset-0 bg-[#2f2f2f] flex flex-col items-center justify-center gap-1">
-                {isUploading ? (
-                  <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
-                ) : (
+          <div className="space-y-4">
+            <h2 className="type-subtitle-24 text-secondary pb-2">
+              Edit Information
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <div
+                onClick={handleContainerClick}
+                className="relative w-[80px] h-[80px] rounded-full overflow-hidden cursor-pointer shrink-0 border-[3px] border-[#444] mt-1"
+              >
+                {profilePicture ? (
                   <>
-                    <UploadSVG />
-                    <span className="text-white text-[9px] text-center leading-tight px-1">
-                      Upload Profile
-                    </span>
+                    <img
+                      src={profilePicture}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute opacity-0 hover:opacity-100 duration-300 ease-in-out inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
+                      {isUploading ? (
+                        <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <UploadSVG />
+                          <span className="text-white text-[9px] text-center leading-tight px-1">
+                            Upload Profile
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </>
+                ) : (
+                  <div className="absolute inset-0 bg-[#2f2f2f] flex flex-col items-center justify-center gap-1">
+                    {isUploading ? (
+                      <div className="w-5 h-5 border-2 border-white  rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <UploadSVG />
+                        <span className="text-white text-[9px] text-center leading-tight px-1">
+                          Upload Profile
+                        </span>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
 
               <input
                 type="file"
@@ -1082,9 +1133,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="type-desc text-secondary">
-                  Gender 
-                </label>
+                <label className="type-desc text-secondary">Gender</label>
                 <input
                   type="text"
                   value={gender}
@@ -1137,18 +1186,16 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
                 )}
               </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="type-desc text-secondary">
-              Email 
-            </label>
-            <input
-              type="email"
-              value={email}
-              disabled
-              className="w-full h-10 px-3 bg-background border border-border rounded-md type-detail text-muted-foreground opacity-70 focus:outline-none cursor-not-allowed"
-            />
-          </div>
-        </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="type-desc text-secondary">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  disabled
+                  className="w-full h-10 px-3 bg-background border border-border rounded-md type-detail text-muted-foreground opacity-70 focus:outline-none cursor-not-allowed"
+                />
+              </div>
+            </div>
 
             <div className="flex flex-col gap-1.5 w-full">
               <label className="type-desc text-secondary">Profile Bio</label>
@@ -1372,6 +1419,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
                     {
                       institutionName: "",
                       institutionAbbreviation: "",
+                      institutionLogo: "",
                       degree: "",
                       startYear: 2026,
                       endYear: null,
@@ -1387,7 +1435,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
             {education.map((edu, idx) => (
               <div
                 key={idx}
-                className="type-desc-semibold text-primary grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full border-b border-dashed border-border pb-4 last:border-0 relative"
+                className="type-desc-semibold text-primary grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 w-full border-b border-dashed border-border pb-4 last:border-0 relative"
               >
                 {idx > 0 && (
                   <button
@@ -1400,22 +1448,198 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
                     <Trash2 size={14} />
                   </button>
                 )}
-                <div className="flex flex-col gap-1.5 w-full">
+                <div className="flex flex-col gap-1.5 w-full relative">
                   <label className="type-detail-semibold text-secondary">
                     University/Institute/Center
                   </label>
-                  <input
-                    type="text"
-                    value={edu.institutionName}
-                    placeholder="University Name"
-                    onChange={(e) =>
-                      handleUpdateEducation(idx, {
-                        institutionName: e.target.value,
-                      })
-                    }
-                    className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
-                  />
+
+                  <div className="relative">
+                    <Building2
+                      size={16}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    />
+
+                    <input
+                      type="text"
+                      value={
+                        openUniversityIndex === idx
+                          ? universitySearch[idx] || ""
+                          : edu.institutionName
+                      }
+                      placeholder={
+                        isLoadingUniversities
+                          ? "Loading schools..."
+                          : "Search university..."
+                      }
+                      onFocus={() => {
+                        setOpenUniversityIndex(idx);
+                        setOpenAbbreviationIndex(null);
+                        setUniversitySearch((prev) => ({
+                          ...prev,
+                          [idx]: "",
+                        }));
+                      }}
+                      onChange={(e) => {
+                        setOpenUniversityIndex(idx);
+                        setUniversitySearch((prev) => ({
+                          ...prev,
+                          [idx]: e.target.value,
+                        }));
+                      }}
+                      className="w-full h-10 pl-9 pr-9 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
+                    />
+
+                    <ChevronDown
+                      size={16}
+                      onClick={() => {
+                        setOpenUniversityIndex(
+                          openUniversityIndex === idx ? null : idx,
+                        );
+                        setOpenAbbreviationIndex(null);
+                      }}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer transition-transform ${
+                        openUniversityIndex === idx ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+
+                  {openUniversityIndex === idx && (
+                    <div className="absolute left-0 right-0 top-[68px] z-50 bg-white border border-blue-100 rounded-xl shadow-xl max-h-[220px] overflow-y-auto unique-scrollbar p-1">
+                      {(() => {
+                        const search = (
+                          universitySearch[idx] || ""
+                        ).toLowerCase();
+
+                        const filteredUniversities = universities.filter(
+                          (university) =>
+                            university.name.toLowerCase().includes(search),
+                        );
+
+                        if (isLoadingUniversities) {
+                          return (
+                            <div className="text-[14px] text-gray-400 px-4 py-3 text-center">
+                              Loading schools...
+                            </div>
+                          );
+                        }
+
+                        if (filteredUniversities.length === 0) {
+                          return (
+                            <div className="text-[14px] text-gray-400 px-4 py-3 text-center">
+                              No universities found.
+                            </div>
+                          );
+                        }
+
+                        return filteredUniversities.map((university) => (
+                          <div
+                            key={university.universityId}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              handleUpdateEducation(idx, {
+                                institutionName: university.name,
+                                institutionLogo: university.logoUrl || "",
+                              });
+
+                              setUniversitySearch((prev) => ({
+                                ...prev,
+                                [idx]: "",
+                              }));
+
+                              setOpenUniversityIndex(null);
+                            }}
+                            className={`flex items-center gap-3 text-[15px] px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
+                              edu.institutionName === university.name
+                                ? "bg-blue-50 text-[#1e3a8a] font-medium"
+                                : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            {university.logoUrl ? (
+                              <img
+                                src={university.logoUrl}
+                                alt={university.name}
+                                className="w-7 h-7 rounded-full object-cover border border-gray-100 shrink-0"
+                              />
+                            ) : (
+                              <div className="w-7 h-7 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                                <Building2
+                                  size={14}
+                                  className="text-[#1e3a8a]"
+                                />
+                              </div>
+                            )}
+
+                            <div className="min-w-0">
+                              <p className="truncate">{university.name}</p>
+                              {university.location && (
+                                <p className="text-xs text-gray-400 truncate">
+                                  {university.location}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
                 </div>
+
+                <div className="flex flex-col gap-1.5 w-full relative">
+                  <label className="type-detail-semibold text-secondary">
+                    Institution Abbreviation
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenAbbreviationIndex(
+                        openAbbreviationIndex === idx ? null : idx,
+                      );
+                      setOpenUniversityIndex(null);
+                    }}
+                    className="w-full h-10 px-3 pr-9 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] flex items-center text-left cursor-pointer"
+                  >
+                    {edu.institutionAbbreviation || "Select abbreviation"}
+                  </button>
+
+                  <ChevronDown
+                    size={16}
+                    onClick={() => {
+                      setOpenAbbreviationIndex(
+                        openAbbreviationIndex === idx ? null : idx,
+                      );
+                      setOpenUniversityIndex(null);
+                    }}
+                    className={`absolute right-3 top-[34px] text-gray-400 cursor-pointer transition-transform ${
+                      openAbbreviationIndex === idx ? "rotate-180" : ""
+                    }`}
+                  />
+
+                  {openAbbreviationIndex === idx && (
+                    <div className="absolute left-0 right-0 top-[68px] z-50 bg-white border border-blue-100 rounded-xl shadow-xl overflow-hidden p-1">
+                      {DEGREE_ABBREVIATION_OPTIONS.map((option) => (
+                        <div
+                          key={option.value}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            handleUpdateEducation(idx, {
+                              institutionAbbreviation: option.value,
+                            });
+                            setOpenAbbreviationIndex(null);
+                          }}
+                          className={`text-[14px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${
+                            edu.institutionAbbreviation === option.value
+                              ? "bg-blue-50 text-[#1e3a8a] font-medium"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {option.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex flex-col gap-1.5 w-full">
                   <label className="type-detail-semibold text-secondary">
                     Major/Course
@@ -1537,189 +1761,189 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
             </div>
           </div>
 
-      {hasRole && (
-        <div className="space-y-4 w-full">
-          <label className="type-subtitle text-primary block">Resume</label>
-          <input
-            type="file"
-            ref={resumeInputRef}
-            onChange={handleResumeFileChange}
-            accept=".pdf,.docx"
-            className="hidden"
-            disabled={isUploadingResume}
-          />
-          <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-200 rounded-xl">
-            <div className="p-3 bg-[#E5EEFF] text-primary rounded-full mb-2 flex items-center justify-center">
-              {isUploadingResume ? (
-                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+          {hasRole && (
+            <div className="space-y-4 w-full">
+              <label className="type-subtitle text-primary block">Resume</label>
+              <input
+                type="file"
+                ref={resumeInputRef}
+                onChange={handleResumeFileChange}
+                accept=".pdf,.docx"
+                className="hidden"
+                disabled={isUploadingResume}
+              />
+              <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-200 rounded-xl">
+                <div className="p-3 bg-[#E5EEFF] text-primary rounded-full mb-2 flex items-center justify-center">
+                  {isUploadingResume ? (
+                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9 17V11L7 13"
+                        stroke="#292D32"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M9 11L11 13"
+                        stroke="#292D32"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14"
+                        stroke="#292D32"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M22 10H18C15 10 14 9 14 6V2L22 10Z"
+                        stroke="#292D32"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-gray-900 type-desc">Upload New CV</span>
+                <span className="text-gray-500 type-desc-small-semibold mt-0.5 mb-4">
+                  PDF, DOCX up to 10MB
+                </span>
+                <button
+                  type="button"
+                  disabled={isUploadingResume}
+                  onClick={() => resumeInputRef.current?.click()}
+                  className="px-6 py-2.5 bg-[#4663AC] primary-hover disabled:opacity-50 text-white type-desc-medium rounded-2xl transition-colors cursor-pointer border-0 shadow-xs"
                 >
-                  <path
-                    d="M9 17V11L7 13"
-                    stroke="#292D32"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M9 11L11 13"
-                    stroke="#292D32"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14"
-                    stroke="#292D32"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M22 10H18C15 10 14 9 14 6V2L22 10Z"
-                    stroke="#292D32"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
+                  Select file
+                </button>
+              </div>
+              <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-white w-full">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-lg text-gray-500 flex items-center justify-center shrink-0">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 36 36"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="text-gray-600"
+                    >
+                      <path
+                        d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 19.5H18"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 25.5H24"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}
+                  >
+                    {cvResumeUrl
+                      ? `CV_${username}.` + cvResumeUrl.split(".").pop()
+                      : "CV_Example.pdf"}
+                  </span>
+                </div>
+                {cvResumeUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteResumeModalOpen(true)}
+                  >
+                    <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
+                  </button>
+                )}
+              </div>
             </div>
-            <span className="text-gray-900 type-desc">Upload New CV</span>
-            <span className="text-gray-500 type-desc-small-semibold mt-0.5 mb-4">
-              PDF, DOCX up to 10MB
-            </span>
+          )}
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
             <button
               type="button"
-              disabled={isUploadingResume}
-              onClick={() => resumeInputRef.current?.click()}
-              className="px-6 py-2.5 bg-[#4663AC] primary-hover disabled:opacity-50 text-white type-desc-medium rounded-2xl transition-colors cursor-pointer border-0 shadow-xs"
+              onClick={() => {
+                sessionStorage.removeItem("pending-avatar");
+                router.replace(profileRoute);
+              }}
+              className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
             >
-              Select file
+              Discard Changes
+            </button>
+            <button
+              type="button"
+              disabled={isPending || isUploading || isUploadingResume}
+              onClick={handleSaveChanges}
+              className="w-full sm:w-auto px-5 py-2 bg-primary text-white rounded-lg type-detail-semibold hover:bg-primary-hover shadow-xs border-0 cursor-pointer order-1 sm:order-2 disabled:opacity-50"
+            >
+              {isPending ? "Saving..." : "Save changes"}
             </button>
           </div>
-          <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-white w-full">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="p-2 rounded-lg text-gray-500 flex items-center justify-center shrink-0">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 36 36"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-gray-600"
-                >
-                  <path
-                    d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 19.5H18"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 25.5H24"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <span
-                className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}
-              >
-                {cvResumeUrl
-                  ? `CV_${username}.` + cvResumeUrl.split(".").pop()
-                  : "CV_Example.pdf"}
-              </span>
-            </div>
-            {cvResumeUrl && (
-              <button
-                type="button"
-                onClick={() => setIsDeleteResumeModalOpen(true)}
-              >
-                <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
-              </button>
-            )}
-          </div> 
-        </div>
-      )}
-      <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
-        <button
-          type="button"
-          onClick={() => {
-            sessionStorage.removeItem("pending-avatar");
-            router.replace(profileRoute);
-          }}
-          className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
-        >
-          Discard Changes
-        </button>
-        <button
-          type="button"
-          disabled={isPending || isUploading || isUploadingResume}
-          onClick={handleSaveChanges}
-          className="w-full sm:w-auto px-5 py-2 bg-primary text-white rounded-lg type-detail-semibold hover:bg-primary-hover shadow-xs border-0 cursor-pointer order-1 sm:order-2 disabled:opacity-50"
-        >
-          {isPending ? "Saving..." : "Save changes"}
-        </button>
-      </div>
-      {selectedImageSrc && (
-        <ImageAdjustModal
-          imageSrc={selectedImageSrc}
-          isOpen={isAdjustModalOpen}
-          onClose={() => {
-            sessionStorage.removeItem("pending-avatar");
-            setSelectedImageSrc(null);
-            setIsAdjustModalOpen(false);
-          }}
-          onSave={handleCroppedImageSave}
-        />
-      )}
-      <AddSkillModal
-        isOpen={isSkillModalOpen}
-        onClose={() => setIsSkillModalOpen(false)}
-        onAddSkill={(skill) => {
-          if (skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
-            toast.error("This skill already exists.");
-            return;
-          }
-          setSkills((prev) => [...prev, skill]);
-          toast.success("Skill added successfully.");
-        }}
-      />
+          {selectedImageSrc && (
+            <ImageAdjustModal
+              imageSrc={selectedImageSrc}
+              isOpen={isAdjustModalOpen}
+              onClose={() => {
+                sessionStorage.removeItem("pending-avatar");
+                setSelectedImageSrc(null);
+                setIsAdjustModalOpen(false);
+              }}
+              onSave={handleCroppedImageSave}
+            />
+          )}
+          <AddSkillModal
+            isOpen={isSkillModalOpen}
+            onClose={() => setIsSkillModalOpen(false)}
+            onAddSkill={(skill) => {
+              if (skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
+                toast.error("This skill already exists.");
+                return;
+              }
+              setSkills((prev) => [...prev, skill]);
+              toast.success("Skill added successfully.");
+            }}
+          />
           <DeleteResumeModal
-        isOpen={isDeleteResumeModalOpen}
-        onClose={() => setIsDeleteResumeModalOpen(false)}
-        fileName={
-          cvResumeUrl
-            ? `CV_${username}.${cvResumeUrl.split(".").pop()}`
-            : undefined
-        }
-        onConfirm={confirmDeleteResume}
-      />
-    </>
-  )}
-</div>
+            isOpen={isDeleteResumeModalOpen}
+            onClose={() => setIsDeleteResumeModalOpen(false)}
+            fileName={
+              cvResumeUrl
+                ? `CV_${username}.${cvResumeUrl.split(".").pop()}`
+                : undefined
+            }
+            onConfirm={confirmDeleteResume}
+          />
+        </>
+      )}
+    </div>
   );
 }
