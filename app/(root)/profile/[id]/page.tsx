@@ -23,8 +23,8 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<UserProfilePayload | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  
   const [isPublicView, setIsPublicView] = useState(false);
+  const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
 
   const isReady = sessionStatus === "authenticated" && !userLoading;
   const isSelf = isReady && currentUser?.id === userId;
@@ -33,7 +33,7 @@ export default function ProfilePage() {
     ? "student"
     : isSelf
       ? "self"
-      : ((currentUser?.role as ViewMode) ?? "student");
+      : ((currentUser?.role?.toLowerCase() as ViewMode) ?? "student");
 
   useEffect(() => {
     if (!isReady || !session?.accessToken) return;
@@ -41,10 +41,14 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         setProfileLoading(true);
+
         const res = isSelf
           ? await profileService.getProfileMe(session.accessToken!)
           : await profileService.getProfileById(userId, session.accessToken!);
-        if (res.success) setProfile(res.payload);
+
+        if (res.success) {
+          setProfile(res.payload);
+        }
       } catch (e) {
         console.error("Profile fetch failed:", e);
       } finally {
@@ -53,9 +57,10 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, [isReady, session?.accessToken, userId]);
+  }, [isReady, session?.accessToken, userId, isSelf]);
 
   const subjectRole = profile?.roles ? String(profile.roles).toUpperCase() : "";
+
   const viewerRole = currentUser?.role
     ? String(currentUser.role).toUpperCase()
     : "";
@@ -64,20 +69,44 @@ export default function ProfilePage() {
   const isPrivate = sharingMode === "PRIVATE";
   const hideTabsDueToPrivacy = isPrivate && (!isSelf || isPublicView);
 
+  const isStudentSelf = isSelf && viewerRole === "STUDENT";
+  const isAlumniSelf = isSelf && viewerRole === "ALUMNI";
+  const isAdminSelf = isSelf && viewerRole === "ADMIN";
+  const isOrganizerSelf = isSelf && viewerRole === "ORGANIZER";
+
   const showEventTab =
     !hideTabsDueToPrivacy &&
     isReady &&
     viewerRole !== "" &&
     subjectRole !== "" &&
-    ((isSelf && (viewerRole === "STUDENT" || viewerRole === "ALUMNI")) ||
-      (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI")));
+    (
+
+      isStudentSelf ||
+      isAlumniSelf ||
+
+      (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI"))
+    );
 
   const showEndorsementTab =
     !hideTabsDueToPrivacy &&
     isReady &&
-    !isSelf &&
-    viewerRole === "ALUMNI" &&
-    subjectRole === "STUDENT";
+    viewerRole !== "" &&
+    subjectRole !== "" &&
+    (
+      isStudentSelf ||
+
+      (!isSelf && viewerRole === "ALUMNI" && subjectRole === "STUDENT")
+    );
+
+  useEffect(() => {
+    if (activeTab === "EV" && !showEventTab) {
+      setActiveTab("BG");
+    }
+
+    if (activeTab === "EN" && !showEndorsementTab) {
+      setActiveTab("BG");
+    }
+  }, [activeTab, showEventTab, showEndorsementTab]);
 
   const titlePrimary = isSelf
     ? "My"
@@ -88,15 +117,6 @@ export default function ProfilePage() {
         : subjectRole === "ORGANIZER"
           ? "Organizer"
           : "Student";
-
-  const [activeTab, setActiveTab] = useState<"BG" | "EV" | "EN">("BG");
-
-  useEffect(() => {
-    if (activeTab === "EV" && !showEventTab)
-      queueMicrotask(() => setActiveTab("BG"));
-    if (activeTab === "EN" && !showEndorsementTab)
-      queueMicrotask(() => setActiveTab("BG"));
-  }, [activeTab, showEventTab, showEndorsementTab]);
 
   const subjectName = profile
     ? `${profile.appUser.firstName} ${profile.appUser.lastName}`.trim()
@@ -109,6 +129,7 @@ export default function ProfilePage() {
       : `You are viewing ${subjectName ?? "this user"}'s profile.`;
 
   const isSubjectAdmin = subjectRole === "ADMIN";
+
   const adjustedViewMode = isSelf
     ? "self"
     : viewerRole === "ADMIN"
@@ -122,12 +143,19 @@ export default function ProfilePage() {
   return (
     <div className="w-full bg-background z-30">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
+
       <div className="w-full max-w-475 px-4 sm:px-6 lg:pr-12 lg:pl-12 mx-auto">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-start ">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-start">
           <div className="xl:col-span-4 xl:h-full xl:overflow-y-auto">
             <ProfileCard
               viewMode={
-                !isReady ? null : isSelf ? "self" : isSubjectAdmin ? "student" : adjustedViewMode
+                !isReady
+                  ? null
+                  : isSelf
+                    ? "self"
+                    : isSubjectAdmin
+                      ? "student"
+                      : adjustedViewMode
               }
               profile={profile}
               loading={profileLoading || !isReady}
@@ -137,6 +165,7 @@ export default function ProfilePage() {
               setIsPublicView={setIsPublicView}
             />
           </div>
+
           <div className="xl:col-span-8 xl:h-full bg-card border border-border rounded-xl p-4 sm:p-6 shadow-sm flex flex-col gap-6 xl:overflow-hidden">
             <div className="flex bg-muted p-1.5 rounded-xl border border-border gap-1 shrink-0 overflow-x-auto">
               <Tabnav
@@ -144,6 +173,7 @@ export default function ProfilePage() {
                 label="Background"
                 onClick={() => setActiveTab("BG")}
               />
+
               {showEventTab && (
                 <Tabnav
                   active={activeTab === "EV"}
@@ -151,6 +181,7 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab("EV")}
                 />
               )}
+
               {showEndorsementTab && (
                 <Tabnav
                   active={activeTab === "EN"}
@@ -159,18 +190,29 @@ export default function ProfilePage() {
                 />
               )}
             </div>
+
             <div className="w-full flex-1 min-h-0 xl:overflow-hidden">
               {activeTab === "BG" && (
                 <BackgroundTab
                   profile={profile}
                   loading={profileLoading || !isReady}
-                  viewMode={!isReady ? null : isSelf ? "self" : isSubjectAdmin ? "student" : adjustedViewMode}
+                  viewMode={
+                    !isReady
+                      ? null
+                      : isSelf
+                        ? "self"
+                        : isSubjectAdmin
+                          ? "student"
+                          : adjustedViewMode
+                  }
                   isPublicView={isPublicView}
                 />
               )}
+
               {activeTab === "EV" && showEventTab && (
                 <EventTab userId={userId} />
               )}
+
               {activeTab === "EN" && showEndorsementTab && (
                 <EndorsementTabs studentId={isSelf ? undefined : userId} />
               )}

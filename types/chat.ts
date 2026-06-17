@@ -19,7 +19,13 @@ export interface Conversation {
   unreadCount: number;
   createdAt: string;
 }
-
+export interface UserResult {
+  appUserId: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  profilePicture?: string;
+}
 export interface ChatMessage {
   id: string;
   conversationId: string;
