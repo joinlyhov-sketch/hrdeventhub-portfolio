@@ -20,6 +20,7 @@ import { getPresenceAction } from "@/actions/presence.action";
 import { PresenceMap } from "@/service/presence.service";
 import type { ViewMode } from "@/app/(root)/profile/[id]/page";
 import { useRouter } from "next/navigation";
+import Loading from "@/app/loading";
 
 const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <div className="flex items-center gap-3 w-full min-w-0">
@@ -88,9 +89,7 @@ export default function ProfileCard({
   if (loading) {
     return (
       <div className="bg-card border border-border rounded-xl shadow-sm flex items-center justify-center h-96 w-full">
-        <p className="text-muted-foreground animate-pulse">
-          Loading profile...
-        </p>
+        <Loading />
       </div>
     );
   }
@@ -105,10 +104,28 @@ export default function ProfileCard({
 
   const displayName =
     `${profile.appUser.firstName} ${profile.appUser.lastName}`.trim();
-  const profileAvatar = getMediaUrl(profile.profilePicture);
   const showEdit = viewMode === "self";
   const showEndorse = viewMode === "alumni" && profile.roles === "STUDENT"; 
   const showMessage = viewMode !== "self" && viewMode !== null;
+
+  const profileAvatar = getMediaUrl(profile.profilePicture);
+
+  const linkedinAccount = profile.socialAccount?.find(
+    (s: { platform: string; url?: string }) =>
+      s.platform === "linkedin" && s.url?.trim(),
+  );
+  const githubAccount = profile.socialAccount?.find(
+    (s: { platform: string; url?: string }) =>
+      s.platform === "github" && s.url?.trim(),
+  );
+  const facebookAccount = profile.socialAccount?.find(
+    (s: { platform: string; url?: string }) =>
+      s.platform === "facebook" && s.url?.trim(),
+  );
+  const telegramAccount = profile.socialAccount?.find(
+    (s: { platform: string; url?: string }) =>
+      s.platform === "telegram" && s.url?.trim(),
+  );
 
   const coverIndex = useMemo(() => {
     const hash = (profile.appUser.username || "user")
@@ -342,6 +359,46 @@ export default function ProfileCard({
             </div>
           )}
         </div>
+        {isVisible("showSocial") &&
+  (facebookAccount || telegramAccount || githubAccount || linkedinAccount) && (
+    <div className="w-full flex items-center gap-4 pt-6 justify-start">
+      {facebookAccount && (
+        <a href={facebookAccount.url} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105 shrink-0">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="20" fill="#1877F2" />
+            <path d="M22.5 14H20.5C18.57 14 17 15.57 17 17.5V20H15V22.5H17V28H20.5V22.5H23L23.5 20H20.5V17.5C20.5 17.22 20.72 17 21 17H23.5V14Z" fill="white" />
+          </svg>
+        </a>
+      )}
+      {telegramAccount && (
+        <a href={telegramAccount.url} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105 shrink-0">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="20" fill="#24A1DE" />
+            <path d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M18.1094 21.6525L21.6894 18.0625" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+      )}
+      {githubAccount && (
+        <a href={githubAccount.url} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105 shrink-0">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="20" fill="#0F172A" />
+            <path d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+      )}
+      {linkedinAccount && (
+        <a href={linkedinAccount.url} target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105 shrink-0">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="20" fill="#1C4D8D" />
+            <path d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M16 20H24" stroke="#F9F9F9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+      )}
+    </div>
+  )}
 
         <div className="grow w-full min-h-5" />
 
