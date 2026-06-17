@@ -64,7 +64,6 @@ function TypeBadge({
           className={base}
           style={{
             backgroundColor: type === "POST_UPDATED" ? "#2e7d32" : "#1c4d8d",
-            backgroundColor: type === "POST_UPDATED" ? "#2e7d32" : "#1c4d8d",
           }}
         >
           <FileText className="w-2.5 h-2.5 text-white" />
