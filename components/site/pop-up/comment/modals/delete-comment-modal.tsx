@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,15 +10,39 @@ import {
 import { AlertTriangle } from "lucide-react";
 
 type Props = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
 };
 
-export default function DeleteCommentModal({ open, onOpenChange }: Props) {
+export default function DeleteCommentModal({
+  isOpen,
+  onClose,
+  onConfirm,
+}: Props) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleConfirm = async () => {
+    try {
+      setError(null);
+      setIsDeleting(true);
+      await onConfirm();
+      onClose();
+    } catch (err: unknown) {
+      setError(
+        (err as { message?: string })?.message ||
+          "Failed to delete the comment.",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="w-[640px] max-w-none rounded-[10px] border-0 bg-card px-10 py-[70px] text-center shadow-[0_18px_50px_rgba(0,0,0,0.18)]"
+        className="w-[640px] max-w-none rounded-xl border-0 bg-card px-10 py-[40px] text-center shadow-[0_18px_50px_rgba(0,0,0,0.18)]"
         showCloseButton={false}
       >
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/15 text-destructive">
@@ -33,16 +58,28 @@ export default function DeleteCommentModal({ open, onOpenChange }: Props) {
           undone.
         </p>
 
+        {error && (
+          <div className="w-full mt-4 p-3 text-xs bg-red-50 text-red-600 rounded-lg font-mono text-center">
+            {error}
+          </div>
+        )}
+
         <div className="mt-5 flex justify-center gap-2">
           <Button
             variant="outline"
-            className="h-[42px] w-[128px] rounded-[10px] border-primary text-primary"
+            onClick={onClose}
+            disabled={isDeleting}
+            className="h-[42px] w-[128px] rounded-[10px] border-primary text-primary hover:bg-gray-100 hover:text-primary"
           >
             Cancel
           </Button>
 
-          <Button className="h-[42px] w-[128px] rounded-[10px] bg-destructive text-white hover:bg-destructive/90">
-            Delete
+          <Button
+            onClick={handleConfirm}
+            disabled={isDeleting}
+            className="h-[42px] w-[128px] rounded-[10px] bg-destructive text-white hover:bg-destructive/90 transition-colors disabled:opacity-50"
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
           </Button>
         </div>
       </DialogContent>
