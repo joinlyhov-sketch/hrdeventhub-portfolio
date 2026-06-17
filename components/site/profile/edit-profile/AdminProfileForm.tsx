@@ -29,6 +29,7 @@ import ResetPasswordModal from "../../pop-up/reset-modal/ResetPasswordModal";
 import ConnectBankModal from "@/components/site/pop-up/payment/WebillConnectModal";
 import ImageAdjustModal from "@/components/site/profile/ImageAdjustModal";
 import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
+import Loading from "@/app/loading";
 
 interface CurrentUser {
   name: string;
@@ -629,8 +630,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     <div className="space-y-6 w-full text-left">
       {isLoadingData ? (
         <div className="flex flex-col items-center justify-center min-h-[500px] gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-secondary type-detail">Loading profile...</p>
+          <Loading />
         </div>
       ) : (
         <>

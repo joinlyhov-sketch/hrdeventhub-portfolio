@@ -36,6 +36,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
 import { profile } from "console";
+import Loading from "@/app/loading";
 
 function UploadSVG() {
   return (
@@ -876,8 +877,7 @@ export default function StudentProfileForm() {
     <div className="xl:col-span-8 border border-border rounded-2xl p-4 sm:p-6 flex flex-col gap-4">
       {isLoadingData ? (
         <div className="flex flex-col items-center justify-center min-h-[500px] gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-secondary type-detail">Loading profile...</p>
+          <Loading />
         </div>
       ) : (
         <>
