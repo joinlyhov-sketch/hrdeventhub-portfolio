@@ -1083,7 +1083,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="type-desc text-secondary">
-                  Gender (Read Only)
+                  Gender 
                 </label>
                 <input
                   type="text"
@@ -1708,7 +1708,7 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
           toast.success("Skill added successfully.");
         }}
       />
-      <DeleteResumeModal
+          <DeleteResumeModal
         isOpen={isDeleteResumeModalOpen}
         onClose={() => setIsDeleteResumeModalOpen(false)}
         fileName={
@@ -1718,7 +1718,8 @@ const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
         }
         onConfirm={confirmDeleteResume}
       />
-    </div>
-
+    </>
+  )}
+</div>
   );
 }
