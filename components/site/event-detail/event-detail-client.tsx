@@ -361,6 +361,30 @@ export default function EventDetailClient({
       })
     : "—";
 
+  const [isRegistered, setIsRegistered] = useState(false);
+
+  useEffect(() => {
+    if (!event?.postId || !session?.accessToken || !currentUser?.id) return;
+
+    const checkRegistration = async () => {
+      try {
+        const data = (await postService.getParticipants(
+          event.postId,
+          session.accessToken,
+          1,
+          100,
+        )) as { payload?: { user: { appUserId: string } }[] };
+
+        const list = data.payload ?? [];
+        setIsRegistered(list.some((p) => p.user?.appUserId === currentUser.id));
+      } catch (err) {
+        console.error("Failed to check registration status:", err);
+      }
+    };
+
+    checkRegistration();
+  }, [event?.postId, session?.accessToken, currentUser?.id]);
+
   return (
     <>
       <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
@@ -485,13 +509,13 @@ export default function EventDetailClient({
 
           <div className="flex flex-col justify-between">
             <div
-              className="relative flex p-[3px] rounded-xl type-desc-small-semibold"
+              className="relative flex p-0.75 rounded-xl type-desc-small-semibold"
               style={{ background: "rgba(120,120,128,0.12)" }}
               ref={tabTrackRef}
             >
               <div
                 ref={tabPillRef}
-                className="absolute top-[3px] h-[calc(100%-6px)] rounded-[9px] z-0 transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+                className="absolute top-0.75 h-[calc(100%-6px)] rounded-[9px] z-0 transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
                 style={{
                   background: "#1c4d8d",
                   boxShadow:
@@ -514,7 +538,7 @@ export default function EventDetailClient({
               ))}
             </div>
 
-            <div className="grow pt-4 max-w-full items-stretch min-[1290px]:w-3xl">
+            <div className="grow pt-2 max-w-full items-stretch min-[1290px]:w-3xl">
               {activeTab === "details" && (
                 <DetailContentComponent
                   postId={event?.postId}
@@ -541,10 +565,15 @@ export default function EventDetailClient({
 
             {!isAdminOrOrganizer && (
               <button
-                onClick={() => setIsPaymentOpen(true)}
-                className="w-full rounded-md py-2.5 type-desc-semibold text-center text-primary-foreground bg-primary hover:opacity-95 transition-opacity cursor-pointer"
+                onClick={() => !isRegistered && setIsPaymentOpen(true)}
+                disabled={isRegistered}
+                className={`w-full rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${
+                  isRegistered
+                    ? "bg-green-400/15 text-accent cursor-default font-regular"
+                    : "text-primary-foreground bg-primary hover:opacity-95"
+                }`}
               >
-                Register now
+                {isRegistered ? "✓ You are registered!" : "Register now"}
               </button>
             )}
           </div>
@@ -610,15 +639,27 @@ export default function EventDetailClient({
             </section>
             {activeAdminTab === "overview" ? (
               <AdminOverview event={event} workspaceId={workspaceId} />
-            ) : (
+             ) : (
               <div ref={discussionRef}>
-                <DiscussionSection event={event} workspaceId={workspaceId} />
+                <DiscussionSection
+                  event={event}
+                  workspaceId={workspaceId}
+                  onCommentsCountChange={(count) =>
+                    setDetailData((prev) => ({ ...prev, commentsCount: count }))
+                  }
+                />
               </div>
             )}
           </div>
         ) : (
           <div ref={discussionRef} className="space-y-4">
-            <DiscussionSection event={event} workspaceId={workspaceId} />
+            <DiscussionSection
+              event={event}
+              workspaceId={workspaceId}
+              onCommentsCountChange={(count) =>
+                setDetailData((prev) => ({ ...prev, commentsCount: count }))
+              }
+            />
           </div>
         )}
       </section>
