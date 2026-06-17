@@ -1,30 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import Search from "@/components/site/search/Search";
+import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
+import { getMediaUrl } from "@/libs/media";
+import Link from "next/link";
+import { getPresenceAction } from "@/actions/presence.action";
+import { PresenceMap } from "@/service/presence.service";
 
-const ALL_MEMBERS = [
-  { name: "Hiem Sreynit", img: "https://i.pravatar.cc/100?u=hiem" },
-  { name: "Ty Dine", img: "https://i.pravatar.cc/100?u=ty" },
-  { name: "Lyhov", img: "https://i.pravatar.cc/100?u=lyhov" },
-  { name: "Nem Sophal", img: "https://i.pravatar.cc/100?u=nem" },
-  { name: "Dita Rector", img: "https://i.pravatar.cc/100?u=dita" },
-  { name: "Kaknika", img: "https://i.pravatar.cc/100?u=kaknika" },
-  { name: "Sathim", img: "https://i.pravatar.cc/100?u=sathim" },
-  { name: "Ja Morant", img: "https://i.pravatar.cc/100?u=ja" },
-  { name: "Stephen Curry", img: "https://i.pravatar.cc/100?u=curry" },
-  { name: "Lebron James", img: "https://i.pravatar.cc/100?u=lebron" },
-];
+interface GroupMemberCardProps {
+  groupid: string;
+}
 
-export default function GroupMemberCard() {
+export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
   const [showAll, setShowAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [presenceMap, setPresenceMap] = useState<PresenceMap>({});
 
-  const filteredMembers = ALL_MEMBERS.filter((member) =>
-    member.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const { members, isLoading } = useWorkspaceMembers(groupid);
 
-  const displayedMembers = showAll ? filteredMembers : ALL_MEMBERS.slice(0, 3);
+  useEffect(() => {
+    if (members.length === 0) return;
+
+    const userIds = members.map((m) => m.appUserId);
+
+    const fetchPresence = () => {
+      getPresenceAction(userIds)
+        .then(setPresenceMap)
+        .catch(() => {});
+    };
+
+    fetchPresence();
+    const interval = setInterval(fetchPresence, 30_000);
+    return () => clearInterval(interval);
+  }, [members]);
+
+  const filteredMembers = members.filter((member) => {
+    const first = member.firstName ?? "";
+    const last = member.lastName ?? "";
+    return `${first} ${last}`.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const sortedMembers = [...filteredMembers].sort((a, b) => {
+    const aOnline = presenceMap[a.appUserId]?.status === "ONLINE" ? 0 : 1;
+    const bOnline = presenceMap[b.appUserId]?.status === "ONLINE" ? 0 : 1;
+    return aOnline - bOnline;
+  });
+
+  const displayedMembers = showAll ? sortedMembers : sortedMembers.slice(0, 3);
+  const headerVisibleMembers = members.slice(0, 2);
+  const headerExtraCount = members.length - headerVisibleMembers.length;
+
+  if (isLoading && members.length === 0) {
+    return (
+      <div className="w-full max-w-md bg-background rounded-[12px] border border-border p-5 shadow-sm animate-pulse">
+        <div className="h-6 bg-muted rounded w-1/3 mb-2" />
+        <div className="h-4 bg-muted rounded w-1/4 mb-6" />
+        <div className="space-y-4">
+          <div className="h-10 bg-muted rounded-full w-full" />
+          <div className="h-10 bg-muted rounded-full w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md bg-background rounded-[12px] border border-border p-5 shadow-sm transition-all duration-300">
@@ -33,22 +72,45 @@ export default function GroupMemberCard() {
           <h3 className="type-subtitle font-extrabold text-primary leading-tight truncate">
             Group Member
           </h3>
-          <p className="type-detail-small-medium text-grey-400">60 Members</p>
+          <p className="type-detail-small-medium text-grey-400">
+            {members.length} {members.length === 1 ? "Member" : "Members"}
+          </p>
         </div>
+
         <div className="flex items-center -space-x-2 shrink-0 select-none">
-          <img
-            src="https://i.pravatar.cc/100?u=hiem"
-            className="w-8 h-8 rounded-full border-2 border-white object-cover"
-            alt="m1"
-          />
-          <img
-            src="https://i.pravatar.cc/100?u=ty"
-            className="w-8 h-8 rounded-full border-2 border-white object-cover"
-            alt="m2"
-          />
-          <div className="w-8 h-8 rounded-full border-2 border-white bg-primary type-detail-small-medium text-white flex items-center justify-center font-bold text-xs">
-            +57
-          </div>
+          {headerVisibleMembers.map((member) => {
+            const firstLetter = member.firstName?.[0] ?? "";
+            const lastLetter = member.lastName?.[0] ?? "";
+            const mediaUrl = getMediaUrl(member.profileImage);
+
+            return (
+              <div
+                key={member.appUserId}
+                className="w-8 h-8 rounded-full border-2 border-white bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center shrink-0"
+                title={`${member.firstName} ${member.lastName}`}
+              >
+                {mediaUrl ? (
+                  <Image
+                    src={mediaUrl}
+                    alt={`${member.firstName} ${member.lastName}`}
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <span className="text-[10px] font-bold text-primary uppercase">
+                    {firstLetter}
+                    {lastLetter}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+          {headerExtraCount > 0 && (
+            <div className="w-8 h-8 rounded-full border-2 border-white bg-primary type-detail-small-medium text-white flex items-center justify-center font-bold text-xs shrink-0">
+              +{headerExtraCount}
+            </div>
+          )}
         </div>
       </div>
 
@@ -68,34 +130,84 @@ export default function GroupMemberCard() {
         }`}
       >
         {displayedMembers.length > 0 ? (
-          displayedMembers.map((member, i) => (
-            <div key={i} className="flex items-center gap-3 min-w-0 w-full">
-              <img
-                src={member.img}
-                className="w-10 h-10 rounded-full object-cover shrink-0"
-                alt={member.name}
-              />
-              <span className="type-detail-semibold text-primary grow min-w-0 truncate">
-                {member.name}
-              </span>
-            </div>
-          ))
+          displayedMembers.map((member) => {
+            const firstLetter = member.firstName?.[0] ?? "";
+            const lastLetter = member.lastName?.[0] ?? "";
+            const mediaUrl = getMediaUrl(member.profileImage);
+            const presence = presenceMap[member.appUserId];
+            const isOnline = presence?.status === "ONLINE";
+            const label = presence?.label;
+
+            return (
+              <Link
+                key={member.appUserId}
+                href={`/profile/${member.appUserId}`}
+                className="flex items-center gap-3 min-w-0 w-full hover:opacity-80 transition-opacity"
+              >
+                
+                <div className="relative shrink-0">
+                  <div
+                    className="w-10 h-10 rounded-full border border-border bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center"
+                    title={`${member.firstName} ${member.lastName}`}
+                  >
+                    {mediaUrl ? (
+                      <Image
+                        src={mediaUrl}
+                        alt={`${member.firstName} ${member.lastName}`}
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <span className="text-[11px] font-bold text-primary uppercase">
+                        {firstLetter}
+                        {lastLetter}
+                      </span>
+                    )}
+                  </div>
+                  {presence && isOnline && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white" />
+                  )}
+                </div>
+
+                <div className="flex flex-col min-w-0 grow">
+                  <span className="type-detail-semibold text-primary truncate">
+                    {member.firstName} {member.lastName}
+                  </span>
+                  {presence && isOnline && label && (
+                    <span className="text-[11px] text-green-500 leading-tight font-medium">
+                      {label}
+                    </span>
+                  )}
+                  {presence && !isOnline && label && (
+                    <span className="text-[11px] text-grey-400 leading-tight">
+                      {label}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            );
+          })
         ) : (
           <p className="text-sm text-gray-400 text-center py-4">
-            {`No members found matching “${searchQuery}”`}
+            {members.length === 0
+              ? "No members yet"
+              : `No members found matching "${searchQuery}"`}
           </p>
         )}
       </div>
 
-      <button
-        onClick={() => {
-          setShowAll(!showAll);
-          if (showAll) setSearchQuery("");
-        }}
-        className="w-full bg-primary text-white py-3 rounded-2xl type-detail-semibold hover:bg-primary-hover transition-all cursor-pointer text-center font-medium"
-      >
-        {showAll ? "View Less Members" : "View All Members"}
-      </button>
+      {members.length > 0 && (
+        <button
+          onClick={() => {
+            setShowAll(!showAll);
+            if (showAll) setSearchQuery("");
+          }}
+          className="w-full bg-primary text-white py-3 rounded-2xl type-detail-semibold hover:bg-primary-hover transition-all cursor-pointer text-center font-medium"
+        >
+          {showAll ? "View Less Members" : "View All Members"}
+        </button>
+      )}
     </div>
   );
 }

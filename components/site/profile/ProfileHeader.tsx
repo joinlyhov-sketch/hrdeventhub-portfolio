@@ -1,27 +1,23 @@
-interface HeaderProps {
-  titlePrimary: string;
-  titleSecondary?: string;
+"use client";
+
+interface ProfileHeaderProps {
   description: string;
+  titlePrimary: string;
 }
- 
+
 export default function ProfileHeader({
-  titlePrimary,
-  titleSecondary,
   description,
-}: HeaderProps) {
+  titlePrimary,
+}: ProfileHeaderProps) {
   return (
-    <div className="sticky top-0 z-50 bg-red-100">
-      <header className="top-bar flex items-center justify-between">
+    <div className="sticky top-0 z-50 bg-white pt-3 px-4 sm:px-6 lg:pr-12 lg:pl-12">
+      <header className="top-bar mb-5 flex items-center justify-between p-1">
         <div>
           <h1 className="type-title flex items-center gap-1">
             <span className="text-primary">{titlePrimary}</span>
-            {titleSecondary && (
-              <span className="text-action">{titleSecondary}</span>
-            )}
+            <span className="text-action">Profile</span>
           </h1>
-          <p className="type-desc mt-1 text-muted-foreground">
-            {description}
-          </p>
+          <p className="type-desc mt-1 text-muted-foreground">{description}</p>
         </div>
       </header>
     </div>

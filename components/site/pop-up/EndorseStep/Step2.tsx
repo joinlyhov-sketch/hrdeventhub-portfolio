@@ -1,54 +1,51 @@
-// components/site/endorsement/step2.tsx
-"use client";
-
-import React from "react";
-import { Lightbulb, BadgeCheck } from "lucide-react";
-
+import { CheckCircle2 } from "lucide-react";
 interface Step2Props {
   studentName: string;
   selectedSkill: string | null;
   commentText: string;
-  setCommentText: (text: string) => void;
+  setCommentText: (v: string) => void;
 }
-
-export default function Step2({
-  studentName,
-  selectedSkill,
-  commentText,
-  setCommentText,
-}: Step2Props) {
+ 
+export default function StepTwo({ studentName, selectedSkill, commentText, setCommentText }: Step2Props) {
+  const firstName = studentName.split(" ")[0];
+  const MAX = 500;
+  const remaining = MAX - commentText.length;
+ 
   return (
-    <div className="space-y-5">
-      <div className="bg-grey-100 rounded-xl p-4 flex items-center gap-3">
-        <div className="bg-primary p-2 rounded-lg text-white">
-          <BadgeCheck size={20} />
+    <div className="flex flex-col gap-4">
+      {selectedSkill && (
+        <div className="flex items-center gap-2 px-3.5 py-2.5 bg-primary/5 border border-primary/20 rounded-xl">
+          <CheckCircle2 size={15} className="text-primary shrink-0" />
+          <p className="text-sm font-medium text-primary">
+            Endorsing <span className="font-semibold">{firstName}</span> for{" "}
+            <span className="font-semibold">{selectedSkill}</span>
+          </p>
         </div>
-        <div>
-          <p className="type-detail-small-medium text-grey-400">Endorsing {studentName} for</p>
-          <p className="type-desc-semibold text-secondary">{selectedSkill || "Selected Skill"}</p>
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <div className="flex justify-between items-center type-detail-semibold text-secondary">
-          <label htmlFor="endorsement-comment">Your Comment</label>
-          <span className="text-grey-400 type-detail font-normal">{commentText.length}/500 characters</span>
-        </div>
+      )}
+ 
+      <p className="text-sm text-grey-500 leading-relaxed">
+        Share a specific observation about how{" "}
+        <span className="font-semibold text-secondary">{firstName}</span>{" "}
+        demonstrated this skill. Concrete examples make endorsements more credible.
+      </p>
+ 
+      <div className="relative">
         <textarea
-          id="endorsement-comment"
           value={commentText}
-          onChange={(e) => setCommentText(e.target.value.slice(0, 500))}
-          placeholder={`${studentName} is an exceptional developer who...`}
+          onChange={(e) => {
+            if (e.target.value.length <= MAX) setCommentText(e.target.value);
+          }}
           rows={5}
-          className="w-full bg-grey-100 border-none rounded-xl p-4 type-detail-medium text-grey-900 placeholder:text-grey-400 focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none leading-relaxed"
+          placeholder={`Describe how ${firstName} demonstrated ${selectedSkill ?? "this skill"}…`}
+          className="w-full p-4 bg-background border border-border rounded-xl outline-none focus:border-primary transition-colors text-sm text-secondary placeholder:text-grey-400 resize-none leading-relaxed"
         />
-      </div>
-
-      <div className="flex items-start gap-2.5 bg-action/5 border border-action/20 p-4 rounded-xl text-grey-500">
-        <Lightbulb size={18} className="text-action shrink-0 mt-0.5" />
-        <p className="type-detail-medium leading-normal">
-          <span className="type-detail-semibold text-grey-900">Pro Tip:</span> Focus on specific projects or technical achievements. Genuine, detailed endorsements help peers stand out to recruiters and technical leads.
-        </p>
+        <span
+          className={`absolute bottom-3 right-3 text-xs font-medium ${
+            remaining < 50 ? "text-amber-500" : "text-grey-400"
+          }`}
+        >
+          {remaining} left
+        </span>
       </div>
     </div>
   );

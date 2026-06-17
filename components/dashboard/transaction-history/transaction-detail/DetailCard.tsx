@@ -12,6 +12,21 @@ interface DetailInfoRowProps {
   onCopy?: () => void;
 }
 
+const statusConfig: Record<string, { wrapper: string; dot: string }> = {
+  Successful: {
+    wrapper: "bg-[#E6F9F0] text-[#12B76A]",
+    dot: "bg-[#12B76A]",
+  },
+  Pending: {
+    wrapper: "bg-[#FEF0C7] text-[#F79009]",
+    dot: "bg-[#F79009]",
+  },
+  Failed: {
+    wrapper: "bg-[#FEE4E2] text-[#D92D20]",
+    dot: "bg-[#D92D20]",
+  },
+};
+
 function DetailInfoRow({
   label,
   value,
@@ -50,6 +65,9 @@ export function TransactionDetailCard({ detail }: TransactionDetailCardProps) {
     navigator.clipboard.writeText(text);
   };
 
+  const status = detail.status || "Successful";
+  const currentStyle = statusConfig[status] || statusConfig.Successful;
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow- w-full">
       <div className="flex items-center gap-3 mb-6">
@@ -81,10 +99,12 @@ export function TransactionDetailCard({ detail }: TransactionDetailCardProps) {
         <div className="text-right">
           <p className="type-subtitle text-gray-600 font-medium mb-2 text-center">
             Status
-          </p>
-          <span className="inline-flex items-center gap-1.5 bg-[#E6F9F0] text-[#12B76A] text-sm font-semibold px-3 py-1 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A]" />
-            {detail.status || "Successful"}
+          </p>          
+          <span 
+            className={`inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1 rounded-full ${currentStyle.wrapper}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${currentStyle.dot}`} />
+            {status}
           </span>
         </div>
       </div>

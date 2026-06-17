@@ -1,4 +1,4 @@
-import { EventStatus, PaymentMethod, TransactionStatus } from "./transaction";
+import { EventStatus, TransactionStatus } from "./transaction";
 
 export interface Payer {
   id: string;
@@ -13,6 +13,7 @@ export interface Payer {
 
 export interface EventDetail {
   id: string;
+  workspaceId: string;
   title: string;
   date: string;
   time: string;
@@ -28,7 +29,6 @@ export interface TransactionDetail {
   amount: number;
   currency: string;
   status: TransactionStatus;
-  paymentMethod: PaymentMethod;
   referenceId: string;
   transactionId: string;
   payer: Payer;

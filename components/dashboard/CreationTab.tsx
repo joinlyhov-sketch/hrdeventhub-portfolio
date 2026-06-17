@@ -1,26 +1,27 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CalendarDays, Megaphone, BookOpenTextIcon } from "lucide-react";
 import { Button } from "../ui/button";
 
-export function CreationTabs() {
+export function CreationTabs({ groupid }: { groupid: string }) {
   const pathname = usePathname();
-
+  const searchParam = useSearchParams();
+  const isAdmin = searchParam.get("admin");
   const navigationItems = [
     {
-      href: "/event-management/creation/event",
+      href: `/event-management/creation/event`,
       label: "Event",
       icon: CalendarDays,
     },
     {
-      href: "/event-management/creation/announcement",
+      href: `/event-management/creation/announcement`,
       label: "Announcement",
       icon: Megaphone,
     },
     {
-      href: "/event-management/creation/article",
+      href: `/event-management/creation/article`,
       label: "Article",
       icon: BookOpenTextIcon,
     },
@@ -32,30 +33,47 @@ export function CreationTabs() {
         const Icon = item.icon;
         const isActive = pathname === item.href;
 
+        const isDisabled =
+          isAdmin === "true" &&
+          (item.label === "Announcement" || item.label === "Article");
+
         return (
           <Button
             key={item.href}
-            asChild
+            asChild={!isDisabled}
+            disabled={isDisabled}
             variant={isActive ? "default" : "ghost"}
             className={`w-full rounded-lg text-detail-medium ${
               isActive
                 ? "shadow-sm text-primary-foreground bg-primary"
                 : "bg-transparent hover:bg-transparent border-0"
-            }`}
+            } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            <Link
-              href={item.href}
-              className="flex items-center py-5 justify-center gap-2"
-            >
-              <Icon
-                className={`h-4 w-4 ${isActive ? "text-primary-foreground" : "text-primary"}`}
-              />
-              <span
-                className={`truncate ${isActive ? "text-primary-foreground" : "text-primary"}`}
+            {isDisabled ? (
+              <div className="flex items-center py-5 justify-center gap-2">
+                <Icon className="h-4 w-4 text-primary" />
+                <span className="truncate text-primary">{item.label}</span>
+              </div>
+            ) : (
+              <Link
+                href={`${item.href}?groupId=${groupid}`}
+                className="flex items-center py-5 justify-center gap-2"
               >
-                {item.label}
-              </span>
-            </Link>
+                <Icon
+                  className={`h-4 w-4 ${
+                    isActive ? "text-primary-foreground" : "text-primary"
+                  }`}
+                />
+
+                <span
+                  className={`truncate ${
+                    isActive ? "text-primary-foreground" : "text-primary"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            )}
           </Button>
         );
       })}

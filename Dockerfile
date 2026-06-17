@@ -1,28 +1,52 @@
-# Stage 1: Dependencies
 FROM node:24-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN npm ci # Or equivalent for yarn/pnpm
 
-# Stage 2: Builder
+# Copy package files and install dependencies ONCE
+COPY package.json package-lock.json ./
+RUN npm ci
+
 FROM node:24-alpine AS builder
 WORKDIR /app
+
+# Bring over the cached node_modules
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
-RUN npm run build # Or equivalent for yarn/pnpm
 
-# Stage 3: Runner
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Define Build Arguments
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXTAUTH_URL
+ARG NEXTAUTH_SECRET
+
+# Expose them as environment variables to the build process
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
+ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+
+# Keeps Next.js builds stable by keeping memory usage under 1.5GB
+RUN NODE_OPTIONS="--max-old-space-size=1536" npm run build
+
 FROM node:24-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy static files and standalone server
 COPY --from=builder /app/public ./public
-# Copy standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
 USER nextjs
+
 EXPOSE 3000
+
 CMD ["node", "server.js"]

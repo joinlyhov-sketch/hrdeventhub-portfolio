@@ -1,16 +1,54 @@
 import { EventManagementClient } from "../../../components/dashboard/event-management/EventManagementClient";
-import {
-  eventManagementData,
-  eventManagementStats,
-} from "../../../data/event-management";
+import { eventService, EventItem } from "@/service/event.service";
+import { paymentService, Transaction } from "@/service/payment.service";
+import { authService } from "@/service/auth.service";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/auth";
 
-export default function EventManagementPage() {
+export default async function EventManagementPage() {
+  const session = await getServerSession(authOptions);
+  const token = session?.accessToken || "";
+
+  let events: EventItem[] = [];
+  let transactions: Transaction[] = [];
+  const attendeeCountByPostId: Record<string, number> = {};
+  let isOrganizer = false;
+
+  try {
+    if (token) {
+      const profileResponse = await authService.getProfileMe(token);
+      const role = profileResponse?.payload?.roles;
+      isOrganizer = role === "ORGANIZER";
+
+      if (isOrganizer) {
+        const [organizerData, txns] = await Promise.all([
+          eventService.getOrganizerEvents(token),
+          paymentService.getAllTransactions(token),
+        ]);
+        events = organizerData.events;
+        transactions = txns;
+        organizerData.participantsByPostId.forEach((participants, postId) => {
+          attendeeCountByPostId[postId] = participants.length;
+        });
+      } else {
+        [events, transactions] = await Promise.all([
+          eventService.getAllPlatformEventsWithAttendees(token),
+          paymentService.getAllTransactions(token),
+        ]);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch event management data:", error);
+  }
+
   return (
-    <main className="min-h-screen max-w-420 mx-auto">
+    <div className="w-full max-w-full">
       <EventManagementClient
-        events={eventManagementData}
-        stats={eventManagementStats}
+        events={events}
+        transactions={transactions}
+        attendeeCountByPostId={attendeeCountByPostId}
+        isOrganizer={isOrganizer}
       />
-    </main>
+    </div>
   );
 }

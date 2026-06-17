@@ -19,7 +19,7 @@ export default function EventManagementLayout({
         description="Monitor participant responses and review insights from completed community surveys."
       />
       </div>
-      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12">
+      <main className="flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 w-full">
         {children}
       </main>
     </div>

@@ -2,11 +2,13 @@
 
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   resendOtpAction,
   verifyForgotPasswordAction,
 } from "../../../actions/auth.action";
 import { useResetPasswordStore } from "../../../store/useResetPasswordStore";
+import { LeaveVerificationModal } from "@/components/site/pop-up/leave-verification-modal";
 
 function secondsFromExpiry(expiresAt: number | null): number {
   if (!expiresAt) return 300;
@@ -31,24 +33,45 @@ export default function VerifyStep() {
     secondsFromExpiry(otpExpiresAt),
   );
 
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const router = useRouter();
+
   useEffect(() => {
     const timer = window.setInterval(() => {
       const remaining = secondsFromExpiry(otpExpiresAt);
       setSecondsLeft(remaining);
       if (remaining <= 0) window.clearInterval(timer);
     }, 1000);
-
     return () => window.clearInterval(timer);
   }, [otpExpiresAt]);
 
   useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
+  useEffect(() => {
     window.history.pushState(null, "", window.location.href);
+
     const handlePopState = () => {
+      setIsLeaveModalOpen(true);
       window.history.pushState(null, "", window.location.href);
     };
+
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  const handleConfirmLeave = () => {
+    localStorage.clear();
+    reset();
+    setIsLeaveModalOpen(false);
+    router.push("/login");
+  };
 
   const submitOtp = useCallback(
     (code: string) => {
@@ -81,13 +104,6 @@ export default function VerifyStep() {
     [email, reset, startTransition, storeToken],
   );
 
-  useEffect(() => {
-    const isFilled = otp.every((d) => d !== "");
-    if (isFilled && autoSubmitEnabled && !isPending) {
-      submitOtp(otp.join(""));
-    }
-  }, [otp, autoSubmitEnabled, isPending, submitOtp]);
-
   const handleVerify = () => submitOtp(otp.join(""));
 
   const handleChange = (value: string, index: number) => {
@@ -95,6 +111,10 @@ export default function VerifyStep() {
     const next = [...otp];
     next[index] = value.slice(-1);
     setOtp(next);
+    const isFilled = next.every((digit) => digit !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) {
+      submitOtp(next.join(""));
+    }
     if (value && index < 5) inputs.current[index + 1]?.focus();
   };
 
@@ -102,6 +122,21 @@ export default function VerifyStep() {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputs.current[index - 1]?.focus();
     }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent, index: number) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    const newOtp = [...otp];
+    pasted.split("").forEach((char, i) => {
+      if (index + i < 6) newOtp[index + i] = char;
+    });
+    setOtp(newOtp);
+    const nextIndex = Math.min(index + pasted.length, 5);
+    inputs.current[nextIndex]?.focus();
+    const isFilled = newOtp.every((digit) => digit !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) submitOtp(newOtp.join(""));
   };
 
   const handleResend = () => {
@@ -119,9 +154,7 @@ export default function VerifyStep() {
         setError(result.error);
         return;
       }
-      setResendMessage(
-        result.message ?? "Verification OTP successfully resent.",
-      );
+      setResendMessage(result.message ?? "Verification OTP successfully resent.");
       storeEmail(email);
       setOtp(["", "", "", "", "", ""]);
       setAutoSubmitEnabled(true);
@@ -133,72 +166,81 @@ export default function VerifyStep() {
   const seconds = secondsLeft % 60;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="flex flex-col gap-5 w-full items-stretch px-15"
-    >
-      <div className="mb-5 text-center">
-        <h2 className="text-[28px] font-bold text-[#17356f]">
-          Enter Verification Code
-        </h2>
-        <p className="mt-2 text-[#6e7580]">We sent a code to your email</p>
-      </div>
-
-      <div className="flex justify-between gap-3 my-2">
-        {[...Array(6)].map((_, i) => (
-          <input
-            key={i}
-            ref={(el) => {
-              inputs.current[i] = el;
-            }}
-            type="text"
-            maxLength={1}
-            value={otp[i]}
-            onChange={(e) => handleChange(e.target.value, i)}
-            onKeyDown={(e) => handleKeyDown(e, i)}
-            className="h-14.5 w-full rounded-2xl border border-[#dce6f0] bg-white text-center text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
-          />
-        ))}
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
-          {success}
-        </div>
-      )}
-      {resendMessage && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
-          {resendMessage}
-        </div>
-      )}
-
-      <div className="text-center text-sm text-[#6e7580]">
-        <button
-          onClick={handleResend}
-          disabled={secondsLeft > 0}
-          className="font-semibold text-[#17356f] underline underline-offset-2 disabled:text-[#b7c6dc] disabled:no-underline transition-all hover:cursor-pointer"
-        >
-          Resend
-        </button>
-        <span className="ml-2">
-          {minutes}:{seconds.toString().padStart(2, "0")}
-        </span>
-      </div>
-
-      <button
-        onClick={handleVerify}
-        disabled={isPending}
-        className="mt-3 h-14.5 w-full rounded-2xl bg-[#24529a] text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+    <>
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="flex flex-col gap-5 w-full items-stretch sm:px-8"
       >
-        {isPending ? "Verifying..." : "Submit"}
-      </button>
-    </motion.div>
+        <div className="mb-5 text-center">
+          <h2 className="text-[22px] sm:text-[28px] font-bold text-[#17356f]">
+            Enter Verification Code
+          </h2>
+          <p className="mt-2 text-[14px] sm:text-base text-[#6e7580]">
+            We sent a code to your email
+          </p>
+        </div>
+
+        <div className="flex justify-between gap-2 sm:gap-3 my-2">
+          {[...Array(6)].map((_, i) => (
+            <input
+              key={i}
+              ref={(el) => { inputs.current[i] = el; }}
+              type="text"
+              maxLength={1}
+              value={otp[i]}
+              onChange={(e) => handleChange(e.target.value, i)}
+              onKeyDown={(e) => handleKeyDown(e, i)}
+              onPaste={(e) => handlePaste(e, i)}
+              className="h-11 sm:h-14 w-full rounded-xl sm:rounded-2xl border border-[#dce6f0] bg-white text-center text-lg sm:text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
+            />
+          ))}
+        </div>
+
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
+            {success}
+          </div>
+        )}
+        {resendMessage && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+            {resendMessage}
+          </div>
+        )}
+
+        <div className="text-center text-sm text-[#6e7580]">
+          <button
+            onClick={handleResend}
+            disabled={secondsLeft > 0}
+            className="font-semibold text-[#17356f] underline underline-offset-2 disabled:text-[#b7c6dc] disabled:no-underline transition-all hover:cursor-pointer"
+          >
+            Resend
+          </button>
+          <span className="ml-2">
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </span>
+        </div>
+
+        <button
+          onClick={handleVerify}
+          disabled={isPending}
+          className="mt-3 h-[50px] sm:h-[58px] w-full rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer"
+        >
+          {isPending ? "Verifying..." : "Submit"}
+        </button>
+      </motion.div>
+
+      <LeaveVerificationModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        onConfirm={handleConfirmLeave}
+      />
+    </>
   );
 }

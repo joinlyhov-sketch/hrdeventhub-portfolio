@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 
 export const Breadcrumb = ({ label, backHref }: { label: string , backHref:string}) => {

@@ -1,27 +1,68 @@
 "use client";
-import { useState } from "react";
-import { View, SlotInfo } from "react-big-calendar";
+
+import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useWorkspaces } from "@/hooks/use-workspaces";
+import { useCurrentUser } from "@/context/user-context";
 import FullBigCalendar from "@/components/shadcn-big-calendar/calendar/FullBigCalendar";
 import TopBar from "@/components/shadcn-big-calendar/calendar/TopBar";
 import UpcomingEventSection from "@/components/shadcn-big-calendar/calendar/UpcomingEventSelection";
+import CalendarSkeleton from "@/components/shadcn-big-calendar/calendar/CalendarSkeleton";
+
+type CalendarRole = "admin" | "student" | "alumni" | "organizer";
+
+const normalizeRole = (role?: string): CalendarRole | undefined => {
+  const normalized = role?.toLowerCase();
+  if (
+    normalized === "admin" ||
+    normalized === "student" ||
+    normalized === "alumni" ||
+    normalized === "organizer"
+  ) {
+    return normalized;
+  }
+
+  return undefined;
+};
 
 export default function CalendarPage() {
-  const [view, setView] = useState<View>("month");
-  const [date, setDate] = useState(new Date());
+  const { data: session, status } = useSession();
+  const { currentUser, isLoading: userLoading } = useCurrentUser();
+  const searchParams = useSearchParams();
+  const role = currentUser?.role ?? normalizeRole(session?.user?.role);
 
-  const handleViewChange = (newView: View) => {
-    setView(newView);
-  };
+  const { workspaces, isLoading: workspacesLoading } = useWorkspaces(
+    role === "admin" ? null : role,
+  );
+  const workspaceFromUrl =
+    searchParams.get("workspaceId") ||
+    searchParams.get("groupId") ||
+    searchParams.get("groupid");
+  const workspaceId =
+    role === "admin"
+      ? undefined
+      : workspaceFromUrl || workspaces[0]?.workspaceId;
 
-  const handleNavigate = (newDate: Date) => {
-    setDate(newDate);
-  };
+  if (status === "loading" || userLoading || workspacesLoading) {
+    return (
+      <div className="flex flex-col flex-1 min-w-0">
+        <TopBar />
+        <main className="flex flex-col flex-1 min-w-0 px-4 lg:px-12 w-full">
+          <CalendarSkeleton />
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <main className="w-full space-y-6 p-6">
+    <div className="flex flex-col flex-1 min-w-0">
       <TopBar />
-      <FullBigCalendar />
-      <UpcomingEventSection />
-    </main>
+      <main className="flex flex-col flex-1 min-w-0 px-4 lg:px-12 max-w-475 mx-auto w-full">
+        <div className="w-full space-y-6">
+          <FullBigCalendar workspaceId={workspaceId} role={role} />
+          <UpcomingEventSection workspaceId={workspaceId} role={role} />
+        </div>
+      </main>
+    </div>
   );
 }

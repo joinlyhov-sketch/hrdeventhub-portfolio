@@ -1,28 +1,59 @@
 "use client";
 
-import { AttendeeData } from "../../../../data/AttendeeData";
+import { Participant } from "@/service/event.service";
 import { TableCell, TableRow } from "../../../ui/table";
 import ActionDropdown from "@/components/site/pop-up/action-button/ActionDropdown";
-import { User, Trash2 } from "lucide-react"; 
+import { User, Trash2 } from "lucide-react";
 import { DropdownAction } from "@/components/site/pop-up/action-button/ActionDropdown";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface AttendeeRowProps {
-  attendee: AttendeeData;
-  onViewProfile: (attendee: AttendeeData) => void; 
-  onDeleteAttendee: (id: string | number) => void;
+  attendee: Participant;
+  indexNumber: number;
+  onViewProfile: (attendee: Participant) => void;
+  onDeleteAttendee: (id: string) => void;
 }
+
+const formatDate = (dateStr: string): string => {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  return `${day} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+};
 
 export default function AttendeeRow({
   attendee,
+  indexNumber,
   onDeleteAttendee,
 }: AttendeeRowProps) {
   const router = useRouter();
-  
+  const attendeeUserId = attendee.user?.appUserId || attendee.appUserId;
+
   const getStatusStyles = (status: string) => {
     const normalize = (status || "").toLowerCase().trim();
 
-    if (normalize === "successful" || normalize === "active") {
+    if (
+      normalize === "successful" ||
+      normalize === "active" ||
+      normalize === "free"
+    ) {
       return {
         bg: "bg-[#E6F9F1] text-[#00B074]",
         dot: "bg-[#00B074]",
@@ -31,7 +62,7 @@ export default function AttendeeRow({
 
     if (normalize === "pending") {
       return {
-        bg: "bg-[#F2F4F7] text-[#667085]",
+        bg: "bg-grey-200 text-[#667085]",
         dot: "bg-[#667085]",
       };
     }
@@ -42,67 +73,74 @@ export default function AttendeeRow({
     };
   };
 
-  const badgeStyle = getStatusStyles(attendee.status);
+  const badgeStyle = getStatusStyles(attendee.paymentStatus);
 
   const rowActions: DropdownAction[] = [
-    { 
-      label: "View Profile", 
-      icon: User, 
-      onClick: () => router.push(`/profile/${attendee.no}`)
+    {
+      label: "View Profile",
+      icon: User,
+      onClick: () => {
+        if (!attendeeUserId) return;
+        router.push(`/profile/${attendeeUserId}`);
+      },
     },
-    { 
-      label: "Delete", 
-      icon: Trash2, 
-      onClick: () => onDeleteAttendee(attendee.no) 
-    }
+    {
+      label: "Delete",
+      icon: Trash2,
+      onClick: () => onDeleteAttendee(attendee.participantId),
+    },
   ];
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors h-[64px]">
       <TableCell className="px-1 py-3 type-desc text-slate-500 font-bold text-center w-[5%] truncate">
-        {attendee.no}
+        {indexNumber}
       </TableCell>
 
-      <TableCell className="px-5 py-3 type-desc text-slate-700 font-semibold w-[18%]">
+      <TableCell className="px-5 py-3 type-desc text-slate-700 font-semibold w-[28%]">
         <div className="flex items-center gap-3 truncate">
-          <img
-            src={attendee.avatar || "/placeholder-avatar.png"}
-            alt=""
-            className="w-8 h-8 rounded-full object-cover shrink-0"
-          />
-          <span className="truncate">{attendee.name}</span>
+          {attendee.user?.profilePicture ? (
+            <Image
+              src={attendee.user.profilePicture}
+              alt={attendee.user.username || ""}
+              width={32}
+              height={32}
+              unoptimized
+              className="w-8 h-8 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[15px] font-medium text-white shrink-0">
+              {attendee.user?.firstName?.charAt(0).toUpperCase()}
+              {attendee.user?.lastName?.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span className="truncate">
+            {attendee.user
+              ? `${attendee.user.firstName} ${attendee.user.lastName}`
+              : attendee.appUserId}
+          </span>
         </div>
       </TableCell>
 
-      <TableCell className="px-5 py-3 type-desc text-slate-500 font-medium w-[10%] truncate">
-        {attendee.gender}
+      <TableCell className="px-3 py-3 type-desc text-slate-400 font-normal w-[15%] text-center truncate">
+        {formatDate(attendee.registeredAt)}
       </TableCell>
 
-      <TableCell className="px-3 py-3 type-desc text-slate-400 font-normal w-[12%] truncate">
-        {attendee.timestamp}
+      <TableCell className="px-1 py-3 type-desc w-[30%] text-primary truncate">
+        {attendee.remark || "-"}
       </TableCell>
 
-      <TableCell className="px-1 py-3 type-desc text-desc w-[22%] text-primary truncate">
-        {attendee.remark}
-      </TableCell>
-
-      <TableCell className="px-5 py-3 type-desc text-slate-500 font-medium text-center w-[10%] truncate">
-        {attendee.amount.toString().startsWith("$")
-          ? attendee.amount
-          : `$${attendee.amount}`}
-      </TableCell>
-
-      <TableCell className="px-2 py-3 type-desc w-[12%]">
+      <TableCell className="px-2 py-3 type-desc w-[12%] text-center">
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium capitalize shrink-0 ${badgeStyle.bg}`}
         >
           <span className={`w-2 h-2 rounded-full shrink-0 ${badgeStyle.dot}`} />
-          {attendee.status}
+          {attendee.paymentStatus}
         </span>
       </TableCell>
 
       <TableCell className="px-6 py-3 type-desc text-center w-[10%]">
-        <ActionDropdown actions={rowActions}/>
+        <ActionDropdown actions={rowActions} />
       </TableCell>
     </TableRow>
   );

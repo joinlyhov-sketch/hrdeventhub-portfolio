@@ -1,18 +1,91 @@
+"use client";
 
+import React from "react";
 import { Heart } from "lucide-react";
+import { motion } from "framer-motion";
+import Image from "next/image";
+
+const transitionEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 36 },
+  visible: (d = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: transitionEase, delay: d },
+  }),
+};
+
+const slideInLeft = {
+  hidden: { opacity: 0, x: -60, rotate: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    rotate: -15,
+    transition: { duration: 0.85, ease: transitionEase, delay: 0.5 },
+  },
+};
+
+const slideInRight = {
+  hidden: { opacity: 0, x: 60, rotate: 17 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    rotate: 12,
+    transition: { duration: 0.85, ease: transitionEase, delay: 0.6 },
+  },
+};
+
+const slideInCenter = {
+  hidden: { opacity: 0, y: 50, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.85, ease: transitionEase, delay: 0.4 },
+  },
+};
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.15, delayChildren: 0.85 } },
+};
+
+const featureItem = {
+  hidden: { opacity: 0, y: 28 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: transitionEase },
+  },
+};
 
 export default function HeroSession() {
   return (
     <>
-      <section className="relative w-screen h-full bg-white text-seconary flex flex-col justify-between select-none">
-        <div className="absolute top-[30%] -left-32 w-80 h-80 bg-[#7FAEF5]/35 rounded-full blur-[90px] pointer-events-none z-0 hidden md:block" />
-        <div className="absolute top-[10%] -right-40 w-[450] h-[450] bg-[#7FAEF5]/35 rounded-full blur-[110px] pointer-events-none z-0 hidden md:block" />
-
-        <div className="absolute inset-4 w-screen​​​​​​​​​​​​ ​pointer-events-none z-14 hidden md:block pt-3 top-[35%]">
+      <section className="relative w-screen h-full bg-white text-secondary flex flex-col justify-between select-none overflow-x-hidden">
+        <motion.div
+          className="absolute top-[30%] -left-32 w-80 h-80 bg-[#7FAEF5]/35 rounded-full blur-[90px] pointer-events-none z-0 hidden md:block"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+        />
+        <motion.div
+          className="absolute top-[10%] -right-40 w-[450px] h-[450px] bg-[#7FAEF5]/35 rounded-full blur-[110px] pointer-events-none z-0 hidden md:block"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut", delay: 1 }}
+        />
+        <motion.div
+          className="absolute inset-4 pointer-events-none z-[14] hidden xl:block pt-3 top-[25%]"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 1 }}
+        >
           <svg
-            className="relative left-0"
-            width="900"
-            height="440"
+            className="relative right-50"
+            width="1300"
+            height="430"
             viewBox="0 0 750 439"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -113,11 +186,11 @@ export default function HeroSession() {
             </defs>
           </svg>
 
-          <div className="absolute bottom-6 top-[15%] text-primary/70 w-125 h-35 rounded-full flex items-center left-345">
+          <div className="absolute bottom-6 top-[0%] text-primary/70 w-[500px] h-[350px] rounded-full hidden xl:flex items-center left-345">
             <svg
               className="relative right-0"
               width="1500"
-              height="625"
+              height="650"
               viewBox="0 0 433 543"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -282,72 +355,132 @@ export default function HeroSession() {
               />
             </svg>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-between px-4 py-6 md:px-12 md:py-10 max-w-7xl mx-auto relative z-12 text-center">
-          <div className="w-full flex-1 flex flex-col items-center justify-center my-auto">
-            <h2 className="text-xl sm:text-3xl md:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2">
+        <div className="min-h-0 lg:min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start px-4 py-6 md:px-12 md:py-10 max-w-7xl mx-auto relative z-[12] text-center">
+          <div className="w-full flex flex-col items-center justify-center mb-3 sm:mb-8 md:mb-12">
+            <motion.h2
+              className="text-base sm:text-3xl md:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={0}
+            >
               <span>Bring Together</span>
-              <span className="text-secondary text-2xl sm:text-4xl md:text-[50px]">
+              <motion.span
+                className="text-secondary text-lg sm:text-4xl md:text-[50px]"
+                variants={fadeUp}
+                custom={0.1}
+              >
                 Alumni
-              </span>
+              </motion.span>
               <span className="text-action">&amp;</span>
-              <span className="text-secondary text-2xl sm:text-4xl md:text-[50px]">
+              <motion.span
+                className="text-secondary text-lg sm:text-4xl md:text-[50px]"
+                variants={fadeUp}
+                custom={0.18}
+              >
                 Student
-              </span>
-            </h2>
+              </motion.span>
+            </motion.h2>
 
-            <h1 className="sm:text-5xl md:text-[60px] text-secondary mt-3 mb-4 md:mb-6 max-w-5xl font-bold">
+            <motion.h1
+              className="text-lg sm:text-5xl md:text-[60px] text-secondary mt-2 sm:mt-3 mb-3 sm:mb-4 md:mb-6 max-w-5xl font-bold leading-tight"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={0.22}
+            >
               Your Gateway{" "}
               <span className="text-primary inline">to Every HRD Event</span>
-            </h1>
+            </motion.h1>
 
-            <p className="text-sm sm:text-lg md:text-[20px] text-secondary/90 text-center max-w-4xl mx-auto w-full leading-relaxed">
+            <motion.p
+              className="text-sm sm:text-lg md:text-[20px] text-secondary/90 text-center max-w-4xl mx-auto w-full leading-relaxed px-2"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={0.35}
+            >
               Your all-in-one platform for event registration, group
               collaboration, and career-ready growth. Discover the next big
               event and link up with the brightest minds at HRD.
-            </p>
+            </motion.p>
           </div>
 
-          <div className="relative w-full top-[-100px] max-w-[1280px] h-full sm:h-[360px] md:h-[480px] flex items-center justify-center px-1 md:px-0 overflow-hidden md:overflow-visible">
-            <div className="absolute left-[-2%] sm:left-[-1%] md:left-[-3%] w-[32%] md:w-[33%] rotate-[-12deg] md:rotate-[-15deg] translate-y-4 sm:translate-y-8 md:translate-y-16 box-border z-30">
+          <div className="relative w-full top-0 sm:-top-10 md:-top-20 lg:-top-25 max-w-7xl h-50 sm:h-55 md:h-80 lg:h-120 flex items-center justify-center px-1 md:px-0 md:overflow-visible">
+            <motion.div
+              className="absolute left-[-2%] sm:left-[-1%] md:left-[-3%] w-[32%] md:w-[33%] translate-y-4 sm:translate-y-8 md:translate-y-16 z-30"
+              variants={slideInLeft}
+              initial="hidden"
+              animate="visible"
+            >
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <img
-                  src="/images/HeroSession1.png"
+                <Image
+                  src="/images/HeroSession1.webp"
                   alt="HRD Student Event Assembly"
+                  width={400}
+                  height={300}
                   className="w-full h-auto block rotate-[15deg]"
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="absolute w-[48%] z-20">
-              <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:top-5 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center">
+            <motion.div
+              className="absolute w-[48%] z-20"
+              variants={slideInCenter}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div
+                className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:top-5 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center"
+                variants={slideInCenter}
+                initial="hidden"
+                animate="visible"
+              >
                 <Heart className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 fill-current text-destructive" />
-              </div>
+              </motion.div>
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <img
-                  src="/images/HeroSession2.png"
+                <Image
+                  src="/images/HeroSession2.webp"
                   alt="HRD Main Event Group Photo"
+                  width={600}
+                  height={400}
                   className="w-full h-auto block"
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="absolute right-[-2%] sm:right-[-1%] md:right-[-3%] w-[34%] md:w-[35%] rotate-[10deg] md:rotate-[12deg] translate-y-4 sm:translate-y-8 md:translate-y-15">
+            <motion.div
+              className="absolute right-[-2%] sm:right-[-1%] md:right-[-3%] w-[34%] md:w-[35%] rotate-[10deg] md:rotate-[12deg] translate-y-4 sm:translate-y-8 md:translate-y-15"
+              variants={slideInRight}
+              initial="hidden"
+              animate="visible"
+            >
               <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <img
-                  src="/images/HeroSession3.png"
+                <Image
+                  src="/images/HeroSession3.webp"
                   alt="HRD Campus Community Event"
-                  className="w-full h-auto block rotate-[-15deg]"
+                  width={400}
+                  height={300}
+                  className="w-full h-auto block rotate-[-20deg]"
                 />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-
-        <div className="w-full max-w-6xl mx-auto border-t border-border/60 pt-8 md:pt-10 mt-10 md:mt-16 z-10 px-4">
+        <motion.div
+          className="w-full max-w-6xl mx-auto border-t border-border/60 pt-8 md:pt-10 mt-10 md:mt-16 z-10 px-4 pb-8 md:pb-12"
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-8 sm:gap-y-0 gap-x-4 md:gap-x-12 lg:gap-x-16 items-start justify-center text-center">
-            <div className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 pr-0 sm:pr-4 md:pr-6">
+            <motion.div
+              className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 pr-0 sm:pr-4 md:pr-6"
+              variants={featureItem}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            >
               <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
@@ -396,12 +529,15 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="type-title text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-[110px] md:max-w-[130px] xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
                 Digital Payment
               </h3>
-            </div>
-
-            <div className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 px-0 sm:px-4 md:px-6">
+            </motion.div>
+            <motion.div
+              className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 px-0 sm:px-4 md:px-6"
+              variants={featureItem}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            >
               <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
@@ -458,12 +594,16 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="type-title text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-[110px] md:max-w-[130px] xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
                 Event Management
               </h3>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-col items-center justify-center gap-3 pl-0 sm:pl-4 md:pl-6">
+            <motion.div
+              className="flex flex-col items-center justify-center gap-3 pl-0 sm:pl-4 md:pl-6"
+              variants={featureItem}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            >
               <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
@@ -495,12 +635,12 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="type-title text-primary sm:text-sm md:text-base tracking-tight text-center whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap max-w-none sm:max-w-[110px] md:max-w-[130px] xl:max-w-none mx-auto leading-tight">
+              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
                 Community Engagement
               </h3>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </section>
     </>
   );

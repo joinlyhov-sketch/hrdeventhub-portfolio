@@ -27,12 +27,20 @@ export default function LinearQuestion({
           value={String(question.linearStart ?? 1)}
           onValueChange={(val) => onStateChange("linearStart", Number(val))}
         >
-          <SelectTrigger className="w-20 h-8 text-xs font-bold">
+          <SelectTrigger className="w-14 h-10 text-xs font-bold text-gray-800">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            side="bottom"
+            position="popper"
+            className="bg-white rounded-2xl border border-gray-100 px-2 py-2 z-50 text-left max-h-35 overflow-y-auto min-w-[50px] w-[50px] mt-1"
+          >
             {[0, 1, 2, 3, 4, 5].map((val) => (
-              <SelectItem key={val} value={String(val)}>
+              <SelectItem
+                key={val}
+                value={String(val)}
+                className="px-2 py-1 text-sm font-semibold rounded-sm text-center text-slate-800 transition-colors cursor-pointer focus:bg-slate-100 focus:text-slate-800"
+              >
                 {val}
               </SelectItem>
             ))}
@@ -43,12 +51,20 @@ export default function LinearQuestion({
           value={String(question.linearEnd ?? 5)}
           onValueChange={(val) => onStateChange("linearEnd", Number(val))}
         >
-          <SelectTrigger className="w-20 h-8 text-xs font-bold">
+          <SelectTrigger className="w-14 h-10 text-xs font-bold text-gray-800">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            side="bottom"
+            position="popper"
+            className="bg-white rounded-2xl border border-gray-100 px-2 py-2 z-50 text-left max-h-35 overflow-y-auto min-w-[50px] w-[50px] mt-1"
+          >
             {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((val) => (
-              <SelectItem key={val} value={String(val)}>
+              <SelectItem
+                key={val}
+                value={String(val)}
+                className="px-2 py-1 text-sm font-semibold rounded-sm text-center text-slate-800 transition-colors cursor-pointer focus:bg-slate-100 focus:text-slate-800"
+              >
                 {val}
               </SelectItem>
             ))}

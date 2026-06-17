@@ -1,24 +1,43 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   CheckCircle2,
   ArrowRight,
   BarChart3,
   Circle,
-  User,
-  FileExclamationPoint,
+  FileText,
+  Loader2,
 } from "lucide-react";
 import Search from "../site/search/Search";
 import { PopoverItem } from "../site/pop-up/contents/pop-over-content";
-import { surveyFeedbacks } from "../../data/surveyFeedback";
-import Link from "next/link";
 import { PaginationDemo } from "./Pagination";
 import ContentTypePopover from "../site/pop-up/contents/pop-over-content";
 import Image from "next/image";
+import { Survey } from "../../types/survey";
+import { Poll } from "@/types/poll";
+import { surveyService } from "../../service/survey.service";
+import SurveyFeedbackSkeleton from "./SurveyFeedbackSkeleton";
+import { getAllPollsAction } from "../../actions/poll.action";
+import { pollService } from "../../service/poll.service";
+import { format, isAfter } from "date-fns";
+import { generateSurveyCsv, generatePollCsv } from "../../libs/exportUtils";
+
+export type FeedbackItem = {
+  id: string;
+  type: "survey" | "poll";
+  title: string;
+  closingTime: string | null;
+  isActive: boolean;
+  totalResponses: number;
+  targetUrl: string;
+};
 
 export default function SurveyFeedbackFeature() {
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -31,21 +50,108 @@ export default function SurveyFeedbackFeature() {
     { label: "Poll", icon: BarChart3, href: "/event-management/creation/poll" },
   ];
 
-  const filteredFeedbacks = surveyFeedbacks.filter((item) => {
-    const searchLower = (search || "").toLowerCase().trim();
+  useEffect(() => {
+    const fetchLiveFeedbackData = async () => {
+      setLoading(true);
+      try {
+        const [surveysData, pollsData] = await Promise.all([
+          surveyService.getAllSurveys(1, 100).catch(() => [] as Survey[]),
+          getAllPollsAction(1, 100).catch(() => [] as Poll[]),
+        ]);
 
-    const titleMatch = item.title
-      ? item.title.toLowerCase().includes(searchLower)
-      : false;
-    const statusMatch = item.status
-      ? item.status.toLowerCase().includes(searchLower)
-      : false;
-    const dateMatch = item.date
-      ? item.date.toLowerCase().includes(searchLower)
-      : false;
+        const mappedSurveys: FeedbackItem[] = await Promise.all(
+          surveysData.map(async (survey) => {
+            let responseCount = 0;
+            try {
+              responseCount = await surveyService.countResponses(
+                survey.surveyId,
+              );
+            } catch {
+              responseCount = 0;
+            }
+            const dbIsActive: boolean = Boolean(
+              (survey as unknown as { active?: boolean }).active ?? survey.isActive ?? false
+            );
+            return {
+              id: survey.surveyId,
+              type: "survey" as const,
+              title: survey.title || "Untitled Survey",
+              closingTime: survey.closingTime || null,
+              isActive: dbIsActive,
+              totalResponses: responseCount,
+              targetUrl: `/dashboard/feedback/survey/${survey.surveyId}/responses`,
+            };
+          }),
+        );
 
-    return titleMatch || statusMatch || dateMatch;
-  });
+        const mappedPolls: FeedbackItem[] = await Promise.all(
+          pollsData.map(async (poll) => {
+            let voteCount = 0;
+            try {
+              const fullPoll = await pollService.getById(poll.pollId);
+              const fp = fullPoll as unknown as Record<string, unknown>;
+              voteCount =
+                (fp.totalVotes as number | undefined) ??
+                (fp.voteCount as number | undefined) ??
+                fullPoll.options?.reduce(
+                  (sum, opt) =>
+                    sum + (opt.voteCount ?? ((opt as unknown as Record<string, unknown>).votes as number | undefined) ?? 0),
+                  0,
+                ) ??
+                0;
+            } catch {
+              voteCount =
+                poll.options?.reduce(
+                  (sum, opt) =>
+                    sum + (opt.voteCount ?? ((opt as unknown as Record<string, unknown>).votes as number | undefined) ?? 0),
+                  0,
+                ) ?? 0;
+            }
+            const pollRec = poll as unknown as { active?: boolean; isActive?: boolean };
+            const dbIsActive: boolean = Boolean(pollRec.isActive ?? pollRec.active ?? true);
+            return {
+              id: poll.pollId,
+              type: "poll" as const,
+              title: poll.title || "Untitled Poll",
+              closingTime: poll.closingTime || null,
+              isActive: dbIsActive,
+              totalResponses: voteCount,
+              targetUrl: `/polls/${poll.pollId}`,
+            };
+          }),
+        );
+
+        setFeedbacks([...mappedSurveys, ...mappedPolls]);
+        setError(null);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load interactive feedback modules.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLiveFeedbackData();
+  }, []);
+
+  const filteredFeedbacks = useMemo(() => {
+    return feedbacks.filter((item) => {
+      const searchLower = (search || "").toLowerCase().trim();
+      const titleMatch = item.title.toLowerCase().includes(searchLower);
+      const typeMatch = item.type.toLowerCase().includes(searchLower);
+      const hasExpired = item.closingTime
+        ? isAfter(new Date(), new Date(item.closingTime))
+        : false;
+      const trulyActive = item.isActive && !hasExpired;
+      const statusMatch = (trulyActive ? "active" : "closed").includes(
+        searchLower,
+      );
+      return titleMatch || statusMatch || typeMatch;
+    });
+  }, [feedbacks, search]);
 
   const totalPages = Math.ceil(filteredFeedbacks.length / itemsPerPage);
 
@@ -59,18 +165,28 @@ export default function SurveyFeedbackFeature() {
     setCurrentPage(1);
   };
 
+  if (loading) {
+    return <SurveyFeedbackSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="w-full p-6 border border-red-200 bg-red-50 rounded-2xl text-center text-red-700 font-medium">
+        {error}
+      </div>
+    );
+  }
+
   const hasResults = filteredFeedbacks.length > 0;
 
   return (
     <div className="w-full max-w-full block box-border clear-both">
-      <section className="w-full max-w-full rounded-2xl border border-border bg-card p-4 box-border block overflow-hidden">
-        <SectionTitle />
-
+      <section className="w-full max-w-full rounded-2xl box-border block overflow-hidden">
         <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
           <Search
             value={search}
             onChange={handleSearchChange}
-            placeholder="Search for feedback..."
+            placeholder="Search for surveys, polls, or status..."
           />
           <ContentTypePopover items={contentMenuOptions} />
         </div>
@@ -82,23 +198,27 @@ export default function SurveyFeedbackFeature() {
             }`}
           >
             {paginatedFeedbacks.map((item) => (
-              <div key={item.id} className="w-full block box-border min-w-0">
+              <div
+                key={`${item.type}-${item.id}`}
+                className="w-full block box-border min-w-0"
+              >
                 <FeedbackCard item={item} />
               </div>
             ))}
           </div>
 
           {!hasResults && (
-            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-2xl border border-gray-100 box-border p-6 left-0 top-0">
+            <div className="w-full min-h-[300px] flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-2xl border border-gray-100 box-border p-6">
               <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                <FileExclamationPoint size={30} className="text-red-500" />
+                <FileText size={30} className="text-red-500" />
               </div>
               <div>
                 <p className="text-base font-bold text-slate-700">
                   Feedback data doesn&apos;t exist
                 </p>
                 <p className="text-sm text-slate-400 font-medium">
-                  We couldn&apos;t find any match for your current feedback.
+                  We couldn&apos;t find any match for your current feedback
+                  search query.
                 </p>
               </div>
             </div>
@@ -119,61 +239,131 @@ export default function SurveyFeedbackFeature() {
   );
 }
 
-function SectionTitle() {
-  return (
-    <div className="mb-5 flex items-center gap-3">
-      <User className="text-primary" size={24} />
-      <h2 className="type-subtitle text-primary">Results</h2>
-    </div>
-  );
-}
+function FeedbackCard({ item }: { item: FeedbackItem }) {
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
-function FeedbackCard({ item }: { item: (typeof surveyFeedbacks)[number] }) {
+  const formattedDate = item.closingTime
+    ? format(new Date(item.closingTime), "MMM dd, yyyy")
+    : "No Deadline";
+
+  const hasExpired = item.closingTime
+    ? isAfter(new Date(), new Date(item.closingTime))
+    : false;
+  const trulyActive = item.isActive && !hasExpired;
+
+  const handleExport = async () => {
+    setExporting(true);
+    setExportError(null);
+    try {
+      if (item.type === "survey") {
+        const MAX_SIZE = 100;
+        let page = 1;
+        const allResponses = [];
+
+        while (true) {
+          const batch = await surveyService.getResponses(
+            item.id,
+            page,
+            MAX_SIZE,
+          );
+          allResponses.push(...batch);
+          if (batch.length < MAX_SIZE) break;
+          page++;
+        }
+
+        await generateSurveyCsv(allResponses, item.title);
+      } else {
+        const fullPoll = await pollService.getById(item.id);
+
+        let options = [];
+        if (typeof fullPoll.options === "string") {
+          options = JSON.parse(fullPoll.options);
+        } else if (Array.isArray(fullPoll.options)) {
+          options = fullPoll.options;
+        }
+
+        generatePollCsv(options, item.title);
+      }
+    } catch (err) {
+      setExportError(
+        err instanceof Error
+          ? err.message
+          : "Export routine failed to compile files securely.",
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
-    <article className="rounded-2xl border border-accent/30 bg-card p-6 h-full w-full box-border flex flex-col justify-between min-w-0 overflow-hidden">
+    <article className="rounded-2xl border border-accent/30 bg-card p-6 h-full w-full box-border flex flex-col justify-between min-w-0 overflow-hidden relative">
+      <span className="absolute top-3 left-0 translate-y-[-50%] bg-slate-100 border border-slate-200 text-primary rounded-r-sm px-2 py-0.5 text-[12px] uppercase font-bold tracking-wider shadow-sm">
+        {item.type}
+      </span>
+
       <div className="w-full block">
-        <div className="flex items-center justify-between w-full gap-2">
-          <StatusBadge status={item.status} />
+        <div className="flex items-center justify-between w-full gap-2 mt-3">
+          <StatusBadge isActive={trulyActive} />
           <div className="inline-flex size-12 items-center justify-center rounded-lg bg-accent/20 text-accent shrink-0">
-            {/* <BarChart3 size={22} /> */}
-            <Image src={"/chart.svg"} alt="chart" width={22} height={22} />
+            <Image src="/chart.svg" alt="chart" width={22} height={22} />
           </div>
         </div>
-        <h3 className="type-subtitle text-primary mt-4 break-words line-clamp-2 w-full">
+        <h3 className="type-subtitle text-primary mt-3 break-words line-clamp-2 w-full font-semibold text-lg">
           {item.title}
         </h3>
-        <p className="type-desc mt-2 mb-4 text-muted-foreground">{item.date}</p>
+        <p className="type-desc mt-2 mb-4 text-sm text-muted-foreground">
+          Closes: {formattedDate}
+        </p>
       </div>
 
       <div className="w-full block mt-auto">
         <div className="text-center mb-4 w-full">
-          <h1 className="type-h1 text-primary">{item.totalResponse}</h1>
-          <p className="type-desc-semibold text-secondary">Total Response</p>
+          <h1 className="text-3xl font-bold text-primary">
+            {item.totalResponses}
+          </h1>
+          <p className="type-desc-semibold text-secondary text-sm">
+            {item.type === "poll" ? "Total Votes" : "Total Responses"}
+          </p>
         </div>
 
-        <Link href={`https://docs.google.com/spreadsheets/d/1u77ifcH9aE0NkF4IUSilps8kai7hkImGpiOODLpgDoM/edit?gid=0#gid=0`} className="w-full block">
-          <button className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#C5A358] transition-all shadow-sm cursor-pointer">
-            <span>Open Result</span>
-            <ArrowRight size={20} strokeWidth={1.5} />
-          </button>
-        </Link>
+        {exportError && (
+          <p className="text-xs text-red-500 text-center mb-2">{exportError}</p>
+        )}
+
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="type-dec inline-flex w-full items-center justify-center gap-2 bg-primary text-white px-7 py-3 rounded-2xl text-sm font-bold hover:bg-[#FAA136] disabled:bg-[#FAA136] transition-all shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {exporting ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              <span>Exporting...</span>
+            </>
+          ) : (
+            <>
+              <span>Open Result</span>
+              <ArrowRight size={20} strokeWidth={1.5} />
+            </>
+          )}
+        </button>
       </div>
     </article>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const isActive = status === "Active";
+function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <div
-      className={`type-desc-semibold inline-flex items-center rounded-full px-4 py-2 shrink-0 ${
+      className={`type-desc-semibold inline-flex items-center rounded-full px-3 py-1 shrink-0 text-xs font-semibold ${
         isActive
-          ? "bg-accent/10 text-accent"
-          : "bg-destructive/10 text-destructive"
+          ? "bg-green-50 text-green-600 border border-green-200"
+          : "bg-red-50 text-red-600 border border-red-200"
       }`}
     >
-      <Circle size={10} className="mr-1 fill-current" />
-      {status}
+      <Circle size={8} className="mr-1.5 fill-current" />
+      {isActive ? "Active" : "Closed"}
     </div>
   );
 }

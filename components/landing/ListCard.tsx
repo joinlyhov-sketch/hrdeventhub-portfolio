@@ -1,15 +1,15 @@
-import React from "react";
-import type { MediaItem } from "./types";
+"use client";
 
-export interface MediaItems{
+import React from "react";
+import { motion, type Variants } from "framer-motion";
+import Image from "next/image";
+
+interface MediaItem {
   id: string;
   category: string;
   title: string;
   description: string;
-  imageUrl: string;   
-}
-interface ListCardProps {
-  item: MediaItem;
+  imageUrl: string;
 }
 
 export default function MediaListSection() {
@@ -37,53 +37,67 @@ export default function MediaListSection() {
     }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      className="flex flex-col gap-6"
+    >
       {customCardsData.map((data) => (
         <ListCard key={data.id} item={data} />
       ))}
-    </div>
+    </motion.div>
   );
-};
-export const ListCard: React.FC<ListCardProps> = ({ item }) => {
+}
+
+const ListCard: React.FC<{ item: MediaItem }> = ({ item }) => {
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { type: "spring", stiffness: 100, damping: 15 } as const
+    }
+  };
+
   return (
-    <div className="flex items-center w-full gap-4 p-4 border border-border rounded-xl bg-card shadow-sm ">
-      <div className="relative w-25 h-25 rounded-lg overflow-hidden shrink-0 bg-grey-100">
-        <img 
-          src={item.imageUrl} 
-          alt={item.title} 
-          className="w-full h-full object-cover" 
+    <motion.div 
+      variants={cardVariants}
+      className="flex flex-col md:flex-row items-stretch md:items-start w-full gap-4 p-4 border border-border rounded-xl bg-card shadow-sm"
+    >
+      <div className="relative w-full h-40 md:w-25 md:h-25 rounded-lg overflow-hidden shrink-0 bg-grey-100">
+        <Image
+          src={item.imageUrl}
+          alt={item.title}
+          width={100}
+          height={100}
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-grey-900/20 flex items-center justify-center">
-          <button className="w-8 h-8 flex items-center justify-center shadow text-secondary hover:scale-105 transition-transform">
-            <svg width="20" height="20" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M8.75 17.5038V13.6101C8.75 8.78301 12.1771 6.79968 16.3625 9.22051L19.7312 11.1747L23.1 13.1288C27.2854 15.5497 27.2854 19.5018 23.1 21.9226L19.7312 23.8768L16.3625 25.8309C12.1771 28.208 8.75 26.2393 8.75 21.3976V17.5038Z"
-                fill="#f0f4f9"
-                stroke="#f1f3f6"
-                strokeWidth="3"
-                strokeMiterlimit="10"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
       </div>
-      <div className="flex flex-col items-start gap-1 flex-1 min-w-0">
-        <span className="type-detail-small-medium text-secondary bg-muted px-2 py-0.5 rounded-full uppercase">
+      <div className="flex flex-col items-start gap-1 flex-1 min-w-0 mt-2 md:mt-0">
+        <span className="text-xs font-semibold text-secondary bg-muted px-2 py-0.5 rounded-full uppercase tracking-wider">
           {item.category}
         </span>
-        <h4 className="type-subtitle text-secondary line-clamp-1 w-full">
+        <h4 className="text-lg font-bold text-secondary w-full">
           {item.title}
         </h4>
-        {item.description && (
-          <p className="type-detail text-muted-foreground line-clamp-2 leading-relaxed">
-            {item.description}
-          </p>
-        )}
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {item.description}
+        </p>
       </div>
-    </div>
+    </motion.div>
   );
 };
-

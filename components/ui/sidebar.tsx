@@ -175,7 +175,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+          className="w-(--sidebar-width) bg-white p-0 text-sidebar-foreground [&>button]:hidden"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -262,7 +262,7 @@ function SidebarTrigger({
     >
       <ChevronLeft
         className={cn(
-          "transition-transform duration-300 ease-in-out",
+          "transition-transform duration-300 ease-in-out text-black",
           state === "collapsed" && "rotate-180",
         )}
       />

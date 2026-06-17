@@ -3,6 +3,7 @@ import { SidebarProvider } from "../../components/ui/sidebar";
 import { AppSidebar } from "../../components/site/AppSidebar";
 import { TooltipProvider } from "../../components/ui/tooltip";
 import { Metadata } from "next";
+import { MobileBottomNavWrapper } from "@/components/site/button-nav/MobileBottomNavWrapper";
 
 export const metadata: Metadata = {
   title: {
@@ -23,11 +24,14 @@ export default function RootLayout({
   return (
     <div>
       <TooltipProvider>
-        <SidebarProvider>
+        <SidebarProvider defaultOpen={true}>
           <AppSidebar />
-          {children}
+          <div className="flex flex-col flex-1 min-w-0 w-full pb-16 md:pb-0">
+            {children}
+          </div>
+            <MobileBottomNavWrapper />
         </SidebarProvider>
-      </TooltipProvider>
+      </TooltipProvider>      
     </div>
   );
 }
