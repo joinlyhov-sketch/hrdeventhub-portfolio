@@ -80,11 +80,10 @@ export default function ProfilePage() {
     viewerRole !== "" &&
     subjectRole !== "" &&
     (
-      // Own profile logic
+
       isStudentSelf ||
       isAlumniSelf ||
 
-      // Other user profile logic
       (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI"))
     );
 
@@ -94,10 +93,8 @@ export default function ProfilePage() {
     viewerRole !== "" &&
     subjectRole !== "" &&
     (
-      // Own profile logic: student sees My Endorsement
       isStudentSelf ||
 
-      // Other user profile logic: alumni viewing student
       (!isSelf && viewerRole === "ALUMNI" && subjectRole === "STUDENT")
     );
 

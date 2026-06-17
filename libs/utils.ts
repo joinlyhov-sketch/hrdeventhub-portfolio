@@ -29,3 +29,35 @@ export function formatDate(iso: string): string {
   if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
+
+export function formatConvTime(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return "";
+
+  const now            = new Date();
+  const todayStart     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(todayStart.getDate() - 1);
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(todayStart.getDate() - 6);
+
+  if (date >= todayStart) {
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric", minute: "2-digit", hour12: true,
+      timeZone: "Asia/Phnom_Penh",
+    });
+  }
+  if (date >= yesterdayStart) return "Yesterday";
+  if (date >= weekStart) {
+    return date.toLocaleDateString("en-US", {
+      weekday: "long", timeZone: "Asia/Phnom_Penh",
+    });
+  }
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(date.getFullYear() !== now.getFullYear() ? { year: "numeric" } : {}),
+    timeZone: "Asia/Phnom_Penh",
+  });
+}

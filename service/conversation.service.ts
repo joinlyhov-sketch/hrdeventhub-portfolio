@@ -11,10 +11,10 @@ export async function getConversations(token: string): Promise<Conversation[]> {
 
 export async function getOrCreateConversation(
   token: string,
-  targetUserId: string
+  targetName: string
 ): Promise<Conversation> {
   const res = await fetch(
-    `${API_BASE}/chat/conversations?targetUserId=${targetUserId}`,
+    `${API_BASE}/chat/conversations?targetName=${targetName}`,
     {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
