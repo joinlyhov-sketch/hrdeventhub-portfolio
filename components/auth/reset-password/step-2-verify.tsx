@@ -56,7 +56,7 @@ export default function VerifyStep() {
 
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
-    
+
     const handlePopState = () => {
       setIsLeaveModalOpen(true);
       window.history.pushState(null, "", window.location.href);
@@ -124,6 +124,21 @@ export default function VerifyStep() {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent, index: number) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    const newOtp = [...otp];
+    pasted.split("").forEach((char, i) => {
+      if (index + i < 6) newOtp[index + i] = char;
+    });
+    setOtp(newOtp);
+    const nextIndex = Math.min(index + pasted.length, 5);
+    inputs.current[nextIndex]?.focus();
+    const isFilled = newOtp.every((digit) => digit !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) submitOtp(newOtp.join(""));
+  };
+
   const handleResend = () => {
     if (secondsLeft > 0) return;
     if (!email) {
@@ -177,6 +192,7 @@ export default function VerifyStep() {
               value={otp[i]}
               onChange={(e) => handleChange(e.target.value, i)}
               onKeyDown={(e) => handleKeyDown(e, i)}
+              onPaste={(e) => handlePaste(e, i)}
               className="h-11 sm:h-14 w-full rounded-xl sm:rounded-2xl border border-[#dce6f0] bg-white text-center text-lg sm:text-xl font-bold text-[#24529a] outline-none transition-all focus:border-[#24529a] shadow-sm"
             />
           ))}
@@ -220,10 +236,10 @@ export default function VerifyStep() {
         </button>
       </motion.div>
 
-      <LeaveVerificationModal 
-        isOpen={isLeaveModalOpen} 
-        onClose={() => setIsLeaveModalOpen(false)} 
-        onConfirm={handleConfirmLeave} 
+      <LeaveVerificationModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        onConfirm={handleConfirmLeave}
       />
     </>
   );

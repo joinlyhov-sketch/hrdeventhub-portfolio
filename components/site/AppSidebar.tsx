@@ -222,7 +222,11 @@ export function AppSidebar() {
                               <Pin />
                             </span>
                             <span
-                              className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                              className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
+                                state === "collapsed"
+                                  ? "max-w-0 opacity-0 -translate-x-2"
+                                  : "max-w-50 opacity-100 translate-x-0"
+                              }`}
                             >
                               {workspace.name}
                             </span>
@@ -397,26 +401,28 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === "/check-in"}
-                  asChild
-                  tooltip="Register"
-                  className="h-11"
-                >
-                  <Link href="/check-in">
-                    <ClipboardList
-                      size={18}
-                      className="shrink-0 text-[#878787]"
-                    />
-                    <span
-                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
-                    >
-                      Check-in
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {!isStudentOrAlumni && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={pathname === "/check-in"}
+                    asChild
+                    tooltip="Register"
+                    className="h-11"
+                  >
+                    <Link href="/check-in">
+                      <ClipboardList
+                        size={18}
+                        className="shrink-0 text-[#878787]"
+                      />
+                      <span
+                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                      >
+                        Check-in
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {!isStudentOrAlumni && (
                 <>

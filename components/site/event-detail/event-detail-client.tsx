@@ -31,7 +31,6 @@ import { Post } from "@/types/posts";
 import { ReactionSummary } from "@/components/site/event/ReactionSummary";
 import { ReactionItem } from "@/hooks/use-post-reaction";
 
-
 type PostReactionResponse = {
   success: boolean;
   payload: ReactionItem[];
@@ -117,7 +116,12 @@ export default function EventDetailClient({
   }, [activeTab]);
 
   useEffect(() => {
-    if (status !== "authenticated" || !session?.accessToken || !initialEvent?.postId) return;
+    if (
+      status !== "authenticated" ||
+      !session?.accessToken ||
+      !initialEvent?.postId
+    )
+      return;
 
     const fetchLivePostData = async () => {
       try {
@@ -360,11 +364,14 @@ export default function EventDetailClient({
   return (
     <>
       <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
-        <section className="flex justify-between items-center">
-          <Link href={`/profile/${event.creator?.userId}`}>
-            <div className="flex items-center gap-x-3">
+        <section className="flex justify-between items-center gap-x-2 sm:gap-x-4 w-full">
+          <Link
+            href={`/profile/${event.creator?.userId}`}
+            className="min-w-0 flex-1"
+          >
+            <div className="flex items-center gap-x-2 sm:gap-x-3 min-w-0">
               {event?.creator?.profilePicture && !avatarError ? (
-                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-secondary">
+                <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-secondary shrink-0">
                   <Image
                     unoptimized
                     src={event.creator.profilePicture}
@@ -375,32 +382,38 @@ export default function EventDetailClient({
                   />
                 </div>
               ) : (
-                <div className="w-10 h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary uppercase">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary text-xs sm:text-base uppercase shrink-0">
                   {event?.creator?.fullName?.slice(0, 2) || "EV"}
                 </div>
               )}
-              <div>
-                <p className="text-subtitle font-medium text-secondary">
+
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm md:text-subtitle font-medium text-secondary truncate whitespace-nowrap leading-tight">
                   {event?.creator?.fullName ||
                     (isAdminOrOrganizer ? "Workspace Organizer" : "KSGA Team")}
                 </p>
-                <p className="text-desc-small-semibold font-medium text-muted-foreground">
+                <p className="text-[10px] sm:text-xs md:text-desc-small-semibold font-medium text-muted-foreground whitespace-nowrap mt-0.5">
                   {formattedCreationDate}
                 </p>
               </div>
             </div>
           </Link>
-          <div className="flex items-center gap-x-2">
+
+          <div className="flex items-center gap-x-1 sm:gap-x-2 shrink-0">
             {isAdminOrOrganizer && (
               <>
-                <span className="bg-primary/10 px-6 py-3 rounded-xl text-primary type-desc-small-semibold">
+                <span className="bg-primary/10 px-2 py-1 sm:px-4 md:px-6 sm:py-2 md:py-3 rounded-lg sm:rounded-xl text-primary type-desc-small-semibold text-[10px] sm:text-xs md:text-sm whitespace-nowrap">
                   Admin
                 </span>
                 <Link
                   href={`/event-management/edition/event?groupId=${workspaceId}&postId=${event.postId}`}
                 >
-                  <span className="flex items-center gap-x-1 border border-border px-6 py-3 rounded-xl text-grey-900 type-desc-small-semibold hover:bg-grey-50 cursor-pointer">
-                    <Edit size={16} /> Edit Event
+                  <span className="flex items-center gap-x-1 border border-border px-2 py-1 sm:px-4 md:px-6 sm:py-2 md:py-3 rounded-lg sm:rounded-xl text-grey-900 type-desc-small-semibold text-[10px] sm:text-xs md:text-sm hover:bg-grey-50 cursor-pointer whitespace-nowrap">
+                    <Edit
+                      size={12}
+                      className="sm:w-[14px] sm:h-[14px] md:w-[16px] md:h-[16px]"
+                    />{" "}
+                    Edit Event
                   </span>
                 </Link>
               </>
@@ -471,26 +484,35 @@ export default function EventDetailClient({
           </div>
 
           <div className="flex flex-col justify-between">
-            <div className="relative flex p-[3px] rounded-xl type-desc-small-semibold"
-            style={{ background: "rgba(120,120,128,0.12)"}}
-            ref={tabTrackRef}
+            <div
+              className="relative flex p-[3px] rounded-xl type-desc-small-semibold"
+              style={{ background: "rgba(120,120,128,0.12)" }}
+              ref={tabTrackRef}
             >
-              <div ref={tabPillRef} className="absolute top-[3px] h-[calc(100%-6px)] rounded-[9px] z-0 transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
-              style={{ background: "#1c4d8d", boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)" }}
+              <div
+                ref={tabPillRef}
+                className="absolute top-[3px] h-[calc(100%-6px)] rounded-[9px] z-0 transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+                style={{
+                  background: "#1c4d8d",
+                  boxShadow:
+                    "0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)",
+                }}
               />
               {(["details", "price", "map"] as Tab[]).map((t, i) => (
-              <button
-              key={t}
-              ref={(el) => { tabBtnRefs.current[i] = el; }}
-              onClick={() => setActiveTab(t)}
-              className={`relative z-10 flex-1 py-2 rounded-[9px] capitalize cursor-pointer transition-colors duration-200 text-sm font-medium border-none bg-transparent ${
-              activeTab === t ? "text-white" : "text-gray-500"
-              }`}
-              >
-              {t}
-              </button>
-          ))}
-          </div>
+                <button
+                  key={t}
+                  ref={(el) => {
+                    tabBtnRefs.current[i] = el;
+                  }}
+                  onClick={() => setActiveTab(t)}
+                  className={`relative z-10 flex-1 py-2 rounded-[9px] capitalize cursor-pointer transition-colors duration-200 text-sm font-medium border-none bg-transparent ${
+                    activeTab === t ? "text-white" : "text-gray-500"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
 
             <div className="grow pt-4 max-w-full items-stretch min-[1290px]:w-3xl">
               {activeTab === "details" && (

@@ -39,10 +39,9 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         setProfileLoading(true);
-        const res = await profileService.getProfileById(
-          userId,
-          session.accessToken!,
-        );
+        const res = isSelf
+          ? await profileService.getProfileMe(session.accessToken!)
+          : await profileService.getProfileById(userId, session.accessToken!);
         if (res.success) setProfile(res.payload);
       } catch (e) {
         console.error("Profile fetch failed:", e);

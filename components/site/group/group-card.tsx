@@ -21,6 +21,7 @@ export default function GroupCard({ workspace, pinnedCount }: GroupCardProps) {
 
   const visibleMembers = members.slice(0, 3);
   const extraCount = members.length - visibleMembers.length;
+  
 
   return (
     <div className="w-full bg-card p-4 md:p-6 rounded-2xl md:rounded-3xl border border-border flex flex-col hover:shadow-sm transition-all relative group overflow-hidden">
