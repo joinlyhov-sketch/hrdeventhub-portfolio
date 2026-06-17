@@ -179,28 +179,28 @@ export default function EditGroupModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[720px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
-        <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-6">
+      <DialogContent className="sm:max-w-[720px] w-[calc(100%-2rem)] sm:w-full max-h-[90vh] flex flex-col rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
+        <div className="relative border-b border-gray-100 bg-white px-5 sm:px-8 pt-7 pb-6 shrink-0">
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-[26px] font-bold text-[#1e3a8a]">
+            <DialogTitle className="text-[24px] sm:text-[26px] font-bold text-primary">
               Edit Group
             </DialogTitle>
-            <DialogDescription className="text-[15px] text-gray-500 font-normal">
+            <DialogDescription className="text-[14px] sm:text-[15px] text-gray-500 font-normal">
               Update the core identity and description of the group.
             </DialogDescription>
           </DialogHeader>
           <button
             onClick={handleClose}
-            className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            className="absolute right-5 sm:right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <X size={22} strokeWidth={2.5} />
           </button>
         </div>
 
-        <div className="px-8 py-6 space-y-6 bg-white">
+        <div className="px-5 sm:px-8 py-6 space-y-6 bg-white overflow-y-auto flex-1 unique-scrollbar">
           <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+            <label className="text-[16px] sm:text-[17px] font-bold text-primary block">
               Group Name
             </label>
             <div className="relative flex items-center">
@@ -226,7 +226,7 @@ export default function EditGroupModal({
           </div>
 
           <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+            <label className="text-[16px] sm:text-[17px] font-bold text-primary block">
               Group Type
             </label>
             <div ref={typeContainerRef} className="relative">
@@ -262,7 +262,7 @@ export default function EditGroupModal({
                       }));
                       setIsOpenType(false);
                     }}
-                    className={`text-[15px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${groupType === "external" ? "bg-blue-50 text-[#1e3a8a] font-medium" : "text-gray-700 hover:bg-gray-50"}`}
+                    className={`text-[15px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${groupType === "external" ? "bg-blue-50 text-primary font-medium" : "text-gray-700 hover:bg-gray-50"}`}
                   >
                     External Group
                   </div>
@@ -271,7 +271,7 @@ export default function EditGroupModal({
                       setGroupType("internal");
                       setIsOpenType(false);
                     }}
-                    className={`text-[15px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${groupType === "internal" ? "bg-blue-50 text-[#1e3a8a] font-medium" : "text-gray-700 hover:bg-gray-50"}`}
+                    className={`text-[15px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${groupType === "internal" ? "bg-blue-50 text-primary font-medium" : "text-gray-700 hover:bg-gray-50"}`}
                   >
                     Internal Group
                   </div>
@@ -282,7 +282,7 @@ export default function EditGroupModal({
 
           {groupType === "internal" && (
             <div className="space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
-              <label className="text-[17px] font-bold text-[#1e3a8a] block">
+              <label className="text-[16px] sm:text-[17px] font-bold text-primary block">
                 Generation
               </label>
               <div ref={genContainerRef} className="relative">
@@ -336,7 +336,7 @@ export default function EditGroupModal({
                               selectedGenerationId: undefined,
                             }));
                           }}
-                          className={`text-[15px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${selectedGenerationId === generation.generationId ? "bg-blue-50 text-[#1e3a8a] font-medium" : "text-gray-700 hover:bg-gray-50"}`}
+                          className={`text-[15px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${selectedGenerationId === generation.generationId ? "bg-blue-50 text-primary font-medium" : "text-gray-700 hover:bg-gray-50"}`}
                         >
                           {generation.name}
                         </div>
@@ -354,7 +354,7 @@ export default function EditGroupModal({
           )}
 
           <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+            <label className="text-[16px] sm:text-[17px] font-bold text-primary block">
               Telegram Channel
             </label>
             <div className="relative flex items-center">
@@ -372,7 +372,7 @@ export default function EditGroupModal({
           </div>
 
           <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-[#1e3a8a] block">
+            <label className="text-[16px] sm:text-[17px] font-bold text-primary block">
               Description
             </label>
             <Textarea
@@ -391,18 +391,18 @@ export default function EditGroupModal({
           </div>
         </div>
 
-        <div className="flex justify-end items-center gap-3 bg-[#f8fafc] px-8 py-5 border-t border-gray-50">
+        <div className="flex justify-end items-center gap-3 bg-[#f8fafc] px-5 sm:px-8 py-5 border-t border-gray-50 shrink-0">
           <Button
             variant="outline"
             onClick={handleClose}
-            className="h-[46px] px-7 border border-[#2563eb] text-[#2563eb] hover:bg-blue-50 font-semibold rounded-lg text-[15px] transition-colors"
+            className="h-[46px] px-6 sm:px-7 border border-primary text-primary hover:bg-blue-50 font-semibold rounded-lg text-[15px] transition-colors"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             disabled={isSubmitting}
-            className="h-[46px] px-6 bg-[#2b4c8c] hover:bg-[#1e3563] text-white font-semibold rounded-lg text-[15px] shadow-sm transition-colors disabled:opacity-50"
+            className="h-[46px] px-5 sm:px-6 bg-[#2b4c8c] hover:bg-[#1e3563] text-white font-semibold rounded-lg text-[15px] shadow-sm transition-colors disabled:opacity-50"
           >
             {isSubmitting ? "Saving..." : "Save Change"}
           </Button>
