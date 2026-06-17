@@ -26,6 +26,12 @@ export default function MapContentComponent({
 
   const lat = latitude && latitude !== 0 ? latitude : null;
   const lng = longitude && longitude !== 0 ? longitude : null;
+  const mapsLink =
+  lat && lng
+    ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+    : locationName
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationName)}`
+      : googleMapUrl;
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -127,7 +133,7 @@ export default function MapContentComponent({
             referrerPolicy="no-referrer-when-downgrade"
           />
         ) : (
-          <div className="w-full min-h-[220px] rounded-xl bg-grey-100 flex items-center justify-center text-grey-400 text-sm border border-dashed">
+          <div className="w-full min-h-55 rounded-xl bg-grey-100 flex items-center justify-center text-grey-400 text-sm border border-dashed">
             Map placement layout is unavailable
           </div>
         )
@@ -139,12 +145,12 @@ export default function MapContentComponent({
         />
       )}
 
-      {googleMapUrl && (
+      {mapsLink && (
         <a
-          href={googleMapUrl}
+          href={mapsLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 underline decoration-1 text-blue-400 break-all text-xs"
+          className="mt-1.5 underline decoration-1 text-blue-400 break-all text-xs mb-1.5"
         >
           {locationName || googleMapUrl}
         </a>
