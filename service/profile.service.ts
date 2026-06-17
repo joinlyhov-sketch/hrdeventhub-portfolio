@@ -38,6 +38,7 @@ export interface Education {
   endYear: number | null;
   institutionName: string;
   institutionAbbreviation: string;
+  institutionLogo: string;
   degree: string;
   startYear: number;
   isCurrent: boolean;
@@ -55,6 +56,27 @@ export interface Generation {
   isCurrent: boolean;
   createdAt: string;
   updatedAt: string;
+}
+export interface University {
+  universityId: string;
+  name: string;
+  abbreviation?: string;
+  logoUrl?: string;
+  type?: string;
+  established?: string;
+  location?: string;
+  website?: string;
+}
+
+export interface UniversitiesResponse {
+  success: boolean;
+  message: string;
+  status: string;
+  payload: University[] | {
+    content?: University[];
+    items?: University[];
+  };
+  timestamp?: string;
 }
 
 export interface AppUser {
@@ -149,6 +171,33 @@ export const profileService = {
       authToken: token,
     });
   },
+  getUniversities: async (
+  token: string,
+  page: number = 1,
+  size: number = 100,
+): Promise<University[]> => {
+  const response = await apiGet<UniversitiesResponse>(
+    `/universities?page=${page}&size=${size}`,
+    {
+      authToken: token,
+      accept: "*/*",
+    },
+  );
+
+  if (Array.isArray(response.payload)) {
+    return response.payload;
+  }
+
+  if (Array.isArray(response.payload?.content)) {
+    return response.payload.content;
+  }
+
+  if (Array.isArray(response.payload?.items)) {
+    return response.payload.items;
+  }
+
+  return [];
+},
 
   updatePreferences: async (
     payload: UpdatePreferencesRequest,

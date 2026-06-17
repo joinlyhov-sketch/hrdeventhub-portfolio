@@ -62,7 +62,6 @@ export default function ProfilePage() {
 
   const sharingMode = profile?.profileSharingMode;
   const isPrivate = sharingMode === "PRIVATE";
-
   const hideTabsDueToPrivacy = isPrivate && (!isSelf || isPublicView);
 
   const showEventTab =
