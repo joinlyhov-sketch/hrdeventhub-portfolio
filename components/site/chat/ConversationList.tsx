@@ -132,9 +132,7 @@ export default function ConversationList({
                   isActive ? "bg-blue-50" : "hover:bg-gray-50",
                 )}
               >
-                {/* ✅ ChatAvatar REPLACES the old initials div */}
                 <ChatAvatar name={c.otherUserName} avatarUrl={c.otherUserAvatar} size="md" />
-
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className={cn("text-sm truncate", isActive ? "font-bold text-gray-900" : "font-semibold text-gray-800")}>
