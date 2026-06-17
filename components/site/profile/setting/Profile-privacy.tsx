@@ -11,6 +11,7 @@ import {
   Users,
   BookOpen,
   FileText,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { UserProfilePayload } from "@/service/profile.service";
 import { getMediaUrl } from "@/libs/media";
@@ -286,9 +287,6 @@ export default function ProfilePrivacy({
               {show("showMajor") && major && (
                 <InfoRow icon={<BookOpen size={16} />} text={major} />
               )}
-              {show("showSkills") && skills.length > 0 && (
-                <InfoRow icon={<Code size={16} />} text={skills.join(", ")} />
-              )}
               {show("showPhoneNumber") && appUser.phoneNumber && (
                 <InfoRow
                   icon={<Phone size={16} />}
@@ -297,7 +295,7 @@ export default function ProfilePrivacy({
               )}
               {show("showCurrentStatus") && currentStatus && (
                 <InfoRow
-                  icon={<GraduationCap size={16} />}
+                  icon={<BriefcaseBusiness size={16} />}
                   text={currentStatus}
                 />
               )}
@@ -319,7 +317,7 @@ export default function ProfilePrivacy({
                     <InfoRow
                       key={i}
                       icon={<GraduationCap size={16} />}
-                      text={`${edu.institutionAbbreviation || edu.institutionName} — ${edu.degree}`}
+                      text={`${edu.institutionAbbreviation || edu.institutionName}`}
                     />
                   ))}
                 </div>

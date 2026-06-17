@@ -9,7 +9,8 @@ import {
   Code,
   Phone,
   GraduationCap,
-  MessageCircle,
+  BriefcaseBusiness,
+  BookOpen,
 } from "lucide-react";
 import Link from "next/link";
 import { UserProfilePayload } from "@/types/profile-types";
@@ -25,11 +26,6 @@ const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
     </span>
   </div>
 );
-
-const formatSkills = (skills: string[]): string => {
-  if (!skills || skills.length === 0) return "N/A";
-  return skills.join(", ");
-};
 
 const formatDate = (dateString?: string): string => {
   if (!dateString) return "—";
@@ -52,6 +48,8 @@ interface ProfileCardProps {
   loading: boolean;
   profileId: string;
   authToken: string;
+  isPublicView: boolean;
+  setIsPublicView: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function ProfileCard({
@@ -60,6 +58,8 @@ export default function ProfileCard({
   loading,
   profileId,
   authToken,
+  isPublicView,
+  setIsPublicView,
 }: ProfileCardProps) {
   const [isEndorseOpen, setIsEndorseOpen] = useState(false);
 
@@ -84,6 +84,7 @@ export default function ProfileCard({
   const displayName =
     `${profile.appUser.firstName} ${profile.appUser.lastName}`.trim();
   const profileAvatar = getMediaUrl(profile.profilePicture);
+
   const linkedinAccount = profile.socialAccount?.find(
     (s: { platform: string; url?: string }) =>
       s.platform === "linkedin" && s.url?.trim(),
@@ -103,7 +104,6 @@ export default function ProfileCard({
 
   const showEdit = viewMode === "self";
   const showEndorse = viewMode === "alumni" || viewMode === "organizer";
-  const showMessage = viewMode !== "self";
 
   const coverIndex = useMemo(() => {
     const hash = (profile.appUser.username || "user")
@@ -116,17 +116,76 @@ export default function ProfileCard({
   const prefs = profile.preferences;
 
   const isVisible = (field: keyof NonNullable<typeof prefs>): boolean => {
+    if (showEdit && !isPublicView) return true;
     if (sharingMode === "PUBLIC") return true;
     if (sharingMode === "PRIVATE") return false;
     return prefs?.[field] ?? true;
   };
 
-  console.log("sharingMode:", profile.profileSharingMode);
-  console.log("prefs:", profile.preferences);
-  console.log("isVisible showEmail:", isVisible("showEmail"));
+  const showLockedState = isPublicView && sharingMode === "PRIVATE";
+
+  const GenderIcon = ({ gender }: { gender: string }) => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 18 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {gender === "F" ? (
+        <>
+          <path
+            d="M7.6875 16.125C10.8977 16.125 13.5 13.5227 13.5 10.3125C13.5 7.10234 10.8977 4.5 7.6875 4.5C4.47734 4.5 1.875 7.10234 1.875 10.3125C1.875 13.5227 4.47734 16.125 7.6875 16.125Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M16.125 1.875L12 6"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M11.25 1.875H16.125V6.75"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      ) : (
+        <>
+          <path
+            d="M10.5 7.5C10.5 9.98528 8.48528 12 6 12C3.51472 12 1.5 9.98528 1.5 7.5C1.5 5.01472 3.51472 3 6 3C8.48528 3 10.5 5.01472 10.5 7.5Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M16.5 1.5L11.25 6.75"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M13.5 1.5H16.5V4.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      )}
+    </svg>
+  );
 
   return (
-    <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full w-full overflow-hidden">
+    <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full w-full">
       <div className="h-32 w-full rounded-xl shrink-0 relative overflow-hidden">
         <img
           src={`/covers/cover${coverIndex}.jpg`}
@@ -137,7 +196,7 @@ export default function ProfileCard({
           }}
         />
       </div>
-      <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow justify-between">
+      <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow">
         <div className="w-full flex flex-col items-center">
           <div className="w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10 flex items-center justify-center select-none">
             {isVisible("showProfilePicture") && profileAvatar ? (
@@ -158,6 +217,7 @@ export default function ProfileCard({
               </span>
             )}
           </div>
+
           <div className="text-center w-full px-2">
             <h2 className="type-title text-primary font-bold text-xl">
               {displayName}
@@ -167,13 +227,13 @@ export default function ProfileCard({
             </p>
             {isVisible("showBio") && profile.bio && (
               <p className="text-detail font-medium text-secondary mb-2 leading-relaxed italic">
-                {profile.bio ? `"${profile.bio}"` : "No bio provided yet."}
+                &quot;{profile.bio}&quot;
               </p>
             )}
           </div>
 
           <div className="w-full space-y-3 pt-3 text-left">
-            {sharingMode === "PRIVATE" ? (
+            {showLockedState ? (
               <div className="w-full pt-6">
                 <div className="border py-2.5 rounded-2xl text-center flex items-center justify-center">
                   <span className="text-grey-400 type-desc tracking-wide">
@@ -184,46 +244,67 @@ export default function ProfileCard({
             ) : (
               <div className="w-full space-y-3 text-left">
                 <h3 className="type-subtitle-24 text-secondary font-semibold mb-4">
-                Personal Information
+                  Personal Information
                 </h3>
-                  {isVisible("showEmail") && profile.appUser.email && (
-                    <InfoRow icon={<Mail size={16} />} text={profile.appUser.email} />
-                  )}
-                  {isVisible("showBirthdate") && profile.appUser.dateOfBirth && (
-                    <InfoRow
-                      icon={<Calendar size={16} />}
-                      text={formatDate(profile.appUser.dateOfBirth)}
-                    />
-                  )}
-                  {isVisible("showGeneration") && profile.generation?.name && (
-                    <InfoRow
-                      icon={<Users size={16} />}
-                      text={profile.generation.name}
-                    />
-                  )}
-                  {isVisible("showSkills") && profile.skills?.length > 0 && (
-                    <InfoRow
-                      icon={<Code size={16} />}
-                      text={formatSkills(profile.skills)}
-                    />
-                  )}
-                  {isVisible("showPhoneNumber") && profile.appUser.phoneNumber && (
+                {isVisible("showEmail") && profile.appUser.email && (
+                  <InfoRow
+                    icon={<Mail size={16} />}
+                    text={profile.appUser.email}
+                  />
+                )}
+                {isVisible("showBirthdate") && profile.appUser.dateOfBirth && (
+                  <InfoRow
+                    icon={<Calendar size={16} />}
+                    text={formatDate(profile.appUser.dateOfBirth)}
+                  />
+                )}
+                {isVisible("showGeneration") && profile.generation?.name && (
+                  <InfoRow
+                    icon={<Users size={16} />}
+                    text={profile.generation.name}
+                  />
+                )}
+                {isVisible("showMajor") && profile.major && (
+                  <InfoRow
+                    icon={<BookOpen size={16} />}
+                    text={profile.major}
+                  />
+                )}
+                {isVisible("showPhoneNumber") &&
+                  profile.appUser.phoneNumber && (
                     <InfoRow
                       icon={<Phone size={16} />}
-                      text={`${profile.appUser.phoneNumber}`}
+                      text={profile.appUser.phoneNumber}
                     />
                   )}
-                  {isVisible("showCurrentStatus") && profile.currentStatus && (
+                {isVisible("showGender") && profile.appUser.gender && (
+                  <InfoRow
+                    icon={<GenderIcon gender={profile.appUser.gender} />}
+                    text={profile.appUser.gender === "F" ? "Female" : "Male"}
+                  />
+                )}
+                {isVisible("showCurrentStatus") && profile.currentStatus && (
+                  <InfoRow
+                    icon={<BriefcaseBusiness size={16} />}
+                    text={profile.currentStatus
+                      .replace(/_/g, " ")
+                      .toLowerCase()
+                      .replace(/\b\w/g, (char) => char.toUpperCase())}
+                  />
+                )}
+                {isVisible("showEducation") &&
+                  profile.education?.length > 0 && (
                     <InfoRow
-                      icon={<GraduationCap size={16} />}
-                      text={profile.currentStatus
-                        .replace(/_/g, " ")
-                        .toLowerCase()
-                        .replace(/\b\w/g, (char) => char.toUpperCase())}
+                      icon={<GraduationCap size={18} />}
+                      text={profile.education
+                        .map(
+                          (e) => e.institutionAbbreviation || e.institutionName,
+                        )
+                        .join(", ") }
                     />
                   )}
               </div>
-          )}
+            )}
           </div>
 
           {isVisible("showSocial") &&
@@ -330,18 +411,28 @@ export default function ProfileCard({
             )}
         </div>
 
-        <div className="grow w-full min-h-[20px]" />
+        <div className="grow w-full min-h-5" />
 
-        <div className="w-full mt-6 flex flex-col gap-3">
+        <div className="w-full mt-4 flex flex-col gap-3">
           {showEdit && (
-            <Link
-              href={`/profile/${profileId}/edit-profile`}
-              className="block w-full"
-            >
-              <button className="w-full bg-primary text-primary-foreground py-3 rounded-lg type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
-                Edit Profile
+            <>
+              <button
+                onClick={() => setIsPublicView((v) => !v)}
+                className="w-full border border-primary text-primary py-3 rounded-lg type-desc-semibold hover:bg-primary/5 transition-colors font-medium cursor-pointer text-center"
+              >
+                {isPublicView ? "Back to My View" : "Preview Public View"}
               </button>
-            </Link>
+              {!isPublicView && (
+                <Link
+                  href={`/profile/${profileId}/edit-profile`}
+                  className="block w-full"
+                >
+                  <button className="w-full bg-primary text-primary-foreground py-3 rounded-lg type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer text-center">
+                    Edit Profile
+                  </button>
+                </Link>
+              )}
+            </>
           )}
 
           {showEndorse && (
@@ -352,15 +443,9 @@ export default function ProfileCard({
               Endorse
             </button>
           )}
-
-          {showMessage && (
-            <button className="w-full flex items-center justify-center gap-2 border border-border bg-card text-foreground py-3 rounded-md type-desc-semibold hover:bg-muted transition-colors font-medium cursor-pointer">
-              <MessageCircle size={16} />
-              Message
-            </button>
-          )}
         </div>
       </div>
+
       {showEndorse && (
         <EndorseStudentModal
           isOpen={isEndorseOpen}

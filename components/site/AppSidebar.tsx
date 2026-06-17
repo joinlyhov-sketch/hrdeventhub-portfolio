@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import {
   Sidebar,
@@ -28,7 +28,6 @@ import {
   Pin,
   MessageCircle,
   ClipboardList,
-  Bell,
   User,
   Pencil,
   Settings,
@@ -36,8 +35,6 @@ import {
   Circle,
   MinusCircle,
   Moon,
-  Clock,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -45,11 +42,11 @@ import { LogoutModal } from "./pop-up/commons/LogoutModal";
 import { useCurrentUser } from "@/context/user-context";
 import { logoutAction } from "@/actions/auth.action";
 import { useMyWorkspaces } from "@/hooks/use-my-workspace";
+import { setOnlineAction, setOfflineAction } from "@/actions/presence.action";
+import { useStatusContext, ActiveStatus } from "@/context/StatusContext";
 
 const ADMIN_ROLES = ["admin", "organizer"] as const;
 const STUDENT_ALUMNI_ROLES = ["student", "alumni"] as const;
-
-type ActiveStatus = "online" | "idle" | "do-not-disturb" | "offline";
 
 const STATUS_OPTIONS: {
   value: ActiveStatus;
@@ -62,12 +59,6 @@ const STATUS_OPTIONS: {
     label: "Online",
     icon: <Circle size={10} className="fill-current" />,
     color: "text-green-500",
-  },
-  {
-    value: "idle",
-    label: "Idle",
-    icon: <Clock size={10} />,
-    color: "text-yellow-500",
   },
   {
     value: "do-not-disturb",
@@ -103,8 +94,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [activeStatus, setActiveStatus] = useState<ActiveStatus>("online");
+
+  const { activeStatus, setActiveStatus } = useStatusContext();
 
   const isAdmin = currentUser?.role === "admin";
   const isStudentOrAlumni = STUDENT_ALUMNI_ROLES.includes(
@@ -119,8 +110,24 @@ export function AppSidebar() {
     currentUser !== null &&
     ADMIN_ROLES.includes(currentUser?.role as (typeof ADMIN_ROLES)[number]);
 
+  useEffect(() => {
+    if (!session?.accessToken) return;
+    setOnlineAction();
+    setActiveStatus("online");
+  }, [session?.accessToken]);
+
+  const handleStatusChange = async (status: ActiveStatus) => {
+    setActiveStatus(status);
+    if (status === "offline") {
+      await setOfflineAction();
+    } else {
+      await setOnlineAction();
+    }
+  };
+
   const handleConfirmLogout = async () => {
     setIsLogoutOpen(false);
+    await setOfflineAction();
     if (session?.refreshToken) {
       await logoutAction(session.refreshToken);
     }
@@ -176,7 +183,6 @@ export function AppSidebar() {
               >
                 Pinned
               </SidebarGroupLabel>
-
               <SidebarMenu className="flex flex-col gap-1">
                 {pinnedWorkspaces.length === 0 ? (
                   <SidebarMenuItem>
@@ -566,7 +572,6 @@ export function AppSidebar() {
               >
                 Administration
               </SidebarGroupLabel>
-
               <SidebarMenu className="flex flex-col gap-1">
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -840,40 +845,36 @@ export function AppSidebar() {
                     <DropdownMenuItem asChild>
                       <Link
                         href={profileHref}
-                        className="flex items-center gap-2 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
                       >
                         <User size={14} className="text-gray-500" />
                         <span className="text-sm">Profile</span>
                       </Link>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem asChild>
                       <Link
                         href={`${profileHref}/edit-profile`}
-                        className="flex items-center gap-2 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
                       >
                         <Pencil size={14} className="text-gray-500" />
                         <span className="text-sm">Edit Profile</span>
                       </Link>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem asChild>
                       <Link
                         href={`${profileHref}/setting`}
-                        className="flex items-center gap-2 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
                       >
                         <Settings size={14} className="text-gray-500" />
                         <span className="text-sm">Settings</span>
                       </Link>
                     </DropdownMenuItem>
-
                     <DropdownMenuSeparator />
-
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <DropdownMenuItem
                           onSelect={(e) => e.preventDefault()}
-                          className="flex items-center justify-between cursor-pointer"
+                          className="flex items-center justify-between cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
                         >
                           <div className="flex items-center gap-2">
                             {(() => {
@@ -907,8 +908,8 @@ export function AppSidebar() {
                         {STATUS_OPTIONS.map((option) => (
                           <DropdownMenuItem
                             key={option.value}
-                            onClick={() => setActiveStatus(option.value)}
-                            className="flex items-center gap-2 cursor-pointer"
+                            onClick={() => handleStatusChange(option.value)}
+                            className="flex items-center gap-2 cursor-pointer hover:bg-slate-200 focus:bg-slate-200"
                           >
                             <span className={option.color}>{option.icon}</span>
                             <span className="text-sm">{option.label}</span>
