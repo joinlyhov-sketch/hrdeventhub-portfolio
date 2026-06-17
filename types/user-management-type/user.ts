@@ -1,3 +1,5 @@
+export type RoleType = "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT";
+
 export interface Generation {
   generationId: string;
   name: string;
@@ -16,19 +18,22 @@ export interface ApiUser {
   gender: string;
   dateOfBirth: string;
   phoneNumber: string;
-  profilePicture: string;
-  generation: Generation;
+
+  profilePicture?: string;
+  generation?: Generation;
+
   active: boolean;
   verified: boolean;
   telegramSubscribed: boolean;
   createdAt: string;
   updatedAt: string;
-  role: "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT";
+
+  role?: RoleType;
 }
 
 export interface UserData extends ApiUser {
-  no: string; 
-  status: "Active" | "Suspended"; 
+  no: string;
+  status: "Active" | "Suspended";
   gen: string;
   phone: string;
 }
@@ -36,5 +41,7 @@ export interface UserData extends ApiUser {
 export interface ApiResponse {
   success: boolean;
   message: string;
+  status?: string;
   payload: ApiUser[];
+  timestamp?: string;
 }

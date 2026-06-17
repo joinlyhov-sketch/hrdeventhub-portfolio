@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useTransition } from "react";
+import React, { useMemo, useState, useTransition } from "react";
 import { UserX, ListFilter, ArrowUp, ArrowDown } from "lucide-react";
 import Search from "../../site/search/Search";
 import UserRow from "./UserRow";
@@ -8,7 +8,10 @@ import EditRoleModal from "../pop-up/user-management-pop-up/EditRoleModal";
 import SuspendModal from "../pop-up/user-management-pop-up/SuspendModal";
 import ReactivateModal from "../pop-up/user-management-pop-up/ReactivateModal";
 import FilterStatusModal from "../pop-up/user-management-pop-up/FilterStatusModal";
-import { UserData } from "../../../types/user-management-type/user";
+import {
+  RoleType,
+  UserData,
+} from "../../../types/user-management-type/user";
 import { PaginationDemo } from "@/components/feedback/Pagination";
 import { toast } from "sonner";
 import {
@@ -46,6 +49,7 @@ export default function UserTableClient({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [genSortAsc, setGenSortAsc] = useState<boolean>(true);
   const [sortApplied, setSortApplied] = useState<boolean>(false);
+
   const itemsPerPage = 10;
 
   const [isPending, startTransition] = useTransition();
@@ -66,20 +70,24 @@ export default function UserTableClient({
   const uniqueGenerations = useMemo(() => {
     const generations = users
       .map((user) => user.generation?.name)
-      .filter(Boolean);
+      .filter(Boolean) as string[];
+
     return Array.from(new Set(generations)).sort();
   }, [users]);
 
   const filteredUsers = useMemo(() => {
     const filtered = users.filter((user) => {
+      const searchValue = search.toLowerCase();
+
+      const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`;
+
       const matchesSearch =
-        user.username.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase()) ||
-        `${user.firstName} ${user.lastName}`
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        user.firstName?.toLowerCase().includes(search.toLowerCase()) ||
-        user.lastName?.toLowerCase().includes(search.toLowerCase());
+        user.username?.toLowerCase().includes(searchValue) ||
+        user.email?.toLowerCase().includes(searchValue) ||
+        fullName.toLowerCase().includes(searchValue) ||
+        user.firstName?.toLowerCase().includes(searchValue) ||
+        user.lastName?.toLowerCase().includes(searchValue);
+
       const matchesGen =
         selectedGen === "all" || user.generation?.name === selectedGen;
 
@@ -87,6 +95,7 @@ export default function UserTableClient({
         selectedStatus === "all" ||
         selectedStatus === "" ||
         user.status?.toLowerCase() === selectedStatus.toLowerCase();
+
       return matchesSearch && matchesGen && matchesStatus;
     });
 
@@ -95,6 +104,7 @@ export default function UserTableClient({
     return [...filtered].sort((a, b) => {
       const genA = parseInt(a.generation?.name?.replace(/\D/g, "") || "0", 10);
       const genB = parseInt(b.generation?.name?.replace(/\D/g, "") || "0", 10);
+
       return genSortAsc ? genA - genB : genB - genA;
     });
   }, [users, search, selectedGen, selectedStatus, genSortAsc, sortApplied]);
@@ -115,36 +125,50 @@ export default function UserTableClient({
   };
 
   const handleConfirmReactivate = (userId: string | number) => {
-    const idString = userId.toString();
+    const idString = String(userId);
+
     startTransition(async () => {
       try {
         const response = await reactivateUserAction(idString);
-        if (response.success) {
+
+        if (response?.success) {
           setUsers((prev) =>
-            prev.map((u) =>
-              u.no === idString ? { ...u, status: "Active" } : u,
+            prev.map((user) =>
+              user.appUserId === idString || user.no === idString
+                ? { ...user, status: "Active", active: true }
+                : user,
             ),
           );
-          toast.success("user has been reactivate back");
+
+          toast.success("User has been reactivated");
+        } else {
+          toast.error(response?.message || "Failed to reactivate user");
         }
+
         setSelectedUserForReactivate(null);
       } catch (err) {
         console.error("Failed to reactivate user:", err);
+        toast.error("An error occurred while reactivating user");
       }
     });
   };
 
   const handleConfirmSuspend = (userId: string | number, reason: string) => {
-    const idString = userId.toString();
+    const idString = String(userId);
+
     startTransition(async () => {
       try {
         const response = await suspendUserAction(idString, reason);
-        if (response && response.success) {
+
+        if (response?.success) {
           setUsers((prev) =>
-            prev.map((u) =>
-              u.no === idString ? { ...u, status: "Suspended" } : u,
+            prev.map((user) =>
+              user.appUserId === idString || user.no === idString
+                ? { ...user, status: "Suspended", active: false }
+                : user,
             ),
           );
+
           toast.success("User has been suspended successfully");
           setSelectedUserForSuspend(null);
         } else {
@@ -161,39 +185,55 @@ export default function UserTableClient({
 
   const handleConfirmRoleChange = (
     userId: string | number,
-    role: "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT",
+    newRole: RoleType,
   ) => {
-    const idString = userId.toString();
+    const idString = String(userId);
+
     startTransition(async () => {
       try {
-        const response = await updateUserRoleAction(idString, role);
+        const response = await updateUserRoleAction(idString, newRole);
+
         if (response?.success) {
           setUsers((prev) =>
-            prev.map((u) => (u.no === idString ? { ...u, role: role } : u)),
+            prev.map((user) =>
+              user.appUserId === idString || user.no === idString
+                ? { ...user, role: newRole }
+                : user,
+            ),
           );
+
           setSelectedUserForRole(null);
           toast.success("Role updated successfully");
+        } else {
+          toast.error(response?.message || "Failed to update role");
         }
       } catch (err) {
-        console.error(err);
+        console.error("Failed to update role:", err);
+        toast.error("An error occurred while updating role");
       }
     });
   };
 
   const handleEditClick = (user: UserData) => {
-    const latestUser = users.find((u) => u.no === user.no);
+    const latestUser = users.find(
+      (item) => item.appUserId === user.appUserId || item.no === user.no,
+    );
+
     setSelectedUserForRole(latestUser || user);
   };
 
   const extractGenNumber = (genName: string | undefined | null) => {
     if (!genName) return "N/A";
+
     const match = genName.match(/\d+/);
     return match ? match[0] : genName;
   };
 
   return (
     <div
-      className={`space-y-6 ${isPending ? "opacity-60 pointer-events-none" : ""}`}
+      className={`space-y-6 ${
+        isPending ? "opacity-60 pointer-events-none" : ""
+      }`}
     >
       <div className="flex items-center justify-end mb-6 gap-2 w-full box-border">
         <Search
@@ -213,18 +253,23 @@ export default function UserTableClient({
               <TableHead className="px-1 py-3 text-white text-center w-[10%] type-desc-semibold">
                 No.
               </TableHead>
+
               <TableHead className="px-6 py-3 text-white w-[30%] type-desc-semibold">
                 Username
               </TableHead>
+
               <TableHead className="px-1 py-3 text-white w-[37%] type-desc-semibold">
                 Email
               </TableHead>
+
               <TableHead className="px-6 py-3 text-white w-[25%] type-desc-semibold">
                 Phone
               </TableHead>
+
               <TableHead className="px-6 py-3 text-white w-[15%] type-desc-semibold">
                 Gender
               </TableHead>
+
               <TableHead className="px-1 py-3 text-center text-white type-desc-semibold w-[15%]">
                 <div className="flex items-center justify-center gap-1">
                   <span className="select-none whitespace-nowrap">
@@ -233,6 +278,7 @@ export default function UserTableClient({
                       ? `(${selectedGen.replace(/\D/g, "")})`
                       : ""}
                   </span>
+
                   <button
                     type="button"
                     onClick={() => {
@@ -248,6 +294,7 @@ export default function UserTableClient({
                       <ArrowDown size={16} />
                     )}
                   </button>
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
@@ -257,14 +304,15 @@ export default function UserTableClient({
                         <ListFilter size={16} />
                       </button>
                     </DropdownMenuTrigger>
+
                     <DropdownMenuContent
                       align="center"
                       className="rounded-xl border border-slate-100 shadow-xl bg-white p-1 min-w-[100px]"
                     >
                       <DropdownMenuRadioGroup
                         value={selectedGen}
-                        onValueChange={(v) => {
-                          setSelectedGen(v);
+                        onValueChange={(value) => {
+                          setSelectedGen(value);
                           setCurrentPage(1);
                         }}
                       >
@@ -274,13 +322,14 @@ export default function UserTableClient({
                         >
                           All
                         </DropdownMenuRadioItem>
+
                         {uniqueGenerations.map((gen) => (
                           <DropdownMenuRadioItem
                             key={gen}
-                            value={gen.toString()}
+                            value={gen}
                             className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                           >
-                            {extractGenNumber(gen.toString())}
+                            {extractGenNumber(gen)}
                           </DropdownMenuRadioItem>
                         ))}
                       </DropdownMenuRadioGroup>
@@ -297,9 +346,13 @@ export default function UserTableClient({
                   <span className="truncate">
                     Status{" "}
                     {selectedStatus !== "all" && selectedStatus !== ""
-                      ? `(${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)})`
+                      ? `(${
+                          selectedStatus.charAt(0).toUpperCase() +
+                          selectedStatus.slice(1)
+                        })`
                       : ""}
                   </span>
+
                   <ListFilter size={16} className="shrink-0" />
                 </div>
               </TableHead>
@@ -309,17 +362,20 @@ export default function UserTableClient({
               </TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {paginatedUsers.length > 0 ? (
-              paginatedUsers.map((user, idx) => {
+              paginatedUsers.map((user, index) => {
                 const pageOffset =
                   (Number(currentPage) - 1) * Number(itemsPerPage);
-                const sequentialRowNumber = isNaN(pageOffset)
-                  ? idx
-                  : pageOffset + idx;
+
+                const sequentialRowNumber = Number.isNaN(pageOffset)
+                  ? index
+                  : pageOffset + index;
+
                 return (
                   <UserRow
-                    key={user.no}
+                    key={user.appUserId}
                     user={user}
                     index={sequentialRowNumber}
                     onEditRole={handleEditClick}
@@ -334,10 +390,12 @@ export default function UserTableClient({
                     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center border border-slate-100">
                       <UserX size={30} className="text-red-500" />
                     </div>
+
                     <div>
                       <p className="text-base font-bold text-secondary">
                         User doesn&apos;t exist
                       </p>
+
                       <p className="text-sm text-gray-400 font-medium">
                         We couldn&apos;t find any match for your current query.
                       </p>
