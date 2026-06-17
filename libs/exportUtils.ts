@@ -35,7 +35,7 @@ function toCsv(rows: Record<string, unknown>[]): string {
   const headers = Object.keys(rows[0]);
   const headerRow = headers.map(escapeCell).join(",");
   const dataRows = rows.map((row) =>
-    headers.map((h) => escapeCell(row[h])).join(",")
+    headers.map((h) => escapeCell(row[h])).join(","),
   );
   return [headerRow, ...dataRows].join("\n");
 }
@@ -64,7 +64,7 @@ async function fetchQuestionMap(surveyId: string): Promise<{
         (page.elements ?? []).map((el) => ({
           name: el.name ?? "",
           title: el.title ?? el.name ?? "",
-        }))
+        })),
     );
     return { surveyTitle, questions };
   } catch {
@@ -74,7 +74,7 @@ async function fetchQuestionMap(surveyId: string): Promise<{
 
 export async function generateSurveyCsv(
   allResponses: SurveySubmissionResponse[],
-  surveyTitle: string
+  surveyTitle: string,
 ): Promise<void> {
   if (!allResponses || allResponses.length === 0) {
     throw new Error("No responses found for this survey.");
@@ -82,7 +82,8 @@ export async function generateSurveyCsv(
 
   const surveyId = allResponses[0].surveyId;
 
-  const { surveyTitle: fetchedTitle, questions } = await fetchQuestionMap(surveyId);
+  const { surveyTitle: fetchedTitle, questions } =
+    await fetchQuestionMap(surveyId);
   const resolvedTitle = fetchedTitle || surveyTitle;
 
   const keyToTitle = new Map<string, string>();
@@ -119,7 +120,7 @@ export async function generateSurveyCsv(
       row[header] =
         val !== null && val !== undefined && typeof val === "object"
           ? JSON.stringify(val)
-          : val ?? "";
+          : (val ?? "");
     }
 
     return row;
@@ -130,7 +131,10 @@ export async function generateSurveyCsv(
   downloadCsv(csv, `survey_${safeTitle}_responses.csv`);
 }
 
-export function generatePollCsv(options: PollOption[], pollTitle: string): void {
+export function generatePollCsv(
+  options: PollOption[],
+  pollTitle: string,
+): boolean | undefined {
   if (!options || options.length === 0) {
     throw new Error("No options found for this poll.");
   }
@@ -144,4 +148,5 @@ export function generatePollCsv(options: PollOption[], pollTitle: string): void 
   const csv = toCsv(rows);
   const safeTitle = pollTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase();
   downloadCsv(csv, `poll_${safeTitle}_results.csv`);
+  return true;
 }

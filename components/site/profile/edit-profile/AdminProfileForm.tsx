@@ -86,8 +86,9 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [initialIdentity, setInitialIdentity] =
     useState<IdentitySnapshot | null>(null);
 
-  const [initialProfile, setInitialProfile] =
-    useState<ProfileSnapshot | null>(null);
+  const [initialProfile, setInitialProfile] = useState<ProfileSnapshot | null>(
+    null,
+  );
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("Admin");
@@ -529,7 +530,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
       lastName: lastName.trim(),
       username: username.trim(),
       dateOfBirth: dob.trim(),
-      phoneNumber: phoneNumber.trim(),
+      phoneNumber: `+855${phoneNumber.trim()}`,
     };
 
     const activeSocials = [
@@ -930,13 +931,16 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <input
                       type="text"
                       inputMode="numeric"
-                      maxLength={9}
-                      value={phoneNumber}
+                      maxLength={11}
+                      value={phoneNumber.replace(
+                        /(\d{2})(\d{3})(\d{0,4})/,
+                        (_, a, b, c) => [a, b, c].filter(Boolean).join(" "),
+                      )}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "");
+                        const rawValue = e.target.value.replace(/\D/g, "");
 
-                        if (/^\d{0,9}$/.test(value)) {
-                          setPhoneNumber(value);
+                        if (/^\d{0,9}$/.test(rawValue)) {
+                          setPhoneNumber(rawValue);
 
                           setErrors((prev) => ({
                             ...prev,
@@ -945,7 +949,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                         }
                       }}
                       className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
-                      placeholder="123 456 789"
+                      placeholder="89 124 5768"
                     />
                   </div>
 
@@ -1172,10 +1176,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
                             setErrors((prev) => ({
                               ...prev,
-                              facebookUrl: validateField(
-                                "facebookUrl",
-                                value,
-                              ),
+                              facebookUrl: validateField("facebookUrl", value),
                             }));
                           }}
                           className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"

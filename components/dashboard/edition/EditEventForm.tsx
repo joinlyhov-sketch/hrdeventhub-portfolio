@@ -214,10 +214,7 @@ export default function EditEventForm() {
           data.paymentType === "flexible" ? Number(data.targetGoal) : null,
       },
     };
-    console.log(
-      "MATCHED SWAGGER ARTICLE PAYLOAD:",
-      JSON.stringify(payload, null, 2),
-    );
+
     try {
       const result = await updatePostAction(workspaceId, postId, payload);
 
@@ -259,14 +256,15 @@ export default function EditEventForm() {
     }
   };
   const handleCancel = () => {
-    const fallbackUrl = isAdmin ? "/event-management" : `/group/${workspaceId}`;
     if (isDirty) {
       const customEvent = new CustomEvent("trigger-unsaved-guard", {
-        detail: { fallbackUrl },
+        detail: {
+          isBack: true,
+        },
       });
       window.dispatchEvent(customEvent);
     } else {
-      router.push(fallbackUrl);
+      router.back();
     }
   };
 
@@ -601,6 +599,7 @@ export default function EditEventForm() {
           <div>
             <FormTextarea
               label="Description (Optional)"
+              maxLength={2000}
               placeholder="Describe the mission and scope of this event..."
               {...register("description")}
               isError={errors.description != null}

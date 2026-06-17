@@ -35,12 +35,12 @@ export function EventManagementClient({
 
   return (
     <div className="space-y-6">
-      <StatsCardsSection 
-  events={events} 
-  transactions={transactions}
-  attendeeCountByPostId={attendeeCountByPostId}
-  isOrganizer={isOrganizer}
-/>
+      <StatsCardsSection
+        events={events}
+        transactions={transactions}
+        attendeeCountByPostId={attendeeCountByPostId}
+        isOrganizer={isOrganizer}
+      />
 
       <div className="bg-background rounded-2xl border border-gray-200 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
