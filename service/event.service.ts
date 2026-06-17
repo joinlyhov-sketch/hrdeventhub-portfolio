@@ -138,7 +138,7 @@ export const eventService = {
   ): Promise<EventItem[]> => {
     const response = await apiGet<EventResponse>(
       `/posts/events?page=${page}&size=${size}`,
-      { authToken: token },
+      { authToken: token, tags: ["events-management"] },
     );
     return response.payload;
   },
@@ -349,43 +349,45 @@ export const eventService = {
     return response.payload || [];
   },
   getOrganizerParticipants: async (
-  token: string,
-  page: number = 1,
-  size: number = 100,
-): Promise<Participant[]> => {
-  const response = await apiGet<ParticipantResponse>(
-    `/posts/participants/my-workspaces?page=${page}&size=${size}`,
-    { authToken: token },
-  );
-  return response.payload || [];
-},
+    token: string,
+    page: number = 1,
+    size: number = 100,
+  ): Promise<Participant[]> => {
+    const response = await apiGet<ParticipantResponse>(
+      `/posts/participants/my-workspaces?page=${page}&size=${size}`,
+      { authToken: token, tags: ["organizer-events"] },
+    );
+    return response.payload || [];
+  },
 
-getOrganizerEvents: async (token: string): Promise<{
-  events: EventItem[];
-  participantsByPostId: Map<string, Participant[]>;
-}> => {
-  const participants = await eventService.getOrganizerParticipants(token);
+  getOrganizerEvents: async (
+    token: string,
+  ): Promise<{
+    events: EventItem[];
+    participantsByPostId: Map<string, Participant[]>;
+  }> => {
+    const participants = await eventService.getOrganizerParticipants(token);
 
-  const participantsByPostId = new Map<string, Participant[]>();
-  const eventsById = new Map<string, EventItem>();
+    const participantsByPostId = new Map<string, Participant[]>();
+    const eventsById = new Map<string, EventItem>();
 
-  participants.forEach((p) => {
-    if (p.post) {
-      eventsById.set(p.postId, p.post);
-    }
-    const existing = participantsByPostId.get(p.postId) || [];
-    existing.push(p);
-    participantsByPostId.set(p.postId, existing);
-  });
+    participants.forEach((p) => {
+      if (p.post) {
+        eventsById.set(p.postId, p.post);
+      }
+      const existing = participantsByPostId.get(p.postId) || [];
+      existing.push(p);
+      participantsByPostId.set(p.postId, existing);
+    });
 
-  const events = Array.from(eventsById.values()).sort((a, b) => {
-    const aTime = new Date(a.eventStart).getTime();
-    const bTime = new Date(b.eventStart).getTime();
-    if (Number.isNaN(aTime)) return 1;
-    if (Number.isNaN(bTime)) return -1;
-    return aTime - bTime;
-  });
+    const events = Array.from(eventsById.values()).sort((a, b) => {
+      const aTime = new Date(a.eventStart).getTime();
+      const bTime = new Date(b.eventStart).getTime();
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return aTime - bTime;
+    });
 
-  return { events, participantsByPostId };
-},
+    return { events, participantsByPostId };
+  },
 };
