@@ -20,6 +20,7 @@ import { getPresenceAction } from "@/actions/presence.action";
 import { PresenceMap } from "@/service/presence.service";
 import type { ViewMode } from "@/app/(root)/profile/[id]/page";
 import { useRouter } from "next/navigation";
+import Loading from "@/app/loading";
 
 const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <div className="flex items-center gap-3 w-full min-w-0">
@@ -88,9 +89,7 @@ export default function ProfileCard({
   if (loading) {
     return (
       <div className="bg-card border border-border rounded-xl shadow-sm flex items-center justify-center h-96 w-full">
-        <p className="text-muted-foreground animate-pulse">
-          Loading profile...
-        </p>
+        <Loading />
       </div>
     );
   }

@@ -66,7 +66,8 @@ export default function ReactivateModal({
           <div className="space-y-3 w-full">
             <DialogHeader className="space-y-1.5 text-center">
               <DialogTitle className="text-2xl  text-primary font-semibold">
-                Reactivate User
+                Reactivate  &ldquo;{user ? `${user.firstName} ${user.lastName}` : "User"}
+                  &rdquo;
               </DialogTitle>
             </DialogHeader>
 
@@ -79,10 +80,6 @@ export default function ReactivateModal({
                 </span>
                 ?
               </span>
-              <br />
-              This will restore full access to the platform. The user will be
-              able to log in and register for <br />
-              events immediately.
             </DialogDescription>
           </div>
 
