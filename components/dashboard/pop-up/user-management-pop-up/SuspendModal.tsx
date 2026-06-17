@@ -90,56 +90,48 @@ export default function SuspendModal({
           </div>
         </div>
 
-        <div className="p-5 space-y-2 text-center">
-          <div className="w-18 h-18 bg-red-100 rounded-full flex items-center justify-center border border-red-100 mx-auto">
-            <AlertOctagon className="w-13 h-13 text-red-500" />
-          </div>
-
+        <div className="p-5 space-y-5 text-center">
           <div className="space-y-5 w-full relative">
             <DialogHeader className="space-y-1.5 text-center">
+              <div className="w-18 h-18 bg-red-100 rounded-full flex items-center justify-center border border-red-100 mx-auto">
+                <AlertOctagon className="w-13 h-13 text-red-500" />
+              </div>
               <DialogTitle className="text-2xl font-bold text-slate-800 tracking-tight">
-                Suspend this user?
-              </DialogTitle>
-            </DialogHeader>
 
-            <div className="max-w-md mx-auto flex items-center justify-center">
-              <Select value={selectedReason} onValueChange={setSelectedReason}>
-                <SelectTrigger className="w-[70%] bg-grey-100 hover:bg-gray-200/80 text-black rounded-2xl px-3 py-6 font-bold flex items-center justify-between border-none outline-none focus:ring-0 focus:ring-offset-0 cursor-pointer">
-                  <SelectValue placeholder="Reason" />
-                </SelectTrigger>
-                <SelectContent
-                  side="bottom"
-                  position="popper"
-                  className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
-                >
-                  {REASON_MAPPING.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <DialogDescription className="text-sm text-grey-600 max-w-2xl mx-auto">
-              <span className="text-lg">
                 Are you sure you want to suspend{" "}
                 <span className="font-bold text-gray-900">
                   &ldquo;{user ? `${user.firstName} ${user.lastName}` : "User"}
                   &rdquo;
-                </span>
+  
                 ?
               </span>
-              <br />
-              This user will be barred from login and registration.
-              <br />
-              You will need to manually reactivate them <br />
-              to restore access.
-            </DialogDescription>
+              </DialogTitle>
+            </DialogHeader>
+              <span className="text-lg"> You will need to manually reactivate them <br />
+                to restore access.</span>
+          </div>
+
+          <div className="max-w-md mx-auto flex items-center justify-center">
+            <Select value={selectedReason} onValueChange={setSelectedReason}>
+              <SelectTrigger className="w-[70%] bg-grey-100 hover:bg-gray-200/80 text-black rounded-2xl px-3 py-6 font-bold flex items-center justify-between border-none outline-none focus:ring-0 focus:ring-offset-0 cursor-pointer">
+                <SelectValue placeholder="Reason" />
+              </SelectTrigger>
+              <SelectContent
+                side="bottom"
+                position="popper"
+                className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
+              >
+                {REASON_MAPPING.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-center gap-4 py-2 w-full">
