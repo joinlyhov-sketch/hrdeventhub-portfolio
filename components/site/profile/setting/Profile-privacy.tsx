@@ -4,7 +4,6 @@ import React from "react";
 import {
   Eye,
   Mail,
-  Code,
   Phone,
   GraduationCap,
   Cake,
@@ -176,7 +175,7 @@ export default function ProfilePrivacy({
           <div className="w-full type-subtitle-24 font-bold text-secondary ">
             Preview As Public
           </div>
-          <div className="h-28 border border-border rounded-2xl shrink-0 relative overflow-hidden">
+          <div className="h-48 border border-border rounded-2xl shrink-0 relative overflow-hidden">
             <img
               src={`/covers/cover${coverIndex}.jpg`}
               alt="Cover"
@@ -233,7 +232,7 @@ export default function ProfilePrivacy({
         <div className="w-full type-subtitle-24 font-bold text-[#0f2d59]">
           Preview As Public
         </div>
-        <div className="h-28 border border-border rounded-2xl shrink-0 relative overflow-hidden">
+        <div className="h-48 border border-border rounded-2xl shrink-0 relative overflow-hidden">
           <img
             src={`/covers/cover${coverIndex}.jpg`}
             alt="Cover"

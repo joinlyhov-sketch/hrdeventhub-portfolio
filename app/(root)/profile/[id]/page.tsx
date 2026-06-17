@@ -24,7 +24,6 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfilePayload | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   
-  // 1. Lifted Public View Preview state variable control
   const [isPublicView, setIsPublicView] = useState(false);
 
   const isReady = sessionStatus === "authenticated" && !userLoading;
@@ -64,7 +63,6 @@ export default function ProfilePage() {
   const sharingMode = profile?.profileSharingMode;
   const isPrivate = sharingMode === "PRIVATE";
 
-  // 2. Hide extra tabs if profile is private AND we are in public view or an external guest
   const hideTabsDueToPrivacy = isPrivate && (!isSelf || isPublicView);
 
   const showEventTab =
@@ -136,7 +134,6 @@ export default function ProfilePage() {
               loading={profileLoading || !isReady}
               profileId={userId}
               authToken={session?.accessToken ?? ""}
-              // 3. Connect state properties into the child card
               isPublicView={isPublicView}
               setIsPublicView={setIsPublicView}
             />
@@ -164,7 +161,6 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="w-full flex-1 min-h-0 xl:overflow-hidden">
-              {/* 4. Let BackgroundTab internal configurations process privacy views natively */}
               {activeTab === "BG" && (
                 <BackgroundTab
                   profile={profile}
