@@ -8,7 +8,6 @@ import { UserProvider } from "../context/user-context";
 import { SessionGuard } from "@/components/auth/SessionGuard";
 import { Toaster } from "sonner";
 import { NotificationProvider } from "@/context/NotificationProvider";
-import { NotificationBell } from "@/components/NotificationBell";
 import { StatusProvider } from "@/context/StatusContext";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
@@ -34,7 +33,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <StatusProvider>
                 <NotificationProvider>
                   {children}
-                  <NotificationBell />
                 </NotificationProvider>
               </StatusProvider>
             </SessionGuard>

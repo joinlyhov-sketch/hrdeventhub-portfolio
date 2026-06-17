@@ -35,6 +35,7 @@ import {
   Circle,
   MinusCircle,
   Moon,
+  Bell,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -44,6 +45,7 @@ import { logoutAction } from "@/actions/auth.action";
 import { useMyWorkspaces } from "@/hooks/use-my-workspace";
 import { setOnlineAction, setOfflineAction } from "@/actions/presence.action";
 import { useStatusContext, ActiveStatus } from "@/context/StatusContext";
+import { useNotificationStore } from "@/store/useNotificationStore";
 
 const ADMIN_ROLES = ["admin", "organizer"] as const;
 const STUDENT_ALUMNI_ROLES = ["student", "alumni"] as const;
@@ -96,6 +98,7 @@ export function AppSidebar() {
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const { activeStatus, setActiveStatus } = useStatusContext();
+  const { unreadCount } = useNotificationStore();
 
   const isAdmin = currentUser?.role === "admin";
   const isStudentOrAlumni = STUDENT_ALUMNI_ROLES.includes(
@@ -415,6 +418,31 @@ export function AppSidebar() {
                       className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                     >
                       Chat
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/notifications")}
+                  asChild
+                  tooltip="Notifications"
+                  className="h-11"
+                >
+                  <Link href="/notifications">
+                    <span className="relative inline-flex shrink-0">
+                      <Bell size={18} className="text-[#878787]" />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </span>
+                    <span
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                    >
+                      Notifications
                     </span>
                   </Link>
                 </SidebarMenuButton>
