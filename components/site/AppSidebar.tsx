@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import {
   Sidebar,
@@ -28,7 +28,6 @@ import {
   Pin,
   MessageCircle,
   ClipboardList,
-  Bell,
   User,
   Pencil,
   Settings,
@@ -36,8 +35,6 @@ import {
   Circle,
   MinusCircle,
   Moon,
-  Clock,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -45,11 +42,11 @@ import { LogoutModal } from "./pop-up/commons/LogoutModal";
 import { useCurrentUser } from "@/context/user-context";
 import { logoutAction } from "@/actions/auth.action";
 import { useMyWorkspaces } from "@/hooks/use-my-workspace";
+import { setOnlineAction, setOfflineAction } from "@/actions/presence.action";
+import { useStatusContext, ActiveStatus } from "@/context/StatusContext";
 
 const ADMIN_ROLES = ["admin", "organizer"] as const;
 const STUDENT_ALUMNI_ROLES = ["student", "alumni"] as const;
-
-type ActiveStatus = "online" | "idle" | "do-not-disturb" | "offline";
 
 const STATUS_OPTIONS: {
   value: ActiveStatus;
@@ -62,12 +59,6 @@ const STATUS_OPTIONS: {
     label: "Online",
     icon: <Circle size={10} className="fill-current" />,
     color: "text-green-500",
-  },
-  {
-    value: "idle",
-    label: "Idle",
-    icon: <Clock size={10} />,
-    color: "text-yellow-500",
   },
   {
     value: "do-not-disturb",
@@ -103,8 +94,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [activeStatus, setActiveStatus] = useState<ActiveStatus>("online");
+
+  const { activeStatus, setActiveStatus } = useStatusContext();
 
   const isAdmin = currentUser?.role === "admin";
   const isStudentOrAlumni = STUDENT_ALUMNI_ROLES.includes(
@@ -119,8 +110,24 @@ export function AppSidebar() {
     currentUser !== null &&
     ADMIN_ROLES.includes(currentUser?.role as (typeof ADMIN_ROLES)[number]);
 
+  useEffect(() => {
+    if (!session?.accessToken) return;
+    setOnlineAction();
+    setActiveStatus("online");
+  }, [session?.accessToken]);
+
+  const handleStatusChange = async (status: ActiveStatus) => {
+    setActiveStatus(status);
+    if (status === "offline") {
+      await setOfflineAction();
+    } else {
+      await setOnlineAction();
+    }
+  };
+
   const handleConfirmLogout = async () => {
     setIsLogoutOpen(false);
+    await setOfflineAction();
     if (session?.refreshToken) {
       await logoutAction(session.refreshToken);
     }
@@ -176,7 +183,6 @@ export function AppSidebar() {
               >
                 Pinned
               </SidebarGroupLabel>
-
               <SidebarMenu className="flex flex-col gap-1">
                 {pinnedWorkspaces.length === 0 ? (
                   <SidebarMenuItem>
@@ -417,47 +423,30 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={pathname === profileHref}
+                  asChild
+                  tooltip="Profile"
+                  className="h-11"
+                >
+                  <Link href={profileHref}>
+                    <User size={18} className="shrink-0 text-[#878787]" />
+                    <span
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-50 opacity-100 translate-x-0"
+                      }`}
+                    >
+                      Profile
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
               {!isStudentOrAlumni && (
                 <>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      isActive={pathname === profileHref}
-                      asChild
-                      tooltip="Profile"
-                      className="h-11"
-                    >
-                      <Link href={profileHref}>
-                        <svg
-                          width={18}
-                          height={18}
-                          viewBox="0 0 18 18"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
-                            stroke="#878787"
-                            strokeWidth={1.5}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M15.4436 16.5C15.4436 13.5975 12.5561 11.25 9.00109 11.25C5.44609 11.25 2.55859 13.5975 2.55859 16.5"
-                            stroke="#878787"
-                            strokeWidth={1.5}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span
-                          className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
-                        >
-                          Profile
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
 
                   <SidebarMenuItem>
                     <SidebarMenuButton
@@ -566,7 +555,6 @@ export function AppSidebar() {
               >
                 Administration
               </SidebarGroupLabel>
-
               <SidebarMenu className="flex flex-col gap-1">
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -839,41 +827,28 @@ export function AppSidebar() {
                   >
                     <DropdownMenuItem asChild>
                       <Link
-                        href={profileHref}
-                        className="flex items-center gap-2 cursor-pointer"
-                      >
-                        <User size={14} className="text-gray-500" />
-                        <span className="text-sm">Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem asChild>
-                      <Link
                         href={`${profileHref}/edit-profile`}
-                        className="flex items-center gap-2 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
                       >
                         <Pencil size={14} className="text-gray-500" />
                         <span className="text-sm">Edit Profile</span>
                       </Link>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem asChild>
                       <Link
                         href={`${profileHref}/setting`}
-                        className="flex items-center gap-2 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
                       >
                         <Settings size={14} className="text-gray-500" />
                         <span className="text-sm">Settings</span>
                       </Link>
                     </DropdownMenuItem>
-
                     <DropdownMenuSeparator />
-
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <DropdownMenuItem
                           onSelect={(e) => e.preventDefault()}
-                          className="flex items-center justify-between cursor-pointer"
+                          className="flex items-center justify-between cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
                         >
                           <div className="flex items-center gap-2">
                             {(() => {
@@ -907,8 +882,8 @@ export function AppSidebar() {
                         {STATUS_OPTIONS.map((option) => (
                           <DropdownMenuItem
                             key={option.value}
-                            onClick={() => setActiveStatus(option.value)}
-                            className="flex items-center gap-2 cursor-pointer"
+                            onClick={() => handleStatusChange(option.value)}
+                            className="flex items-center gap-2 cursor-pointer hover:bg-slate-200 focus:bg-slate-200"
                           >
                             <span className={option.color}>{option.icon}</span>
                             <span className="text-sm">{option.label}</span>
