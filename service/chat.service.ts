@@ -31,8 +31,6 @@ searchUsers(query: string, token: string): Promise<UserResult[]> {
     headers: authHeaders(token),
   }).then(async (res) => {
     if (!res.ok) {
-      const bodyText = await res.clone().text();
-      console.log("[DEBUG searchUsers] status:", res.status, "body:", bodyText);
     }
     return handle<UserResult[]>(res);
   });

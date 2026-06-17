@@ -57,7 +57,6 @@ export default function GroupDropDown({ workspace, userRole, pinnedCount }: Grou
           { revalidate: true }
         );
       } catch (error) {
-        console.error("[togglePin] Failed:", error);
       }
     });
   };
@@ -74,7 +73,6 @@ export default function GroupDropDown({ workspace, userRole, pinnedCount }: Grou
       );
       setIsLeaveOpen(false);
     } catch (error) {
-      console.error("[leaveWorkspace] Failed:", error);
     } finally {
       setIsLeavePending(false);
     }

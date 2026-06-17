@@ -50,7 +50,6 @@ export default function GenericPostDropDown({
       try {
         await onTogglePin(currentPinned);
       } catch (error) {
-        console.error("[togglePin] Failed:", error);
       }
     });
   };

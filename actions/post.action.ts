@@ -185,7 +185,6 @@ export async function updatePostAction(
       message: response.message || "Event updated successfully",
     };
   } catch (error: unknown) {
-    console.error("Server Action Process Failure:", error);
     return {
       ok: false,
       error:
