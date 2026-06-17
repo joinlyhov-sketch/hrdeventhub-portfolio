@@ -1,17 +1,21 @@
 "use client";
 
-import React from "react";
 import { Download, ClipboardList } from "lucide-react";
 import { UserProfilePayload } from "@/types/profile-types";
+import type { ViewMode } from "@/app/(root)/profile/[id]/page";
 
 interface BackgroundTabProps {
   profile: UserProfilePayload | null;
   loading: boolean;
+  viewMode: ViewMode | null;
+  isPublicView?: boolean;  
 }
 
 export default function BackgroundTab({
   profile,
   loading,
+  viewMode,
+  isPublicView = false,
 }: BackgroundTabProps) {
   if (loading) {
     return (
@@ -33,14 +37,18 @@ export default function BackgroundTab({
 
   const sharingMode = profile.profileSharingMode;
   const prefs = profile.preferences;
+  const showEdit = viewMode === "self";
 
   const isVisible = (field: keyof NonNullable<typeof prefs>): boolean => {
+    if (showEdit && !isPublicView) return true;
     if (sharingMode === "PUBLIC") return true;
     if (sharingMode === "PRIVATE") return false;
     return prefs?.[field] ?? true;
   };
 
-  if (sharingMode === "PRIVATE") {
+  const isProfileLocked = (showEdit && isPublicView && sharingMode === "PRIVATE") || (!showEdit && sharingMode === "PRIVATE");
+
+  if (isProfileLocked) {
     return (
       <div className="flex items-center justify-center h-48 text-muted-foreground type-desc">
         This profile is private.
@@ -80,38 +88,56 @@ export default function BackgroundTab({
     }
   };
 
+  const hasAnyVisibleSection = 
+    isVisible("showEducation") || 
+    isVisible("showSkills") || 
+    isVisible("showCv");
+
+  if (!hasAnyVisibleSection) {
+    return (
+      <div className="flex items-center justify-center h-48 text-muted-foreground type-desc">
+        No background information visible.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {isVisible("showEducation") && (
         <section>
           <h3 className="type-subtitle-24 text-primary mb-6">Education</h3>
-          <div className="space-y-6">
-            {profile.education?.map((edu, index) => (
-              <div
-                key={index}
-                className="flex gap-4 items-start pb-6 border-b border-border last:border-0 last:pb-0"
-              >
-                <div className="w-12 h-12 rounded-lg border border-border bg-grey-50 flex items-center justify-center shrink-0 overflow-hidden relative">
-                  <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase">
-                    {edu.institutionAbbreviation ||
-                      edu.institutionName.slice(0, 2)}
+          {profile.education && profile.education.length > 0 ? (
+            <div className="space-y-6">
+              {profile.education.map((edu, index) => (
+                <div
+                  key={index}
+                  className="flex gap-4 items-start pb-6 border-b border-border last:border-0 last:pb-0"
+                >
+                  <div className="w-12 h-12 rounded-lg border border-border bg-grey-50 flex items-center justify-center shrink-0 overflow-hidden relative">
+                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase">
+                      {edu.institutionAbbreviation ||
+                        edu.institutionName?.slice(0, 2) || "ED"}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="type-detail-semibold text-secondary">
+                      {edu.degree}
+                    </h4>
+                    <p className="type-desc-semibold text-primary">
+                      {edu.institutionName}
+                    </p>
+                    <p className="type-detail-small-medium text-muted-foreground mt-1">
+                      {edu.startYear} – {edu.isCurrent ? "Present" : (edu.endYear ?? "")}
+                    </p>
                   </div>
                 </div>
-                <div>
-                  <h4 className="type-detail-semibold text-secondary">
-                    {edu.degree}
-                  </h4>
-                  <p className="type-desc-semibold text-primary">
-                    {edu.institutionName}
-                  </p>
-                  <p className="type-detail-small-medium text-muted-foreground mt-1">
-                    {edu.startYear} –{" "}
-                    {edu.isCurrent ? "Present" : (edu.endYear ?? "")}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="type-desc text-muted-foreground">
+              No education listed yet.
+            </p>
+          )}
         </section>
       )}
 
@@ -166,14 +192,6 @@ export default function BackgroundTab({
           )}
         </section>
       )}
-
-      {!isVisible("showEducation") &&
-        !isVisible("showSkills") &&
-        !isVisible("showCv") && (
-          <div className="flex items-center justify-center h-48 text-muted-foreground type-desc">
-            No background information visible.
-          </div>
-        )}
     </div>
   );
 }
