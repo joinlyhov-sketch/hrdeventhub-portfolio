@@ -660,9 +660,7 @@ export default function EventDetailClient({
             <DiscussionSection
               event={event}
               workspaceId={workspaceId}
-              onCommentsCountChange={(count) =>
-                setDetailData((prev) => ({ ...prev, commentsCount: count }))
-              }
+              onCommentsCountChange={handleCommentsCountChange}
             />
           </div>
         )}
