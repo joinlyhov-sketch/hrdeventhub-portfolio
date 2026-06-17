@@ -32,11 +32,13 @@ import {
   Pencil,
   Settings,
   ChevronRight,
+  ChevronUp,
   Circle,
   MinusCircle,
   Moon,
   Bell,
   MessagesSquare,
+  ChevronLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -98,6 +100,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const { activeStatus, setActiveStatus } = useStatusContext();
   const { unreadCount } = useNotificationStore();
@@ -848,7 +851,10 @@ export function AppSidebar() {
           <SidebarMenu>
             <SidebarMenuItem>
               {isStudentOrAlumni ? (
-                <DropdownMenu>
+                <DropdownMenu
+                  open={isUserMenuOpen}
+                  onOpenChange={setIsUserMenuOpen}
+                >
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuButton size="lg" className="cursor-pointer">
                       <div className="relative w-8 h-8 rounded-full shrink-0 bg-grey-200 overflow-visible flex items-center justify-center">
@@ -869,8 +875,13 @@ export function AppSidebar() {
                         </div>
                         <StatusDot status={activeStatus} />
                       </div>
+
                       <div
-                        className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                        className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
+                          state === "collapsed"
+                            ? "max-w-0 opacity-0 -translate-x-2"
+                            : "max-w-50 opacity-100 translate-x-0"
+                        }`}
                       >
                         <span className="type-detail-semibold text-grey-900 leading-tight">
                           {currentUser?.name ?? "Loading..."}
@@ -879,44 +890,62 @@ export function AppSidebar() {
                           {currentUser?.email ?? ""}
                         </span>
                       </div>
+
+                      <ChevronLeft
+                        size={10}
+                        className={`ml-auto shrink-0 rotate-180 text-gray-400 ${
+                          state === "collapsed" ? "hidden" : "block"
+                        }`}
+                      />
                     </SidebarMenuButton>
                   </DropdownMenuTrigger>
+
                   <DropdownMenuContent
                     side="right"
                     align="end"
                     sideOffset={8}
-                    className="w-56 mb-2"
+                    className="
+        w-56 mb-2 rounded-xl border bg-white/95 p-1 shadow-xl backdrop-blur
+        data-[state=open]:animate-in data-[state=closed]:animate-out
+        data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0
+        data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95
+        data-[side=right]:slide-in-from-left-2
+      "
                   >
                     <DropdownMenuItem asChild>
                       <Link
                         href={`${profileHref}/edit-profile`}
-                        className="flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
+                        className="flex items-center gap-2 cursor-pointer rounded-lg transition-colors hover:bg-slate-100 focus:bg-slate-100 focus:text-slate-800"
                       >
                         <Pencil size={14} className="text-gray-500" />
                         <span className="text-sm">Edit Profile</span>
                       </Link>
                     </DropdownMenuItem>
+
                     <DropdownMenuItem asChild>
                       <Link
                         href={`${profileHref}/setting`}
-                        className="flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
+                        className="flex items-center gap-2 cursor-pointer rounded-lg transition-colors hover:bg-slate-100 focus:bg-slate-100 focus:text-slate-800"
                       >
                         <Settings size={14} className="text-gray-500" />
                         <span className="text-sm">Settings</span>
                       </Link>
                     </DropdownMenuItem>
+
                     <DropdownMenuSeparator />
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <DropdownMenuItem
                           onSelect={(e) => e.preventDefault()}
-                          className="flex items-center justify-between cursor-pointer transition-colors hover:bg-slate-200 focus:bg-slate-200 focus:text-slate-800"
+                          className="flex items-center justify-between cursor-pointer rounded-lg transition-colors hover:bg-slate-100 focus:bg-slate-100 focus:text-slate-800"
                         >
                           <div className="flex items-center gap-2">
                             {(() => {
                               const current = STATUS_OPTIONS.find(
                                 (s) => s.value === activeStatus,
                               );
+
                               return (
                                 <>
                                   <span className={`${current?.color}`}>
@@ -929,26 +958,30 @@ export function AppSidebar() {
                               );
                             })()}
                           </div>
+
                           <ChevronRight size={14} className="text-gray-400" />
                         </DropdownMenuItem>
                       </DropdownMenuTrigger>
+
                       <DropdownMenuContent
                         side="right"
                         align="end"
                         sideOffset={4}
-                        className="w-48"
+                        className="w-48 rounded-xl p-1 shadow-xl"
                       >
                         <div className="px-2 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                           Set Status
                         </div>
+
                         {STATUS_OPTIONS.map((option) => (
                           <DropdownMenuItem
                             key={option.value}
                             onClick={() => handleStatusChange(option.value)}
-                            className="flex items-center gap-2 cursor-pointer hover:bg-slate-200 focus:bg-slate-200"
+                            className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-slate-100 focus:bg-slate-100"
                           >
                             <span className={option.color}>{option.icon}</span>
                             <span className="text-sm">{option.label}</span>
+
                             {activeStatus === option.value && (
                               <span className="ml-auto text-[10px] text-muted-foreground">
                                 ✓
