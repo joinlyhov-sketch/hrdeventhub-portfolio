@@ -78,11 +78,15 @@ export default function LoginComponent() {
         return;
       }
       if (res?.ok) {
-        router.push(redirectUrl ?? "/group");
-        toast.success(
-          "Welcome to HRD EVENTHUB! You've successfully logged in.",
-        );
-      }
+  toast.success(
+    "Welcome to HRD EVENTHUB! You've successfully logged in.",
+  );
+  if (redirectUrl) {
+    window.location.href = redirectUrl;
+  } else {
+    router.push("/group");
+  }
+}
     });
   };
 
@@ -194,14 +198,14 @@ export default function LoginComponent() {
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <a
-              href="/sign-up"
-              className="font-semibold text-secondary underline underline-offset-2"
-            >
-              Sign up
-            </a>
-          </p>
+  Don&apos;t have an account?{" "}
+  
+    <a href={redirectUrl ? `/sign-up?redirect=${encodeURIComponent(redirectUrl)}` : "/sign-up"}
+    className="font-semibold text-secondary underline underline-offset-2"
+  >
+    Sign up
+  </a>
+</p>
         </form>
       </div>
     </motion.div>

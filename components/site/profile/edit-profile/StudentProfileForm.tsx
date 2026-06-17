@@ -232,6 +232,10 @@ export default function StudentProfileForm() {
       newErrors.lastName = "Last name is required";
       isValid = false;
     }
+    if (bio.length > 500) {
+      newErrors.bio = "Bio description cannot exceed 500 characters";
+      isValid = false;
+    }
 
     if (!username.trim()) {
       newErrors.username = "Username is required";
@@ -353,6 +357,7 @@ export default function StudentProfileForm() {
       window.dispatchEvent(event);
     } else {
       router.back();
+      sessionStorage.removeItem("pending-avatar");
     }
   };
   const currentIdentityPayload = {
@@ -360,7 +365,7 @@ export default function StudentProfileForm() {
     lastName: lastName.trim(),
     username: username.trim(),
     dateOfBirth: dob.trim(),
-    phoneNumber: phoneNumber.trim(),
+    phoneNumber: `+855${phoneNumber.trim()}`,
   };
 
   const validEducation = education.filter(
@@ -750,7 +755,7 @@ export default function StudentProfileForm() {
       lastName: lastName.trim(),
       username: username.trim(),
       dateOfBirth: dob.trim(),
-      phoneNumber: phoneNumber.trim(),
+      phoneNumber: `+855${phoneNumber.trim()}`,
     };
     const socialAccount = [
       {
@@ -1159,13 +1164,13 @@ export default function StudentProfileForm() {
                     <span className="text-primary">+855</span>
                   </div>
 
-                  <input
+                  {/* <input
                     type="text"
                     inputMode="numeric"
                     maxLength={9}
                     value={phoneNumber}
                     onChange={(e) => {
-                      const value = e.target.value;
+                      const value = e.target.value.replace(/\D/g, "");
 
                       if (/^\d{0,9}$/.test(value)) {
                         setPhoneNumber(value);
@@ -1177,7 +1182,30 @@ export default function StudentProfileForm() {
                       }
                     }}
                     className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
-                    placeholder="123 456 789"
+                    placeholder="123 456 7898"
+                  /> */}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={11}
+                    value={phoneNumber.replace(
+                      /(\d{2})(\d{3})(\d{0,4})/,
+                      (_, a, b, c) => [a, b, c].filter(Boolean).join(" "),
+                    )}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/\D/g, "");
+
+                      if (/^\d{0,9}$/.test(rawValue)) {
+                        setPhoneNumber(rawValue);
+
+                        setErrors((prev) => ({
+                          ...prev,
+                          phoneNumber: "",
+                        }));
+                      }
+                    }}
+                    className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
+                    placeholder="89 124 5768"
                   />
                 </div>
 
@@ -1200,12 +1228,14 @@ export default function StudentProfileForm() {
             <div className="flex flex-col gap-1.5 w-full">
               <label className="type-desc text-secondary">Profile Bio</label>
               <textarea
-                rows={3}
+                rows={4}
                 value={bio}
+                maxLength={50}
                 onChange={(e) => setBio(e.target.value)}
                 className="w-full p-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary resize-none"
               />
             </div>
+            {errors.bio && <p className="text-xs text-red-500">{errors.bio}</p>}
           </div>
           <section className="space-y-4">
             <h2 className="type-subtitle-24 text-primary">Social Accounts</h2>
@@ -1720,7 +1750,7 @@ export default function StudentProfileForm() {
                       });
                     }}
                     className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
-      ${educationErrors[idx]?.endYear ? "border-red-500" : "border-border"}`}
+                    ${educationErrors[idx]?.endYear ? "border-red-500" : "border-border"}`}
                   />
 
                   {educationErrors[idx]?.endYear && (
@@ -1892,8 +1922,7 @@ export default function StudentProfileForm() {
             <button
               type="button"
               onClick={() => {
-                sessionStorage.removeItem("pending-avatar");
-                router.replace(profileRoute);
+                handleDiscardClick();
               }}
               className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
             >

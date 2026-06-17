@@ -2,8 +2,14 @@ import { z } from "zod";
 
 export const announcementPostSchema = z
   .object({
-    title: z.string().min(1, "Announcement title is required"),
-    purpose: z.string().min(1, "Purpose field is required"),
+    title: z
+      .string()
+      .min(3, "Announcement title must be between 3 and 100 characters")
+      .max(100, "Announcement title must not exceed 100 characters"),
+    purpose: z
+      .string()
+      .min(1, "Purpose field is required")
+      .max(255, "Purpose must not exceed 255 characters"),
     status: z.enum(["active", "draft"]),
     isPinned: z.boolean().default(false),
     date: z.string().min(1, "Event date selection is required"),
@@ -11,11 +17,13 @@ export const announcementPostSchema = z
     endTime: z.string().min(1, "End time parameter selection is required"),
     locationName: z
       .string()
-      .min(1, "Location descriptive layout name is required"),
+      .min(1, "Location descriptive layout name is required")
+      .max(100, "Location name must not exceed 100 characters"),
     googleMapUrl: z
       .string()
       .trim()
       .min(1, "Google Maps URL is required")
+      .max(800, "Google Maps URL must not exceed 800 characters")
       .url("Please enter a valid URL")
       .refine((url) => {
         try {
@@ -32,7 +40,10 @@ export const announcementPostSchema = z
         }
       }, "Please enter a valid Google Maps URL"),
     scheduleDate: z.string().optional().or(z.literal("")),
-    description: z.string().optional(),
+    description: z
+      .string()
+      .max(1300, "Description must not exceed 1300 characters")
+      .optional(),
     media: z
       .array(
         z.object({
@@ -40,8 +51,8 @@ export const announcementPostSchema = z
           isCover: z.boolean(),
         }),
       )
-      .min(1, "Please upload at least one image"),
-    // .default([]),
+      .min(1, "Please upload at least one image")
+      .max(10, "A post can have at most 10 media files"),
   })
   .superRefine((data, ctx) => {
     const today = new Date();

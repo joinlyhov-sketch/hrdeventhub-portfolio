@@ -32,7 +32,7 @@ export default function AttendeesManagementPage({ params }: PageProps) {
     status === "loading" || (status === "authenticated" && !attendeesLoaded);
 
   return (
-    <div className="w-full max-w-475 mx-auto pr-8 lg:pr-12 lg:pl-12">
+    <div className="w-full max-w-475 mx-auto">
       <Breadcrumb label="All attendees list" backHref="/event-management" />
       {isLoading ? (
         <AttendeesSkeleton />

@@ -22,6 +22,7 @@ import { getAllPollsAction } from "../../actions/poll.action";
 import { pollService } from "../../service/poll.service";
 import { format, isAfter } from "date-fns";
 import { generateSurveyCsv, generatePollCsv } from "../../libs/exportUtils";
+import { toast } from "sonner";
 
 export type FeedbackItem = {
   id: string;
@@ -70,7 +71,9 @@ export default function SurveyFeedbackFeature() {
               responseCount = 0;
             }
             const dbIsActive: boolean = Boolean(
-              (survey as unknown as { active?: boolean }).active ?? survey.isActive ?? false
+              (survey as unknown as { active?: boolean }).active ??
+              survey.isActive ??
+              false,
             );
             return {
               id: survey.surveyId,
@@ -95,7 +98,12 @@ export default function SurveyFeedbackFeature() {
                 (fp.voteCount as number | undefined) ??
                 fullPoll.options?.reduce(
                   (sum, opt) =>
-                    sum + (opt.voteCount ?? ((opt as unknown as Record<string, unknown>).votes as number | undefined) ?? 0),
+                    sum +
+                    (opt.voteCount ??
+                      ((opt as unknown as Record<string, unknown>).votes as
+                        | number
+                        | undefined) ??
+                      0),
                   0,
                 ) ??
                 0;
@@ -103,12 +111,22 @@ export default function SurveyFeedbackFeature() {
               voteCount =
                 poll.options?.reduce(
                   (sum, opt) =>
-                    sum + (opt.voteCount ?? ((opt as unknown as Record<string, unknown>).votes as number | undefined) ?? 0),
+                    sum +
+                    (opt.voteCount ??
+                      ((opt as unknown as Record<string, unknown>).votes as
+                        | number
+                        | undefined) ??
+                      0),
                   0,
                 ) ?? 0;
             }
-            const pollRec = poll as unknown as { active?: boolean; isActive?: boolean };
-            const dbIsActive: boolean = Boolean(pollRec.isActive ?? pollRec.active ?? true);
+            const pollRec = poll as unknown as {
+              active?: boolean;
+              isActive?: boolean;
+            };
+            const dbIsActive: boolean = Boolean(
+              pollRec.isActive ?? pollRec.active ?? true,
+            );
             return {
               id: poll.pollId,
               type: "poll" as const,
@@ -283,7 +301,10 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
           options = fullPoll.options;
         }
 
-        generatePollCsv(options, item.title);
+        const isExport = generatePollCsv(options, item.title);
+        if (isExport) {
+          toast.success(" Poll results have been exported successfully.");
+        }
       }
     } catch (err) {
       setExportError(

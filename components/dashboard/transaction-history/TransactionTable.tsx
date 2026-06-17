@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
 import { PaginationDemo } from "../../feedback/Pagination";
 import Link from "next/link";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface TransactionTableProps {
   data: Transaction[];
@@ -117,7 +118,7 @@ export function TransactionTable({
           <Button
             onClick={() => {
               if (filteredData.length === 0) {
-                alert("No transactions to export.");
+                toast.warning("No transactions to export.");
                 return;
               }
 
@@ -152,6 +153,7 @@ export function TransactionTable({
               link.href = url;
               link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
               link.click();
+              toast.success("Export completed successfully.");
               URL.revokeObjectURL(url);
             }}
             className="bg-primary hover:bg-primary-hover text-white gap-2 rounded-lg flex items-center cursor-pointer"
