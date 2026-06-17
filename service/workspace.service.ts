@@ -29,25 +29,39 @@ export const workspaceService = {
   },
 
   getAllWithFilters: async (
-    token: string,
-    { page = 1, size = 10, name, generationId }: GetWorkspacesParams,
-  ): Promise<{ workspaces: Workspace[]; totalPages: number }> => {
-    const params = new URLSearchParams();
-    params.set("page", page.toString());
-    params.set("size", size.toString());
-    if (name?.trim()) params.set("name", name.trim());
-    if (generationId) params.set("generationId", generationId);
+  token: string,
+  { page = 1, size = 10, name, generationId, isPublic }: GetWorkspacesParams,
+): Promise<{ workspaces: Workspace[]; totalPages: number }> => {
+  const params = new URLSearchParams();
 
-    const response = await apiGet<WorkspaceResponse>(
-      `/workspaces?${params.toString()}`,
-      { authToken: token },
-    );
+  params.set("page", page.toString());
+  params.set("size", size.toString());
 
-    const hasMore = response.payload.length === size;
-    const totalPages = hasMore ? page + 1 : page;
+  if (name?.trim()) {
+    params.set("name", name.trim());
+  }
 
-    return { workspaces: response.payload, totalPages };
-  },
+  if (generationId) {
+    params.set("generationId", generationId);
+  }
+
+  if (typeof isPublic === "boolean") {
+    params.set("isPublic", String(isPublic));
+  }
+
+  const response = await apiGet<WorkspaceResponse>(
+    `/workspaces?${params.toString()}`,
+    { authToken: token },
+  );
+
+  const hasMore = response.payload.length === size;
+  const totalPages = hasMore ? page + 1 : page;
+
+  return {
+    workspaces: response.payload,
+    totalPages,
+  };
+},
 
   getMyWorkspaces: async (token: string): Promise<Workspace[]> => {
     const response = await apiGet<WorkspaceResponse>(`/workspaces/me`, {

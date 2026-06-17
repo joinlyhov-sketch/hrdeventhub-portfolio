@@ -34,8 +34,8 @@ export interface GetWorkspacesParams {
   size?: number;
   name?: string;
   generationId?: string;
+  isPublic?: boolean;
 }
-
 export interface CreateWorkspaceRequest {
   name: string;
   description: string;
