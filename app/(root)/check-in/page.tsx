@@ -1,5 +1,5 @@
 import Header from "../../../components/dashboard/header/Header";
-import { CheckInTableSection } from "@/components/site/checkin /CheckInTableSection";
+import { CheckInTableSection } from "@/components/site/checkin/CheckInTableSection";
 import { checkinService, Attendee } from "@/service/checkin.service";
 import { workspaceService } from "@/service/workspace.service";
 import { getServerSession } from "next-auth";
