@@ -435,9 +435,7 @@ export default function ProfileCard({
 
           {showMessage && (
             <button
-              onClick={() =>
-                router.push(`/chat?userId=${profile.appUser.appUserId}`)
-              }
+              onClick={() => router.push(`/chat?target=${profile.appUser.username.split("@")[0]}`)}
               className="w-full flex items-center justify-center gap-2 border border-border bg-card text-foreground py-3 rounded-md type-desc-semibold hover:bg-muted transition-colors font-medium cursor-pointer"
             >
               <MessageCircle size={16} />

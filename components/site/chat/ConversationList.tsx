@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Conversation, UserResult } from "@/types/chat";
 import { searchUsersAction } from "@/actions/chat.action";
 import { initials, cn, formatConvTime } from "@/libs/utils";
+import { createPortal } from "react-dom";
 import ChatAvatar from "./ChatAvatar";
 
 interface ConversationListProps {
@@ -76,7 +77,7 @@ export default function ConversationList({
   return (
     <div className="flex flex-col h-full bg-white overflow-hidden">
       <div className="px-4 pt-5 pb-4 flex-shrink-0 border-b border-gray-100">
-        <h1 className="text-lg font-bold text-gray-900 mb-3.5">Messages</h1>
+        <h1 className="text-title font-bold text-[#1c4d8d] mb-3.5">Messages</h1>
         <div className="relative mb-2.5">
           <i className="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true" />
           <input
@@ -160,12 +161,12 @@ export default function ConversationList({
         )}
       </div>
 
-      {modalOpen && (
+      {modalOpen && createPortal(
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40"
           onClick={(e) => e.target === e.currentTarget && setModalOpen(false)}
         >
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden flex flex-col">
+         <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden flex flex-col">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-sm font-bold text-gray-900">New conversation</h2>
               <button
@@ -233,7 +234,8 @@ export default function ConversationList({
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+         document.body
       )}
     </div>
   );

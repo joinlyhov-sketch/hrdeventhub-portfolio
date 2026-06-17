@@ -92,7 +92,6 @@ export default function ChatPage() {
   if (!auth) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-10">
-        <span className="text-3xl">🔒</span>
         <h3 className="font-semibold text-gray-700">Session required</h3>
         <p className="text-xs text-gray-400">Please sign in to access chat.</p>
       </div>
@@ -148,9 +147,6 @@ export default function ChatPage() {
           </div>
         ) : !activeConv ? (
           <div className="hidden md:flex flex-col items-center justify-center flex-1 p-6 text-center">
-            <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm">
-              💬
-            </div>
             <h3 className="text-md font-semibold text-gray-800">
               No conversation selected
             </h3>

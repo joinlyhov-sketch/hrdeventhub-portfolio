@@ -26,7 +26,7 @@ export default function RootLayout({
       <TooltipProvider>
         <SidebarProvider defaultOpen={true}>
           <AppSidebar />
-          <div className="flex flex-col flex-1 min-w-0 w-full pb-16 md:pb-0">
+          <div className="flex flex-col flex-1 min-w-0 w-full ">
             {children}
           </div>
             <MobileBottomNavWrapper />

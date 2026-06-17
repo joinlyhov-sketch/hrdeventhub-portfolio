@@ -36,6 +36,7 @@ import {
   MinusCircle,
   Moon,
   Bell,
+  MessagesSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,6 +47,7 @@ import { useMyWorkspaces } from "@/hooks/use-my-workspace";
 import { setOnlineAction, setOfflineAction } from "@/actions/presence.action";
 import { useStatusContext, ActiveStatus } from "@/context/StatusContext";
 import { useNotificationStore } from "@/store/useNotificationStore";
+import { useChatStore } from "@/store/useChatStore";
 
 const ADMIN_ROLES = ["admin", "organizer"] as const;
 const STUDENT_ALUMNI_ROLES = ["student", "alumni"] as const;
@@ -113,6 +115,10 @@ export function AppSidebar() {
     currentUser !== null &&
     ADMIN_ROLES.includes(currentUser?.role as (typeof ADMIN_ROLES)[number]);
 
+  const totalUnreadMessages = useChatStore((s) =>
+    s.conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0),
+  );
+
   useEffect(() => {
     if (!session?.accessToken) return;
 
@@ -138,14 +144,14 @@ export function AppSidebar() {
   }, [session?.accessToken]);
 
   const handleStatusChange = async (status: ActiveStatus) => {
-  setActiveStatus(status);
-  localStorage.setItem("activeStatus", status);
-  if (status === "offline") {
-    await setOfflineAction();
-  } else {
-    await setOnlineAction();
-  }
-};
+    setActiveStatus(status);
+    localStorage.setItem("activeStatus", status);
+    if (status === "offline") {
+      await setOfflineAction();
+    } else {
+      await setOnlineAction();
+    }
+  };
 
   const handleConfirmLogout = async () => {
     setIsLogoutOpen(false);
@@ -410,14 +416,24 @@ export function AppSidebar() {
                   className="h-11"
                 >
                   <Link href="/chat">
-                    <MessageCircle
-                      size={18}
-                      className="shrink-0 text-[#878787]"
-                    />
+                    <span className="relative inline-flex shrink-0">
+                      <MessagesSquare size={18} className="text-[#878787]" />
+                      {totalUnreadMessages > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                          {totalUnreadMessages > 99
+                            ? "99+"
+                            : totalUnreadMessages}
+                        </span>
+                      )}
+                    </span>
                     <span
-                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
+                        state === "collapsed"
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-50 opacity-100 translate-x-0"
+                      }`}
                     >
-                      Chat
+                      Messages
                     </span>
                   </Link>
                 </SidebarMenuButton>
@@ -494,7 +510,6 @@ export function AppSidebar() {
 
               {!isStudentOrAlumni && (
                 <>
-
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       isActive={pathname === `${profileHref}/edit-profile`}

@@ -64,7 +64,6 @@ export default function ChatWindow({
     updateRead,
   } = useMessages(token);
 
-
   const handleIncomingMessage = useCallback(
     (msg: ChatMessage) => {
       if (String(msg.conversationId) !== String(conversation.id)) {
@@ -197,11 +196,11 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-white overflow-hidden">
-      <header className="h-[64px] border-b border-gray-100 px-4 flex items-center gap-3 bg-white flex-shrink-0 sticky top-0 z-10">
+    <div className="flex flex-col h-full w-full bg-white overflow-hidden mt-5">
+      <header className="h-[64px] border-b border-gray-100 px-4 flex items-center gap-3 bg-white flex-shrink-0 sticky top-0 pb-5 z-10">
         <button
           onClick={onBack}
-          className="md:hidden p-1.5 -ml-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          className="md:hidden p-1.5 -ml-1  text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
           type="button"
           aria-label="Back"
         >
@@ -262,42 +261,44 @@ export default function ChatWindow({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 bg-gray-50/30">
-        {loading && messages.length === 0 && (
-          <div className="text-center py-10">
-            <p className="text-xs text-gray-400 animate-pulse font-medium">
-              Loading messages...
-            </p>
-          </div>
-        )}
-        {!loading && messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full py-16 gap-3">
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-              <i
-                className="ti ti-message-2 text-xl text-[#1c4d8d]"
-                aria-hidden="true"
-              />
+      <div className="flex-1 overflow-y-auto px-4 py-4 bg-gray-50/30 flex flex-col">
+        <div className="flex-1 flex flex-col justify-end space-y-1">
+          {loading && messages.length === 0 && (
+            <div className="text-center py-10">
+              <p className="text-xs text-gray-400 animate-pulse font-medium">
+                Loading messages...
+              </p>
             </div>
-            <p className="text-xs text-gray-400 font-semibold">
-              Say hello to {conversation.otherUserName}!
-            </p>
-          </div>
-        )}
-        {messages.map((m) => {
-          const isMine =
-            String(m.senderId ?? "").trim() !== "" &&
-            String(m.senderId ?? "").trim() === normalizedUserId;
-          return (
-            <MessageBubble
-              key={`${m.id}-${m.read}`}
-              message={m}
-              isMine={isMine}
-              onEdit={handleEditMsg}
-              onDelete={handleDeleteMsg}
-            />
-          );
-        })}
-        <div ref={bottomRef} />
+          )}
+          {!loading && messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full py-16 gap-3">
+              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+                <i
+                  className="ti ti-message-2 text-xl text-[#1c4d8d]"
+                  aria-hidden="true"
+                />
+              </div>
+              <p className="text-xs text-gray-400 font-semibold">
+                Say hello to {conversation.otherUserName}!
+              </p>
+            </div>
+          )}
+          {messages.map((m) => {
+            const isMine =
+              String(m.senderId ?? "").trim() !== "" &&
+              String(m.senderId ?? "").trim() === normalizedUserId;
+            return (
+              <MessageBubble
+                key={`${m.id}-${m.read}`}
+                message={m}
+                isMine={isMine}
+                onEdit={handleEditMsg}
+                onDelete={handleDeleteMsg}
+              />
+            );
+          })}
+          <div ref={bottomRef} />
+        </div>
       </div>
 
       <MessageInput

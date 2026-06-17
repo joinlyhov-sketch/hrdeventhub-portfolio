@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCurrentUser } from "@/context/user-context";
 import { useSession, signOut } from "next-auth/react";
 import { logoutAction } from "@/actions/auth.action";
-import { LogOut } from "lucide-react";
+import { LogOut, MessagesSquare } from "lucide-react";
 import { cn } from "@/libs/utils";
 import { useState } from "react";
 import Image from "next/image";
@@ -41,7 +41,6 @@ export function MobileBottomNav({ alertCount = 0 }: { alertCount?: number }) {
     null,
   );
   const [checkInError, setCheckInError] = useState<CheckInError | null>(null);
-
   const profileHref = currentUser?.id ? `/profile/${currentUser.id}` : null;
   const canScan = currentUser
     ? SCANNER_ROLES.includes(currentUser.role.toUpperCase())
@@ -56,7 +55,13 @@ export function MobileBottomNav({ alertCount = 0 }: { alertCount?: number }) {
     { label: "Profile", icon: IconProfile, href: profileHref },
     { label: "More", icon: IconMore, href: null, id: "more" },
   ];
+  
   const MORE_ITEMS = [
+    {
+      label: "Messages",
+      icon: () => <MessagesSquare size={20} strokeWidth={1.75} />,
+      href: "/chat",
+    },
     {
       label: "Edit Profile",
       icon: IconEditProfile,

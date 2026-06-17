@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { ChatMessage } from "@/types/chat";
 import { formatTime } from "@/libs/utils";
 
@@ -25,6 +26,7 @@ export default function MessageBubble({
 }: MessageBubbleProps) {
   const [hover, setHover] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const isImage = message.messageType === "IMAGE";
   const isFile = message.messageType === "FILE";
@@ -40,7 +42,7 @@ export default function MessageBubble({
         <div
           className={`text-xs px-3.5 py-2.5 rounded-2xl shadow-sm ${
             isMine
-              ? "bg-blue-600 text-white rounded-tr-none"
+              ? "bg-[#1c4d8d] text-white rounded-tr-none"
               : "bg-white text-gray-800 border border-gray-200/80 rounded-tl-none"
           }`}
         >
@@ -51,14 +53,14 @@ export default function MessageBubble({
                 alt={message.fileName ?? "attachment"}
                 className="max-h-48 object-cover hover:opacity-95 transition-opacity"
                 onError={() => setImgError(true)}
-                onClick={() => window.open(message.fileUrl, "_blank")}
+                onClick={() => setPreviewOpen(true)}
               />
             </div>
           )}
 
           {isImage && (imgError || !message.fileUrl) && (
             <div className="flex items-center gap-2 text-red-500 font-medium">
-              <span>⚠️ Image transmission failure</span>
+              <span>Image transmission failure</span>
             </div>
           )}
 
@@ -67,9 +69,8 @@ export default function MessageBubble({
               href={message.fileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-2 font-medium underline ${isMine ? "text-blue-50" : "text-blue-600"}`}
+              className={`flex items-center gap-2 font-medium underline ${isMine ? "text-blue-50" : "text-[#1c4d8d]"}`}
             >
-              <span className="text-base">📄</span>
               <div className="flex flex-col text-left">
                 <span className="truncate max-w-[150px] text-xs">{message.fileName ?? "Download Document"}</span>
                 {message.fileSize && (
@@ -89,7 +90,7 @@ export default function MessageBubble({
         {isMine && hover && (
           <div className="flex gap-1 items-center bg-white shadow-sm border border-gray-100 rounded-md p-0.5 h-7">
             {isText && (
-              <button 
+              <button
                 onClick={() => onEdit(message)}
                 className="text-[10px] text-gray-500 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors"
               >
@@ -109,11 +110,54 @@ export default function MessageBubble({
       <div className={`text-[10px] text-gray-400 mt-1 flex items-center gap-1 ${isMine ? "mr-1" : "ml-1"}`}>
         <span>{formatTime(message.createdAt)}</span>
         {isMine && (
-          <span className={message.read ? "text-blue-500 font-semibold" : "text-gray-300"}>
+          <span className={message.read ? "text-[#1c4d8d] font-semibold" : "text-gray-300"}>
             {message.read ? "✓✓" : "✓"}
           </span>
         )}
       </div>
+
+      {isImage &&
+        message.fileUrl &&
+        previewOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setPreviewOpen(false)}
+          >
+            <div
+              className="relative max-w-3xl max-h-[85vh] w-full mx-4 flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setPreviewOpen(false)}
+                aria-label="Close preview"
+                className="absolute -top-12 right-0 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <img
+                src={message.fileUrl}
+                alt={message.fileName ?? "attachment"}
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+              />
+              {message.fileName && (
+                <div className="absolute -bottom-9 left-0 right-0 text-center">
+                  <span className="text-xs text-white/70">{message.fileName}</span>
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

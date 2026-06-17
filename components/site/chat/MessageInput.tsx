@@ -58,8 +58,8 @@ export default function MessageInput({
     <div className="p-4 bg-white border-t border-gray-200 flex-shrink-0">
       {editingMsg && (
         <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 mb-2 text-xs text-amber-800 font-semibold">
-          <span className="flex items-center gap-1.5">✏️ Modifying cell contents...</span>
-          <button onClick={onCancelEdit} className="text-amber-600 hover:text-amber-900 font-bold">✕ Cancel</button>
+          <span className="flex items-center gap-1.5">Editing text...</span>
+          <button onClick={onCancelEdit} className="text-amber-600 hover:text-amber-900 font-bold hover:cursor-pointer">✕ Cancel</button>
         </div>
       )}
 
@@ -81,7 +81,7 @@ export default function MessageInput({
             disabled={isDisabled}
           >
             {uploading ? (
-              <span className="block animate-spin text-sm">⏳</span>
+              <span className="block animate-ping text-sm">...</span>
             ) : (
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.41 17.41a2 2 0 01-2.83-2.83l8.49-8.48" />
@@ -114,7 +114,7 @@ export default function MessageInput({
           type="button"
           onClick={onSend}
           disabled={isDisabled || !value.trim()}
-          className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shrink-0 disabled:opacity-40 disabled:bg-blue-600 shadow-sm"
+          className="p-2 bg-[#1c4d8d]  text-white rounded-xl transition-all shrink-0 disabled:opacity-40 disabled:bg-[#235698] shadow-sm"
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" />
