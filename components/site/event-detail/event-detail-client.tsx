@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   Edit,
@@ -242,6 +242,12 @@ export default function EventDetailClient({
   };
 
   const activeReaction = REACTIONS.find((r) => r.id === selectedReaction);
+
+  const handleCommentsCountChange = useCallback((count: number) => {
+    setDetailData((prev) =>
+      prev.commentsCount === count ? prev : { ...prev, commentsCount: count },
+    );
+  }, []);
 
   const handleLikeToggle = async () => {
     if (!session?.accessToken || !event?.postId) return;
@@ -509,7 +515,7 @@ export default function EventDetailClient({
 
           <div className="flex flex-col justify-between">
             <div
-              className="relative flex p-0.75 rounded-xl type-desc-small-semibold"
+              className="relative flex p-0.75 border-2 border-border rounded-xl type-desc-small-semibold"
               style={{ background: "rgba(120,120,128,0.12)" }}
               ref={tabTrackRef}
             >
@@ -644,9 +650,7 @@ export default function EventDetailClient({
                 <DiscussionSection
                   event={event}
                   workspaceId={workspaceId}
-                  onCommentsCountChange={(count) =>
-                    setDetailData((prev) => ({ ...prev, commentsCount: count }))
-                  }
+                  onCommentsCountChange={handleCommentsCountChange}
                 />
               </div>
             )}
