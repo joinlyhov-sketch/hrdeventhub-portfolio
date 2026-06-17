@@ -9,7 +9,7 @@ import { SessionGuard } from "@/components/auth/SessionGuard";
 import { Toaster } from "sonner";
 import { NotificationProvider } from "@/context/NotificationProvider";
 import { NotificationBell } from "@/components/NotificationBell";
-
+import { StatusProvider } from "@/context/StatusContext";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -20,38 +20,23 @@ const getGoogleSansFlex = localFont({
 
 export const metadata: Metadata = {
   title: "Landing | HRD Event Hub",
-  icons: {
-    icon: "/favicon.ico",
-  },
+  icons: { icon: "/favicon.ico" },
   description: "A platform for managing and promoting HRD events.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={cn(
-        "h-full scroll-smooth",
-        "antialiased",
-        getGoogleSansFlex.variable,
-        "font-sans",
-        geist.variable,
-      )}
-    >
-      <body
-        className={`${getGoogleSansFlex.className} min-h-full flex flex-col`}
-      >
+    <html lang="en" className={cn("h-full scroll-smooth", "antialiased", getGoogleSansFlex.variable, "font-sans", geist.variable)}>
+      <body className={`${getGoogleSansFlex.className} min-h-full flex flex-col`}>
         <Providers>
           <UserProvider>
             <SessionGuard>
-              <NotificationProvider>
-                {children}
-                <NotificationBell />
-              </NotificationProvider>
+              <StatusProvider>
+                <NotificationProvider>
+                  {children}
+                  <NotificationBell />
+                </NotificationProvider>
+              </StatusProvider>
             </SessionGuard>
           </UserProvider>
         </Providers>
