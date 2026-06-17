@@ -21,10 +21,6 @@ export default function MapContentComponent({
     lat && lng
       ? `${lat},${lng}`
       : encodeURIComponent(locationName || googleMapUrl);
-  const mapsLink =
-    lat && lng
-      ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationName || googleMapUrl)}`;
 
   return (
     <section className="flex flex-col items-start justify-between h-full pt-1 w-full">
@@ -32,7 +28,7 @@ export default function MapContentComponent({
         <iframe
           src={`https://maps.google.com/maps?q=${searchQuery}&t=&z=15&ie=UTF8&iwloc=A&output=embed`}
           width="100%"
-          style={{ height: "220px", minHeight: "220px", border: 0 }}
+          style={{ height: "236px", minHeight: "220px", border: 0 }}
           className="rounded-xl"
           loading="lazy"
           allowFullScreen
@@ -42,17 +38,6 @@ export default function MapContentComponent({
         <div className="w-full min-h-55 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm border border-dashed">
           Map placement layout is unavailable
         </div>
-      )}
-
-      {mapsLink && (
-        <a
-          href={mapsLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-1.5 underline decoration-1 text-blue-400 break-all text-xs mb-1.5"
-        >
-          {locationName || googleMapUrl}
-        </a>
       )}
     </section>
   );
