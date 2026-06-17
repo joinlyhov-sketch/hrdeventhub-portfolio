@@ -7,33 +7,32 @@ import { useChatStore } from "@/store/useChatStore";
 
 export function useConversations(token: string | null) {
   const [loading, setLoading] = useState(false);
-  const { conversations, setConversations, upsertConversation } = useChatStore();
+  const conversations = useChatStore((s) => s.conversations);
 
   const refresh = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
       const data = await getConversations(token);
-      setConversations(data);
+      useChatStore.getState().setConversations(data);
     } catch {
-      // keep stale store data on network failure
     } finally {
       setLoading(false);
     }
-  }, [token, setConversations]);
+  }, [token]);
 
   const startChat = useCallback(
     async (targetUserId: string): Promise<Conversation | null> => {
       if (!token) return null;
       try {
         const conv = await getOrCreateConversation(token, targetUserId);
-        upsertConversation(conv);
+        useChatStore.getState().upsertConversation(conv);
         return conv;
       } catch {
         return null;
       }
     },
-    [token, upsertConversation],
+    [token],
   );
 
   return { conversations, loading, refresh, startChat };
