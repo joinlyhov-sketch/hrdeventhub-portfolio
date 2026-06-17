@@ -6,17 +6,18 @@ import {
   Mail,
   Calendar,
   Users,
-  Code,
   Phone,
   GraduationCap,
   BriefcaseBusiness,
   BookOpen,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { UserProfilePayload } from "@/types/profile-types";
 import { getMediaUrl } from "@/libs/media";
 import EndorseStudentModal from "../pop-up/EndorseStep";
 import type { ViewMode } from "@/app/(root)/profile/[id]/page";
+import { useRouter } from "next/navigation";
 
 const InfoRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <div className="flex items-center gap-3 w-full min-w-0">
@@ -103,13 +104,14 @@ export default function ProfileCard({
   );
 
   const showEdit = viewMode === "self";
-  const showEndorse = viewMode === "alumni" || viewMode === "organizer";
+  const showEndorse = viewMode === "alumni" && profile.roles === "STUDENT"; 
+  const showMessage = viewMode !== "self" && viewMode !== null;
 
   const coverIndex = useMemo(() => {
-    const hash = (profile.appUser.username || "user")
-      .split("")
-      .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return (hash % 3) + 1;
+  const hash = (profile.appUser.username || "user")
+    .split("")
+    .reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return (hash % 9) + 1;
   }, [profile.appUser.username]);
 
   const sharingMode = profile.profileSharingMode;
@@ -123,6 +125,7 @@ export default function ProfileCard({
   };
 
   const showLockedState = isPublicView && sharingMode === "PRIVATE";
+  const router = useRouter();
 
   const GenderIcon = ({ gender }: { gender: string }) => (
     <svg
@@ -184,9 +187,11 @@ export default function ProfileCard({
     </svg>
   );
 
+  const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full w-full">
-      <div className="h-32 w-full rounded-xl shrink-0 relative overflow-hidden">
+      <div className="h-48 w-full rounded-xl shrink-0 relative overflow-hidden">
         <img
           src={`/covers/cover${coverIndex}.jpg`}
           alt="Cover"
@@ -198,7 +203,18 @@ export default function ProfileCard({
       </div>
       <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow">
         <div className="w-full flex flex-col items-center">
-          <div className="w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10 flex items-center justify-center select-none">
+          <div
+            className={`w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10 flex items-center justify-center select-none ${
+              profileAvatar && isVisible("showProfilePicture")
+                ? "cursor-pointer"
+                : "cursor-default"
+            }`}
+            onClick={() =>
+              profileAvatar &&
+              isVisible("showProfilePicture") &&
+              setIsAvatarOpen(true)
+            }
+          >
             {isVisible("showProfilePicture") && profileAvatar ? (
               <Image
                 src={profileAvatar}
@@ -215,6 +231,29 @@ export default function ProfileCard({
                   profile.appUser.lastName,
                 )}
               </span>
+            )}
+            {isAvatarOpen && profileAvatar && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+                onClick={() => setIsAvatarOpen(false)}
+              >
+                <div
+                  className="relative max-w-sm w-full mx-4 bg-white rounded-2xl shadow-xl p-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => setIsAvatarOpen(false)}
+                    className="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-grey-500 hover:text-grey-900 transition-colors cursor-pointer text-sm"
+                  >
+                    ✕
+                  </button>
+                  <img
+                    src={profileAvatar}
+                    alt={displayName}
+                    className="w-full rounded-xl object-cover"
+                  />
+                </div>
+              </div>
             )}
           </div>
 
@@ -265,10 +304,7 @@ export default function ProfileCard({
                   />
                 )}
                 {isVisible("showMajor") && profile.major && (
-                  <InfoRow
-                    icon={<BookOpen size={16} />}
-                    text={profile.major}
-                  />
+                  <InfoRow icon={<BookOpen size={16} />} text={profile.major} />
                 )}
                 {isVisible("showPhoneNumber") &&
                   profile.appUser.phoneNumber && (
@@ -300,7 +336,7 @@ export default function ProfileCard({
                         .map(
                           (e) => e.institutionAbbreviation || e.institutionName,
                         )
-                        .join(", ") }
+                        .join(", ")}
                     />
                   )}
               </div>
@@ -441,6 +477,18 @@ export default function ProfileCard({
               className="w-full bg-primary text-primary-foreground py-3 rounded-md type-desc-semibold hover:opacity-90 transition-opacity font-medium cursor-pointer"
             >
               Endorse
+            </button>
+          )}
+
+          {showMessage && (
+            <button
+              onClick={() =>
+                router.push(`/chat?userId=${profile.appUser.appUserId}`)
+              }
+              className="w-full flex items-center justify-center gap-2 border border-border bg-card text-foreground py-3 rounded-md type-desc-semibold hover:bg-muted transition-colors font-medium cursor-pointer"
+            >
+              <MessageCircle size={16} />
+              Message
             </button>
           )}
         </div>
