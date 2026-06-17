@@ -7,6 +7,7 @@ export interface Group {
 }
 
 export interface Workspace {
+  id: any;
   workspaceId: string;
   name: string;
   isPinned: boolean;

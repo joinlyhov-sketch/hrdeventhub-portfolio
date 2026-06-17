@@ -22,8 +22,10 @@ import {
   updateArticleAction,
 } from "@/actions/post.action";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePostDetail } from "@/hooks/use-post-detail";
+import { CustomSelect } from "../CustomSelect";
+import { NavigationGuard } from "../NavigationGuard";
+import Loading from "@/app/loading";
 
 export default function EditArticleForm() {
   const router = useRouter();
@@ -38,8 +40,10 @@ export default function EditArticleForm() {
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ArticlePostFormValues>({
     resolver: zodResolver(articlePostSchema) as Resolver<ArticlePostFormValues>,
     defaultValues: {
@@ -80,9 +84,9 @@ export default function EditArticleForm() {
 
     const payload: UpdateArticlePayload = {
       title: data.title.trim(),
-      content: data.description.trim(),
+      content: data.description,
       isPublished: data.status === "active",
-      status: data.status,
+      status: "draft",
       isPinned: data.isPinned,
     };
 
@@ -90,9 +94,18 @@ export default function EditArticleForm() {
       const result = await updateArticleAction(workspaceId, postId, payload);
 
       if (result.ok) {
-        if (data.status === "active") {
-          await publishDraftPostAction(workspaceId, postId);
+        if (data.status === "active" && postId) {
+          const publishRes = await publishDraftPostAction(workspaceId, postId);
+          if (!publishRes.ok) {
+            console.error("Failed to set active:", publishRes);
+            toast.error(
+              `Draft saved, but failed to change status to active: ${publishRes.error}`,
+            );
+            setIsSubmitting(false);
+            return;
+          }
         }
+
         toast.success(
           data.status === "active"
             ? "Article updated and published successfully!"
@@ -117,17 +130,25 @@ export default function EditArticleForm() {
       setIsSubmitting(false);
     }
   };
+  const handleCancel = () => {
+    const fallbackUrl = `/group/${workspaceId}`;
+    if (isDirty) {
+      const customEvent = new CustomEvent("trigger-unsaved-guard", {
+        detail: { fallbackUrl },
+      });
+      window.dispatchEvent(customEvent);
+    } else {
+      router.push(fallbackUrl);
+    }
+  };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-medium">
-        Loading targeted article contextual params...
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+      <NavigationGuard isDirty={isDirty} />
       <Breadcrumb label="Article Edition" backHref={`/group/${workspaceId}`} />
 
       <div className="mt-2 bg-white rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col grow mb-4">
@@ -172,29 +193,16 @@ export default function EditArticleForm() {
                     <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
                       Visibility Status
                     </Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full h-11 px-4 py-5 bg-background border-input rounded-xl text-desc md:text-base focus:ring-1 focus:ring-primary focus:ring-offset-0">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent
-                        side="bottom"
-                        position="popper"
-                        className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
-                      >
-                        <SelectItem
-                          value="draft"
-                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
-                        >
-                          Draft
-                        </SelectItem>
-                        <SelectItem
-                          value="active"
-                          className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 focus:text-slate-800"
-                        >
-                          Active
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <CustomSelect
+                      value={watch("status")}
+                      onChange={(val) =>
+                        setValue("status", val as "draft" | "active")
+                      }
+                      options={[
+                        { value: "draft", label: "Draft" },
+                        { value: "active", label: "Active" },
+                      ]}
+                    />
                   </div>
                 )}
               />
@@ -263,7 +271,7 @@ export default function EditArticleForm() {
 
           <div>
             <FormTextarea
-              label="Description"
+              label="Description (Optional)"
               placeholder="Describe the mission and scope of this article..."
               {...register("description")}
               isError={errors.description != null}
@@ -282,7 +290,7 @@ export default function EditArticleForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${workspaceId}`)}
+          onClick={handleCancel}
           className="order-2 sm:order-1 w-full hover:bg-transparent hover:text-primary sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl active:scale-95 text-sm shadow-sm"
         >
           Cancel

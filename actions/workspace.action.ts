@@ -40,3 +40,11 @@ export async function deleteWorkspaceAction(workspaceId: string) {
   revalidateTag("workspaces", "max");
   return result;
 }
+export async function leaveWorkspaceAction(workspaceId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.accessToken) throw new Error("Unauthorized");
+
+  const result = await workspaceService.leave(workspaceId, session.accessToken);
+  revalidateTag("workspaces","max");
+  return result;
+}

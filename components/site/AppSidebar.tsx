@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import {
   Sidebar,
@@ -15,23 +15,101 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "../ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/drop-down/dropdown-menu";
 import Image from "next/image";
-import { LogOut, Pin } from "lucide-react";
+import {
+  LogOut,
+  Pin,
+  MessageCircle,
+  ClipboardList,
+  Bell,
+  User,
+  Pencil,
+  Settings,
+  ChevronRight,
+  Circle,
+  MinusCircle,
+  Moon,
+  Clock,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutModal } from "./pop-up/commons/LogoutModal";
 import { useCurrentUser } from "@/context/user-context";
 import { logoutAction } from "@/actions/auth.action";
 import { useMyWorkspaces } from "@/hooks/use-my-workspace";
+
 const ADMIN_ROLES = ["admin", "organizer"] as const;
+const STUDENT_ALUMNI_ROLES = ["student", "alumni"] as const;
+
+type ActiveStatus = "online" | "idle" | "do-not-disturb" | "offline";
+
+const STATUS_OPTIONS: {
+  value: ActiveStatus;
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+}[] = [
+  {
+    value: "online",
+    label: "Online",
+    icon: <Circle size={10} className="fill-current" />,
+    color: "text-green-500",
+  },
+  {
+    value: "idle",
+    label: "Idle",
+    icon: <Clock size={10} />,
+    color: "text-yellow-500",
+  },
+  {
+    value: "do-not-disturb",
+    label: "Do Not Disturb",
+    icon: <MinusCircle size={10} />,
+    color: "text-red-500",
+  },
+  {
+    value: "offline",
+    label: "Appear Offline",
+    icon: <Moon size={10} />,
+    color: "text-gray-400",
+  },
+];
+
+function StatusDot({ status }: { status: ActiveStatus }) {
+  const colorMap: Record<ActiveStatus, string> = {
+    online: "bg-green-500",
+    idle: "bg-yellow-400",
+    "do-not-disturb": "bg-red-500",
+    offline: "bg-gray-400",
+  };
+  return (
+    <span
+      className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${colorMap[status]}`}
+    />
+  );
+}
+
 export function AppSidebar() {
   const { currentUser } = useCurrentUser();
   const { data: session } = useSession();
   const { state } = useSidebar();
   const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [activeStatus, setActiveStatus] = useState<ActiveStatus>("online");
+
   const isAdmin = currentUser?.role === "admin";
-  const isOrganizer = currentUser?.role === "organizer";
+  const isStudentOrAlumni = STUDENT_ALUMNI_ROLES.includes(
+    currentUser?.role as (typeof STUDENT_ALUMNI_ROLES)[number],
+  );
   const memberData = useMyWorkspaces();
   const pinnedWorkspaces = isAdmin
     ? []
@@ -122,7 +200,6 @@ export function AppSidebar() {
                   pinnedWorkspaces.map((workspace) => {
                     const href = `/group/${workspace.workspaceId}`;
                     const isActive = pathname === href;
-
                     return (
                       <SidebarMenuItem key={workspace.workspaceId}>
                         <SidebarMenuButton
@@ -138,7 +215,6 @@ export function AppSidebar() {
                             <span className="flex items-center justify-center text-[9px] font-bold shrink-0 uppercase transition-transform duration-200 group-hover/btn:-rotate-18">
                               <Pin />
                             </span>
-
                             <span
                               className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
                                 state === "collapsed"
@@ -300,159 +376,97 @@ export function AppSidebar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={pathname === profileHref}
+                  isActive={pathname === "/chat"}
                   asChild
-                  tooltip="Profile"
+                  tooltip="Chat"
                   className="h-11"
                 >
-                  <Link href={profileHref}>
-                    <svg
-                      width={18}
-                      height={18}
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
-                        stroke="#878787"
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M15.4436 16.5C15.4436 13.5975 12.5561 11.25 9.00109 11.25C5.44609 11.25 2.55859 13.5975 2.55859 16.5"
-                        stroke="#878787"
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                  <Link href="/chat">
+                    <MessageCircle
+                      size={18}
+                      className="shrink-0 text-[#878787]"
+                    />
                     <span
                       className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                     >
-                      Profile
+                      Chat
                     </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === `${profileHref}/edit-profile`}
-                  asChild
-                  tooltip="Edit Profile"
-                  className="h-11"
-                >
-                  <Link href={`${profileHref}/edit-profile`}>
-                    <svg
-                      width={18}
-                      height={18}
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
-                        stroke="#878787"
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+              {!isStudentOrAlumni && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={pathname === "/check-in"}
+                    asChild
+                    tooltip="Register"
+                    className="h-11"
+                  >
+                    <Link href="/check-in">
+                      <ClipboardList
+                        size={18}
+                        className="shrink-0 text-[#878787]"
                       />
-                      <path
-                        d="M14.4083 11.8048L11.7532 14.4598C11.6482 14.5648 11.5508 14.7598 11.5283 14.9023L11.3858 15.9148C11.3333 16.2823 11.5883 16.5373 11.9558 16.4848L12.9682 16.3423C13.1107 16.3198 13.3133 16.2223 13.4108 16.1173L16.0657 13.4623C16.5232 13.0048 16.7407 12.4723 16.0657 11.7973C15.3982 11.1298 14.8658 11.3473 14.4083 11.8048Z"
-                        stroke="#878787"
-                        strokeWidth={1.5}
-                        strokeMiterlimit={10}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14.0273 12.1875C14.2523 12.9975 14.8823 13.6275 15.6923 13.8525"
-                        stroke="#878787"
-                        strokeWidth={1.5}
-                        strokeMiterlimit={10}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M2.55859 16.5C2.55859 13.5975 5.44611 11.25 9.00111 11.25C9.78111 11.25 10.5311 11.3625 11.2286 11.5725"
-                        stroke="#878787"
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span
-                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
-                    >
-                      Edit Profile
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                      <span
+                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                      >
+                        Check-in
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === `${profileHref}/setting`}
-                  asChild
-                  tooltip="Setting"
-                  className="h-11"
-                >
-                  <Link href={`${profileHref}/setting`}>
-                    <svg
-                      width={18}
-                      height={18}
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M9 11.25C10.2426 11.25 11.25 10.2426 11.25 9C11.25 7.75736 10.2426 6.75 9 6.75C7.75736 6.75 6.75 7.75736 6.75 9C6.75 10.2426 7.75736 11.25 9 11.25Z"
-                        stroke="#878787"
-                        strokeWidth={1.5}
-                        strokeMiterlimit={10}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M1.5 9.66105V8.34105C1.5 7.56105 2.1375 6.91605 2.925 6.91605C4.2825 6.91605 4.8375 5.95605 4.155 4.77855C3.765 4.10355 3.9975 3.22605 4.68 2.83605L5.9775 2.09355C6.57 1.74105 7.335 1.95105 7.6875 2.54355L7.77 2.68605C8.445 3.86355 9.555 3.86355 10.2375 2.68605L10.32 2.54355C10.6725 1.95105 11.4375 1.74105 12.03 2.09355L13.3275 2.83605C14.01 3.22605 14.2425 4.10355 13.8525 4.77855C13.17 5.95605 13.725 6.91605 15.0825 6.91605C15.8625 6.91605 16.5075 7.55355 16.5075 8.34105V9.66105C16.5075 10.4411 15.87 11.0861 15.0825 11.0861C13.725 11.0861 13.17 12.0461 13.8525 13.2236C14.2425 13.9061 14.01 14.7761 13.3275 15.1661L12.03 15.9086C11.4375 16.2611 10.6725 16.0511 10.32 15.4586L10.2375 15.3161C9.5625 14.1386 8.4525 14.1386 7.77 15.3161L7.6875 15.4586C7.335 16.0511 6.57 16.2611 5.9775 15.9086L4.68 15.1661C3.9975 14.7761 3.765 13.8986 4.155 13.2236C4.8375 12.0461 4.2825 11.0861 2.925 11.0861C2.1375 11.0861 1.5 10.4411 1.5 9.66105Z"
-                        stroke="#878787"
-                        strokeWidth={1.5}
-                        strokeMiterlimit={10}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span
-                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
-                    >
-                      Setting
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-
-          {canSeeAdministration && (
-            <SidebarGroup>
-              <SidebarGroupLabel
-                className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
-              >
-                Administration
-              </SidebarGroupLabel>
-
-              <SidebarMenu className="flex flex-col gap-1">
-                {!isOrganizer && (
+              {!isStudentOrAlumni && (
+                <>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      isActive={pathname === "/user-management"}
+                      isActive={pathname === profileHref}
                       asChild
-                      tooltip="User Management"
+                      tooltip="Profile"
                       className="h-11"
                     >
-                      <Link href="/user-management">
+                      <Link href={profileHref}>
+                        <svg
+                          width={18}
+                          height={18}
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M15.4436 16.5C15.4436 13.5975 12.5561 11.25 9.00109 11.25C5.44609 11.25 2.55859 13.5975 2.55859 16.5"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span
+                          className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                        >
+                          Profile
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={pathname === `${profileHref}/edit-profile`}
+                      asChild
+                      tooltip="Edit Profile"
+                      className="h-11"
+                    >
+                      <Link href={`${profileHref}/edit-profile`}>
                         <svg
                           width={18}
                           height={18}
@@ -494,12 +508,120 @@ export function AppSidebar() {
                         <span
                           className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                         >
-                          User Management
+                          Edit Profile
                         </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )}
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={pathname === `${profileHref}/setting`}
+                      asChild
+                      tooltip="Setting"
+                      className="h-11"
+                    >
+                      <Link href={`${profileHref}/setting`}>
+                        <svg
+                          width={18}
+                          height={18}
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9 11.25C10.2426 11.25 11.25 10.2426 11.25 9C11.25 7.75736 10.2426 6.75 9 6.75C7.75736 6.75 6.75 7.75736 6.75 9C6.75 10.2426 7.75736 11.25 9 11.25Z"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeMiterlimit={10}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M1.5 9.66105V8.34105C1.5 7.56105 2.1375 6.91605 2.925 6.91605C4.2825 6.91605 4.8375 5.95605 4.155 4.77855C3.765 4.10355 3.9975 3.22605 4.68 2.83605L5.9775 2.09355C6.57 1.74105 7.335 1.95105 7.6875 2.54355L7.77 2.68605C8.445 3.86355 9.555 3.86355 10.2375 2.68605L10.32 2.54355C10.6725 1.95105 11.4375 1.74105 12.03 2.09355L13.3275 2.83605C14.01 3.22605 14.2425 4.10355 13.8525 4.77855C13.17 5.95605 13.725 6.91605 15.0825 6.91605C15.8625 6.91605 16.5075 7.55355 16.5075 8.34105V9.66105C16.5075 10.4411 15.87 11.0861 15.0825 11.0861C13.725 11.0861 13.17 12.0461 13.8525 13.2236C14.2425 13.9061 14.01 14.7761 13.3275 15.1661L12.03 15.9086C11.4375 16.2611 10.6725 16.0511 10.32 15.4586L10.2375 15.3161C9.5625 14.1386 8.4525 14.1386 7.77 15.3161L7.6875 15.4586C7.335 16.0511 6.57 16.2611 5.9775 15.9086L4.68 15.1661C3.9975 14.7761 3.765 13.8986 4.155 13.2236C4.8375 12.0461 4.2825 11.0861 2.925 11.0861C2.1375 11.0861 1.5 10.4411 1.5 9.66105Z"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeMiterlimit={10}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span
+                          className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                        >
+                          Setting
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+            </SidebarMenu>
+          </SidebarGroup>
+
+          {canSeeAdministration && (
+            <SidebarGroup>
+              <SidebarGroupLabel
+                className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+              >
+                Administration
+              </SidebarGroupLabel>
+
+              <SidebarMenu className="flex flex-col gap-1">
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={pathname === "/user-management"}
+                    asChild
+                    tooltip="User Management"
+                    className="h-11"
+                  >
+                    <Link href="/user-management">
+                      <svg
+                        width={18}
+                        height={18}
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
+                          stroke="#878787"
+                          strokeWidth={1.5}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14.4083 11.8048L11.7532 14.4598C11.6482 14.5648 11.5508 14.7598 11.5283 14.9023L11.3858 15.9148C11.3333 16.2823 11.5883 16.5373 11.9558 16.4848L12.9682 16.3423C13.1107 16.3198 13.3133 16.2223 13.4108 16.1173L16.0657 13.4623C16.5232 13.0048 16.7407 12.4723 16.0657 11.7973C15.3982 11.1298 14.8658 11.3473 14.4083 11.8048Z"
+                          stroke="#878787"
+                          strokeWidth={1.5}
+                          strokeMiterlimit={10}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14.0273 12.1875C14.2523 12.9975 14.8823 13.6275 15.6923 13.8525"
+                          stroke="#878787"
+                          strokeWidth={1.5}
+                          strokeMiterlimit={10}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M2.55859 16.5C2.55859 13.5975 5.44611 11.25 9.00111 11.25C9.78111 11.25 10.5311 11.3625 11.2286 11.5725"
+                          stroke="#878787"
+                          strokeWidth={1.5}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span
+                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                      >
+                        User Management
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
 
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -675,36 +797,135 @@ export function AppSidebar() {
         <SidebarFooter className="border-t">
           <SidebarMenu>
             <SidebarMenuItem>
-              {["student", "alumni"].includes(currentUser?.role || "") && (
-                <SidebarMenuButton size="lg" className="pointer-events-none">
-                  <div className="w-8 h-8 rounded-full shrink-0 bg-grey-200 overflow-hidden flex items-center justify-center">
-                    {currentUser?.profilePicture ? (
-                      <Image
-                        src={currentUser.profilePicture}
-                        alt={currentUser.name ?? "User"}
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    ) : (
-                      <span className="type-desc-small-semibold text-primary uppercase">
-                        {currentUser?.avatarInitials ?? "?"}
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+              {isStudentOrAlumni ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuButton size="lg" className="cursor-pointer">
+                      <div className="relative w-8 h-8 rounded-full shrink-0 bg-grey-200 overflow-visible flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-100">
+                          {currentUser?.profilePicture ? (
+                            <Image
+                              src={currentUser.profilePicture}
+                              alt={currentUser.name ?? "User"}
+                              width={32}
+                              height={32}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <span className="type-desc-small-semibold text-primary uppercase">
+                              {currentUser?.avatarInitials ?? "?"}
+                            </span>
+                          )}
+                        </div>
+                        <StatusDot status={activeStatus} />
+                      </div>
+                      <div
+                        className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                      >
+                        <span className="type-detail-semibold text-grey-900 leading-tight">
+                          {currentUser?.name ?? "Loading..."}
+                        </span>
+                        <span className="type-detail-small-medium text-muted-foreground leading-tight">
+                          {currentUser?.email ?? ""}
+                        </span>
+                      </div>
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    side="right"
+                    align="end"
+                    sideOffset={8}
+                    className="w-56 mb-2"
                   >
-                    <span className="type-detail-semibold text-grey-900 leading-tight">
-                      {currentUser?.name ?? "Loading..."}
-                    </span>
-                    <span className="type-detail-small-medium text-muted-foreground leading-tight">
-                      {currentUser?.email ?? ""}
-                    </span>
-                  </div>
-                </SidebarMenuButton>
-              )}
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={profileHref}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <User size={14} className="text-gray-500" />
+                        <span className="text-sm">Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`${profileHref}/edit-profile`}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Pencil size={14} className="text-gray-500" />
+                        <span className="text-sm">Edit Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`${profileHref}/setting`}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Settings size={14} className="text-gray-500" />
+                        <span className="text-sm">Settings</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <DropdownMenuItem
+                          onSelect={(e) => e.preventDefault()}
+                          className="flex items-center justify-between cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const current = STATUS_OPTIONS.find(
+                                (s) => s.value === activeStatus,
+                              );
+                              return (
+                                <>
+                                  <span className={`${current?.color}`}>
+                                    {current?.icon}
+                                  </span>
+                                  <span className="text-sm">
+                                    {current?.label}
+                                  </span>
+                                </>
+                              );
+                            })()}
+                          </div>
+                          <ChevronRight size={14} className="text-gray-400" />
+                        </DropdownMenuItem>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        side="right"
+                        align="end"
+                        sideOffset={4}
+                        className="w-48"
+                      >
+                        <div className="px-2 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                          Set Status
+                        </div>
+                        {STATUS_OPTIONS.map((option) => (
+                          <DropdownMenuItem
+                            key={option.value}
+                            onClick={() => setActiveStatus(option.value)}
+                            className="flex items-center gap-2 cursor-pointer"
+                          >
+                            <span className={option.color}>{option.icon}</span>
+                            <span className="text-sm">{option.label}</span>
+                            {activeStatus === option.value && (
+                              <span className="ml-auto text-[10px] text-muted-foreground">
+                                ✓
+                              </span>
+                            )}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
             </SidebarMenuItem>
+
             <SidebarMenuItem>
               <SidebarMenuButton
                 tooltip="Logout"

@@ -36,7 +36,7 @@ const step1Schema = z.object({
   phoneNumber: z
     .string()
     .min(1, "Phone number is required")
-    .regex(/^855\d{9}$/, "Please enter a valid 9-digit phone number"),
+    .regex(/^(\d{8}|\d{9})$/, "Please enter a valid 8 or 9-digit phone number"),
 });
 
 type Step1Errors = Partial<Record<keyof z.infer<typeof step1Schema>, string>>;
@@ -97,9 +97,7 @@ export default function Step1Personal() {
   const selectedDate = form.dateOfBirth ? parseISO(form.dateOfBirth) : undefined;
 
   const getDisplayPhoneNumber = () => {
-    const raw = form.phoneNumber.startsWith("855")
-      ? form.phoneNumber.slice(3)
-      : form.phoneNumber;
+    const raw = form.phoneNumber;
     if (raw.length <= 2) return raw;
     if (raw.length <= 5) return `${raw.slice(0, 2)} ${raw.slice(2)}`;
     return `${raw.slice(0, 2)} ${raw.slice(2, 5)} ${raw.slice(5)}`;
@@ -275,7 +273,7 @@ export default function Step1Personal() {
                 }
                 const rawDigits = input.startsWith("0") ? input.slice(1) : input;
                 const capped = rawDigits.slice(0, 9);
-                handleChange("phoneNumber", `855${capped}`);
+                handleChange("phoneNumber", capped);
               }}
               className="w-full border-0 rounded-none bg-transparent h-11 sm:h-13.5 text-sm outline-none focus-visible:ring-0 shadow-none placeholder:text-[#aab3c0] text-[#2d3748] px-3 sm:px-4"
             />

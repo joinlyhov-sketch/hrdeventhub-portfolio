@@ -47,7 +47,6 @@
   color: var(--destructive);
 }
 
-
 .calendar-icon-btn,
 .calendar-date-btn,
 .calendar-today-btn {
@@ -1113,6 +1112,43 @@
   max-width: 100%;
 }
 
+/* More-events popover */
+.calendar-card .fc-more-popover {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 12%, transparent) !important;
+  background: var(--background) !important;
+  overflow: hidden !important;
+  max-width: min(340px, 90vw) !important;
+}
+
+.calendar-card .fc-more-popover .fc-popover-header {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  padding: 0.625rem 0.875rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  border-radius: 0 !important;
+}
+
+.calendar-card .fc-more-popover .fc-popover-close {
+  color: var(--primary-foreground) !important;
+  opacity: 0.8;
+}
+
+.calendar-card .fc-more-popover .fc-popover-close:hover {
+  opacity: 1;
+}
+
+.calendar-card .fc-more-popover .fc-popover-body {
+  padding: 0.5rem !important;
+  max-height: 360px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 /* Day Events */
 .calendar-card-timeGridDay .fc-timegrid-event {
   min-height: 0 !important;
@@ -1124,8 +1160,12 @@
 .calendar-card-timeGridDay .day-event-box {
   height: 100% !important;
   min-height: 0 !important;
-  padding: 0.75rem 1rem !important;
+  padding: 0.5rem 0.875rem !important;
   overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 0.1875rem !important;
 }
 
 .calendar-card-timeGridWeek .event-box-continues-next-day,
@@ -1163,18 +1203,21 @@
 
 .calendar-card-timeGridDay .event-title {
   overflow: hidden;
-  font-size: 15px !important;
+  font-size: 0.6875rem !important;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-top: 0 !important;
+  text-transform: capitalize !important;
 }
 
 .calendar-card-timeGridDay .event-location {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 13px !important;
+  font-size: 11px !important;
   overflow: hidden;
   white-space: nowrap;
+  margin-top: 0 !important;
 }
 
 .calendar-card-timeGridDay .event-location span {
@@ -1183,9 +1226,10 @@
 }
 
 .calendar-card-timeGridDay .event-time {
-  font-size: 13px !important;
+  font-size: 11px !important;
   font-weight: 600;
   white-space: nowrap;
+  margin-top: 0 !important;
 }
 
 @media (max-width: 768px) {

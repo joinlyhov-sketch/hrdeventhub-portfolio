@@ -5,13 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useWatch, Controller, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Calendar,
   Clock,
   MapPin,
   FileText,
   Link as LinkIcon,
   HelpCircle,
-  Eye,
 } from "lucide-react";
 
 import { Breadcrumb } from "../BreadCrumb";
@@ -39,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InputDate } from "../InputDate";
+import { NavigationGuard } from "../NavigationGuard";
 
 export default function CreateAnnouncementForm() {
   const router = useRouter();
@@ -49,8 +48,9 @@ export default function CreateAnnouncementForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     control,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<AnnouncementPostFormValues>({
     resolver: zodResolver(
       announcementPostSchema,
@@ -97,7 +97,7 @@ export default function CreateAnnouncementForm() {
       scheduledAt: scheduledIso,
       expiresAt: endIso,
       isPublished: data.status === "active",
-      status: data.status,
+      status: "draft",
       isPinned: false,
       location: {
         locationName: data.locationName,
@@ -116,7 +116,18 @@ export default function CreateAnnouncementForm() {
         const generatedPostId = result.payload?.payload.postId;
 
         if (data.status === "active" && generatedPostId) {
-          await publishDraftPostAction(workspaceId, generatedPostId);
+          const publishRes = await publishDraftPostAction(
+            workspaceId,
+            generatedPostId,
+          );
+          if (!publishRes.ok) {
+            console.error("Failed to set active:", publishRes);
+            toast.error(
+              `Draft saved, but failed to change status to active: ${publishRes.error}`,
+            );
+            setIsSubmitting(false);
+            return;
+          }
         }
 
         toast.success(
@@ -137,12 +148,24 @@ export default function CreateAnnouncementForm() {
       setIsSubmitting(false);
     }
   };
+  const handleCancel = () => {
+    const fallbackUrl = `/group/${workspaceId}`;
+    if (isDirty) {
+      const customEvent = new CustomEvent("trigger-unsaved-guard", {
+        detail: { fallbackUrl },
+      });
+      window.dispatchEvent(customEvent);
+    } else {
+      router.push(fallbackUrl);
+    }
+  };
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col min-w-full"
     >
+      <NavigationGuard isDirty={isDirty} />
       <Breadcrumb
         label="Announcement Creation"
         backHref={`/group/${workspaceId}`}
@@ -303,7 +326,14 @@ export default function CreateAnnouncementForm() {
                 icon={LinkIcon}
                 placeholder="http://maps.google.com/..."
                 type="url"
-                {...register("googleMapUrl")}
+                {...register("googleMapUrl", {
+                  onChange: (e) => {
+                    const sanitized = e.target.value
+                      .replace(/\\/g, "/")
+                      .replace(/^(https?):\/+/, "$1://");
+                    setValue("googleMapUrl", sanitized);
+                  },
+                })}
                 isError={errors.googleMapUrl != null}
               />
               {errors.googleMapUrl && (
@@ -340,7 +370,7 @@ export default function CreateAnnouncementForm() {
 
           <div>
             <FormTextarea
-              label="Description"
+              label="Description (Optional)"
               placeholder="Describe the mission and scope of this announcement..."
               {...register("description")}
               isError={errors.description != null}
@@ -380,7 +410,7 @@ export default function CreateAnnouncementForm() {
           type="button"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => router.push(`/group/${workspaceId}`)}
+          onClick={handleCancel}
           className="order-2 sm:order-1 w-full hover:bg-transparent sm:w-auto px-10 py-5 border-primary text-primary font-bold rounded-xl md:rounded-2xl hover:text-primary hover:border-primary transition-all active:scale-95 text-sm shadow-sm"
         >
           Cancel

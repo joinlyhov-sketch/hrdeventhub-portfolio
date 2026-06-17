@@ -62,8 +62,7 @@ function TypeBadge({
         <div
           className={base}
           style={{
-            backgroundColor:
-              type === "POST_UPDATED" ? "#2e7d32" : "#1c4d8d",
+            backgroundColor: type === "POST_UPDATED" ? "#2e7d32" : "#1c4d8d",
           }}
         >
           <FileText className="w-2.5 h-2.5 text-white" />
@@ -78,7 +77,9 @@ function TypeBadge({
     case "MENTION":
       return (
         <div className={cn(base, "bg-purple-500")}>
-          <span className="text-white text-[9px] font-bold leading-none">@</span>
+          <span className="text-white text-[9px] font-bold leading-none">
+            @
+          </span>
         </div>
       );
     case "SURVEY_CREATED":
@@ -132,7 +133,9 @@ function ActorAvatar({
         />
       ) : (
         <div className="w-11 h-11 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-sm font-semibold text-gray-500">{initials}</span>
+          <span className="text-sm font-semibold text-gray-500">
+            {initials}
+          </span>
         </div>
       )}
       <div className="absolute -bottom-0.5 -right-0.5 ring-2 ring-white rounded-full">
@@ -162,10 +165,10 @@ function NotificationMenu({ onRemove }: { onRemove: () => void }) {
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
+        className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors hover:cursor-pointer" 
         aria-label="More options"
       >
-        <MoreHorizontal className="w-3.5 h-3.5" />
+        <MoreHorizontal className="w-3.5 h-3.5"  />
       </button>
 
       {open && (
@@ -217,7 +220,7 @@ function NotificationItem({
       className={cn(
         "relative flex items-center gap-3 px-3 py-3 transition-colors",
         !notification.read ? "hover:bg-white" : "bg-white hover:bg-gray-100",
-        href ? "cursor-pointer" : "cursor-default"
+        href ? "cursor-pointer" : "cursor-default",
       )}
       style={!notification.read ? { backgroundColor: "#e8eef6" } : undefined}
       onClick={handleClick}
@@ -299,7 +302,7 @@ export function NotificationBell() {
       <button
         ref={buttonRef}
         onClick={() => setOpen((v) => !v)}
-        className="fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors"
+        className="fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors hover:cursor-pointer"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5 text-white" />
