@@ -188,15 +188,6 @@ function StudentAvatar({
   );
 }
 
-const AVAILABLE_SKILLS = [
-  "UI Design",
-  "Design System",
-  "ReactJs",
-  "Figma",
-  "Web Accessibility",
-  "Motion Design",
-];
-
 export default function EndorseStudentModal({
   isOpen,
   onClose,
@@ -501,7 +492,6 @@ export default function EndorseStudentModal({
                     studentName={studentName}
                     skillQuery={skillQuery}
                     setSkillQuery={setSkillQuery}
-                    availableSkills={AVAILABLE_SKILLS}
                     selectedSkill={selectedSkill}
                     setSelectedSkill={setSelectedSkill}
                   />
