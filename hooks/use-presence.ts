@@ -21,7 +21,7 @@ export function usePresence(
         const map = await queryPresence([userId!], token);
         if (!cancelled) setPresence(map[userId!] ?? null);
       } catch {
-        // keep stale value on error
+       
       }
     }
 
