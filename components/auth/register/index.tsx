@@ -1,18 +1,45 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRegisterStore } from "../../../store/useRegisterStore";
 import Step1Personal from "./step-1-personal";
 import Step2Account from "./step-2-account";
 import Step3OTP from "./step-3-OTP";
-import { useSearchParams } from "next/navigation";
 
 const registerStep = ["Personal Details", "Account Setup", "Verification"];
 
 export default function RegisterWizard() {
   const step = useRegisterStore((s) => s.step);
   const searchParams = useSearchParams();
-const redirectUrl = searchParams.get("redirect");
+  const redirectUrl = searchParams.get("redirect");
+
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const loginHref = redirectUrl
+    ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+    : "/login";
+
+  if (!hasMounted) {
+    return (
+      <div
+        className="
+          rounded-[20px] sm:rounded-[30px]
+          border border-[#c8d6ee]
+          bg-[#f9fbff]
+          px-5 pt-5 pb-4 sm:p-8 md:p-10
+          shadow-sm overflow-hidden
+          min-h-[520px]
+        "
+      />
+    );
+  }
 
   return (
     <motion.div
@@ -38,14 +65,14 @@ const redirectUrl = searchParams.get("redirect");
       </div>
 
       <p className="mt-4 text-center text-sm text-[#5f6470]">
-  Already have an account?{" "}
-  
-    <a href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"}
-    className="font-semibold text-[#17356f] underline underline-offset-2"
-  >
-    Login
-  </a>
-</p>
+        Already have an account?{" "}
+        <Link
+          href={loginHref}
+          className="font-semibold text-[#17356f] underline underline-offset-2"
+        >
+          Login
+        </Link>
+      </p>
     </motion.div>
   );
 }
