@@ -23,6 +23,9 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<UserProfilePayload | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  
+  // 1. Lifted Public View Preview state variable control
+  const [isPublicView, setIsPublicView] = useState(false);
 
   const isReady = sessionStatus === "authenticated" && !userLoading;
   const isSelf = isReady && currentUser?.id === userId;
@@ -61,8 +64,11 @@ export default function ProfilePage() {
   const sharingMode = profile?.profileSharingMode;
   const isPrivate = sharingMode === "PRIVATE";
 
+  // 2. Hide extra tabs if profile is private AND we are in public view or an external guest
+  const hideTabsDueToPrivacy = isPrivate && (!isSelf || isPublicView);
+
   const showEventTab =
-    !isPrivate &&
+    !hideTabsDueToPrivacy &&
     isReady &&
     viewerRole !== "" &&
     subjectRole !== "" &&
@@ -70,7 +76,7 @@ export default function ProfilePage() {
       (!isSelf && (subjectRole === "STUDENT" || subjectRole === "ALUMNI")));
 
   const showEndorsementTab =
-    !isPrivate &&
+    !hideTabsDueToPrivacy &&
     isReady &&
     !isSelf &&
     viewerRole === "ALUMNI" &&
@@ -120,16 +126,19 @@ export default function ProfilePage() {
     <div className="w-full bg-background z-30">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
       <div className="w-full max-w-475 px-4 sm:px-6 lg:pr-12 lg:pl-12 mx-auto">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-stretch xl:max-h-[calc(100vh-220px)] xl:h-170">
-          <div className="xl:col-span-4 xl:h-full">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-start ">
+          <div className="xl:col-span-4 xl:h-full xl:overflow-y-auto">
             <ProfileCard
               viewMode={
-                !isReady ? null : isSubjectAdmin ? "student" : adjustedViewMode
+                !isReady ? null : isSelf ? "self" : isSubjectAdmin ? "student" : adjustedViewMode
               }
               profile={profile}
               loading={profileLoading || !isReady}
               profileId={userId}
               authToken={session?.accessToken ?? ""}
+              // 3. Connect state properties into the child card
+              isPublicView={isPublicView}
+              setIsPublicView={setIsPublicView}
             />
           </div>
           <div className="xl:col-span-8 xl:h-full bg-card border border-border rounded-xl p-4 sm:p-6 shadow-sm flex flex-col gap-6 xl:overflow-hidden">
@@ -155,25 +164,20 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="w-full flex-1 min-h-0 xl:overflow-hidden">
-              {isPrivate ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground type-desc">
-                  This profile is private.
-                </div>
-              ) : (
-                <>
-                  {activeTab === "BG" && (
-                    <BackgroundTab
-                      profile={profile}
-                      loading={profileLoading || !isReady}
-                    />
-                  )}
-                  {activeTab === "EV" && showEventTab && (
-                    <EventTab userId={userId} />
-                  )}
-                  {activeTab === "EN" && showEndorsementTab && (
-                    <EndorsementTabs studentId={isSelf ? undefined : userId} />
-                  )}
-                </>
+              {/* 4. Let BackgroundTab internal configurations process privacy views natively */}
+              {activeTab === "BG" && (
+                <BackgroundTab
+                  profile={profile}
+                  loading={profileLoading || !isReady}
+                  viewMode={!isReady ? null : isSelf ? "self" : isSubjectAdmin ? "student" : adjustedViewMode}
+                  isPublicView={isPublicView}
+                />
+              )}
+              {activeTab === "EV" && showEventTab && (
+                <EventTab userId={userId} />
+              )}
+              {activeTab === "EN" && showEndorsementTab && (
+                <EndorsementTabs studentId={isSelf ? undefined : userId} />
               )}
             </div>
           </div>
