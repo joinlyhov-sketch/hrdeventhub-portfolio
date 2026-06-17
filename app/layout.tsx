@@ -23,17 +23,28 @@ export const metadata: Metadata = {
   description: "A platform for managing and promoting HRD events.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={cn("h-full scroll-smooth", "antialiased", getGoogleSansFlex.variable, "font-sans", geist.variable)}>
-      <body className={`${getGoogleSansFlex.className} min-h-full flex flex-col`}>
+    <html
+      lang="en"
+      className={cn(
+        "h-full scroll-smooth",
+        "antialiased",
+        getGoogleSansFlex.variable,
+        "font-sans",
+        geist.variable,
+      )}
+    >
+      <body
+        className={`${getGoogleSansFlex.className} min-h-full flex flex-col`}
+      >
         <Providers>
           <UserProvider>
             <SessionGuard>
               <StatusProvider>
-                <NotificationProvider>
-                  {children}
-                </NotificationProvider>
+                <NotificationProvider>{children}</NotificationProvider>
               </StatusProvider>
             </SessionGuard>
           </UserProvider>

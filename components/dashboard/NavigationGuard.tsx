@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LeaveUnSaveModal } from "../site/pop-up/LeaveUnSaveModal";
 
 interface NavigationGuardProps {
@@ -10,6 +10,7 @@ interface NavigationGuardProps {
 
 export function NavigationGuard({ isDirty }: NavigationGuardProps) {
   const router = useRouter();
+  const param = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
   const [shouldGoBack, setShouldGoBack] = useState(false);
@@ -65,7 +66,9 @@ export function NavigationGuard({ isDirty }: NavigationGuardProps) {
         setShouldGoBack(true);
         setPendingUrl(null);
       } else {
-        setPendingUrl(customEvent.detail?.fallbackUrl || "/dashboard");
+        setPendingUrl(
+          customEvent.detail?.fallbackUrl || `/profile/${param.id}`,
+        );
         setShouldGoBack(false);
       }
 

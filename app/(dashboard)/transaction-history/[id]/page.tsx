@@ -12,6 +12,7 @@ interface Props {
 
 async function TransactionDetailData({ id }: { id: string }) {
   const detail = await getTransactionDetail(id);
+
   return (
     <div className="w-full py-2 space-y-6 flex flex-col flex-1 min-w-0 pr-8 lg:pr-12 lg:pl-12 max-w-475 mx-auto">
       <div>

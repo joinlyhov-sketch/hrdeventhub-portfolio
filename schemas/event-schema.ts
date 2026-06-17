@@ -2,9 +2,15 @@ import { z } from "zod";
 
 export const eventPostSchema = z
   .object({
-    title: z.string().min(1, "Event title is required"),
+    title: z
+      .string()
+      .min(3, "Title must be between 3 and 100 characters")
+      .max(100, "Event title must not exceed 100 characters"),
 
-    purpose: z.string().min(1, "Purpose selection is required"),
+    purpose: z
+      .string()
+      .min(1, "Purpose selection is required")
+      .max(255, "Purpose must not exceed 255 characters"),
 
     date: z.string().min(1, "Date is required"),
 
@@ -12,12 +18,16 @@ export const eventPostSchema = z
 
     endTime: z.string().min(1, "End time is required"),
 
-    locationName: z.string().min(1, "Location name/address is required"),
+    locationName: z
+      .string()
+      .min(1, "Location name/address is required")
+      .max(100, "Location name must not exceed 100 characters"),
 
     googleMapUrl: z
       .string()
       .trim()
       .min(1, "Google Maps URL is required")
+      .max(800, "Google Maps URL must not exceed 800 characters")
       .url("Please enter a valid URL")
       .refine((url) => {
         try {
@@ -36,11 +46,64 @@ export const eventPostSchema = z
     status: z.enum(["active", "draft"]),
     scheduleDate: z.string().optional(),
     isPinned: z.boolean().default(false),
-    price: z.coerce.number().optional(),
+    price: z.coerce
+      .number()
+      .optional()
+      .superRefine((val, ctx) => {
+        if (val === undefined || val === null) return;
 
-    targetGoal: z.coerce.number().optional(),
+        if (val < 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Payment amount must be greater than or equal to 0",
+          });
+          return;
+        }
 
-    description: z.string().optional(),
+        const strVal = val.toString();
+        const parts = strVal.split(".");
+        const integerPart = parts[0].replace("-", "");
+        const fractionPart = parts[1] || "";
+
+        if (integerPart.length > 10 || fractionPart.length > 2) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Payment amount format is invalid",
+          });
+        }
+      }),
+
+    targetGoal: z.coerce
+      .number()
+      .optional()
+      .superRefine((val, ctx) => {
+        if (val === undefined || val === null) return;
+
+        if (val < 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Target goal must be greater than or equal to 0",
+          });
+          return;
+        }
+
+        const strVal = val.toString();
+        const parts = strVal.split(".");
+        const integerPart = parts[0].replace("-", "");
+        const fractionPart = parts[1] || "";
+
+        if (integerPart.length > 10 || fractionPart.length > 2) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Target goal format is invalid",
+          });
+        }
+      }),
+
+    description: z
+      .string()
+      .max(1300, "Description must not exceed 1300 characters")
+      .optional(),
 
     media: z
       .array(
@@ -49,7 +112,8 @@ export const eventPostSchema = z
           isCover: z.boolean(),
         }),
       )
-      .min(1, "Please upload at least one image"),
+      .min(1, "Please upload at least one image")
+      .max(10, "A post can have at most 10 media files"),
     workspaceId: z.string().optional(),
 
     paymentType: z.enum(["fixed", "flexible"]),

@@ -42,7 +42,7 @@ export default async function EventManagementPage() {
   }
 
   return (
-    <div className="w-full max-w-full">
+    <div className="w-full max-w-420 mx-auto">
       <EventManagementClient
         events={events}
         transactions={transactions}

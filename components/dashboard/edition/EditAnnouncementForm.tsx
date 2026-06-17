@@ -524,6 +524,7 @@ export default function EditAnnouncementForm() {
           <div>
             <FormTextarea
               label="Description (Optional)"
+              maxLength={1600}
               placeholder="Describe the mission and scope of this announcement..."
               {...register("description")}
               isError={errors.description != null}
