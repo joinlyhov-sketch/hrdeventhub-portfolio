@@ -126,6 +126,21 @@ export default function Step3OTP() {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent, index: number) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    const newOtp = [...otp];
+    pasted.split("").forEach((char, i) => {
+      if (index + i < 6) newOtp[index + i] = char;
+    });
+    setOtp(newOtp);
+    const nextIndex = Math.min(index + pasted.length, 5);
+    inputRefs.current[nextIndex]?.focus();
+    const isFilled = newOtp.every((digit) => digit !== "");
+    if (isFilled && autoSubmitEnabled && !isPending) submitOtp(newOtp.join(""));
+  };
+
   const handleResend = () => {
     if (secondsLeft > 0) return;
     if (!otpEmail) {
@@ -183,6 +198,7 @@ export default function Step3OTP() {
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
+              onPaste={(e) => handlePaste(e, index)}
               className="
                 h-11 w-full
                 sm:h-14
