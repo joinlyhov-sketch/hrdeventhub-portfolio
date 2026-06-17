@@ -24,6 +24,7 @@ export interface EndorsementAlumni {
   appUserId: string;
   firstName: string;
   lastName: string;
+  generation: number;    
   profilePicture?: string | null; 
 }
 
@@ -62,7 +63,6 @@ export interface EndorsementPost {
   media: EndorsementMedia[];
 }
 
-// This is the key interface TypeScript is complaining about
 export interface EndorsementItem {
   endorsementId: string;
   skill: string;
@@ -70,7 +70,7 @@ export interface EndorsementItem {
   createdAt: string;
   alumni: EndorsementAlumni;   
   student: EndorsementStudent; 
-  post: EndorsementPost;       
+  post: EndorsementPost;  
 }
 
 export interface FetchReceivedEndorsementsResponse {
