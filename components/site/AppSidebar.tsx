@@ -112,18 +112,37 @@ export function AppSidebar() {
 
   useEffect(() => {
     if (!session?.accessToken) return;
-    setOnlineAction();
-    setActiveStatus("online");
+
+    const savedStatus = (
+      typeof window !== "undefined"
+        ? localStorage.getItem("activeStatus")
+        : null
+    ) as ActiveStatus | null;
+
+    const statusToApply: ActiveStatus =
+      savedStatus &&
+      ["online", "do-not-disturb", "offline"].includes(savedStatus)
+        ? savedStatus
+        : "online";
+
+    setActiveStatus(statusToApply);
+
+    if (statusToApply === "offline") {
+      setOfflineAction();
+    } else {
+      setOnlineAction();
+    }
   }, [session?.accessToken]);
 
   const handleStatusChange = async (status: ActiveStatus) => {
-    setActiveStatus(status);
-    if (status === "offline") {
-      await setOfflineAction();
-    } else {
-      await setOnlineAction();
-    }
-  };
+  setActiveStatus(status);
+  localStorage.setItem("activeStatus", status);
+  if (status === "offline") {
+    await setOfflineAction();
+  } else {
+    await setOnlineAction();
+  }
+};
 
   const handleConfirmLogout = async () => {
     setIsLogoutOpen(false);
