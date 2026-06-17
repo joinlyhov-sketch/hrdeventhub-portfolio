@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { UserData } from "../../../../types/user-management-type/user";
+import {
+  RoleType,
+  UserData,
+} from "../../../../types/user-management-type/user";
 import {
   Dialog,
   DialogContent,
@@ -19,14 +22,17 @@ import {
 } from "../../../ui/select";
 import { CancelButton } from "../../../site/user-mangement/button/CancelButton";
 import { SaveButton } from "../../../site/user-mangement/button/SaveButton";
-import { getUserByIdAction } from "../../../../actions/user.action";
-
-type RoleType = "ADMIN" | "ORGANIZER" | "ALUMNI" | "STUDENT";
 
 interface EditRoleModalProps {
   user: UserData;
   onClose: () => void;
   onSave: (userId: string | number, newRole: RoleType) => void;
+}
+
+const ROLES: RoleType[] = ["ADMIN", "ORGANIZER", "ALUMNI", "STUDENT"];
+
+function isValidRole(role: unknown): role is RoleType {
+  return ROLES.includes(role as RoleType);
 }
 
 export default function EditRoleModal({
@@ -35,7 +41,6 @@ export default function EditRoleModal({
   onSave,
 }: EditRoleModalProps) {
   const [role, setRole] = useState<RoleType>("STUDENT");
-  const [loading, setLoading] = useState(true);
 
   const profileSrc =
     user.profilePicture && user.profilePicture.trim() !== ""
@@ -43,24 +48,14 @@ export default function EditRoleModal({
       : null;
 
   useEffect(() => {
-    const fetchRole = async () => {
-      setLoading(true);
-      try {
-        const result = await getUserByIdAction(String(user.no));
-        if (result && "payload" in result && result.payload?.role) {
-          setRole(result.payload.role as RoleType);
-        } else {
-          setRole((user.role as RoleType) || "ADMIN");
-        }
-      } catch {
-        setRole((user.role as RoleType) || "ADMIN");
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (isValidRole(user.role)) {
+      setRole(user.role);
+    } else {
+      setRole("STUDENT");
+    }
+  }, [user.role, user.appUserId, user.no]);
 
-    fetchRole();
-  }, [user.no, user.role]);
+  const userId = user.appUserId || user.no;
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
@@ -70,7 +65,7 @@ export default function EditRoleModal({
             {profileSrc ? (
               <Image
                 src={profileSrc}
-                alt={user.username}
+                alt={user.username || "User"}
                 width={48}
                 height={48}
                 unoptimized
@@ -82,19 +77,25 @@ export default function EditRoleModal({
                 {user.lastName?.charAt(0).toUpperCase()}
               </div>
             )}
+
             <div>
               <h4 className="font-semibold text-slate-700 text-base">
-                {user ? `${user.firstName} ${user.lastName}` : "User"}
+                {user.firstName || user.lastName
+                  ? `${user.firstName ?? ""} ${user.lastName ?? ""}`
+                  : "User"}
               </h4>
+
               <p className="text-xs text-slate-400">{user.email}</p>
             </div>
           </div>
         </div>
+
         <div className="p-5 space-y-5 text-center">
           <DialogHeader className="space-y-1.5 text-center">
             <DialogTitle className="text-2xl font-medium text-primary">
               Edit User Role
             </DialogTitle>
+
             <DialogDescription className="text-lg text-grey-500 max-w-md mx-auto">
               Quick role management for keeping the community organized and
               secure.
@@ -106,57 +107,42 @@ export default function EditRoleModal({
 
             <Select
               value={role}
-              onValueChange={(val) => setRole(val as RoleType)}
+              onValueChange={(value) => setRole(value as RoleType)}
             >
-              <SelectTrigger className="w-full px-5 py-7 rounded-2xl border border-primary outline-none text-secondary text-sm  hover:bg-slate-100">
-                <SelectValue />
+              <SelectTrigger className="w-full px-5 py-7 rounded-2xl border border-primary outline-none text-secondary text-sm hover:bg-slate-100">
+                <SelectValue placeholder="Select role" />
               </SelectTrigger>
+
               <SelectContent
                 side="bottom"
                 position="popper"
                 className="bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 text-left max-h-35 overflow-y-auto w-[var(--radix-select-trigger-width)] -mt-1"
               >
-                {" "}
-                <SelectItem
-                  value="ADMIN"
-                  className="px-3 py-2 type-desc rounded-md text-secondary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
-                >
-                  ADMIN
-                </SelectItem>
-                <SelectItem
-                  value="ORGANIZER"
-                  className="px-3 py-2 type-desc rounded-md text-secondary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
-                >
-                  ORGANIZER
-                </SelectItem>
-                <SelectItem
-                  value="ALUMNI"
-                  className="px-3 py-2 type-desc rounded-md text-secondary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50 "
-                >
-                  ALUMNI
-                </SelectItem>
-                <SelectItem
-                  value="STUDENT"
-                  className="px-3 py-2 type-desc rounded-md text-secondary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
-                >
-                  STUDENT
-                </SelectItem>
+                {ROLES.map((item) => (
+                  <SelectItem
+                    key={item}
+                    value={item}
+                    className="px-3 py-2 type-desc rounded-md text-secondary hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-50"
+                  >
+                    {item}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex items-center justify-center gap-4 py-2">
             <CancelButton onClick={onClose} />
-            <div className={loading ? "pointer-events-none opacity-50" : ""}>
-              <SaveButton
-                onClick={() => {
-                  console.log(
-                    `Role update triggered — User: ${user.username} (ID: ${user.no}) | New Role: ${role}`,
-                  );
-                  onSave(user.no, role);
-                }}
-              />
-            </div>
+
+            <SaveButton
+              onClick={() => {
+                console.log(
+                  `Role update triggered — User: ${user.username} | ID: ${userId} | New Role: ${role}`,
+                );
+
+                onSave(userId, role);
+              }}
+            />
           </div>
         </div>
       </DialogContent>

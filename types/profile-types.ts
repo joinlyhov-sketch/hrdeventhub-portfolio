@@ -4,6 +4,7 @@ export interface Education {
   endYear: number | null;
   institutionName: string;
   institutionAbbreviation: string;
+  institutionLogo: string;
   degree: string;
   startYear: number;
   isCurrent: boolean;
