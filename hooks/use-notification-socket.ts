@@ -148,10 +148,6 @@ export function useNotificationSocket({
       onDisconnect: () => {
         console.warn("[WS] Disconnected");
       },
-
-      onWebSocketError: (error) => {
-        console.error("[WS] WebSocket error:", error);
-      },
     });
 
     client.activate();
