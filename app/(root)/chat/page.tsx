@@ -1,42 +1,59 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Conversation } from "@/types/chat";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 import { useChatStore } from "@/store/useChatStore";
-import { getOrCreateConversation } from "@/service/conversation.service";
-import ConversationList from "@/components/dashboard/chat/ConversationList";
-import ChatWindow from "@/components/dashboard/chat/ChatWindow";
+import ConversationList from "@/components/site/chat/ConversationList";
+import ChatWindow from "@/components/site/chat/ChatWindow";
 import { cn } from "@/libs/utils";
 
 export default function ChatPage() {
   const { auth, isHydrated, logout } = useAuth();
-  const { conversations, refresh, startChat } = useConversations(auth?.token ?? null);
+  const { conversations, refresh, startChat } = useConversations(
+    auth?.token ?? null,
+  );
   const { upsertConversation } = useChatStore();
 
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const targetUserId = searchParams.get("target");
-  const isMobileChatOpen = !!targetUserId;
+  const targetUsername = searchParams.get("target");
+  const isMobileChatOpen = !!targetUsername;
 
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [hydrating, setHydrating] = useState(false);
+
+
+  const refreshRef = useRef(refresh);
+  useEffect(() => {
+    refreshRef.current = refresh;
+  }, [refresh]);
+
+  const stableRefresh = useCallback((delay = 0) => {
+  if (delay > 0) {
+    setTimeout(() => refreshRef.current(), delay);
+  } else {
+    refreshRef.current();
+  }
+  }, []);
 
   useEffect(() => {
     if (auth) refresh();
   }, [auth]);
 
   useEffect(() => {
-    if (!auth?.token || !targetUserId) {
+    if (!auth?.token || !targetUsername) {
       setActiveConv(null);
       return;
     }
 
     const match = conversations.find(
-      (c) => String(c.otherUserId).trim() === String(targetUserId).trim(),
+      (c) =>
+        String(c.otherUserName ?? "").trim().toLowerCase() ===
+        String(targetUsername).trim().toLowerCase(),
     );
 
     if (match) {
@@ -46,10 +63,9 @@ export default function ChatPage() {
 
     let cancelled = false;
     setHydrating(true);
-
-    getOrCreateConversation(auth.token, targetUserId)
+    startChat(targetUsername)
       .then((conv) => {
-        if (cancelled) return;
+        if (cancelled || !conv) return;
         upsertConversation(conv);
         setActiveConv(conv);
       })
@@ -60,8 +76,10 @@ export default function ChatPage() {
         if (!cancelled) setHydrating(false);
       });
 
-    return () => { cancelled = true; };
-  }, [targetUserId, auth?.token, conversations]);
+    return () => {
+      cancelled = true;
+    };
+  }, [targetUsername, auth?.token]);
 
   if (!isHydrated) {
     return (
@@ -81,17 +99,21 @@ export default function ChatPage() {
     );
   }
 
-  const handleSelectConversation = (conv: Conversation) => {
-    router.push(`/chat?target=${conv.otherUserId}`);
-  };
+ const handleSelectConversation = (conv: Conversation) => {
+
+  if (conv.unreadCount > 0) {
+    useChatStore.getState().markRead(conv.id, auth!.userId);
+  }
+  router.push(`/chat?target=${conv.otherUserName}`);
+};
 
   const handleBack = () => {
     router.push("/chat");
   };
 
-  const handleNewChat = async (uuid: string) => {
-    const conv = await startChat(uuid);
-    if (conv) router.push(`/chat?target=${conv.otherUserId}`);
+  const handleNewChat = async (username: string) => {
+    const conv = await startChat(username);
+    if (conv) router.push(`/chat?target=${conv.otherUserName}`);
   };
 
   return (
@@ -103,18 +125,18 @@ export default function ChatPage() {
         )}
       >
         <ConversationList
-          conversations={conversations}
+          conversations={conversations ?? []}
           activeId={activeConv?.id ?? null}
           myName={auth.name}
+          token={auth.token}
           onSelect={handleSelectConversation}
           onNewChat={handleNewChat}
-          onLogout={logout}
         />
       </div>
 
       <main
         className={cn(
-          "flex-1 flex flex-col min-w-0 bg-gray-50 relative h-full z-10 pointer-events-auto",
+          "flex-1 flex flex-col min-w-0 bg-white relative h-full z-10 pointer-events-auto",
           !isMobileChatOpen ? "hidden md:flex" : "flex",
         )}
       >
@@ -129,7 +151,9 @@ export default function ChatPage() {
             <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm">
               💬
             </div>
-            <h3 className="text-md font-semibold text-gray-800">No conversation selected</h3>
+            <h3 className="text-md font-semibold text-gray-800">
+              No conversation selected
+            </h3>
             <p className="text-xs text-gray-400 max-w-xs mt-1">
               Select a conversation from the sidebar or start a new one.
             </p>
@@ -141,7 +165,7 @@ export default function ChatPage() {
             token={auth.token}
             userId={auth.userId}
             userName={auth.name}
-            onConversationUpdate={refresh}
+            onConversationUpdate={stableRefresh}
             onBack={handleBack}
           />
         )}

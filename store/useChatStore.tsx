@@ -5,6 +5,7 @@ import { Conversation, ChatMessage } from "@/types/chat";
 interface ChatStore {
   conversations: Conversation[];
   messages: Record<string, ChatMessage[]>;
+  locallyReadIds: Record<string, true>;
   setConversations: (convs: Conversation[]) => void;
   upsertConversation: (conv: Conversation) => void;
   mergeMessages: (conversationId: string, incoming: ChatMessage[]) => void;
@@ -17,12 +18,28 @@ interface ChatStore {
 
 export const useChatStore = create<ChatStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       conversations: [],
       messages: {},
+      locallyReadIds: {},
 
       setConversations: (convs) =>
-        set({ conversations: convs }),
+        set((s) => {
+          const nextLocallyRead = { ...s.locallyReadIds };
+
+          const merged = convs.map((c) => {
+            if (s.locallyReadIds[c.id]) {
+              if (c.unreadCount === 0) {
+                delete nextLocallyRead[c.id];
+                return c;
+              }
+              return { ...c, unreadCount: 0 };
+            }
+            return c;
+          });
+
+          return { conversations: merged, locallyReadIds: nextLocallyRead };
+        }),
 
       upsertConversation: (conv) =>
         set((s) => {
@@ -34,6 +51,7 @@ export const useChatStore = create<ChatStore>()(
             ),
           };
         }),
+
       mergeMessages: (conversationId, incoming) =>
         set((s) => {
           const stored = s.messages[conversationId] ?? [];
@@ -41,32 +59,47 @@ export const useChatStore = create<ChatStore>()(
           for (const m of stored) map.set(m.id, m);
           for (const m of incoming) map.set(m.id, { ...map.get(m.id), ...m });
           const merged = Array.from(map.values()).sort(
-            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
           );
+          if (
+            merged.length === stored.length &&
+            merged.every(
+              (m, i) => m.id === stored[i].id && m.read === stored[i].read,
+            )
+          ) {
+            return s;
+          }
           return { messages: { ...s.messages, [conversationId]: merged } };
         }),
 
       addMessage: (msg) =>
         set((s) => {
           const list = s.messages[msg.conversationId] ?? [];
-          if (list.find((m) => m.id === msg.id)) return s;
+          if (list.some((m) => m.id === msg.id)) return s;
           const updatedConvs = s.conversations.map((c) =>
             c.id === msg.conversationId
               ? { ...c, lastMessage: msg.content, lastMessageAt: msg.createdAt }
               : c,
           );
+        
+          const { [msg.conversationId]: _drop, ...restLocallyRead } = s.locallyReadIds;
           return {
             messages: {
               ...s.messages,
               [msg.conversationId]: [...list, msg],
             },
             conversations: updatedConvs,
+            locallyReadIds: restLocallyRead,
           };
         }),
 
       updateMessage: (updated) =>
         set((s) => {
           const list = s.messages[updated.conversationId] ?? [];
+          const existing = list.find((m) => m.id === updated.id);
+          if (existing?.content === updated.content && existing?.isEdited === updated.isEdited)
+            return s;
           return {
             messages: {
               ...s.messages,
@@ -80,6 +113,7 @@ export const useChatStore = create<ChatStore>()(
       removeMessage: (messageId, conversationId) =>
         set((s) => {
           const list = s.messages[conversationId] ?? [];
+          if (!list.some((m) => m.id === messageId)) return s;
           return {
             messages: {
               ...s.messages,
@@ -91,18 +125,27 @@ export const useChatStore = create<ChatStore>()(
       markRead: (conversationId, readerUserId) =>
         set((s) => {
           const list = s.messages[conversationId] ?? [];
+          const hasUnread = list.some(
+            (m) => String(m.senderId) !== String(readerUserId) && !m.read,
+          );
+          const alreadyZero = s.conversations.find((c) => c.id === conversationId)?.unreadCount === 0;
+          if (!hasUnread && alreadyZero) return s;
+
           return {
             messages: {
               ...s.messages,
               [conversationId]: list.map((m) =>
-                String(m.senderId) !== String(readerUserId)
+                String(m.senderId) !== String(readerUserId) && !m.read
                   ? { ...m, read: true }
                   : m,
               ),
             },
             conversations: s.conversations.map((c) =>
-              c.id === conversationId ? { ...c, unreadCount: 0 } : c,
+              c.id === conversationId && c.unreadCount !== 0
+                ? { ...c, unreadCount: 0 }
+                : c,
             ),
+            locallyReadIds: { ...s.locallyReadIds, [conversationId]: true },
           };
         }),
 
@@ -120,7 +163,6 @@ export const useChatStore = create<ChatStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         conversations: s.conversations,
-        messages: s.messages,
       }),
     },
   ),
