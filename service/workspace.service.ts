@@ -77,6 +77,12 @@ export const workspaceService = {
     }>(`/workspaces/generation/${generationId}`, { authToken: token });
     return response.payload;
   },
+  leave: async (workspaceId: string, token: string) => {
+  return apiDelete<{ success: boolean; message: string; status: string; timestamp: string }>(
+    `/workspaces/${workspaceId}/leave`,
+    { authToken: token }
+  );
+},
 
   getMembers: async (
     workspaceId: string,

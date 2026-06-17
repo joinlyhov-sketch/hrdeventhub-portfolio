@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useTransition } from "react";
-import { SquarePen, Trash2, Link2, MoreHorizontal, Pin, PinOff } from "lucide-react";
+import { SquarePen, Trash2, Link2, MoreHorizontal, Pin, PinOff, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +11,7 @@ import {
 import EditGroupModal from "@/components/site/pop-up/action-button/EditGroupForm";
 import { GroupDeleteModal } from "@/components/site/pop-up/commons/delete-modal-group";
 import CreateInvitationLinkModal from "@/components/site/pop-up/action-button/CreateInvitationLinkModal";
+import LeaveWorkspaceModal from "@/components/site/pop-up/action-button/LeaveGroupPopUp";
 import { Workspace } from "@/types/workspace-type/group";
 import { useSession } from "next-auth/react";
 import { workspaceService } from "@/service/workspace.service";
@@ -29,7 +30,9 @@ export default function GroupDropDown({ workspace, userRole, pinnedCount }: Grou
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isLinkOpen, setIsLinkOpen] = useState(false);
+  const [isLeaveOpen, setIsLeaveOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isLeavePending, setIsLeavePending] = useState(false); 
 
   const isAdmin = userRole === "admin";
   const isAlreadyPinned = workspace.isPinned;
@@ -57,6 +60,24 @@ export default function GroupDropDown({ workspace, userRole, pinnedCount }: Grou
         console.error("[togglePin] Failed:", error);
       }
     });
+  };
+
+  const handleLeaveConfirm = async () => {
+    if (!session?.accessToken) return;
+    setIsLeavePending(true);
+    try {
+      await workspaceService.leave(workspace.workspaceId, session.accessToken);
+      await mutate(
+        (key: unknown) => Array.isArray(key) && (key[0] === "workspaces-me" || key[0] === "workspaces"),
+        undefined,
+        { revalidate: true }
+      );
+      setIsLeaveOpen(false);
+    } catch (error) {
+      console.error("[leaveWorkspace] Failed:", error);
+    } finally {
+      setIsLeavePending(false);
+    }
   };
 
   return (
@@ -123,6 +144,16 @@ export default function GroupDropDown({ workspace, userRole, pinnedCount }: Grou
                 Delete
               </DropdownMenuItem>
             )}
+
+            {!isAdmin && (
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); setIsLeaveOpen(true); }}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 focus:bg-destructive/10 hover:text-destructive focus:text-destructive cursor-pointer transition-colors"
+              >
+                <LogOut size={16} className="stroke-destructive" />
+                Leave
+              </DropdownMenuItem>
+            )}
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -130,6 +161,13 @@ export default function GroupDropDown({ workspace, userRole, pinnedCount }: Grou
       <EditGroupModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} workspace={workspace} />
       <GroupDeleteModal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} group={{ title: workspace.name, id: workspace.workspaceId }} />
       <CreateInvitationLinkModal isOpen={isLinkOpen} onClose={() => setIsLinkOpen(false)} workspace={workspace} />
+      <LeaveWorkspaceModal
+        isOpen={isLeaveOpen}
+        onClose={() => setIsLeaveOpen(false)}
+        workspace={workspace}
+        onConfirm={handleLeaveConfirm}
+        isPending={isLeavePending}
+      />
     </>
   );
 }

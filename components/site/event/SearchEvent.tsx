@@ -77,7 +77,7 @@ export default function SearchEvent({
           activeFilter={activeFilter}
           onFilterChange={onFilterChange}
         />
-        {role === "admin" && <ContentTypePopover items={contentMenuOptions} />}
+        {role === "admin" || role === "organizer" && <ContentTypePopover items={contentMenuOptions} />}
       </div>
     </div>
   );
