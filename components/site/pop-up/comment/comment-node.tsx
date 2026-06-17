@@ -19,6 +19,8 @@ import { MentionInput } from "./MentionInput";
 import { EmojiPopover } from "./EmojiPopover";
 import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import Link from "next/link";
+import { toast } from "sonner";
+import DeleteCommentModal from "./modals/delete-comment-modal";
 
 interface CommentNodeProps {
   comment: Comment;
@@ -105,6 +107,7 @@ export function CommentNode({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [showEditEmoji, setShowEditEmoji] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState("");
@@ -183,6 +186,15 @@ export function CommentNode({
     setReplyText("");
     setReplyMentionedIds([]);
   }, []);
+  const handleConfirmDelete = async () => {
+    const res = await deleteCommentAction(comment.commentId);
+    if (res?.ok) {
+      toast.success("Comment deleted successfully");
+      await onRefetch();
+    } else {
+      throw new Error(res?.error || "Failed to delete comment");
+    }
+  };
 
   return (
     <div className="flex gap-2.5">
@@ -231,8 +243,9 @@ export function CommentNode({
                     Edit
                   </button>
                   <button
-                    onClick={handleDelete}
+                    onClick={() => setIsDeleteModalOpen(true)}
                     className="text-grey-400 hover:text-destructive transition-colors cursor-pointer"
+                    aria-label="Delete comment"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -436,6 +449,11 @@ export function CommentNode({
           </div>
         )}
       </div>
+      <DeleteCommentModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
