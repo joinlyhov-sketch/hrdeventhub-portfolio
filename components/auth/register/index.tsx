@@ -5,11 +5,14 @@ import { useRegisterStore } from "../../../store/useRegisterStore";
 import Step1Personal from "./step-1-personal";
 import Step2Account from "./step-2-account";
 import Step3OTP from "./step-3-OTP";
+import { useSearchParams } from "next/navigation";
 
 const registerStep = ["Personal Details", "Account Setup", "Verification"];
 
 export default function RegisterWizard() {
   const step = useRegisterStore((s) => s.step);
+  const searchParams = useSearchParams();
+const redirectUrl = searchParams.get("redirect");
 
   return (
     <motion.div
@@ -35,14 +38,14 @@ export default function RegisterWizard() {
       </div>
 
       <p className="mt-4 text-center text-sm text-[#5f6470]">
-        Already have an account?{" "}
-        <a
-          href="/login"
-          className="font-semibold text-[#17356f] underline underline-offset-2"
-        >
-          Login
-        </a>
-      </p>
+  Already have an account?{" "}
+  
+    <a href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"}
+    className="font-semibold text-[#17356f] underline underline-offset-2"
+  >
+    Login
+  </a>
+</p>
     </motion.div>
   );
 }

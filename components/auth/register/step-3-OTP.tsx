@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter,useSearchParams } from "next/navigation";
 import { resendOtpAction, verifyOtpAction } from "../../../actions/auth.action";
 import { useRegisterStore } from "../../../store/useRegisterStore";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ export default function Step3OTP() {
   const otpExpiresAt = useRegisterStore((s) => s.otpExpiresAt);
   const goToOTP = useRegisterStore((s) => s.goToOTP);
   const reset = useRegisterStore((s) => s.reset);
-
+  
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -33,6 +33,8 @@ export default function Step3OTP() {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
+const searchParams = useSearchParams();
+const redirectUrl = searchParams.get("redirect");
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -94,13 +96,15 @@ export default function Step3OTP() {
           return;
         }
         if (result?.ok) {
-          setSuccess(result.message ?? "Verification successful.");
-          reset();
-          toast.success(
-            "Your account is ready. Sign in now to start exploring your dashboard.",
-          );
-          setTimeout(() => router.push("/login"), 300);
-        }
+  setSuccess(result.message ?? "Verification successful.");
+  reset();
+  toast.success(
+    "Your account is ready. Sign in now to start exploring your dashboard.",
+  );
+  setTimeout(() => {
+    router.push(redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login");
+  }, 300);
+}
       });
     },
     [otpEmail, reset, router, startTransition],

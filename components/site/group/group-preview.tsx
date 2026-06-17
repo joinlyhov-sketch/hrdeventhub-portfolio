@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation"; 
 import { LockKeyhole, Globe } from "lucide-react";
 import Image from "next/image";
 import { useCurrentUser } from "@/context/user-context";
@@ -18,14 +18,16 @@ export default function GroupPreviewClient({
   token,
 }: GroupPreviewClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams(); 
   const { currentUser, isLoading: userLoading } = useCurrentUser();
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const hasAttemptedJoin = useRef(false);
 
   const handleJoin = useCallback(async () => {
     if (!currentUser) {
-      sessionStorage.setItem("pendingJoinToken", token);
-      router.push(`/login?redirect=/join/${token}`);
+      const returnUrl = encodeURIComponent(`/join/${token}?autoJoin=true`);
+      router.push(`/sign-up?redirect=${returnUrl}`);
       return;
     }
 
@@ -36,21 +38,20 @@ export default function GroupPreviewClient({
       router.push("/group");
     } catch (err) {
       setJoinError(err instanceof Error ? err.message : "Failed to join group.");
-    } finally {
-      setIsJoining(false);
+      setIsJoining(false); 
     }
   }, [currentUser, router, token]);
 
   useEffect(() => {
-    if (!userLoading && currentUser) {
-      const pendingToken = sessionStorage.getItem("pendingJoinToken");
+    const shouldAutoJoin = searchParams.get("autoJoin") === "true";
 
-      if (pendingToken === token) {
-        sessionStorage.removeItem("pendingJoinToken");
-        handleJoin();
-      }
+    if (!userLoading && currentUser && shouldAutoJoin && !hasAttemptedJoin.current) {
+      hasAttemptedJoin.current = true;
+      window.history.replaceState(null, "", `/join/${token}`);
+      
+      handleJoin();
     }
-  }, [currentUser, userLoading, token, handleJoin]);
+  }, [currentUser, userLoading, searchParams, handleJoin, token]);
 
   const visibleMembers = preview.members.slice(0, 2);
   const extraCount = Math.max(preview.memberCount - visibleMembers.length, 0);
@@ -181,6 +182,25 @@ export default function GroupPreviewClient({
       </div>
     );
   };
+
+  const shouldAutoJoin = searchParams.get("autoJoin") === "true";
+  const isProcessingAutoJoin = shouldAutoJoin && currentUser && !joinError;
+
+  if (userLoading || isJoining || isProcessingAutoJoin) {
+    return (
+      <div className="flex w-full min-h-[calc(100vh-120px)] items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center px-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1C4D8D] border-t-transparent" />
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold text-secondary">Setting up your workspace</h3>
+            <p className="text-sm text-gray-500 animate-pulse">
+              Securing your credentials and entering the group...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full min-h-[calc(100vh-120px)] items-center justify-center px-4 py-6 sm:px-6">
