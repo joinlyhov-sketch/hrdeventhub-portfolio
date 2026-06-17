@@ -37,6 +37,14 @@ function getInitials(name: string): string {
     .join("");
 }
 
+function getEventLabel(reg: RegistrationPayloadItem): string {
+  if (reg.post?.title?.trim()) {
+    return reg.post.title.trim();
+  }
+
+  return `Event ${reg.postId.substring(0, 8)}…`;
+}
+
 interface EventDropdownProps {
   registrations: RegistrationPayloadItem[];
   selectedPostId: string;
@@ -54,21 +62,24 @@ function EventDropdown({
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedReg = registrations.find((r) => r.postId === selectedPostId);
-  const filtered = registrations.filter((r) =>
-    getEventLabel(r).toLowerCase().includes(query.toLowerCase()),
+  const selectedReg = registrations.find((reg) => reg.postId === selectedPostId);
+
+  const filtered = registrations.filter((reg) =>
+    getEventLabel(reg).toLowerCase().includes(query.toLowerCase())
   );
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    const handler = (event: MouseEvent) => {
       if (
         containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
+        !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handler);
+
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
@@ -84,8 +95,8 @@ function EventDropdown({
               : "Search or select an event…"
           }
           value={isOpen ? query : selectedReg ? getEventLabel(selectedReg) : ""}
-          onChange={(e) => {
-            setQuery(e.target.value);
+          onChange={(event) => {
+            setQuery(event.target.value);
             setIsOpen(true);
           }}
           onFocus={() => {
@@ -94,8 +105,9 @@ function EventDropdown({
           }}
           className="w-full h-[46px] pl-10 pr-10 bg-background border border-border rounded-xl outline-none focus:border-primary transition-colors text-sm text-secondary placeholder:text-grey-400 disabled:opacity-50 disabled:cursor-not-allowed"
         />
+
         <ChevronDown
-          onClick={() => !disabled && setIsOpen((o) => !o)}
+          onClick={() => !disabled && setIsOpen((open) => !open)}
           className={`absolute right-3.5 text-grey-400 cursor-pointer select-none transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
@@ -112,6 +124,7 @@ function EventDropdown({
           ) : (
             filtered.map((reg) => {
               const active = reg.postId === selectedPostId;
+
               return (
                 <div
                   key={reg.postId}
@@ -127,6 +140,7 @@ function EventDropdown({
                   }`}
                 >
                   <span className="truncate">{getEventLabel(reg)}</span>
+
                   {active && (
                     <CheckCircle2
                       size={14}
@@ -143,11 +157,6 @@ function EventDropdown({
   );
 }
 
-function getEventLabel(reg: RegistrationPayloadItem): string {
-  if (reg.postTitle?.trim()) return reg.postTitle.trim();
-  return `Event ${reg.postId.substring(0, 8)}…`;
-}
-
 function StudentAvatar({
   src,
   name,
@@ -158,6 +167,7 @@ function StudentAvatar({
   size?: "sm" | "md";
 }) {
   const dim = size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm";
+
   if (src) {
     return (
       <div
@@ -166,6 +176,7 @@ function StudentAvatar({
       />
     );
   }
+
   return (
     <div
       className={`${dim} rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0`}
@@ -221,15 +232,17 @@ export default function EndorseStudentModal({
     const fetchMutualEvents = async () => {
       setIsLoadingEvents(true);
       setFetchError(null);
+
       try {
         const regs = await endorsementService.getMutualRegistrations(
           studentId,
-          authToken,
+          authToken
         );
+
         setSharedRegistrations(regs);
-      } catch (err: unknown) {
+      } catch (error: unknown) {
         setFetchError("Unable to load shared event history. Please try again.");
-        console.error("[EndorseModal] getMutualRegistrations error:", err);
+        console.error("[EndorseModal] getMutualRegistrations error:", error);
       } finally {
         setIsLoadingEvents(false);
       }
@@ -238,18 +251,30 @@ export default function EndorseStudentModal({
     fetchMutualEvents();
   }, [isOpen, studentId, postId, authToken]);
 
+  useEffect(() => {
+    if (postId) {
+      setCurrentPostId(postId);
+    }
+  }, [postId]);
+
   const handleNextStep = useCallback(() => {
-    if (step < 3) setStep((prev) => (prev + 1) as 1 | 2 | 3);
+    if (step < 3) {
+      setStep((prev) => (prev + 1) as 1 | 2 | 3);
+    }
   }, [step]);
 
   const handlePrevStep = useCallback(() => {
-    if (step > 1) setStep((prev) => (prev - 1) as 1 | 2 | 3);
+    if (step > 1) {
+      setStep((prev) => (prev - 1) as 1 | 2 | 3);
+    }
   }, [step]);
 
   const handleSubmitEndorsement = async () => {
     const finalPostId = postId ?? currentPostId;
-    if (!selectedSkill || !commentText.trim() || !finalPostId || isSubmitting)
+
+    if (!selectedSkill || !commentText.trim() || !finalPostId || isSubmitting) {
       return;
+    }
 
     setIsSubmitting(true);
     setSubmitResult(null);
@@ -262,7 +287,7 @@ export default function EndorseStudentModal({
           studentId,
           postId: finalPostId,
         },
-        authToken,
+        authToken
       );
 
       setSubmitResult("success");
@@ -273,19 +298,25 @@ export default function EndorseStudentModal({
           onSuccess();
         }, 100);
       }
-    } catch (err: unknown) {
-      console.error("[EndorseModal] Submission error caught:", err);
+    } catch (error: unknown) {
+      console.error("[EndorseModal] Submission error caught:", error);
 
-      const errRec = err as Record<string, unknown>;
-      const msg: string = (errRec?.message as string) || (typeof err === "string" ? err : "");
-      const status = errRec?.status;
+      const errorRecord = error as Record<string, unknown>;
+      const message =
+        typeof errorRecord?.message === "string"
+          ? errorRecord.message
+          : typeof error === "string"
+            ? error
+            : "";
 
-      const isDupe =
-        msg.toLowerCase().includes("already") ||
-        msg.toLowerCase().includes("duplicate") ||
+      const status = errorRecord?.status;
+
+      const duplicate =
+        message.toLowerCase().includes("already") ||
+        message.toLowerCase().includes("duplicate") ||
         status === 409;
 
-      setSubmitResult(isDupe ? "duplicate" : "error");
+      setSubmitResult(duplicate ? "duplicate" : "error");
       setStep(3);
     } finally {
       setIsSubmitting(false);
@@ -300,10 +331,13 @@ export default function EndorseStudentModal({
     setFetchError(null);
     setSubmitResult(null);
     setIsDuplicate(false);
+    setIsSubmitting(false);
+
     if (!postId) {
       setCurrentPostId("");
       setSharedRegistrations([]);
     }
+
     onClose();
   }, [onClose, postId]);
 
@@ -313,6 +347,7 @@ export default function EndorseStudentModal({
   }, []);
 
   const resolvedPostId = postId ?? currentPostId;
+
   const noSharedEvents =
     !postId &&
     !isLoadingEvents &&
@@ -349,19 +384,22 @@ export default function EndorseStudentModal({
   return (
     <Dialog.Root
       open={isOpen}
-      onOpenChange={(open) => !open && handleResetAndClose()}
+      onOpenChange={(open) => {
+        if (!open) handleResetAndClose();
+      }}
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-grey-900/40 backdrop-blur-xs z-50" />
+
         <Dialog.Content
-          onPointerDownOutside={(e) => {
-            if (isSubmitting) e.preventDefault();
+          onPointerDownOutside={(event) => {
+            if (isSubmitting) event.preventDefault();
           }}
-          onInteractOutside={(e) => {
-            if (isSubmitting) e.preventDefault();
+          onInteractOutside={(event) => {
+            if (isSubmitting) event.preventDefault();
           }}
-          onEscapeKeyDown={(e) => {
-            if (isSubmitting) e.preventDefault();
+          onEscapeKeyDown={(event) => {
+            if (isSubmitting) event.preventDefault();
           }}
           className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[640px] bg-background rounded-[24px] shadow-xl border border-border z-50 overflow-hidden outline-none flex flex-col"
         >
@@ -374,15 +412,18 @@ export default function EndorseStudentModal({
                   size="md"
                 />
               )}
+
               <div className="flex flex-col">
                 <Dialog.Title className="type-subtitle text-secondary tracking-tight">
                   {dialogTitle}
                 </Dialog.Title>
+
                 <p className="type-desc-small-semibold text-primary tracking-wide mt-0.5">
                   {stepLabel[step]}
                 </p>
               </div>
             </div>
+
             <button
               disabled={isSubmitting}
               onClick={handleResetAndClose}
@@ -408,8 +449,8 @@ export default function EndorseStudentModal({
                     <div className="mb-4 flex items-start gap-2.5 p-3.5 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium border border-amber-200">
                       <AlertTriangle size={16} className="shrink-0 mt-0.5" />
                       <span>
-                        You&apos;ve already endorsed this student for this event.
-                        Select a different event to continue.
+                        You&apos;ve already endorsed this student for this
+                        event. Select a different event to continue.
                       </span>
                     </div>
                   )}
@@ -432,8 +473,8 @@ export default function EndorseStudentModal({
                             className="shrink-0 mt-0.5"
                           />
                           <span>
-                            You cannot endorse this student — you haven&apos;t both
-                            registered for the same workspace events.
+                            You cannot endorse this student — you haven&apos;t
+                            both registered for the same workspace events.
                           </span>
                         </div>
                       ) : (
@@ -444,6 +485,7 @@ export default function EndorseStudentModal({
                             onSelect={setCurrentPostId}
                             disabled={isLoadingEvents}
                           />
+
                           {isCheckingDuplicate && (
                             <div className="flex items-center gap-1.5 mt-2 text-xs text-grey-400">
                               <Loader2 size={11} className="animate-spin" />
@@ -548,6 +590,7 @@ export default function EndorseStudentModal({
                     {isSubmitting && (
                       <Loader2 size={14} className="animate-spin" />
                     )}
+
                     {isSubmitting ? "Submitting…" : "Submit"}
                   </button>
                 )}
