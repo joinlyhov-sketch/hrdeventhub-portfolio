@@ -202,9 +202,9 @@ export default function ProfileCard({
         />
       </div>
       <div className="px-6 pb-6 flex flex-col items-center -mt-16 w-full grow">
-        <div className="w-full flex flex-col items-center">
+        <div className="relative z-20 w-32 h-32 mb-4 shrink-0">
           <div
-            className={`w-32 h-32 rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm mb-4 shrink-0 relative z-10 flex items-center justify-center select-none ${
+            className={`w-full h-full rounded-full border-4 border-card overflow-hidden bg-grey-100 shadow-sm flex items-center justify-center select-none ${
               profileAvatar && isVisible("showProfilePicture")
                 ? "cursor-pointer"
                 : "cursor-default"
@@ -232,30 +232,33 @@ export default function ProfileCard({
                 )}
               </span>
             )}
-            {isAvatarOpen && profileAvatar && (
-              <div
-                className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
-                onClick={() => setIsAvatarOpen(false)}
-              >
-                <div
-                  className="relative max-w-sm w-full mx-4 bg-white rounded-2xl shadow-xl p-4"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    onClick={() => setIsAvatarOpen(false)}
-                    className="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-grey-500 hover:text-grey-900 transition-colors cursor-pointer text-sm"
-                  >
-                    ✕
-                  </button>
-                  <img
-                    src={profileAvatar}
-                    alt={displayName}
-                    className="w-full rounded-xl object-cover"
-                  />
-                </div>
-              </div>
-            )}
           </div>
+          {isOnline && (
+            <span className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-green-500 border-4 border-card z-30" />
+          )}
+          {isAvatarOpen && profileAvatar && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30"
+              onClick={() => setIsAvatarOpen(false)}
+            >
+              <div
+                className="relative max-w-sm w-full mx-4 bg-white rounded-2xl shadow-xl p-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setIsAvatarOpen(false)}
+                  className="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-grey-500 hover:text-grey-900 transition-colors cursor-pointer text-sm"
+                >
+                  ✕
+                </button>
+                <img
+                  src={profileAvatar}
+                  alt={displayName}
+                  className="w-full rounded-xl object-cover"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="text-center w-full px-2">
