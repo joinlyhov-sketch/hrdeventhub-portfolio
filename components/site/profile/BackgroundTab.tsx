@@ -1,13 +1,10 @@
-"use client";
-
 import { Download, ClipboardList } from "lucide-react";
 import { UserProfilePayload } from "@/types/profile-types";
-import type { ViewMode } from "@/app/(root)/profile/[id]/page";
 
 interface BackgroundTabProps {
   profile: UserProfilePayload | null;
   loading: boolean;
-  viewMode: ViewMode | null;
+  viewMode: string | null;
   isPublicView?: boolean;
 }
 
@@ -67,28 +64,6 @@ export default function BackgroundTab({
     profile.cvResumeUrl !== "null" &&
     profile.cvResumeUrl.trim() !== ""
   );
-
-  const handleDownloadCV = async () => {
-    if (!hasResume || !profile.cvResumeUrl) return;
-
-    try {
-      const response = await fetch(profile.cvResumeUrl);
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `CV_${profile.appUser?.firstName || "User"}_Resume.pdf`;
-
-      document.body.appendChild(link);
-      link.click();
-
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-    } catch {
-      window.open(profile.cvResumeUrl, "_blank", "noopener,noreferrer");
-    }
-  };
 
   const hasAnyVisibleSection =
     isVisible("showEducation") ||
@@ -178,8 +153,10 @@ export default function BackgroundTab({
         <section>
           <h3 className="type-subtitle-24 text-primary mb-4">Resume</h3>
           {hasResume ? (
-            <div
-              onClick={handleDownloadCV}
+            <a
+              href={profile.cvResumeUrl ?? "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center justify-between gap-3 p-4 border border-border rounded-lg bg-grey-50 group cursor-pointer hover:border-primary transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -195,7 +172,7 @@ export default function BackgroundTab({
                 size={20}
                 className="text-secondary group-hover:text-primary transition-colors shrink-0"
               />
-            </div>
+            </a>
           ) : (
             <div className="p-4 border border-dashed border-border rounded-lg bg-grey-25/50 text-center type-desc text-muted-foreground">
               No resume file uploaded yet.

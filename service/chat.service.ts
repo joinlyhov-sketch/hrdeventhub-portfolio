@@ -27,8 +27,6 @@ async function handle<T>(res: Response): Promise<T> {
 export const chatService = {
 searchUsers(query: string, token: string): Promise<UserResult[]> {
   const url = `${API_BASE}/chat/users/search?name=${encodeURIComponent(query)}`;
-  console.log("[DEBUG searchUsers] url:", url);
-  console.log("[DEBUG searchUsers] token:", JSON.stringify(token));
   return fetch(url, {
     headers: authHeaders(token),
   }).then(async (res) => {
