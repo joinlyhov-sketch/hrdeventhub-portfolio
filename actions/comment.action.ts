@@ -106,7 +106,6 @@ export async function editCommentAction(
       error: response.message || "Failed to edit comment.",
     };
   } catch (error: unknown) {
-    console.error("Server Action Edit Comment Error:", error);
     return {
       ok: false,
       error:

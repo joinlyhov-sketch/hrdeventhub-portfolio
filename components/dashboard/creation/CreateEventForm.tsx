@@ -569,6 +569,7 @@ export default function CreateEventForm() {
           <div>
             <FormTextarea
               label="Description (Optional)"
+              maxLength={2000}
               placeholder="Describe the mission and scope of this event..."
               {...register("description")}
               isError={errors.description != null}

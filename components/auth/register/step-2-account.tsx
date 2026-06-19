@@ -41,58 +41,87 @@ const passwordSchema = z
   .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol");
 
 export default function Step2Account() {
-  const form        = useRegisterStore((s) => s.form);
+  const form = useRegisterStore((s) => s.form);
   const updateField = useRegisterStore((s) => s.updateField);
-  const setStep     = useRegisterStore((s) => s.setStep);
-  const goToOTP     = useRegisterStore((s) => s.goToOTP);
+  const setStep = useRegisterStore((s) => s.setStep);
+  const goToOTP = useRegisterStore((s) => s.goToOTP);
+  const setFieldError = useRegisterStore((s) => s.setFieldError);
 
-  const [errors, setErrors]           = useState<AccountValidate>({});
+  const [errors, setErrors] = useState<AccountValidate>({});
   const [serverError, setServerError] = useState<string | null>(null);
-  const [isPending, startTransition]  = useTransition();
-  const [showPassword, setShowPassword]               = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (field: keyof AccountValidate, value: string) => {
     updateField(field, value);
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+
+    if (serverError) {
+      setServerError(null);
+    }
   };
 
   const handlePasswordBlur = () => {
     const result = passwordSchema.safeParse(form.password);
+
     if (!result.success) {
-      setErrors((prev) => ({ ...prev, password: result.error.issues[0].message }));
-    } else {
-      setErrors((prev) => ({ ...prev, password: undefined }));
+      setErrors((prev) => ({
+        ...prev,
+        password: result.error.issues[0].message,
+      }));
+      return;
     }
+
+    setErrors((prev) => ({ ...prev, password: undefined }));
   };
 
   const handleConfirmPasswordBlur = () => {
     if (!form.confirmPassword) {
-      setErrors((prev) => ({ ...prev, confirmPassword: "Please confirm your password" }));
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Please confirm your password",
+      }));
       return;
     }
+
     if (form.password !== form.confirmPassword) {
-      setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match" }));
-    } else {
-      setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Passwords do not match",
+      }));
+      return;
     }
+
+    setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
   };
 
   const handleRegister = () => {
+    if (isPending) return;
+
     setServerError(null);
 
     const result = step2Schema.safeParse({
-      email:           form.email.trim(),
-      password:        form.password,
+      email: form.email.trim(),
+      password: form.password,
       confirmPassword: form.confirmPassword,
     });
 
     if (!result.success) {
       const fieldErrors: AccountValidate = {};
+
       result.error.issues.forEach((issue) => {
         const field = issue.path[0] as keyof AccountValidate;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
       });
+
       setErrors(fieldErrors);
       return;
     }
@@ -100,11 +129,11 @@ export default function Step2Account() {
     setErrors({});
 
     const payload: RegisterRequest = {
-      firstName:   form.firstName.trim(),
-      lastName:    form.lastName.trim(),
-      gender:      form.gender ? form.gender[0].toUpperCase() : "",
-      email:       form.email.trim(),
-      password:    form.password,
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      gender: form.gender ? form.gender[0].toUpperCase() : "",
+      email: form.email.trim(),
+      password: form.password,
       dateOfBirth: form.dateOfBirth,
       phoneNumber: form.phoneNumber.trim(),
     };
@@ -116,17 +145,56 @@ export default function Step2Account() {
         const msg = res.error;
         const lower = msg.toLowerCase();
 
-        if (lower.includes("password") || lower.includes("stronger") || lower.includes("weak")) {
-          setErrors({ password: msg });
-        } else if (lower.includes("email") || lower.includes("already taken") || lower.includes("conflict")) {
-          setErrors({ email: msg });
-        } else {
-          setServerError(msg);
+        if (lower.includes("duplicate entry detected")) {
+          setFieldError(
+            "phoneNumber",
+            "This phone number is already used. Please use another phone number.",
+          );
+          setStep(1);
+          return;
         }
+
+        if (
+          lower.includes("phone") ||
+          lower.includes("phone number") ||
+          lower.includes("phonenumber") ||
+          lower.includes("mobile") ||
+          lower.includes("tel")
+        ) {
+          setFieldError(
+            "phoneNumber",
+            "This phone number is already used. Please use another phone number.",
+          );
+          setStep(1);
+          return;
+        }
+
+        if (
+          lower.includes("password") ||
+          lower.includes("stronger") ||
+          lower.includes("weak")
+        ) {
+          setErrors({ password: msg });
+          return;
+        }
+
+        if (
+          lower.includes("email") ||
+          lower.includes("already taken") ||
+          lower.includes("already used") ||
+          lower.includes("conflict")
+        ) {
+          setErrors({ email: msg });
+          return;
+        }
+
+        setServerError(msg);
         return;
       }
 
-      if (res?.ok) goToOTP(form.email);
+      if (res?.ok) {
+        goToOTP(form.email.trim());
+      }
     });
   };
 
@@ -154,15 +222,24 @@ export default function Step2Account() {
               errors.email ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <Mail size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <Mail
+              size={16}
+              color="#b0bac9"
+              strokeWidth={2}
+              className="shrink-0"
+            />
+
             <input
               placeholder="Email"
               type="email"
               value={form.email}
-              onChange={(e) => handleChange("email", e.target.value.toLowerCase())}
+              onChange={(e) =>
+                handleChange("email", e.target.value.toLowerCase())
+              }
               className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
             />
           </div>
+
           {errors.email && <FieldError message={errors.email} />}
         </div>
 
@@ -172,7 +249,13 @@ export default function Step2Account() {
               errors.password ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <Lock size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <Lock
+              size={16}
+              color="#b0bac9"
+              strokeWidth={2}
+              className="shrink-0"
+            />
+
             <input
               placeholder="Password"
               type={showPassword ? "text" : "password"}
@@ -181,6 +264,7 @@ export default function Step2Account() {
               onBlur={handlePasswordBlur}
               className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
             />
+
             <button
               type="button"
               onClick={() => setShowPassword((p) => !p)}
@@ -189,6 +273,7 @@ export default function Step2Account() {
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
+
           {errors.password && <FieldError message={errors.password} />}
         </div>
 
@@ -198,15 +283,24 @@ export default function Step2Account() {
               errors.confirmPassword ? "border-red-400" : "border-[#dce6f0]"
             }`}
           >
-            <Lock size={16} color="#b0bac9" strokeWidth={2} className="shrink-0" />
+            <Lock
+              size={16}
+              color="#b0bac9"
+              strokeWidth={2}
+              className="shrink-0"
+            />
+
             <input
               placeholder="Confirm Password"
               type={showConfirmPassword ? "text" : "password"}
               value={form.confirmPassword}
-              onChange={(e) => handleChange("confirmPassword", e.target.value)}
+              onChange={(e) =>
+                handleChange("confirmPassword", e.target.value)
+              }
               onBlur={handleConfirmPasswordBlur}
               className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
             />
+
             <button
               type="button"
               onClick={() => setShowConfirmPassword((p) => !p)}
@@ -215,7 +309,10 @@ export default function Step2Account() {
               {showConfirmPassword ? "Hide" : "Show"}
             </button>
           </div>
-          {errors.confirmPassword && <FieldError message={errors.confirmPassword} />}
+
+          {errors.confirmPassword && (
+            <FieldError message={errors.confirmPassword} />
+          )}
         </div>
       </div>
 
@@ -227,12 +324,16 @@ export default function Step2Account() {
 
       <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-3 sm:gap-4 w-full">
         <button
+          type="button"
           onClick={() => setStep(1)}
-          className="h-11 sm:h-14.5 rounded-xl sm:rounded-2xl border border-[#c8d6ee] bg-white text-base sm:text-lg font-semibold text-[#17356f] transition-all hover:bg-[#f0f5ff]"
+          disabled={isPending}
+          className="h-11 sm:h-14.5 rounded-xl sm:rounded-2xl border border-[#c8d6ee] bg-white text-base sm:text-lg font-semibold text-[#17356f] transition-all hover:bg-[#f0f5ff] disabled:opacity-70"
         >
           Back
         </button>
+
         <button
+          type="button"
           onClick={handleRegister}
           disabled={isPending}
           className="h-11 sm:h-14.5 rounded-xl sm:rounded-2xl bg-[#24529a] text-base sm:text-lg font-semibold text-white transition-all hover:bg-[#1f4685] disabled:opacity-70"

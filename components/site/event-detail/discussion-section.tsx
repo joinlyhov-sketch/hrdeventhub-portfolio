@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Post } from "@/types/posts";
 import { usePostComments } from "@/hooks/use-post-comments";
@@ -10,19 +10,33 @@ import { CommentNode } from "@/components/site/pop-up/comment/comment-node";
 import { MentionInput } from "@/components/site/pop-up/comment/MentionInput";
 import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import Link from "next/link";
+import { Comment } from "@/types/comment";
 
 interface DiscussionSectionProps {
   event: Post;
   workspaceId: string;
+  onCommentsCountChange?: (count: number) => void;
 }
 
-export function DiscussionSection({ event, workspaceId }: DiscussionSectionProps) {
+function countAllComments(comments: Comment[] = []): number {
+  return comments.reduce(
+    (total, comment) => total + 1 + countAllComments(comment.replies ?? []),
+    0,
+  );
+}
+
+export function DiscussionSection({ event, workspaceId, onCommentsCountChange }: DiscussionSectionProps) {
   const { currentUser } = useCurrentUser();
   const [commentInput, setCommentInput] = useState("");
   const [mentionedIds, setMentionedIds] = useState<string[]>([]);
 
   const { comments, refetch, loading } = usePostComments(event.postId, true);
   const { members } = useWorkspaceMembers(workspaceId ?? "");
+
+  useEffect(() => {
+    if (loading) return;
+    onCommentsCountChange?.(countAllComments(comments));
+  }, [comments, loading, onCommentsCountChange]);
 
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;

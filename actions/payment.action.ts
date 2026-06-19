@@ -9,9 +9,7 @@ import {
   BankCredentialPayload,
 } from "@/service/payment.service";
 import { participantService } from "@/service/participant.service";
-import {
-  ServerActionResponse2,
-} from "@/types/file-types";
+import { ServerActionResponse2 } from "@/types/file-types";
 
 const STATIC_BANK_FIELDS = {
   transaction_id: 111111,
@@ -28,6 +26,11 @@ const STATIC_BANK_FIELDS = {
   settlement_error_message: null,
 } as const;
 
+function isStudentOrAlumni(role?: string) {
+  const normalizedRole = role?.toLowerCase();
+  return normalizedRole === "student" || normalizedRole === "alumni";
+}
+
 export interface StudentRegisterInput {
   postId: string;
   remark: string;
@@ -40,7 +43,6 @@ export async function studentRegisterAction(
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
-    const role = input.role?.toLowerCase();
 
     if (!token) {
       return {
@@ -48,18 +50,20 @@ export async function studentRegisterAction(
         error: "Your session has expired. Please log in again.",
       };
     }
-
-    if (role !== "student") {
+    if (!isStudentOrAlumni(input.role)) {
       return {
         ok: false,
-        error: "This registration flow is only available for students.",
+        error: "Registration is only available for students and alumni.",
       };
     }
 
     try {
       await participantService.register(
         input.postId,
-        { remark: input.remark, billNo: null },
+        {
+          remark: input.remark,
+          billNo: null,
+        },
         token,
       );
     } catch (err) {
@@ -114,7 +118,6 @@ export async function alumniFixedPaymentAction(
         error: "Your session has expired. Please log in again.",
       };
     }
-
     if (role !== "alumni") {
       return {
         ok: false,
@@ -146,7 +149,10 @@ export async function alumniFixedPaymentAction(
     try {
       await participantService.register(
         input.postId,
-        { remark: input.remark, billNo: input.billNo },
+        {
+          remark: input.remark,
+          billNo: input.billNo,
+        },
         token,
       );
     } catch {
@@ -166,7 +172,10 @@ export async function alumniFixedPaymentAction(
         };
       }
 
-      return { ok: true, payload: transaction };
+      return {
+        ok: true,
+        payload: transaction,
+      };
     } catch {
       return {
         ok: false,
@@ -197,7 +206,6 @@ export async function generateFlexibleQrAction(
   try {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
-    const role = input.role?.toLowerCase();
 
     if (!token) {
       return {
@@ -206,10 +214,10 @@ export async function generateFlexibleQrAction(
       };
     }
 
-    if (role !== "alumni") {
+    if (!isStudentOrAlumni(input.role)) {
       return {
         ok: false,
-        error: "This payment flow is only available for alumni.",
+        error: "Payment is only available for students and alumni.",
       };
     }
 
@@ -221,7 +229,11 @@ export async function generateFlexibleQrAction(
 
     try {
       const qrResponse = await paymentService.generateQr(qrPayload, token);
-      return { ok: true, payload: qrResponse };
+
+      return {
+        ok: true,
+        payload: qrResponse,
+      };
     } catch (err) {
       return {
         ok: false,
@@ -242,10 +254,99 @@ export async function generateFlexibleQrAction(
   }
 }
 
+async function flexiblePaymentAction(
+  input: AlumniFixedPaymentInput,
+): Promise<ServerActionResponse2<Transaction>> {
+  try {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    if (!token) {
+      return {
+        ok: false,
+        error: "Your session has expired. Please log in again.",
+      };
+    }
+    if (!isStudentOrAlumni(input.role)) {
+      return {
+        ok: false,
+        error: "Payment is only available for students and alumni.",
+      };
+    }
+
+    const notifyPayload = {
+      bill_no: input.billNo,
+      payer_name: input.payerName,
+      remark: input.remark,
+      amount: input.amount,
+      request_id: input.requestId,
+      ...STATIC_BANK_FIELDS,
+    };
+
+    try {
+      await paymentService.notify(notifyPayload);
+    } catch (err) {
+      return {
+        ok: false,
+        error:
+          err instanceof Error
+            ? `Payment notification failed: ${err.message}`
+            : "Payment notification failed. Please try again.",
+      };
+    }
+
+    try {
+      await participantService.register(
+        input.postId,
+        {
+          remark: input.remark,
+          billNo: input.billNo,
+        },
+        token,
+      );
+    } catch {
+    }
+
+    try {
+      const transaction = await paymentService.getTransactionByBillNo(
+        input.billNo,
+        token,
+      );
+
+      if (!transaction) {
+        return {
+          ok: false,
+          error:
+            "Payment submitted, but receipt not found. Check your transaction history.",
+        };
+      }
+
+      return {
+        ok: true,
+        payload: transaction,
+      };
+    } catch {
+      return {
+        ok: false,
+        error:
+          "Payment submitted, but we couldn't load your receipt. Check your transaction history.",
+      };
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
+    };
+  }
+}
+
 export async function alumniFlexiblePaymentAction(
   input: AlumniFixedPaymentInput,
 ): Promise<ServerActionResponse2<Transaction>> {
-  return alumniFixedPaymentAction(input);
+  return flexiblePaymentAction(input);
 }
 
 export async function getMyTransactionsAction(): Promise<
@@ -255,12 +356,19 @@ export async function getMyTransactionsAction(): Promise<
     const session = await getServerSession(authOptions);
     const token = session?.accessToken as string | undefined;
 
-    if (!token)
-      return { ok: false, error: "Authorization session has expired." };
+    if (!token) {
+      return {
+        ok: false,
+        error: "Authorization session has expired.",
+      };
+    }
 
     const transactions = await paymentService.getMyTransactions(token);
 
-    return { ok: true, payload: transactions };
+    return {
+      ok: true,
+      payload: transactions,
+    };
   } catch (error) {
     return {
       ok: false,
@@ -291,7 +399,10 @@ export async function connectBankCredentialAction(
     } catch (err) {
       return {
         ok: false,
-        error: err instanceof Error ? `Connection failed: ${err.message}` : "Failed to connect bank credential parameters.",
+        error:
+          err instanceof Error
+            ? `Connection failed: ${err.message}`
+            : "Failed to connect bank credential parameters.",
       };
     }
 
@@ -304,7 +415,10 @@ export async function connectBankCredentialAction(
   } catch (error) {
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "An unexpected gateway connection error occurred.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected gateway connection error occurred.",
     };
   }
 }

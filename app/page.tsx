@@ -12,15 +12,6 @@ const featuredData: MediaItem = {
   category: "GATHERING",
   imageUrl: "/images/sport.png",
 };
-// const listData: MediaItem[] = Array(3).fill({
-//   id: "list-1",
-//   title: "Gen 13 Graduate Secure Global Roles ",
-//   description:
-//     "Congratulations to our latest graduates! 95% employment rate within 2 months of completing the software engineering.",
-//   category: "SUCCESS STORY",
-//   imageUrl: "/images/songkran.png",
-// });
-
 export default function LandingPage() {
   return (
     <>

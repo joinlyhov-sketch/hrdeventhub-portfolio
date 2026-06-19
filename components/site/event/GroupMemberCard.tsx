@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Search from "@/components/site/search/Search";
 import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import { getMediaUrl } from "@/libs/media";
 import Link from "next/link";
+import { getPresenceAction } from "@/actions/presence.action";
+import { PresenceMap } from "@/service/presence.service";
 
 interface GroupMemberCardProps {
   groupid: string;
@@ -14,17 +16,39 @@ interface GroupMemberCardProps {
 export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
   const [showAll, setShowAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [presenceMap, setPresenceMap] = useState<PresenceMap>({});
+
   const { members, isLoading } = useWorkspaceMembers(groupid);
+
+  useEffect(() => {
+    if (members.length === 0) return;
+
+    const userIds = members.map((m) => m.appUserId);
+
+    const fetchPresence = () => {
+      getPresenceAction(userIds)
+        .then(setPresenceMap)
+        .catch(() => {});
+    };
+
+    fetchPresence();
+    const interval = setInterval(fetchPresence, 30_000);
+    return () => clearInterval(interval);
+  }, [members]);
 
   const filteredMembers = members.filter((member) => {
     const first = member.firstName ?? "";
     const last = member.lastName ?? "";
-    const fullName = `${first} ${last}`.toLowerCase();
-    return fullName.includes(searchQuery.toLowerCase());
+    return `${first} ${last}`.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  const displayedMembers = showAll ? filteredMembers : members.slice(0, 3);
+  const sortedMembers = [...filteredMembers].sort((a, b) => {
+    const aOnline = presenceMap[a.appUserId]?.status === "ONLINE" ? 0 : 1;
+    const bOnline = presenceMap[b.appUserId]?.status === "ONLINE" ? 0 : 1;
+    return aOnline - bOnline;
+  });
 
+  const displayedMembers = showAll ? sortedMembers : sortedMembers.slice(0, 3);
   const headerVisibleMembers = members.slice(0, 2);
   const headerExtraCount = members.length - headerVisibleMembers.length;
 
@@ -62,7 +86,7 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
             return (
               <div
                 key={member.appUserId}
-                className="w-8 h-8 rounded-full border-2 border-white bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center shrink-0 position-relative"
+                className="w-8 h-8 rounded-full border-2 border-white bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center shrink-0"
                 title={`${member.firstName} ${member.lastName}`}
               >
                 {mediaUrl ? (
@@ -110,6 +134,9 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
             const firstLetter = member.firstName?.[0] ?? "";
             const lastLetter = member.lastName?.[0] ?? "";
             const mediaUrl = getMediaUrl(member.profileImage);
+            const presence = presenceMap[member.appUserId];
+            const isOnline = presence?.status === "ONLINE";
+            const label = presence?.label;
 
             return (
               <Link
@@ -117,28 +144,47 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
                 href={`/profile/${member.appUserId}`}
                 className="flex items-center gap-3 min-w-0 w-full hover:opacity-80 transition-opacity"
               >
-                <div
-                  className="w-10 h-10 rounded-full border border-border bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center shrink-0 position-relative"
-                  title={`${member.firstName} ${member.lastName}`}
-                >
-                  {mediaUrl ? (
-                    <Image
-                      src={mediaUrl}
-                      alt={`${member.firstName} ${member.lastName}`}
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <span className="text-[11px] font-bold text-primary uppercase">
-                      {firstLetter}
-                      {lastLetter}
+                
+                <div className="relative shrink-0">
+                  <div
+                    className="w-10 h-10 rounded-full border border-border bg-primary/10 overflow-hidden shadow-sm flex items-center justify-center"
+                    title={`${member.firstName} ${member.lastName}`}
+                  >
+                    {mediaUrl ? (
+                      <Image
+                        src={mediaUrl}
+                        alt={`${member.firstName} ${member.lastName}`}
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <span className="text-[11px] font-bold text-primary uppercase">
+                        {firstLetter}
+                        {lastLetter}
+                      </span>
+                    )}
+                  </div>
+                  {presence && isOnline && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white" />
+                  )}
+                </div>
+
+                <div className="flex flex-col min-w-0 grow">
+                  <span className="type-detail-semibold text-primary truncate">
+                    {member.firstName} {member.lastName}
+                  </span>
+                  {presence && isOnline && label && (
+                    <span className="text-[11px] text-green-500 leading-tight font-medium">
+                      {label}
+                    </span>
+                  )}
+                  {presence && !isOnline && label && (
+                    <span className="text-[11px] text-grey-400 leading-tight">
+                      {label}
                     </span>
                   )}
                 </div>
-                <span className="type-detail-semibold text-primary grow min-w-0 truncate">
-                  {member.firstName} {member.lastName}
-                </span>
               </Link>
             );
           })
@@ -146,7 +192,7 @@ export default function GroupMemberCard({ groupid }: GroupMemberCardProps) {
           <p className="text-sm text-gray-400 text-center py-4">
             {members.length === 0
               ? "No members yet"
-              : `No members found matching “${searchQuery}”`}
+              : `No members found matching "${searchQuery}"`}
           </p>
         )}
       </div>

@@ -7,7 +7,6 @@ export async function logoutAction(refreshToken: string) {
   try {
     await authService.logout(refreshToken);
   } catch (error) {
-    console.error("Backend logout failed:", error);
   }
 }
 

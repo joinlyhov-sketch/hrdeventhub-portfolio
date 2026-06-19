@@ -4,13 +4,13 @@ import React from "react";
 import {
   Eye,
   Mail,
-  Code,
   Phone,
   GraduationCap,
   Cake,
   Users,
   BookOpen,
   FileText,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { UserProfilePayload } from "@/service/profile.service";
 import { getMediaUrl } from "@/libs/media";
@@ -175,7 +175,7 @@ export default function ProfilePrivacy({
           <div className="w-full type-subtitle-24 font-bold text-secondary ">
             Preview As Public
           </div>
-          <div className="h-28 border border-border rounded-2xl shrink-0 relative overflow-hidden">
+          <div className="h-48 border border-border rounded-2xl shrink-0 relative overflow-hidden">
             <img
               src={`/covers/cover${coverIndex}.jpg`}
               alt="Cover"
@@ -232,7 +232,7 @@ export default function ProfilePrivacy({
         <div className="w-full type-subtitle-24 font-bold text-[#0f2d59]">
           Preview As Public
         </div>
-        <div className="h-28 border border-border rounded-2xl shrink-0 relative overflow-hidden">
+        <div className="h-48 border border-border rounded-2xl shrink-0 relative overflow-hidden">
           <img
             src={`/covers/cover${coverIndex}.jpg`}
             alt="Cover"
@@ -286,9 +286,6 @@ export default function ProfilePrivacy({
               {show("showMajor") && major && (
                 <InfoRow icon={<BookOpen size={16} />} text={major} />
               )}
-              {show("showSkills") && skills.length > 0 && (
-                <InfoRow icon={<Code size={16} />} text={skills.join(", ")} />
-              )}
               {show("showPhoneNumber") && appUser.phoneNumber && (
                 <InfoRow
                   icon={<Phone size={16} />}
@@ -297,7 +294,7 @@ export default function ProfilePrivacy({
               )}
               {show("showCurrentStatus") && currentStatus && (
                 <InfoRow
-                  icon={<GraduationCap size={16} />}
+                  icon={<BriefcaseBusiness size={16} />}
                   text={currentStatus}
                 />
               )}
@@ -319,7 +316,7 @@ export default function ProfilePrivacy({
                     <InfoRow
                       key={i}
                       icon={<GraduationCap size={16} />}
-                      text={`${edu.institutionAbbreviation || edu.institutionName} — ${edu.degree}`}
+                      text={`${edu.institutionAbbreviation || edu.institutionName}`}
                     />
                   ))}
                 </div>

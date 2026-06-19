@@ -24,6 +24,7 @@ export interface EndorsementAlumni {
   appUserId: string;
   firstName: string;
   lastName: string;
+  generation: number;    
   profilePicture?: string | null; 
 }
 
@@ -62,7 +63,6 @@ export interface EndorsementPost {
   media: EndorsementMedia[];
 }
 
-// This is the key interface TypeScript is complaining about
 export interface EndorsementItem {
   endorsementId: string;
   skill: string;
@@ -70,7 +70,7 @@ export interface EndorsementItem {
   createdAt: string;
   alumni: EndorsementAlumni;   
   student: EndorsementStudent; 
-  post: EndorsementPost;       
+  post: EndorsementPost;  
 }
 
 export interface FetchReceivedEndorsementsResponse {
@@ -81,16 +81,52 @@ export interface FetchReceivedEndorsementsResponse {
   timestamp: string;
 }
 
+export interface RegistrationPost {
+  postId: string;
+  category: string;
+  title: string;
+  content: string;
+  purpose: string;
+  published: boolean;
+  scheduledAt: string | null;
+  status: string;
+  pinned: boolean;
+  expiresAt: string | null;
+  eventStart: string | null;
+  eventEnd: string | null;
+  deletedAt: string | null;
+  deleted: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+  workspaceId: string;
+  appUserId: string;
+  media?: EndorsementMedia[];
+  location?: EndorsementLocation;
+  payment?: {
+    postPaymentId: string;
+    paymentType: string;
+    paymentAmount: number | null;
+    donationGoal: number | null;
+    amountRaised: number;
+    postId: string;
+    paymentAccId: string | null;
+    billNo: string | null;
+    accountNo: string | null;
+    khqrData: string | null;
+    khqrDataBase64: string | null;
+    requestId: string | null;
+  };
+}
+
 export interface RegistrationPayloadItem {
-    postTitle: string;
   participantId: string;
   registeredAt: string;
   remark: string;
   postId: string;
+  post: RegistrationPost;
   user: ParticipantUser;
   paymentStatus: string;
 }
-
 export interface FetchRegistrationsResponse {
   success: boolean;
   message: string;

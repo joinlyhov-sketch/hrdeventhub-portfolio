@@ -41,7 +41,22 @@ export default function SurveyCreationForm({
 }: SurveyCreationFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const formStore = useSurveyFormStore();
+
+  const title = useSurveyFormStore((s) => s.title);
+  const description = useSurveyFormStore((s) => s.description);
+  const closingTime = useSurveyFormStore((s) => s.closingTime);
+  const isActive = useSurveyFormStore((s) => s.isActive);
+  const selectedWorkspaceId = useSurveyFormStore((s) => s.selectedWorkspaceId);
+
+  const setTitle = useSurveyFormStore((s) => s.setTitle);
+  const setDescription = useSurveyFormStore((s) => s.setDescription);
+  const setClosingTime = useSurveyFormStore((s) => s.setClosingTime);
+  const setIsActive = useSurveyFormStore((s) => s.setIsActive);
+  const setSelectedWorkspaceId = useSurveyFormStore(
+    (s) => s.setSelectedWorkspaceId
+  );
+  const reset = useSurveyFormStore((s) => s.reset);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +66,7 @@ export default function SurveyCreationForm({
 
   useEffect(() => {
     if (!surveyId) {
-      queueMicrotask(() => setQuestions([
+      setQuestions([
         {
           id: "1",
           type: "rating",
@@ -66,25 +81,32 @@ export default function SurveyCreationForm({
           linearStart: 1,
           linearEnd: 5,
         },
-      ]));
+      ]);
       return;
     }
 
     const loadExistingSurveyData = async () => {
       setIsLoadingData(true);
+
       try {
         const survey = await surveyService.getSurveyById(surveyId);
 
-        formStore.setTitle(survey.title);
-        formStore.setDescription(survey.description || "");
-        const isActiveSafe: boolean = Boolean((survey as unknown as { active?: boolean }).active ?? survey.isActive ?? true);
-        formStore.setIsActive(isActiveSafe);
+        setTitle(survey.title);
+        setDescription(survey.description || "");
+
+        const isActiveSafe: boolean = Boolean(
+          (survey as unknown as { active?: boolean }).active ??
+            survey.isActive ??
+            true
+        );
+
+        setIsActive(isActiveSafe);
+
         if (survey.closingTime) {
-          formStore.setClosingTime(
-            new Date(survey.closingTime).toISOString().slice(0, 16),
-          );
+          setClosingTime(new Date(survey.closingTime).toISOString().slice(0, 16));
         }
-        formStore.setSelectedWorkspaceId(survey.workspaceId);
+
+        setSelectedWorkspaceId(survey.workspaceId);
 
         if (survey.content?.pages?.[0]?.elements) {
           const mappedQuestions: Question[] =
@@ -104,11 +126,12 @@ export default function SurveyCreationForm({
                 maxScale: el.maxRateDescription,
               } as Question;
             });
+
           setQuestions(mappedQuestions);
         }
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load survey data.",
+          err instanceof Error ? err.message : "Failed to load survey data."
         );
       } finally {
         setIsLoadingData(false);
@@ -116,16 +139,25 @@ export default function SurveyCreationForm({
     };
 
     loadExistingSurveyData();
-  }, [surveyId, formStore]);
+  }, [
+    surveyId,
+    setTitle,
+    setDescription,
+    setIsActive,
+    setClosingTime,
+    setSelectedWorkspaceId,
+  ]);
 
   useEffect(() => {
     const urlQueryId =
       searchParams.get("groupId") || searchParams.get("groupid");
+
     const resolvedId = urlQueryId || workspaceId;
+
     if (resolvedId && !isEditMode) {
-      formStore.setSelectedWorkspaceId(resolvedId);
+      setSelectedWorkspaceId(resolvedId);
     }
-  }, [searchParams, workspaceId, isEditMode, formStore]);
+  }, [searchParams, workspaceId, isEditMode, setSelectedWorkspaceId]);
 
   const addQuestionByType = (type: QuestionType) => {
     const templates: Record<QuestionType, Partial<Question>> = {
@@ -141,7 +173,11 @@ export default function SurveyCreationForm({
         options: ["Choice A", "Choice B"],
         selectedChoice: "",
       },
-      rating: { text: "Untitled Rating Question", maxScale: 5, ratingValue: 0 },
+      rating: {
+        text: "Untitled Rating Question",
+        maxScale: 5,
+        ratingValue: 0,
+      },
       linear: {
         text: "Untitled Scale Question",
         linearStart: 1,
@@ -149,7 +185,10 @@ export default function SurveyCreationForm({
         minLabel: "Low",
         maxLabel: "High",
       },
-      "yes-no": { text: "Untitled Binary Choice Question", toggleValue: false },
+      "yes-no": {
+        text: "Untitled Binary Choice Question",
+        toggleValue: false,
+      },
       matrix: {
         text: "Untitled Matrix Question Grid",
         matrixRows: ["Statement Row 1"],
@@ -158,9 +197,13 @@ export default function SurveyCreationForm({
       },
     };
 
-    setQuestions([
-      ...questions,
-      { id: `${Date.now()}`, type, ...templates[type] } as Question,
+    setQuestions((prev) => [
+      ...prev,
+      {
+        id: `${Date.now()}`,
+        type,
+        ...templates[type],
+      } as Question,
     ]);
   };
 
@@ -168,6 +211,7 @@ export default function SurveyCreationForm({
     const QUESTIONS_PER_PAGE = 3;
 
     const chunks: Question[][] = [];
+
     for (let i = 0; i < questions.length; i += QUESTIONS_PER_PAGE) {
       chunks.push(questions.slice(i, i + QUESTIONS_PER_PAGE));
     }
@@ -179,12 +223,14 @@ export default function SurveyCreationForm({
           type: q.type,
           title: q.text,
         };
+
         if (q.options) element.choices = q.options;
         if (q.matrixRows) element.rows = q.matrixRows;
         if (q.matrixCols) element.columns = q.matrixCols;
         if (q.minLabel) element.minRateLabel = q.minLabel;
         if (q.maxLabel) element.maxRateLabel = q.maxLabel;
         if (q.maxScale) element.maxRateDescription = q.maxScale;
+
         return element;
       });
 
@@ -196,43 +242,52 @@ export default function SurveyCreationForm({
     });
 
     if (pages.length === 0) {
-      pages.push({ name: "page1", title: "Page 1", elements: [] });
+      pages.push({
+        name: "page1",
+        title: "Page 1",
+        elements: [],
+      });
     }
 
     return {
-      title: formStore.title || "Untitled Survey",
+      title: title || "Untitled Survey",
       pages,
     };
-  }, [questions, formStore.title]);
+  }, [questions, title]);
 
   const handleFormSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setError(null);
     setIsSubmitting(true);
 
     try {
-      if (!formStore.title.trim()) throw new Error("Survey title is required");
-      if (questions.length === 0)
+      if (!title.trim()) {
+        throw new Error("Survey title is required");
+      }
+
+      if (questions.length === 0) {
         throw new Error("At least one question is required");
-      if (!formStore.closingTime) throw new Error("Closing time is required");
-      if (!formStore.selectedWorkspaceId)
+      }
+
+      if (!closingTime) {
+        throw new Error("Closing time is required");
+      }
+
+      if (!selectedWorkspaceId) {
         throw new Error("Please select a workspace");
+      }
 
       const content = convertQuestionsToBEFormat();
 
       const surveyData = {
-        title: formStore.title,
-        description: formStore.description,
+        title,
+        description,
         content,
-        isActive: formStore.isActive ?? true,
-        closingTime: new Date(formStore.closingTime).toISOString(),
-        workspaceId: formStore.selectedWorkspaceId,
+        isActive: isActive ?? true,
+        closingTime: new Date(closingTime).toISOString(),
+        workspaceId: selectedWorkspaceId,
       };
-
-      console.log(
-        "Transmitting complete payload structure to backend endpoint:",
-        surveyData,
-      );
 
       if (isEditMode) {
         await updateSurveyAction(surveyId!, surveyData);
@@ -240,8 +295,9 @@ export default function SurveyCreationForm({
         await createSurveyAction(surveyData);
       }
 
-      const savedWorkspaceId = formStore.selectedWorkspaceId;
-      formStore.reset();
+      const savedWorkspaceId = selectedWorkspaceId;
+
+      reset();
       setQuestions([]);
 
       if (onSuccess) {
@@ -253,7 +309,7 @@ export default function SurveyCreationForm({
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to save survey modifications.",
+          : "Failed to save survey modifications."
       );
     } finally {
       setIsSubmitting(false);
@@ -293,6 +349,7 @@ export default function SurveyCreationForm({
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
             <div />
+
             <Button
               type="submit"
               disabled={isSubmitting}
@@ -310,19 +367,19 @@ export default function SurveyCreationForm({
           </div>
 
           <SurveyHeader
-            title={formStore.title}
-            setTitle={formStore.setTitle}
-            description={formStore.description}
-            setDescription={formStore.setDescription}
-            closingTime={formStore.closingTime}
-            setClosingTime={formStore.setClosingTime}
-            isActive={formStore.isActive}
-            setIsActive={formStore.setIsActive}
+            title={title}
+            setTitle={setTitle}
+            description={description}
+            setDescription={setDescription}
+            closingTime={closingTime}
+            setClosingTime={setClosingTime}
+            isActive={isActive}
+            setIsActive={setIsActive}
           />
 
           <WorkspaceSelector
-            selectedWorkspaceId={formStore.selectedWorkspaceId}
-            onSelectWorkspace={formStore.setSelectedWorkspaceId}
+            selectedWorkspaceId={selectedWorkspaceId}
+            onSelectWorkspace={setSelectedWorkspaceId}
             required={true}
             disabled={isWorkspaceContextLocked}
           />
@@ -338,13 +395,14 @@ export default function SurveyCreationForm({
             type="button"
             variant="outline"
             onClick={() => addQuestionByType("choice")}
-            className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-detail font-semibold text-gray-500 shadow-sm hover:bg-slate-50/50"
+            className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-detail font-semibold text-gray-500 shadow-sm hover:text-gray-500 hover:bg-slate-50/50"
           >
             <Plus size={24} />
             Add Questions
           </Button>
         </div>
       </div>
+
       <QuestionTypeSidebar onAddQuestion={addQuestionByType} />
     </form>
   );

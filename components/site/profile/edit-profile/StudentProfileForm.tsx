@@ -1,9 +1,16 @@
 "use client";
 
 import React, { useEffect, useState, useTransition, useRef } from "react";
-import { Trash2, CircleX } from "lucide-react";
+import { Trash2, CircleX, ChevronDown, Building2 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { profileService } from "@/service/profile.service";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { profileService, University } from "@/service/profile.service";
 import {
   deleteMe,
   getIdentityMeAction,
@@ -27,14 +34,9 @@ import {
 } from "@/components/ui/popover";
 
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
+import { profile } from "console";
+import Loading from "@/app/loading";
 
 function UploadSVG() {
   return (
@@ -111,7 +113,8 @@ export default function StudentProfileForm() {
       endYear?: string;
     }[]
   >([]);
-
+  const [appUserId, setAppUserId] = useState("");
+  const profileRoute = appUserId ? `/profile/${appUserId}` : "/profile";
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -141,23 +144,53 @@ export default function StudentProfileForm() {
   type EducationEntry = {
     institutionName: string;
     institutionAbbreviation: string;
+    institutionLogo: string;
     degree: string;
     startYear: number | string;
     endYear: number | null;
     isCurrent: boolean;
   };
+  const DEGREE_ABBREVIATION_OPTIONS = [
+    {
+      value: "AA",
+      label: "Associate's Degree",
+    },
+    {
+      value: "BA",
+      label: "Bachelor's Degree",
+    },
+    {
+      value: "MA",
+      label: "Master's Degree",
+    },
+    {
+      value: "PhD",
+      label: "PhD: Doctor of Philosophy",
+    },
+  ];
 
   const [education, setEducation] = useState<EducationEntry[]>([
     {
       institutionName: "",
       institutionAbbreviation: "",
+      institutionLogo: "",
       degree: "",
       startYear: 2026,
       endYear: null,
       isCurrent: true,
     },
   ]);
-
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [isLoadingUniversities, setIsLoadingUniversities] = useState(false);
+  const [openUniversityIndex, setOpenUniversityIndex] = useState<number | null>(
+    null,
+  );
+  const [openAbbreviationIndex, setOpenAbbreviationIndex] = useState<
+    number | null
+  >(null);
+  const [universitySearch, setUniversitySearch] = useState<
+    Record<number, string>
+  >({});
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
@@ -197,6 +230,10 @@ export default function StudentProfileForm() {
 
     if (!lastName.trim()) {
       newErrors.lastName = "Last name is required";
+      isValid = false;
+    }
+    if (bio.length > 500) {
+      newErrors.bio = "Bio description cannot exceed 500 characters";
       isValid = false;
     }
 
@@ -320,6 +357,7 @@ export default function StudentProfileForm() {
       window.dispatchEvent(event);
     } else {
       router.back();
+      sessionStorage.removeItem("pending-avatar");
     }
   };
   const currentIdentityPayload = {
@@ -327,7 +365,7 @@ export default function StudentProfileForm() {
     lastName: lastName.trim(),
     username: username.trim(),
     dateOfBirth: dob.trim(),
-    phoneNumber: phoneNumber.trim(),
+    phoneNumber: `+855${phoneNumber.trim()}`,
   };
 
   const validEducation = education.filter(
@@ -410,11 +448,29 @@ export default function StudentProfileForm() {
   useEffect(() => {
     const pendingAvatar = sessionStorage.getItem("pending-avatar");
     if (pendingAvatar) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedImageSrc(pendingAvatar);
       setIsAdjustModalOpen(true);
     }
   }, []);
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      const token = session?.accessToken;
+      if (!token) return;
+
+      try {
+        setIsLoadingUniversities(true);
+        const result = await profileService.getUniversities(token);
+        setUniversities(result);
+      } catch (error) {
+        console.error("Failed to fetch universities:", error);
+        setUniversities([]);
+      } finally {
+        setIsLoadingUniversities(false);
+      }
+    };
+
+    fetchUniversities();
+  }, [session?.accessToken]);
 
   useEffect(() => {
     const loadAllUserData = async () => {
@@ -435,12 +491,24 @@ export default function StudentProfileForm() {
           const idValue = identityRes.value as Record<string, unknown>;
           const idData =
             (idValue.payload as Record<string, unknown>) || idValue;
+          setAppUserId((idData.appUserId as string) || "");
+          const rawPhoneNumber =
+            (idData.phoneNumber as string) ||
+            (idData.phone_number as string) ||
+            (idData.phone as string) ||
+            "";
+
+          const cleanedPhoneNumber = rawPhoneNumber
+            .replace("+855", "")
+            .replace(/^855/, "")
+            .trim();
+
           const identitySnapshot = {
             firstName: (idData.firstName as string) || "",
             lastName: (idData.lastName as string) || "",
             username: (idData.username as string) || "",
             dateOfBirth: (idData.dateOfBirth as string) || "",
-            phoneNumber: (idData.phoneNumber as string) || "",
+            phoneNumber: cleanedPhoneNumber,
           };
           setInitialIdentity(identitySnapshot);
           setFirstName(identitySnapshot.firstName);
@@ -516,6 +584,7 @@ export default function StudentProfileForm() {
             {
               institutionName: "",
               institutionAbbreviation: "",
+              institutionLogo: "",
               degree: "",
               startYear: 2026,
               endYear: null,
@@ -526,6 +595,7 @@ export default function StudentProfileForm() {
             parsedEdu = p.education.map((edu) => ({
               institutionName: edu.institutionName || "",
               institutionAbbreviation: edu.institutionAbbreviation || "",
+              institutionLogo: edu.institutionLogo || "",
               degree: edu.degree || "",
               startYear: edu.startYear || 2026,
               endYear: edu.endYear || null,
@@ -685,7 +755,7 @@ export default function StudentProfileForm() {
       lastName: lastName.trim(),
       username: username.trim(),
       dateOfBirth: dob.trim(),
-      phoneNumber: phoneNumber.trim(),
+      phoneNumber: `+855${phoneNumber.trim()}`,
     };
     const socialAccount = [
       {
@@ -720,6 +790,7 @@ export default function StudentProfileForm() {
       education: validEducation.map((edu) => ({
         institutionName: String(edu.institutionName),
         institutionAbbreviation: String(edu.institutionAbbreviation),
+        institutionLogo: String(edu.institutionLogo || ""),
         degree: String(edu.degree),
         startYear: Number(edu.startYear),
         endYear: edu.endYear,
@@ -752,7 +823,7 @@ export default function StudentProfileForm() {
         });
 
     if (!identityChanged && !profileChanged) {
-      router.back();
+      router.replace(profileRoute);
       return;
     }
 
@@ -782,9 +853,8 @@ export default function StudentProfileForm() {
           updatePromises,
         )) as [ActionResult, ActionResult];
         if (identityResult?.success && profileResult?.success) {
-          router.refresh();
-          router.back();
           toast.success("Profile updated successfully.");
+          router.replace(profileRoute);
           return;
         }
         if (!identityResult?.success)
@@ -812,8 +882,7 @@ export default function StudentProfileForm() {
     <div className="xl:col-span-8 border border-border rounded-2xl p-4 sm:p-6 flex flex-col gap-4">
       {isLoadingData ? (
         <div className="flex flex-col items-center justify-center min-h-[500px] gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-secondary type-detail">Loading profile...</p>
+          <Loading />
         </div>
       ) : (
         <>
@@ -835,7 +904,6 @@ export default function StudentProfileForm() {
               >
                 {profilePicture ? (
                   <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={profilePicture}
                       alt="Profile"
@@ -1070,9 +1138,7 @@ export default function StudentProfileForm() {
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="type-desc text-secondary">
-                  Gender (Read Only)
-                </label>
+                <label className="type-desc text-secondary">Gender</label>
                 <input
                   type="text"
                   value={gender}
@@ -1098,13 +1164,13 @@ export default function StudentProfileForm() {
                     <span className="text-primary">+855</span>
                   </div>
 
-                  <input
+                  {/* <input
                     type="text"
                     inputMode="numeric"
                     maxLength={9}
                     value={phoneNumber}
                     onChange={(e) => {
-                      const value = e.target.value;
+                      const value = e.target.value.replace(/\D/g, "");
 
                       if (/^\d{0,9}$/.test(value)) {
                         setPhoneNumber(value);
@@ -1116,7 +1182,30 @@ export default function StudentProfileForm() {
                       }
                     }}
                     className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
-                    placeholder="123 456 789"
+                    placeholder="123 456 7898"
+                  /> */}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={11}
+                    value={phoneNumber.replace(
+                      /(\d{2})(\d{3})(\d{0,4})/,
+                      (_, a, b, c) => [a, b, c].filter(Boolean).join(" "),
+                    )}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/\D/g, "");
+
+                      if (/^\d{0,9}$/.test(rawValue)) {
+                        setPhoneNumber(rawValue);
+
+                        setErrors((prev) => ({
+                          ...prev,
+                          phoneNumber: "",
+                        }));
+                      }
+                    }}
+                    className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
+                    placeholder="89 124 5768"
                   />
                 </div>
 
@@ -1126,14 +1215,12 @@ export default function StudentProfileForm() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="type-desc text-secondary">
-                  Email (Read Only)
-                </label>
+                <label className="type-desc text-secondary">Email</label>
                 <input
                   type="email"
                   value={email}
                   disabled
-                  className="w-full h-10 px-3 border border-border rounded-lg type-detail text-primary focus:outline-hidden bg-white"
+                  className="w-full h-10 px-3 bg-background border border-border rounded-md type-detail text-muted-foreground opacity-70 focus:outline-none cursor-not-allowed"
                 />
               </div>
             </div>
@@ -1141,12 +1228,14 @@ export default function StudentProfileForm() {
             <div className="flex flex-col gap-1.5 w-full">
               <label className="type-desc text-secondary">Profile Bio</label>
               <textarea
-                rows={3}
+                rows={4}
                 value={bio}
+                maxLength={50}
                 onChange={(e) => setBio(e.target.value)}
                 className="w-full p-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary resize-none"
               />
             </div>
+            {errors.bio && <p className="text-xs text-red-500">{errors.bio}</p>}
           </div>
           <section className="space-y-4">
             <h2 className="type-subtitle-24 text-primary">Social Accounts</h2>
@@ -1360,6 +1449,7 @@ export default function StudentProfileForm() {
                     {
                       institutionName: "",
                       institutionAbbreviation: "",
+                      institutionLogo: "",
                       degree: "",
                       startYear: 2026,
                       endYear: null,
@@ -1375,7 +1465,7 @@ export default function StudentProfileForm() {
             {education.map((edu, idx) => (
               <div
                 key={idx}
-                className="type-desc-semibold text-primary grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full border-b border-dashed border-border pb-4 last:border-0 relative"
+                className="type-desc-semibold text-primary grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 w-full border-b border-dashed border-border pb-4 last:border-0 relative"
               >
                 {idx > 0 && (
                   <button
@@ -1388,22 +1478,198 @@ export default function StudentProfileForm() {
                     <Trash2 size={14} />
                   </button>
                 )}
-                <div className="flex flex-col gap-1.5 w-full">
+                <div className="flex flex-col gap-1.5 w-full relative">
                   <label className="type-detail-semibold text-secondary">
                     University/Institute/Center
                   </label>
-                  <input
-                    type="text"
-                    value={edu.institutionName}
-                    placeholder="University Name"
-                    onChange={(e) =>
-                      handleUpdateEducation(idx, {
-                        institutionName: e.target.value,
-                      })
-                    }
-                    className="w-full h-10 px-3 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
-                  />
+
+                  <div className="relative">
+                    <Building2
+                      size={16}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    />
+
+                    <input
+                      type="text"
+                      value={
+                        openUniversityIndex === idx
+                          ? universitySearch[idx] || ""
+                          : edu.institutionName
+                      }
+                      placeholder={
+                        isLoadingUniversities
+                          ? "Loading schools..."
+                          : "Search university..."
+                      }
+                      onFocus={() => {
+                        setOpenUniversityIndex(idx);
+                        setOpenAbbreviationIndex(null);
+                        setUniversitySearch((prev) => ({
+                          ...prev,
+                          [idx]: "",
+                        }));
+                      }}
+                      onChange={(e) => {
+                        setOpenUniversityIndex(idx);
+                        setUniversitySearch((prev) => ({
+                          ...prev,
+                          [idx]: e.target.value,
+                        }));
+                      }}
+                      className="w-full h-10 pl-9 pr-9 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] focus:outline-hidden focus:border-primary"
+                    />
+
+                    <ChevronDown
+                      size={16}
+                      onClick={() => {
+                        setOpenUniversityIndex(
+                          openUniversityIndex === idx ? null : idx,
+                        );
+                        setOpenAbbreviationIndex(null);
+                      }}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer transition-transform ${
+                        openUniversityIndex === idx ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+
+                  {openUniversityIndex === idx && (
+                    <div className="absolute left-0 right-0 top-[68px] z-50 bg-white border border-blue-100 rounded-xl shadow-xl max-h-[220px] overflow-y-auto unique-scrollbar p-1">
+                      {(() => {
+                        const search = (
+                          universitySearch[idx] || ""
+                        ).toLowerCase();
+
+                        const filteredUniversities = universities.filter(
+                          (university) =>
+                            university.name.toLowerCase().includes(search),
+                        );
+
+                        if (isLoadingUniversities) {
+                          return (
+                            <div className="text-[14px] text-gray-400 px-4 py-3 text-center">
+                              Loading schools...
+                            </div>
+                          );
+                        }
+
+                        if (filteredUniversities.length === 0) {
+                          return (
+                            <div className="text-[14px] text-gray-400 px-4 py-3 text-center">
+                              No universities found.
+                            </div>
+                          );
+                        }
+
+                        return filteredUniversities.map((university) => (
+                          <div
+                            key={university.universityId}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              handleUpdateEducation(idx, {
+                                institutionName: university.name,
+                                institutionLogo: university.logoUrl || "",
+                              });
+
+                              setUniversitySearch((prev) => ({
+                                ...prev,
+                                [idx]: "",
+                              }));
+
+                              setOpenUniversityIndex(null);
+                            }}
+                            className={`flex items-center gap-3 text-[15px] px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
+                              edu.institutionName === university.name
+                                ? "bg-blue-50 text-[#1e3a8a] font-medium"
+                                : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            {university.logoUrl ? (
+                              <img
+                                src={university.logoUrl}
+                                alt={university.name}
+                                className="w-7 h-7 rounded-full object-cover border border-gray-100 shrink-0"
+                              />
+                            ) : (
+                              <div className="w-7 h-7 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                                <Building2
+                                  size={14}
+                                  className="text-[#1e3a8a]"
+                                />
+                              </div>
+                            )}
+
+                            <div className="min-w-0">
+                              <p className="truncate">{university.name}</p>
+                              {university.location && (
+                                <p className="text-xs text-gray-400 truncate">
+                                  {university.location}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
                 </div>
+
+                <div className="flex flex-col gap-1.5 w-full relative">
+                  <label className="type-detail-semibold text-secondary">
+                    Institution Abbreviation
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenAbbreviationIndex(
+                        openAbbreviationIndex === idx ? null : idx,
+                      );
+                      setOpenUniversityIndex(null);
+                    }}
+                    className="w-full h-10 px-3 pr-9 bg-white border border-border rounded-lg type-detail text-[#1C4E8D] flex items-center text-left cursor-pointer"
+                  >
+                    {edu.institutionAbbreviation || "Select abbreviation"}
+                  </button>
+
+                  <ChevronDown
+                    size={16}
+                    onClick={() => {
+                      setOpenAbbreviationIndex(
+                        openAbbreviationIndex === idx ? null : idx,
+                      );
+                      setOpenUniversityIndex(null);
+                    }}
+                    className={`absolute right-3 top-[34px] text-gray-400 cursor-pointer transition-transform ${
+                      openAbbreviationIndex === idx ? "rotate-180" : ""
+                    }`}
+                  />
+
+                  {openAbbreviationIndex === idx && (
+                    <div className="absolute left-0 right-0 top-[68px] z-50 bg-white border border-blue-100 rounded-xl shadow-xl overflow-hidden p-1">
+                      {DEGREE_ABBREVIATION_OPTIONS.map((option) => (
+                        <div
+                          key={option.value}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            handleUpdateEducation(idx, {
+                              institutionAbbreviation: option.value,
+                            });
+                            setOpenAbbreviationIndex(null);
+                          }}
+                          className={`text-[14px] px-4 py-3 rounded-lg cursor-pointer transition-colors ${
+                            edu.institutionAbbreviation === option.value
+                              ? "bg-blue-50 text-[#1e3a8a] font-medium"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {option.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex flex-col gap-1.5 w-full">
                   <label className="type-detail-semibold text-secondary">
                     Major/Course
@@ -1484,7 +1750,7 @@ export default function StudentProfileForm() {
                       });
                     }}
                     className={`w-full h-10 px-3 bg-white border rounded-lg type-detail text-[#1C4E8D]
-      ${educationErrors[idx]?.endYear ? "border-red-500" : "border-border"}`}
+                    ${educationErrors[idx]?.endYear ? "border-red-500" : "border-border"}`}
                   />
 
                   {educationErrors[idx]?.endYear && (
@@ -1525,137 +1791,137 @@ export default function StudentProfileForm() {
             </div>
           </div>
 
-          <div className="space-y-4 w-full">
-            <label className="type-subtitle text-primary block">Resume</label>
-            <input
-              type="file"
-              ref={resumeInputRef}
-              onChange={handleResumeFileChange}
-              accept=".pdf,.docx"
-              className="hidden"
-              disabled={isUploadingResume}
-            />
-            <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-200 rounded-xl">
-              <div className="p-3 bg-[#E5EEFF] text-primary rounded-full mb-2 flex items-center justify-center">
-                {isUploadingResume ? (
-                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M9 17V11L7 13"
-                      stroke="#292D32"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M9 11L11 13"
-                      stroke="#292D32"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14"
-                      stroke="#292D32"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M22 10H18C15 10 14 9 14 6V2L22 10Z"
-                      stroke="#292D32"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-              <span className="text-gray-900 type-desc">Upload New CV</span>
-              <span className="text-gray-500 type-desc-small-semibold mt-0.5 mb-4">
-                PDF, DOCX up to 10MB
-              </span>
-              <button
-                type="button"
+          {hasRole && (
+            <div className="space-y-4 w-full">
+              <label className="type-subtitle text-primary block">Resume</label>
+              <input
+                type="file"
+                ref={resumeInputRef}
+                onChange={handleResumeFileChange}
+                accept=".pdf,.docx"
+                className="hidden"
                 disabled={isUploadingResume}
-                onClick={() => resumeInputRef.current?.click()}
-                className="px-6 py-2.5 bg-[#4663AC] primary-hover disabled:opacity-50 text-white type-desc-medium rounded-2xl transition-colors cursor-pointer border-0 shadow-xs"
-              >
-                Select file
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-white w-full">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="p-2 rounded-lg text-gray-500 flex items-center justify-center shrink-0">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 36 36"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="text-gray-600"
-                  >
-                    <path
-                      d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M12 19.5H18"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M12 25.5H24"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+              />
+              <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-200 rounded-xl">
+                <div className="p-3 bg-[#E5EEFF] text-primary rounded-full mb-2 flex items-center justify-center">
+                  {isUploadingResume ? (
+                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9 17V11L7 13"
+                        stroke="#292D32"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M9 11L11 13"
+                        stroke="#292D32"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14"
+                        stroke="#292D32"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M22 10H18C15 10 14 9 14 6V2L22 10Z"
+                        stroke="#292D32"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
                 </div>
-                <span
-                  className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}
-                >
-                  {cvResumeUrl
-                    ? `CV_${username}.` + cvResumeUrl.split(".").pop()
-                    : "CV_Example.pdf"}
+                <span className="text-gray-900 type-desc">Upload New CV</span>
+                <span className="text-gray-500 type-desc-small-semibold mt-0.5 mb-4">
+                  PDF, DOCX up to 10MB
                 </span>
-              </div>
-              {cvResumeUrl && (
                 <button
                   type="button"
-                  onClick={() => setIsDeleteResumeModalOpen(true)}
+                  disabled={isUploadingResume}
+                  onClick={() => resumeInputRef.current?.click()}
+                  className="px-6 py-2.5 bg-[#4663AC] primary-hover disabled:opacity-50 text-white type-desc-medium rounded-2xl transition-colors cursor-pointer border-0 shadow-xs"
                 >
-                  <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
+                  Select file
                 </button>
-              )}
+              </div>
+              <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-white w-full">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-lg text-gray-500 flex items-center justify-center shrink-0">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 36 36"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="text-gray-600"
+                    >
+                      <path
+                        d="M30 12.375V27C30 31.5 27.315 33 24 33H12C8.685 33 6 31.5 6 27V12.375C6 7.5 8.685 6.375 12 6.375C12 7.305 12.375 8.14499 12.99 8.75999C13.605 9.37499 14.445 9.75 15.375 9.75H20.625C22.485 9.75 24 8.235 24 6.375C27.315 6.375 30 7.5 30 12.375Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M24 6.375C24 8.235 22.485 9.75 20.625 9.75H15.375C14.445 9.75 13.605 9.37499 12.99 8.75999C12.375 8.14499 12 7.305 12 6.375C12 4.515 13.515 3 15.375 3H20.625C21.555 3 22.395 3.37501 23.01 3.99001C23.625 4.60501 24 5.445 24 6.375Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 19.5H18"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 25.5H24"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className={`text-sm truncate font-medium ${cvResumeUrl ? "text-[#1C4E8D] type-subtitle" : "text-secondary"}`}
+                  >
+                    {cvResumeUrl
+                      ? `CV_${username}.` + cvResumeUrl.split(".").pop()
+                      : "CV_Example.pdf"}
+                  </span>
+                </div>
+                {cvResumeUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteResumeModalOpen(true)}
+                  >
+                    <Trash2 color="red" className="w-5 h-5 cursor-pointer" />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 w-full">
             <button
               type="button"
               onClick={() => {
-                sessionStorage.removeItem("pending-avatar");
                 handleDiscardClick();
               }}
               className="w-full sm:w-auto px-5 py-2 border border-primary rounded-lg type-detail-semibold text-primary hover:bg-grey-50 bg-white cursor-pointer order-2 sm:order-1"
@@ -1683,7 +1949,6 @@ export default function StudentProfileForm() {
               onSave={handleCroppedImageSave}
             />
           )}
-
           <AddSkillModal
             isOpen={isSkillModalOpen}
             onClose={() => setIsSkillModalOpen(false)}
@@ -1692,7 +1957,6 @@ export default function StudentProfileForm() {
                 toast.error("This skill already exists.");
                 return;
               }
-
               setSkills((prev) => [...prev, skill]);
               toast.success("Skill added successfully.");
             }}

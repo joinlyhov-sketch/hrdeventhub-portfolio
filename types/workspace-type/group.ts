@@ -7,6 +7,7 @@ export interface Group {
 }
 
 export interface Workspace {
+  id: any;
   workspaceId: string;
   name: string;
   isPinned: boolean;
@@ -33,8 +34,8 @@ export interface GetWorkspacesParams {
   size?: number;
   name?: string;
   generationId?: string;
+  isPublic?: boolean;
 }
-
 export interface CreateWorkspaceRequest {
   name: string;
   description: string;

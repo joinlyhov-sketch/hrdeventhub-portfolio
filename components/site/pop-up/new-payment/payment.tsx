@@ -39,11 +39,13 @@ interface PaymentWizardDialogProps {
 
 type UserRole = "student" | "alumni" | "admin" | "organizer";
 type PaymentType = "fixed" | "flexible" | "free";
+
 type WizardFlow =
   | "student-free"
   | "alumni-fixed"
-  | "alumni-flexible"
+  | "flexible-donation"
   | "not-allowed";
+
 type AnyStep = "amount" | "qr" | "confirm" | "success" | "receipt";
 
 function resolveFlow(
@@ -51,8 +53,11 @@ function resolveFlow(
   paymentType: PaymentType | null,
 ): WizardFlow {
   if (role !== "student" && role !== "alumni") return "not-allowed";
+
+  if (paymentType === "flexible") return "flexible-donation";
+
   if (role === "student") return "student-free";
-  if (paymentType === "flexible") return "alumni-flexible";
+
   return "alumni-fixed";
 }
 
@@ -64,7 +69,7 @@ export function PaymentWizardDialog({
   const { currentUser } = useCurrentUser();
 
   const payment = post?.payment;
-  const paymentType = (payment?.paymentType ?? "fixed") as "fixed" | "flexible";
+  const paymentType = (payment?.paymentType ?? "fixed") as PaymentType;
   const fixedAmount = payment?.paymentAmount ?? 0;
   const donationGoal = payment?.donationGoal ?? 0;
   const amountRaised = payment?.amountRaised ?? 0;
@@ -76,12 +81,14 @@ export function PaymentWizardDialog({
 
   const initialStep = useMemo((): AnyStep => {
     if (!flow) return "confirm";
+
     const map: Record<WizardFlow, AnyStep> = {
       "student-free": "confirm",
       "alumni-fixed": "qr",
-      "alumni-flexible": "amount",
+      "flexible-donation": "amount",
       "not-allowed": "confirm",
     };
+
     return map[flow];
   }, [flow]);
 
@@ -102,6 +109,7 @@ export function PaymentWizardDialog({
   const [flexQrData, setFlexQrData] = useState<GenerateQrResponse | null>(null);
   const [isGeneratingQr, setIsGeneratingQr] = useState(false);
 
+  const [isSkippingDonation, setIsSkippingDonation] = useState(false);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -115,6 +123,7 @@ export function PaymentWizardDialog({
     if (isOpen && flow === "alumni-fixed" && currentUser?.name && !billNo) {
       const generated = generateBillNo(currentUser.name);
       const requestIdValue = payment?.requestId ?? "";
+
       queueMicrotask(() => {
         setBillNo(generated);
         setRequestId(requestIdValue);
@@ -125,7 +134,9 @@ export function PaymentWizardDialog({
   useEffect(() => {
     const khqr =
       flow === "alumni-fixed" ? payment?.khqrData : flexQrData?.khqrData;
+
     if (!khqr) return;
+
     QRCode.toDataURL(khqr, {
       width: 240,
       margin: 2,
@@ -133,8 +144,7 @@ export function PaymentWizardDialog({
     }).then(setQrDataUrl);
   }, [flow, payment?.khqrData, flexQrData?.khqrData]);
 
-  const handleClose = () => {
-    if (isSubmittingRef.current) return;
+  const resetState = () => {
     setRemark("");
     setBillNo("");
     setRequestId("");
@@ -146,17 +156,30 @@ export function PaymentWizardDialog({
     setTransaction(null);
     setSuccessMessage("");
     setIsSubmitting(false);
+    setIsGeneratingQr(false);
+    setIsSkippingDonation(false);
+  };
+
+  const handleClose = () => {
+    if (isSubmittingRef.current) return;
+    resetState();
     onClose();
   };
 
   const handleGenerateQr = async () => {
     if (!currentUser?.role) return;
+
     const parsed = parseFloat(donationAmount);
+
     if (!donationAmount || isNaN(parsed) || parsed <= 0) {
-      setDonationAmountError("Please enter a valid donation amount.");
+      setDonationAmountError(
+        "Please enter a valid donation amount or skip donation.",
+      );
       return;
     }
+
     setDonationAmountError(null);
+    setIsSkippingDonation(false);
     setIsGeneratingQr(true);
     setSubmitError(null);
 
@@ -165,6 +188,7 @@ export function PaymentWizardDialog({
       amount: parsed,
       role: currentUser.role,
     });
+
     setIsGeneratingQr(false);
 
     if (result.ok && result.payload) {
@@ -179,45 +203,39 @@ export function PaymentWizardDialog({
     }
   };
 
-  const handleAlumniConfirm = async () => {
+  const handleSkipDonation = () => {
+    setDonationAmount("");
+    setDonationAmountError(null);
+    setSubmitError(null);
+    setBillNo("");
+    setRequestId("");
+    setQrDataUrl("");
+    setFlexQrData(null);
+    setIsSkippingDonation(true);
+    setStep("confirm");
+  };
+
+  const handlePaymentConfirm = async () => {
     if (isSubmittingRef.current) return;
+
     if (!currentUser?.name || !billNo || !requestId || !currentUser?.role) {
       setSubmitError("Missing payment details. Please go back and try again.");
       return;
     }
 
-    console.log("[PaymentWizard] flexible state before submit:", {
-      flexQrData_billNo: flexQrData?.billNo,
-      flexQrData_requestId: flexQrData?.requestId,
-      stateBillNo: billNo,
-      stateRequestId: requestId,
-    });
-
-    console.log("[PaymentWizard] handleAlumniConfirm — payload being sent:", {
-      billNo,
-      requestId,
-      payerName: currentUser?.name,
-      remark: remark.trim() || "—",
-      amount:
-        flow === "alumni-flexible"
-          ? (flexQrData?.amount ?? parseFloat(donationAmount))
-          : fixedAmount,
-      postId: post.postId,
-      role: currentUser?.role,
-    });
-
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     setSubmitError(null);
 
-    const amount =
-      flow === "alumni-flexible"
-        ? (flexQrData?.amount ?? parseFloat(donationAmount))
-        : fixedAmount;
-    const action =
-      flow === "alumni-flexible"
-        ? alumniFlexiblePaymentAction
-        : alumniFixedPaymentAction;
+    const isFlexibleDonation = flow === "flexible-donation";
+
+    const amount = isFlexibleDonation
+      ? flexQrData?.amount ?? parseFloat(donationAmount)
+      : fixedAmount;
+
+    const action = isFlexibleDonation
+      ? alumniFlexiblePaymentAction
+      : alumniFixedPaymentAction;
 
     const result = await action({
       billNo,
@@ -240,7 +258,7 @@ export function PaymentWizardDialog({
     }
   };
 
-  const handleStudentConfirm = async () => {
+  const handleRegisterWithoutPayment = async () => {
     if (isSubmittingRef.current) return;
     if (!currentUser?.role) return;
 
@@ -288,24 +306,30 @@ export function PaymentWizardDialog({
               <DialogTitle className="text-[22px] font-bold text-[#1e3a8a]">
                 Access Restricted
               </DialogTitle>
+
               <DialogDescription className="text-[14px] text-gray-500">
                 Event registration is only available for students and alumni.
               </DialogDescription>
             </DialogHeader>
+
             <button
               onClick={handleClose}
               className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              aria-label="Close"
             >
               <X size={22} strokeWidth={2.5} />
             </button>
           </div>
+
           <div className="px-8 py-8 flex flex-col items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
               <AlertCircle size={32} className="text-red-400" />
             </div>
+
             <p className="text-[14px] text-gray-500 text-center">
               Your account role does not have access to register for events.
             </p>
+
             <Button
               onClick={handleClose}
               className="h-[48px] px-8 rounded-xl font-semibold text-[15px] bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white"
@@ -318,29 +342,35 @@ export function PaymentWizardDialog({
     );
   }
 
-  const displayAmount =
-    flow === "alumni-flexible"
-      ? `$${(flexQrData?.amount ?? 0).toFixed(2)} USD`
-      : `$${fixedAmount.toFixed(2)} USD`;
-  const isStudentFlow = flow === "student-free";
-  const confirmAmount = isStudentFlow ? "Free" : displayAmount;
-  const confirmBillNo = isStudentFlow ? "———" : billNo;
+  const isFlexibleDonation = flow === "flexible-donation";
+  const isFreeRegistration = flow === "student-free";
+
+  const displayAmount = isFlexibleDonation
+    ? `$${(flexQrData?.amount ?? 0).toFixed(2)} USD`
+    : `$${fixedAmount.toFixed(2)} USD`;
+
+  const isNoPayment = isFreeRegistration || isSkippingDonation;
+
+  const confirmAmount = isNoPayment ? "No donation" : displayAmount;
+  const confirmBillNo = isNoPayment ? "———" : billNo;
+
+  const successAmountLabel = isSkippingDonation ? "No donation" : "Free";
 
   const stepMeta: Partial<
     Record<AnyStep, { title: string; description: string }>
   > = {
     amount: {
-      title: "Choose Your Donation",
-      description: "Every contribution brings us closer to the goal.",
+      title: "Support This Event",
+      description: "Add an optional donation or skip to register.",
     },
     qr: {
       title: "Pay with KHQR",
       description: "Scan with ABA, Wing, or any KHQR-supported app.",
     },
     confirm: {
-      title: isStudentFlow ? "Confirm Registration" : "Almost Done",
-      description: isStudentFlow
-        ? "Review your details and confirm your free registration."
+      title: isNoPayment ? "Confirm Registration" : "Almost Done",
+      description: isNoPayment
+        ? "Review your details and confirm your registration."
         : "Review your payment and add an optional note.",
     },
     success: {
@@ -363,10 +393,12 @@ export function PaymentWizardDialog({
             <DialogTitle className="text-[22px] font-bold text-[#1e3a8a]">
               {meta.title}
             </DialogTitle>
+
             <DialogDescription className="text-[14px] text-gray-500 font-normal">
               {meta.description}
             </DialogDescription>
           </DialogHeader>
+
           <button
             onClick={handleClose}
             className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
@@ -377,7 +409,11 @@ export function PaymentWizardDialog({
         </div>
 
         <div className="bg-white border-b border-gray-50">
-          <StepIndicator flow={flow} current={step} />
+          <StepIndicator
+            flow={flow}
+            current={step}
+            isSkippingDonation={isSkippingDonation}
+          />
         </div>
 
         <div className="px-8 py-6 bg-white overflow-y-auto max-h-[70vh]">
@@ -391,8 +427,10 @@ export function PaymentWizardDialog({
               isGeneratingQr={isGeneratingQr}
               onAmountChange={setDonationAmount}
               onGenerateQr={handleGenerateQr}
+              onSkipDonation={handleSkipDonation}
             />
           )}
+
           {step === "qr" && (
             <QrStep
               displayAmount={displayAmount}
@@ -401,10 +439,12 @@ export function PaymentWizardDialog({
               onContinue={() => setStep("confirm")}
             />
           )}
+
           {step === "confirm" && (
             <RemarkStep
               post={post}
-              isStudentFlow={isStudentFlow}
+              isFreeRegistration={isFreeRegistration}
+              isSkippingDonation={isSkippingDonation}
               confirmAmount={confirmAmount}
               payerName={currentUser?.name ?? "—"}
               confirmBillNo={confirmBillNo}
@@ -412,20 +452,32 @@ export function PaymentWizardDialog({
               onRemarkChange={setRemark}
               submitError={submitError}
               isSubmitting={isSubmitting}
-              onBack={() => setStep("qr")}
+              onBack={() => {
+                if (isSkippingDonation) {
+                  setStep("amount");
+                  return;
+                }
+
+                setStep("qr");
+              }}
               onSubmit={
-                isStudentFlow ? handleStudentConfirm : handleAlumniConfirm
+                isNoPayment
+                  ? handleRegisterWithoutPayment
+                  : handlePaymentConfirm
               }
             />
           )}
+
           {step === "success" && (
             <SuccessStep
               post={post}
               successMessage={successMessage}
               remark={remark}
+              amountLabel={successAmountLabel}
               onClose={handleClose}
             />
           )}
+
           {step === "receipt" && (
             <ReceiptStep transaction={transaction} onClose={handleClose} />
           )}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import {
   Bell,
+  BellOff,
   CheckCheck,
   MoreHorizontal,
   Trash2,
@@ -18,6 +19,7 @@ import { NotificationPayload } from "@/types/notification";
 import { cn } from "@/libs/utils";
 import { formatDistanceToNow } from "date-fns";
 import { useSession } from "next-auth/react";
+import { useStatusContext } from "@/context/StatusContext";
 
 function resolveNotificationHref(n: NotificationPayload): string | null {
   if (!n.workspaceId || !n.postId) return null;
@@ -36,7 +38,6 @@ function TypeBadge({
 }) {
   const base = "w-5 h-5 rounded-full flex items-center justify-center";
   const cat = category?.toLowerCase();
-
   switch (type) {
     case "POST_CREATED":
     case "POST_UPDATED":
@@ -77,6 +78,9 @@ function TypeBadge({
     case "MENTION":
       return (
         <div className={cn(base, "bg-purple-500")}>
+          <span className="text-white text-[9px] font-bold leading-none">
+            @
+          </span>
           <span className="text-white text-[9px] font-bold leading-none">
             @
           </span>
@@ -122,7 +126,6 @@ function ActorAvatar({
         .join("")
         .toUpperCase()
     : "?";
-
   return (
     <div className="relative shrink-0">
       {avatar ? (
@@ -133,6 +136,9 @@ function ActorAvatar({
         />
       ) : (
         <div className="w-11 h-11 rounded-full bg-gray-200 flex items-center justify-center">
+          <span className="text-sm font-semibold text-gray-500">
+            {initials}
+          </span>
           <span className="text-sm font-semibold text-gray-500">
             {initials}
           </span>
@@ -148,7 +154,6 @@ function ActorAvatar({
 function NotificationMenu({ onRemove }: { onRemove: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -157,7 +162,6 @@ function NotificationMenu({ onRemove }: { onRemove: () => void }) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
-
   return (
     <div ref={ref} className="relative">
       <button
@@ -165,12 +169,11 @@ function NotificationMenu({ onRemove }: { onRemove: () => void }) {
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
+        className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors hover:cursor-pointer" 
         aria-label="More options"
       >
-        <MoreHorizontal className="w-3.5 h-3.5" />
+        <MoreHorizontal className="w-3.5 h-3.5"  />
       </button>
-
       {open && (
         <div className="absolute right-0 top-8 z-50 w-32 rounded-xl bg-white border border-gray-100 shadow-lg overflow-hidden">
           <button
@@ -205,25 +208,22 @@ function NotificationItem({
     notification.type !== "POST_DELETED"
       ? resolveNotificationHref(notification)
       : null;
-
   const timeAgo = formatDistanceToNow(new Date(notification.createdAt), {
     addSuffix: true,
   });
-
-  const handleClick = () => {
-    onRead(notification.notificationId);
-    onNavigate(href);
-  };
-
   return (
     <div
       className={cn(
         "relative flex items-center gap-3 px-3 py-3 transition-colors",
         !notification.read ? "hover:bg-white" : "bg-white hover:bg-gray-100",
         href ? "cursor-pointer" : "cursor-default",
+        href ? "cursor-pointer" : "cursor-default",
       )}
       style={!notification.read ? { backgroundColor: "#e8eef6" } : undefined}
-      onClick={handleClick}
+      onClick={() => {
+        onRead(notification.notificationId);
+        onNavigate(href);
+      }}
     >
       <ActorAvatar
         avatar={notification.actorAvatar}
@@ -231,12 +231,11 @@ function NotificationItem({
         type={notification.type}
         category={notification.postCategory}
       />
-
       <div className="flex-1 min-w-0">
         <p
           className={cn(
             "text-sm leading-snug line-clamp-3",
-            !notification.read ? "text-gray-900" : "text-gray-600"
+            !notification.read ? "text-gray-900" : "text-gray-600",
           )}
         >
           {notification.message}
@@ -248,7 +247,6 @@ function NotificationItem({
           {timeAgo}
         </p>
       </div>
-
       <div className="shrink-0">
         <NotificationMenu
           onRemove={() => onRemove(notification.notificationId)}
@@ -265,9 +263,14 @@ export function NotificationBell() {
   const [pos, setPos] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  const { notifications, unreadCount, markRead, markAllRead, removeNotification } =
-    useNotificationStore();
+  const {
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    removeNotification,
+  } = useNotificationStore();
+  const { isDoNotDisturb } = useStatusContext();
 
   useEffect(() => {
     if (open && buttonRef.current) {
@@ -282,18 +285,12 @@ export function NotificationBell() {
       if (
         !panelRef.current?.contains(e.target as Node) &&
         !buttonRef.current?.contains(e.target as Node)
-      ) {
+      )
         setOpen(false);
-      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
-
-  const handleNavigate = (href: string | null) => {
-    setOpen(false);
-    if (href) router.push(href);
-  };
 
   if (status !== "authenticated") return null;
 
@@ -302,11 +299,20 @@ export function NotificationBell() {
       <button
         ref={buttonRef}
         onClick={() => setOpen((v) => !v)}
-        className="fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-colors"
-        aria-label="Notifications"
+        className={cn(
+          "fixed top-4 right-6 z-[9999] hidden md:flex items-center justify-center w-11 h-11 rounded-full shadow-lg transition-colors",
+          isDoNotDisturb
+            ? "bg-gray-400 hover:bg-gray-500"
+            : "bg-primary hover:bg-primary/90",
+        )}
+        aria-label={isDoNotDisturb ? "Notifications silenced" : "Notifications"}
       >
-        <Bell className="w-5 h-5 text-white" />
-        {unreadCount > 0 && (
+        {isDoNotDisturb ? (
+          <BellOff className="w-5 h-5 text-white" />
+        ) : (
+          <Bell className="w-5 h-5 text-white" />
+        )}
+        {!isDoNotDisturb && unreadCount > 0 && (
           <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
@@ -322,9 +328,20 @@ export function NotificationBell() {
             className="fixed z-[9999] w-80 sm:w-96 rounded-xl border bg-[#f0f2f5] shadow-xl overflow-hidden"
           >
             <div className="flex items-center justify-between px-4 py-3 bg-white border-b">
-              <span className="font-bold text-base" style={{ color: "#1c4d8d" }}>
-                Notifications
-              </span>
+              <div className="flex items-center gap-2">
+                <span
+                  className="font-bold text-base"
+                  style={{ color: "#1c4d8d" }}
+                >
+                  Notifications
+                </span>
+                {isDoNotDisturb && (
+                  <span className="flex items-center gap-1 text-[10px] font-semibold text-white bg-red-500 px-2 py-0.5 rounded-full">
+                    <BellOff className="w-2.5 h-2.5" />
+                    Do Not Disturb
+                  </span>
+                )}
+              </div>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
@@ -337,13 +354,25 @@ export function NotificationBell() {
               )}
             </div>
 
+            {isDoNotDisturb && (
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border-b border-red-100 text-xs text-red-600">
+                <BellOff className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  Notifications are silenced. You won&apos;t be alerted for new
+                  notifications.
+                </span>
+              </div>
+            )}
+
             <div className="max-h-[460px] overflow-y-auto divide-y divide-gray-100">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 bg-white text-gray-400">
                   <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
                     <Bell className="w-6 h-6 opacity-40" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-500">No notifications</p>
+                  <p className="text-sm font-semibold text-gray-500">
+                    No notifications
+                  </p>
                   <p className="text-xs mt-1 text-gray-400">
                     We&apos;ll notify you when something arrives
                   </p>
@@ -355,13 +384,16 @@ export function NotificationBell() {
                     notification={n}
                     onRead={markRead}
                     onRemove={removeNotification}
-                    onNavigate={handleNavigate}
+                    onNavigate={(href) => {
+                      setOpen(false);
+                      if (href) router.push(href);
+                    }}
                   />
                 ))
               )}
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );

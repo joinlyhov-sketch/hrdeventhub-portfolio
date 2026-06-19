@@ -33,7 +33,9 @@ export default function SearchEvent({
 }: SearchEventProps) {
   const params = useParams();
   const groupId = params.groupid;
-  
+const normalizedRole = role?.toLowerCase();
+const canCreateContent =
+  normalizedRole === "admin" || normalizedRole === "organizer";
   const getCreationRoute = (value: string) => {
     if (groupId && groupId !== "null") {
       return `/event-management/creation/${value}?groupId=${groupId}`;
@@ -60,7 +62,7 @@ export default function SearchEvent({
     { label: "Survey", icon: CheckCircle2, href: getCreationRoute("survey") },
     { label: "Poll", icon: BarChart3, href: getCreationRoute("poll") },
   ];
-
+console.log("SearchEvent role:", role);
   return (
     <div className="w-full">
       <div className="flex items-center gap-1.5 sm:gap-2 relative">
@@ -77,7 +79,7 @@ export default function SearchEvent({
           activeFilter={activeFilter}
           onFilterChange={onFilterChange}
         />
-        {role === "admin" && <ContentTypePopover items={contentMenuOptions} />}
+       {canCreateContent && <ContentTypePopover items={contentMenuOptions} />}
       </div>
     </div>
   );

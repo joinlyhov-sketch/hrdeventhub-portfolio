@@ -17,7 +17,7 @@ import {
   ServerActionResponse,
   ServerActionResponse2,
 } from "@/types/file-types";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { CreateArticleResponseV2 } from "@/types/article-types";
 
 export async function createPostAction(
@@ -43,6 +43,11 @@ export async function createPostAction(
       payload,
       token,
     );
+
+    revalidateTag("organizer-events", "max");
+    revalidateTag("events-management", "max");
+
+    revalidatePath(`/event-management`);
 
     if (response && response.success === false) {
       return {
@@ -171,13 +176,15 @@ export async function updatePostAction(
       payload,
       token,
     );
+    revalidateTag("organizer-events", "max");
+    revalidateTag("events-management", "max");
 
+    revalidatePath(`/event-management`);
     return {
       ok: true,
       message: response.message || "Event updated successfully",
     };
   } catch (error: unknown) {
-    console.error("Server Action Process Failure:", error);
     return {
       ok: false,
       error:

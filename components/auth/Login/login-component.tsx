@@ -78,11 +78,15 @@ export default function LoginComponent() {
         return;
       }
       if (res?.ok) {
-        router.push(redirectUrl ?? "/group");
-        toast.success(
-          "Welcome to HRD EVENTHUB! You've successfully logged in.",
-        );
-      }
+  toast.success(
+    "Welcome to HRD EVENTHUB! You've successfully logged in.",
+  );
+  if (redirectUrl) {
+    window.location.href = redirectUrl;
+  } else {
+    router.push("/group");
+  }
+}
     });
   };
 
@@ -94,8 +98,6 @@ export default function LoginComponent() {
       className="flex items-center justify-center w-full"
     >
       <div className="w-full max-w-156 rounded-[28px] border border-border bg-card/80 backdrop-blur-sm px-6 py-8 sm:px-10 sm:py-12 xl:px-16 xl:py-14 shadow-sm">
-
-        {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-[22px] sm:text-[30px] font-extrabold tracking-tight text-primary">
             Welcome Back!
@@ -115,8 +117,6 @@ export default function LoginComponent() {
               {serverError}
             </div>
           )}
-
-          {/* Identifier */}
           <div className="flex flex-col gap-1.5">
             <div
               className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:py-3.5 transition-all focus-within:border-primary ${
@@ -136,8 +136,6 @@ export default function LoginComponent() {
             </div>
             {errors.identifier && <FieldError message={errors.identifier} />}
           </div>
-
-          {/* Password */}
           <div className="flex flex-col gap-1.5">
             <div
               className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:py-3.5 transition-all focus-within:border-primary ${
@@ -165,7 +163,6 @@ export default function LoginComponent() {
             {errors.password && <FieldError message={errors.password} />}
           </div>
 
-          {/* Remember me + Forgot password */}
           <div className="flex items-center justify-between px-1">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
@@ -184,7 +181,6 @@ export default function LoginComponent() {
             </a>
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             className="h-12 sm:h-12.5 w-full rounded-2xl bg-primary text-sm sm:text-base font-semibold text-primary-foreground transition-all duration-300 hover:bg-[#1f4685] cursor-pointer disabled:opacity-70"
@@ -194,14 +190,14 @@ export default function LoginComponent() {
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <a
-              href="/sign-up"
-              className="font-semibold text-secondary underline underline-offset-2"
-            >
-              Sign up
-            </a>
-          </p>
+  Don&apos;t have an account?{" "}
+  
+    <a href={redirectUrl ? `/sign-up?redirect=${encodeURIComponent(redirectUrl)}` : "/sign-up"}
+    className="font-semibold text-secondary underline underline-offset-2"
+  >
+    Sign up
+  </a>
+</p>
         </form>
       </div>
     </motion.div>

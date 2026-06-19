@@ -340,24 +340,6 @@ export default function CreateGroupModal({
 
           <div className="space-y-2.5">
             <label className="text-sm sm:text-[17px] font-bold text-[#1e3a8a] block">
-              Telegram Channel
-            </label>
-            <div className="relative flex items-center">
-              <Link2
-                className="absolute left-4 text-gray-400 pointer-events-none"
-                size={18}
-              />
-              <Input
-                value={telegramChannelUrl}
-                onChange={(e) => setTelegramChannelUrl(e.target.value)}
-                placeholder="https://t.me/..."
-                className="h-11 sm:h-[52px] pl-9 sm:pl-11 pl-11 pr-4 rounded-xl border border-blue-100 bg-white text-[15px] placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2.5">
-            <label className="text-sm sm:text-[17px] font-bold text-[#1e3a8a] block">
               Description
             </label>
             <Textarea
