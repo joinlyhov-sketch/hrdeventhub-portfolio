@@ -12,16 +12,20 @@ import { getMediaUrl } from "@/libs/media";
 interface GroupCardProps {
   workspace: Workspace;
   pinnedCount: number;
+  onPinChanged?: () => void;
 }
 
-export default function GroupCard({ workspace, pinnedCount }: GroupCardProps) {
+export default function GroupCard({
+  workspace,
+  pinnedCount,
+  onPinChanged,
+}: GroupCardProps) {
   const { currentUser } = useCurrentUser();
   const isInternal = !workspace.isPublic;
   const { members } = useWorkspaceMembers(workspace.workspaceId);
 
   const visibleMembers = members.slice(0, 3);
   const extraCount = members.length - visibleMembers.length;
-  
 
   return (
     <div className="w-full bg-card p-4 md:p-6 rounded-2xl md:rounded-3xl border border-border flex flex-col hover:shadow-sm transition-all relative group overflow-hidden">
@@ -32,18 +36,21 @@ export default function GroupCard({ workspace, pinnedCount }: GroupCardProps) {
             : "bg-[linear-gradient(225deg,#DDE6FF_10%,#FDFDFD_42%)]"
         } opacity-90`}
       />
+
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <span className="flex items-center justify-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full bg-primary/10 type-detail-small-medium text-primary text-xs md:text-sm">
             {isInternal ? <LockKeyhole size={12} /> : <Globe size={12} />}
             {isInternal ? "Internal" : "External"}
           </span>
+
           <div className="flex items-center gap-2">
             <GroupDropDown
               workspace={workspace}
               userRole={currentUser?.role}
               pinnedCount={pinnedCount}
-            />
+              onPinChanged={onPinChanged}
+            />  
           </div>
         </div>
 
@@ -78,7 +85,8 @@ export default function GroupCard({ workspace, pinnedCount }: GroupCardProps) {
                     />
                   ) : (
                     <span className="text-[10px] md:text-[11px] font-bold text-primary uppercase">
-                      {firstLetter}{lastLetter}
+                      {firstLetter}
+                      {lastLetter}
                     </span>
                   )}
                 </div>

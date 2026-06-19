@@ -2,29 +2,63 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useRegisterStore } from "../../../store/useRegisterStore";
 import Step1Personal from "./step-1-personal";
 import Step2Account from "./step-2-account";
 import Step3OTP from "./step-3-OTP";
+import { LeaveVerificationModal } from "@/components/site/pop-up/leave-verification-modal";
 
 const registerStep = ["Personal Details", "Account Setup", "Verification"];
 
 export default function RegisterWizard() {
   const step = useRegisterStore((s) => s.step);
+  const reset = useRegisterStore((s) => s.reset);
+
+  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
 
   const [hasMounted, setHasMounted] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+
+  const loginHref = useMemo(() => {
+    return redirectUrl
+      ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+      : "/login";
+  }, [redirectUrl]);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
+  useEffect(() => {
+    if (!hasMounted) return;
+    if (step === 3) return;
 
-  const loginHref = redirectUrl
-    ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
-    : "/login";
+    window.history.pushState({ registerGuard: true }, "", window.location.href);
+
+    const handlePopState = () => {
+      setIsLeaveModalOpen(true);
+      window.history.pushState(
+        { registerGuard: true },
+        "",
+        window.location.href,
+      );
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [hasMounted, step]);
+
+  const handleConfirmLeave = () => {
+    reset();
+    setIsLeaveModalOpen(false);
+    router.replace(loginHref);
+  };
 
   if (!hasMounted) {
     return (
@@ -42,38 +76,46 @@ export default function RegisterWizard() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.9 }}
-      className="
-        rounded-[20px] sm:rounded-[30px]
-        border border-[#c8d6ee]
-        bg-[#f9fbff]
-        px-5 pt-5 pb-4 sm:p-8 md:p-10
-        shadow-sm overflow-hidden
-      "
-    >
-      <StepIndicator currentStep={step} />
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9 }}
+        className="
+          rounded-[20px] sm:rounded-[30px]
+          border border-[#c8d6ee]
+          bg-[#f9fbff]
+          px-5 pt-5 pb-4 sm:p-8 md:p-10
+          shadow-sm overflow-hidden
+        "
+      >
+        <StepIndicator currentStep={step} />
 
-      <div className="w-full flex flex-col items-stretch">
-        <AnimatePresence mode="wait">
-          {step === 1 && <Step1Personal key="step1" />}
-          {step === 2 && <Step2Account key="step2" />}
-          {step === 3 && <Step3OTP key="step3" />}
-        </AnimatePresence>
-      </div>
+        <div className="w-full flex flex-col items-stretch">
+          <AnimatePresence mode="wait">
+            {step === 1 && <Step1Personal key="step1" />}
+            {step === 2 && <Step2Account key="step2" />}
+            {step === 3 && <Step3OTP key="step3" />}
+          </AnimatePresence>
+        </div>
 
-      <p className="mt-4 text-center text-sm text-[#5f6470]">
-        Already have an account?{" "}
-        <Link
-          href={loginHref}
-          className="font-semibold text-[#17356f] underline underline-offset-2"
-        >
-          Login
-        </Link>
-      </p>
-    </motion.div>
+        <p className="mt-4 text-center text-sm text-[#5f6470]">
+          Already have an account?{" "}
+          <Link
+            href={loginHref}
+            className="font-semibold text-[#17356f] underline underline-offset-2"
+          >
+            Login
+          </Link>
+        </p>
+      </motion.div>
+
+      <LeaveVerificationModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        onConfirm={handleConfirmLeave}
+      />
+    </>
   );
 }
 

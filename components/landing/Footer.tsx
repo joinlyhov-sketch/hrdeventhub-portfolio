@@ -32,7 +32,7 @@ export default function Footer() {
             <span className="text-slate-200">|</span>
 
             <a
-              href="https://www.facebook.com/KSHRD"
+              href="https://www.facebook.com/ksignhrd"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors type-detail"

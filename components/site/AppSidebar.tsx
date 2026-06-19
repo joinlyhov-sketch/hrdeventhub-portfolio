@@ -109,10 +109,10 @@ export function AppSidebar() {
   const isStudentOrAlumni = STUDENT_ALUMNI_ROLES.includes(
     currentUser?.role as (typeof STUDENT_ALUMNI_ROLES)[number],
   );
-  const memberData = useMyWorkspaces();
+const { workspaces, mutate } = useMyWorkspaces();
   const pinnedWorkspaces = isAdmin
     ? []
-    : memberData.workspaces.filter((w) => w.isPinned === true);
+    : workspaces.filter((w) => w.isPinned === true);
   const profileHref = `/profile/${currentUser?.id ?? "1"}`;
   const canSeeAdministration =
     currentUser !== null &&
@@ -121,6 +121,17 @@ export function AppSidebar() {
   const totalUnreadMessages = useChatStore((s) =>
     s.conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0),
   );
+  useEffect(() => {
+  const refreshSidebar = () => {
+    mutate();
+  };
+
+  window.addEventListener("workspace-sidebar-refresh", refreshSidebar);
+
+  return () => {
+    window.removeEventListener("workspace-sidebar-refresh", refreshSidebar);
+  };
+}, [mutate]);
 
   useEffect(() => {
     if (!session?.accessToken) return;
