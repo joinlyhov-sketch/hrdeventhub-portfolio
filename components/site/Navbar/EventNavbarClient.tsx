@@ -9,10 +9,10 @@ interface EventNavbarClientProps {
 
 export default function EventNavbarClient({ groupId }: EventNavbarClientProps) {
   const { data: session } = useSession();
-  const { workspace, isLoading } = useWorkspace(groupId);
+  const { workspaces, isLoading } = useWorkspace(groupId);
 
   console.log("groupId:", groupId);
   console.log("token:", session?.accessToken);
 
-  return <EventNavbar workspace={workspace} isLoading={isLoading} />;
+  return <EventNavbar workspace={workspaces} isLoading={isLoading} />;
 }
