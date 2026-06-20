@@ -109,11 +109,11 @@ export default function UpcomingEventSection({ workspaceId, role }: Props) {
                       <div className="upcoming-event-meta">
                         <span>
                           <Clock3 size={13} />
-                          {formatTime(startDate)} - {formatTime(endDate)}
+                          <span>{formatTime(startDate)} - {formatTime(endDate)}</span>
                         </span>
                         <span>
                           <MapPin size={13} />
-                          {event.location?.locationName ?? "No location"}
+                          <span>{event.location?.locationName ?? "No location"}</span>
                         </span>
                       </div>
                     </div>

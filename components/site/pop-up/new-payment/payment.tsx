@@ -218,6 +218,7 @@ export function PaymentWizardDialog({
       setRequestId(payment?.requestId ?? "");
       return;
     }
+    
 
     setBillNo("");
     setRequestId("");
@@ -228,6 +229,7 @@ export function PaymentWizardDialog({
       amount: fixedAmount,
       role: currentUser.role,
       remark: "",
+      
     });
 
     setIsGeneratingQr(false);
@@ -482,12 +484,12 @@ export function PaymentWizardDialog({
   const isFlexibleDonation = flow === "flexible-donation";
   const isFreeRegistration = flow === "student-free";
 
-  const activePaidAmount =
-    selectedProvider === "bakong"
-      ? bakongQrData?.amount
-      : isFlexibleDonation
-        ? flexQrData?.amount
-        : fixedAmount;
+ const activePaidAmount =
+  selectedProvider === "bakong"
+    ? bakongQrData?.amount ?? fixedAmount
+    : isFlexibleDonation
+      ? flexQrData?.amount
+      : fixedAmount;
 
   const displayAmount = `$${(activePaidAmount ?? fixedAmount ?? 0).toFixed(
     2,

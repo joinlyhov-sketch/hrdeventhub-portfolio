@@ -12,7 +12,6 @@ export default function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
-      // Close menu when user scrolls
       if (mobileMenuOpen) setMobileMenuOpen(false);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -76,7 +75,6 @@ export default function Navbar() {
         </nav>
       </header>
 
-      {/* Backdrop — closes on outside click */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 z-40 md:hidden"
@@ -84,7 +82,6 @@ export default function Navbar() {
         />
       )}
 
-      {/* Dropdown card — consistent with the pill navbar */}
       {mobileMenuOpen && (
         <div
           className={`fixed left-4 right-4 z-50 md:hidden animate-in fade-in slide-in-from-top-2 duration-200 ${
