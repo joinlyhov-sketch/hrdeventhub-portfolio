@@ -278,12 +278,24 @@ export function TransactionTable({
                   <TableCell>
                     <span className="flex justify-center">
                       <span className="inline-flex items-center justify-center w-16 h-6 type-detail font-bold rounded">
-                        <Image
-                          src={"/images/webill365.svg"}
-                          alt="webill365"
-                          width={49}
-                          height={14}
-                        />
+                        {transaction.senderBankName == "Bakong" ? (
+                          <div className="flex items-center gap-1 justify-center">
+                            <Image
+                              src={"/images/bakong.png"}
+                              alt="webill365"
+                              width={25}
+                              height={25}
+                            />
+                            {transaction.senderBankName}
+                          </div>
+                        ) : (
+                          <Image
+                            src={"/images/webill365.svg"}
+                            alt="webill365"
+                            width={55}
+                            height={14}
+                          />
+                        )}
                       </span>
                     </span>
                   </TableCell>
