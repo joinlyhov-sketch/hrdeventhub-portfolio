@@ -12,14 +12,6 @@ const featuredData: MediaItem = {
   category: "GATHERING",
   imageUrl: "/images/sport.png",
 };
-// const listData: MediaItem[] = Array(3).fill({
-//   id: "list-1",
-//   title: "Gen 13 Graduate Secure Global Roles ",
-//   description:
-//     "Congratulations to our latest graduates! 95% employment rate within 2 months of completing the software engineering.",
-//   category: "SUCCESS STORY",
-//   imageUrl: "/images/songkran.png",
-// });
 
 export default function LandingPage() {
   return (
@@ -28,7 +20,7 @@ export default function LandingPage() {
       <div className="relative min-h-0 lg:min-h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden pt-28 pb-6 md:pt-32 md:pb-16 lg:py-36 px-6 md:px-12 select-none">
         <HeroSession />
       </div>
-      <div className="min-h-0 lg:min-h-screen bg-background px-4 md:px-12 lg:px-32 pt-6 pb-6 md:py-12">
+      <div className="min-h-0 mx-auto lg:min-h-screen bg-background px-4 md:px-12 lg:px-32 pt-6 pb-6 md:py-12">
         <div className="mb-6 ml-0 md:ml-6 lg:ml-18">
           <h1 className="font-black leading-none text-secondary text-[22px] sm:text-[24px] md:text-[56px]">
             Community <span className="text-action">Updates</span>
