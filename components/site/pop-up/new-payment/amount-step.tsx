@@ -6,9 +6,12 @@ import {
   Loader2,
   ChevronRight,
   Gift,
+  CreditCard,
+  Landmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { PaymentProvider } from "@/service/payment.service";
 
 interface AmountStepProps {
   donationGoal: number;
@@ -17,6 +20,8 @@ interface AmountStepProps {
   donationAmountError: string | null;
   submitError: string | null;
   isGeneratingQr: boolean;
+  selectedProvider: PaymentProvider;
+  onProviderChange: (value: PaymentProvider) => void;
   onAmountChange: (value: string) => void;
   onGenerateQr: () => void;
   onSkipDonation: () => void;
@@ -29,6 +34,8 @@ export function AmountStep({
   donationAmountError,
   submitError,
   isGeneratingQr,
+  selectedProvider,
+  onProviderChange,
   onAmountChange,
   onGenerateQr,
   onSkipDonation,
@@ -80,6 +87,42 @@ export function AmountStep({
           Donation is optional. You can add an amount to support this event, or
           skip and register without payment.
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-[15px] font-bold text-[#1e3a8a] block">
+          Payment Method
+        </label>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => onProviderChange("webill")}
+            disabled={isGeneratingQr}
+            className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${
+              selectedProvider === "webill"
+                ? "border-[#1e3a8a] bg-blue-50 text-[#1e3a8a]"
+                : "border-blue-100 bg-white text-gray-500 hover:bg-blue-50"
+            }`}
+          >
+            <CreditCard size={16} />
+            Webill365
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onProviderChange("bakong")}
+            disabled={isGeneratingQr}
+            className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${
+              selectedProvider === "bakong"
+                ? "border-[#1e3a8a] bg-blue-50 text-[#1e3a8a]"
+                : "border-blue-100 bg-white text-gray-500 hover:bg-blue-50"
+            }`}
+          >
+            <Landmark size={16} />
+            Bakong
+          </button>
+        </div>
       </div>
 
       <div className="space-y-2">

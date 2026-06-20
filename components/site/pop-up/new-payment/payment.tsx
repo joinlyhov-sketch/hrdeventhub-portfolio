@@ -17,6 +17,8 @@ import {
   alumniFixedPaymentAction,
   generateFlexibleQrAction,
   alumniFlexiblePaymentAction,
+  generateBakongQrAction,
+  confirmBakongPaymentAction,
 } from "@/actions/payment.action";
 import { generateBillNo } from "./billno";
 import { StepIndicator } from "./indicator";
@@ -28,6 +30,8 @@ import { ReceiptStep } from "./receipt-step";
 import type {
   Transaction,
   GenerateQrResponse,
+  BakongQrGenerateResponse,
+  PaymentProvider,
 } from "@/service/payment.service";
 import type { Post } from "@/types/posts";
 
@@ -98,6 +102,9 @@ export function PaymentWizardDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
 
+  const [selectedProvider, setSelectedProvider] =
+    useState<PaymentProvider>("webill");
+
   const [billNo, setBillNo] = useState("");
   const [requestId, setRequestId] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState("");
@@ -106,9 +113,12 @@ export function PaymentWizardDialog({
   const [donationAmountError, setDonationAmountError] = useState<string | null>(
     null,
   );
-  const [flexQrData, setFlexQrData] = useState<GenerateQrResponse | null>(null);
-  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
 
+  const [flexQrData, setFlexQrData] = useState<GenerateQrResponse | null>(null);
+  const [bakongQrData, setBakongQrData] =
+    useState<BakongQrGenerateResponse | null>(null);
+
+  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
   const [isSkippingDonation, setIsSkippingDonation] = useState(false);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
@@ -120,7 +130,13 @@ export function PaymentWizardDialog({
   }, [flow, isOpen, initialStep]);
 
   useEffect(() => {
-    if (isOpen && flow === "alumni-fixed" && currentUser?.name && !billNo) {
+    if (
+      isOpen &&
+      flow === "alumni-fixed" &&
+      selectedProvider === "webill" &&
+      currentUser?.name &&
+      !billNo
+    ) {
       const generated = generateBillNo(currentUser.name);
       const requestIdValue = payment?.requestId ?? "";
 
@@ -129,29 +145,51 @@ export function PaymentWizardDialog({
         setRequestId(requestIdValue);
       });
     }
-  }, [isOpen, flow, currentUser?.name, billNo, payment?.requestId]);
+  }, [
+    isOpen,
+    flow,
+    selectedProvider,
+    currentUser?.name,
+    billNo,
+    payment?.requestId,
+  ]);
 
   useEffect(() => {
     const khqr =
-      flow === "alumni-fixed" ? payment?.khqrData : flexQrData?.khqrData;
+      selectedProvider === "bakong"
+        ? bakongQrData?.khqrData
+        : flow === "alumni-fixed"
+          ? payment?.khqrData
+          : flexQrData?.khqrData;
 
-    if (!khqr) return;
+    if (!khqr) {
+      setQrDataUrl("");
+      return;
+    }
 
     QRCode.toDataURL(khqr, {
       width: 240,
       margin: 2,
       color: { dark: "#1e3a8a", light: "#ffffff" },
     }).then(setQrDataUrl);
-  }, [flow, payment?.khqrData, flexQrData?.khqrData]);
+  }, [
+    selectedProvider,
+    flow,
+    payment?.khqrData,
+    flexQrData?.khqrData,
+    bakongQrData?.khqrData,
+  ]);
 
   const resetState = () => {
     setRemark("");
+    setSelectedProvider("webill");
     setBillNo("");
     setRequestId("");
     setQrDataUrl("");
     setDonationAmount("");
     setDonationAmountError(null);
     setFlexQrData(null);
+    setBakongQrData(null);
     setSubmitError(null);
     setTransaction(null);
     setSuccessMessage("");
@@ -164,6 +202,45 @@ export function PaymentWizardDialog({
     if (isSubmittingRef.current) return;
     resetState();
     onClose();
+  };
+
+  const handleFixedProviderChange = async (provider: PaymentProvider) => {
+    if (!currentUser?.role) return;
+
+    setSelectedProvider(provider);
+    setSubmitError(null);
+    setQrDataUrl("");
+    setBakongQrData(null);
+
+    if (provider === "webill") {
+      const generated = generateBillNo(currentUser.name ?? "");
+      setBillNo(generated);
+      setRequestId(payment?.requestId ?? "");
+      return;
+    }
+
+    setBillNo("");
+    setRequestId("");
+    setIsGeneratingQr(true);
+
+    const result = await generateBakongQrAction({
+      postId: post.postId,
+      amount: fixedAmount,
+      role: currentUser.role,
+      remark: "",
+    });
+
+    setIsGeneratingQr(false);
+
+    if (result.ok && result.payload) {
+      setBakongQrData(result.payload);
+      setBillNo(result.payload.billNo);
+      setRequestId(result.payload.requestId);
+    } else {
+      setSubmitError(
+        result.error ?? "Failed to generate Bakong QR. Please try again.",
+      );
+    }
   };
 
   const handleGenerateQr = async () => {
@@ -182,6 +259,35 @@ export function PaymentWizardDialog({
     setIsSkippingDonation(false);
     setIsGeneratingQr(true);
     setSubmitError(null);
+    setFlexQrData(null);
+    setBakongQrData(null);
+    setBillNo("");
+    setRequestId("");
+    setQrDataUrl("");
+
+    if (selectedProvider === "bakong") {
+      const result = await generateBakongQrAction({
+        postId: post.postId,
+        amount: parsed,
+        role: currentUser.role,
+        remark: "",
+      });
+
+      setIsGeneratingQr(false);
+
+      if (result.ok && result.payload) {
+        setBakongQrData(result.payload);
+        setBillNo(result.payload.billNo);
+        setRequestId(result.payload.requestId);
+        setStep("qr");
+      } else {
+        setSubmitError(
+          result.error ?? "Failed to generate Bakong QR. Please try again.",
+        );
+      }
+
+      return;
+    }
 
     const result = await generateFlexibleQrAction({
       postId: post.postId,
@@ -211,6 +317,7 @@ export function PaymentWizardDialog({
     setRequestId("");
     setQrDataUrl("");
     setFlexQrData(null);
+    setBakongQrData(null);
     setIsSkippingDonation(true);
     setStep("confirm");
   };
@@ -226,6 +333,36 @@ export function PaymentWizardDialog({
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     setSubmitError(null);
+
+    if (selectedProvider === "bakong") {
+      if (!bakongQrData?.paymentIntentId) {
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
+        setSubmitError("Missing Bakong payment intent. Please try again.");
+        return;
+      }
+
+      const result = await confirmBakongPaymentAction({
+        paymentIntentId: bakongQrData.paymentIntentId,
+        postId: post.postId,
+        role: currentUser.role,
+        remark: remark.trim() || "—",
+      });
+
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+
+      if (result.ok && result.payload) {
+        setTransaction(result.payload);
+        setStep("receipt");
+      } else {
+        setSubmitError(
+          result.error ?? "Bakong payment confirmation failed.",
+        );
+      }
+
+      return;
+    }
 
     const isFlexibleDonation = flow === "flexible-donation";
 
@@ -345,9 +482,16 @@ export function PaymentWizardDialog({
   const isFlexibleDonation = flow === "flexible-donation";
   const isFreeRegistration = flow === "student-free";
 
-  const displayAmount = isFlexibleDonation
-    ? `$${(flexQrData?.amount ?? 0).toFixed(2)} USD`
-    : `$${fixedAmount.toFixed(2)} USD`;
+  const activePaidAmount =
+    selectedProvider === "bakong"
+      ? bakongQrData?.amount
+      : isFlexibleDonation
+        ? flexQrData?.amount
+        : fixedAmount;
+
+  const displayAmount = `$${(activePaidAmount ?? fixedAmount ?? 0).toFixed(
+    2,
+  )} USD`;
 
   const isNoPayment = isFreeRegistration || isSkippingDonation;
 
@@ -365,7 +509,10 @@ export function PaymentWizardDialog({
     },
     qr: {
       title: "Pay with KHQR",
-      description: "Scan with ABA, Wing, or any KHQR-supported app.",
+      description:
+        selectedProvider === "bakong"
+          ? "Scan or demo-confirm your Bakong payment."
+          : "Scan with ABA, Wing, or any KHQR-supported app.",
     },
     confirm: {
       title: isNoPayment ? "Confirm Registration" : "Almost Done",
@@ -425,6 +572,8 @@ export function PaymentWizardDialog({
               donationAmountError={donationAmountError}
               submitError={submitError}
               isGeneratingQr={isGeneratingQr}
+              selectedProvider={selectedProvider}
+              onProviderChange={setSelectedProvider}
               onAmountChange={setDonationAmount}
               onGenerateQr={handleGenerateQr}
               onSkipDonation={handleSkipDonation}
@@ -436,6 +585,12 @@ export function PaymentWizardDialog({
               displayAmount={displayAmount}
               qrDataUrl={qrDataUrl}
               billNo={billNo}
+              provider={selectedProvider}
+              isLoadingQr={isGeneratingQr}
+              submitError={submitError}
+              onProviderChange={
+                flow === "alumni-fixed" ? handleFixedProviderChange : undefined
+              }
               onContinue={() => setStep("confirm")}
             />
           )}

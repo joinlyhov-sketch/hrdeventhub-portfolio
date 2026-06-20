@@ -1,5 +1,7 @@
 import { apiPost, apiGet } from "@/libs/api";
 
+export type PaymentProvider = "webill" | "bakong";
+
 export interface PaymentNotifyPayload {
   bill_no: string;
   transaction_id: number;
@@ -29,7 +31,7 @@ export interface PaymentNotifyResponse {
 export interface GenerateQrPayload {
   postId: string;
   amount: number;
-  remark: string; 
+  remark: string;
 }
 
 export interface GenerateQrResponse {
@@ -40,6 +42,38 @@ export interface GenerateQrResponse {
   amount: number;
   currency: string;
   requestId: string;
+}
+
+export interface BakongQrGenerateResponse {
+  paymentIntentId: string;
+  provider: "BAKONG";
+  billNo: string;
+  accountNo: string;
+  accountName: string;
+  khqrData: string;
+  khqrDataBase64?: string | null;
+  khqrMd5: string;
+  amount: number;
+  currency: string;
+  requestId: string;
+  status: "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED";
+  expiresAt: string;
+}
+
+export interface BakongPaymentStatusResponse {
+  paymentIntentId: string;
+  provider: "BAKONG";
+  billNo: string;
+  requestId: string;
+  postId: string;
+  appUserId: string;
+  amount: number;
+  currency: string;
+  status: "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED";
+  paid: boolean;
+  message: string;
+  expiresAt?: string;
+  paidAt?: string;
 }
 
 export interface Transaction {
@@ -87,18 +121,55 @@ export interface BankCredentialResponse {
 }
 
 export const paymentService = {
-  notify: async (payload: PaymentNotifyPayload): Promise<PaymentNotifyResponse> => {
+  notify: async (
+    payload: PaymentNotifyPayload,
+  ): Promise<PaymentNotifyResponse> => {
     return apiPost<PaymentNotifyResponse, PaymentNotifyPayload>(
       "/payments/notify",
       payload,
-      { accept: "*/*" },  
+      { accept: "*/*" },
     );
   },
 
-  generateQr: async (payload: GenerateQrPayload, authToken: string): Promise<GenerateQrResponse> => {
+  generateQr: async (
+    payload: GenerateQrPayload,
+    authToken: string,
+  ): Promise<GenerateQrResponse> => {
     return apiPost<GenerateQrResponse, GenerateQrPayload>(
       "/payments/qr/generate",
       payload,
+      { authToken, accept: "*/*" },
+    );
+  },
+
+  generateBakongQr: async (
+    payload: GenerateQrPayload,
+    authToken: string,
+  ): Promise<BakongQrGenerateResponse> => {
+    return apiPost<BakongQrGenerateResponse, GenerateQrPayload>(
+      "/payments/bakong/qr/generate",
+      payload,
+      { authToken, accept: "*/*" },
+    );
+  },
+
+  checkBakongPayment: async (
+    paymentIntentId: string,
+    authToken: string,
+  ): Promise<BakongPaymentStatusResponse> => {
+    return apiGet<BakongPaymentStatusResponse>(
+      `/payments/bakong/check/${paymentIntentId}`,
+      { authToken, accept: "*/*" },
+    );
+  },
+
+  mockConfirmBakongPayment: async (
+    paymentIntentId: string,
+    authToken: string,
+  ): Promise<BakongPaymentStatusResponse> => {
+    return apiPost<BakongPaymentStatusResponse, Record<string, never>>(
+      `/payments/bakong/mock/confirm/${paymentIntentId}`,
+      {},
       { authToken, accept: "*/*" },
     );
   },
@@ -119,12 +190,18 @@ export const paymentService = {
     return response.payload || [];
   },
 
-  getTransactionByBillNo: async (billNo: string, authToken: string): Promise<Transaction | undefined> => {
+  getTransactionByBillNo: async (
+    billNo: string,
+    authToken: string,
+  ): Promise<Transaction | undefined> => {
     const transactions = await paymentService.getMyTransactions(authToken);
     return transactions.find((t) => t.billNo === billNo);
   },
 
-  connectBankCredential: async (payload: BankCredentialPayload, authToken: string): Promise<BankCredentialResponse> => {
+  connectBankCredential: async (
+    payload: BankCredentialPayload,
+    authToken: string,
+  ): Promise<BankCredentialResponse> => {
     return apiPost<BankCredentialResponse, BankCredentialPayload>(
       "/payments/credential",
       payload,
