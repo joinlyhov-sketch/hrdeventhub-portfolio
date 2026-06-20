@@ -7,14 +7,15 @@ export function useWorkspace(workspaceId: string) {
   const { data: session } = useSession();
   const token = session?.accessToken;
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading ,mutate} = useSWR(
     workspaceId && token ? ["workspace", workspaceId, token] : null,
     () => workspaceService.getById(workspaceId, token!)
   );
 
   return {
-    workspace: data ?? null,
+    workspaces: data ?? null,
     isLoading,
-    error,
+    isError: error,
+    mutate,
   };
 }
