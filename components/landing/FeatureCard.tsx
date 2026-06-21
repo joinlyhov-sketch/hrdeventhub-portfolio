@@ -13,7 +13,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({ item }) => {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="relative w-full h-64 sm:h-96 md:h-112.5 bg-card rounded-xl overflow-hidden shadow-md cursor-pointer"
+      className="relative w-full h-full min-h-70 md:min-h-95 bg-card rounded-xl overflow-hidden shadow-md cursor-pointer"
     >
       <motion.img
         src={item.imageUrl}
