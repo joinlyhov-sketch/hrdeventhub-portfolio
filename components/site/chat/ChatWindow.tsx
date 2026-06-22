@@ -182,7 +182,7 @@ export default function ChatWindow({
       try {
         await editMessage(editingMsg.id, content);
         updateMessage({ ...editingMsg, content, isEdited: true });
-      } catch {}
+      } catch { }
       setEditingMsg(null);
       setInputVal("");
       return;
@@ -296,9 +296,8 @@ export default function ChatWindow({
             </h2>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  presence?.status === "ONLINE" ? "bg-emerald-500" : "bg-gray-300"
-                }`}
+                className={`w-1.5 h-1.5 rounded-full ${presence?.status === "ONLINE" ? "bg-emerald-500" : "bg-gray-300"
+                  }`}
               />
               <span className="text-[10px] font-semibold text-gray-400">
                 {presence?.label ??

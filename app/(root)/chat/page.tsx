@@ -116,7 +116,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] w-full antialiased bg-white overflow-hidden relative z-10 pointer-events-auto">
+    <div className="flex h-[calc(100dvh-64px)] md:h-[100dvh] w-full antialiased bg-white overflow-hidden relative z-10 pointer-events-auto">
       <div
         className={cn(
           "w-full md:w-80 flex-shrink-0 border-r border-gray-200 h-full flex flex-col relative z-20 bg-white pointer-events-auto",
