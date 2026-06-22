@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X } from "lucide-react";
+import { X, Flashlight, FlashlightOff } from "lucide-react";
 import { cn } from "@/libs/utils";
 import QrScanner from "qr-scanner";
 import type {
@@ -28,6 +28,8 @@ export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
   const processingRef = useRef(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanLine, setScanLine] = useState(0);
+  const [hasFlash, setHasFlash] = useState(false);
+  const [flashOn, setFlashOn] = useState(false);
 
   //animat scanline
   useEffect(() => {
@@ -48,6 +50,13 @@ export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
     scannerRef.current = null;
   }, []);
 
+  const toggleFlash = useCallback(() => {
+    if (!scannerRef.current) return;
+    scannerRef.current.toggleFlash()
+      .then(() => setFlashOn(scannerRef.current!.isFlashOn()))
+      .catch(console.error);
+  }, []);
+
   useEffect(() => {
     if (!videoRef.current) return;
     let cancelled = false;
@@ -61,11 +70,60 @@ export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
         processingRef.current = true;
         stopScanner();
 
+        if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
+
+        let isLate = false;
+        try {
+          let payload: any = null;
+          if (result.data.split('.').length === 3) {
+            payload = JSON.parse(atob(result.data.split('.')[1]));
+          } else if (result.data.startsWith('{')) {
+            payload = JSON.parse(result.data);
+          }
+
+          if (payload && (payload.eventStart || payload.start)) {
+            const startString = payload.eventStart || payload.start;
+            const eventStart = new Date(startString);
+            const now = new Date();
+            const oneHourBefore = new Date(eventStart.getTime() - 60 * 60 * 1000);
+
+            if (now < oneHourBefore) {
+              const diffMs = eventStart.getTime() - now.getTime();
+              const diffMins = Math.floor(diffMs / 60000);
+              let remaining = "";
+              if (diffMins < 60) {
+                remaining = `${diffMins} minutes`;
+              } else if (diffMins < 1440) {
+                remaining = `${Math.floor(diffMins / 60)} hours`;
+              } else {
+                remaining = `${Math.floor(diffMins / 1440)} days`;
+              }
+
+              const formattedStart = eventStart.toLocaleString("en-US", {
+                timeZone: "Asia/Phnom_Penh",
+                dateStyle: "medium",
+                timeStyle: "short",
+              });
+
+              onError({ message: `The event starts on ${formattedStart} (${remaining} left). You can only check-in 1 hour before the event starts.` });
+              return;
+            }
+
+            if (now > eventStart) {
+              isLate = true;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to decode local QR validation", e);
+        }
+
         const res = await checkInAttendeeAction(token, result.data);
         if (cancelled) return;
 
         if (res.success) {
-          onSuccess(res.data);
+          onSuccess({ ...res.data, isLate: isLate || res.data.isLate });
         } else {
           onError(res.error);
         }
@@ -84,6 +142,9 @@ export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
       .start()
       .then(() => {
         scanner.setCamera("environment");
+        scanner.hasFlash().then(has => {
+          if (!cancelled) setHasFlash(has);
+        });
       })
       .catch(() => {
         if (cancelled) return;
@@ -109,16 +170,27 @@ export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
             Point at attendees ticket
           </p>
         </div>
-        <button
-          onClick={() => {
-            stopScanner();
-            onClose();
-          }}
-          className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Close scanner"
-        >
-          <X size={18} />
-        </button>
+        <div className="flex items-center gap-3">
+          {hasFlash && (
+            <button
+              onClick={toggleFlash}
+              className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle flashlight"
+            >
+              {flashOn ? <FlashlightOff size={18} /> : <Flashlight size={18} />}
+            </button>
+          )}
+          <button
+            onClick={() => {
+              stopScanner();
+              onClose();
+            }}
+            className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Close scanner"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
       <div className="flex flex-1 flex-col items-center px-6 pt-6 pb-10 gap-5 overflow-y-auto">
         <div className="relative w-full aspect-square max-w-[360px] rounded-[20px] overflow-hidden bg-black shadow-lg">
