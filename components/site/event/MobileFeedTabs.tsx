@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import FilteredFeed from "./FilteredFeed";
 import UpComingEventCard from "./UpComingEventCard";
 import GroupMemberCard from "./GroupMemberCard";
+import { cn } from "@/libs/utils";
 
 interface Props {
   groupid: string;
@@ -49,7 +50,7 @@ export default function MobileFeedTabs({
 
   useEffect(() => {
     const THRESHOLD = 6;
-    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    lastScrollY.current = window.scrollY;
 
     const onScroll = () => {
       if (ticking.current) return;
@@ -61,14 +62,8 @@ export default function MobileFeedTabs({
 
         if (Math.abs(delta) > THRESHOLD) {
           setVisible(delta < 0 || currentY < 60);
-          lastScrollY.current = currentY;
         }
-
-        if (idleTimer) clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => {
-          setVisible(true);
-        }, 300);
-
+        lastScrollY.current = currentY;
         ticking.current = false;
       });
     };
@@ -76,22 +71,19 @@ export default function MobileFeedTabs({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      if (idleTimer) clearTimeout(idleTimer);
     };
   }, []);
 
   return (
     <>
       <div
-        className="xl:hidden sticky top-[66px] z-10 px-1 py-0.5 rounded-2xl bg-white/80 dark:bg-neutral-900/80"
+        className={cn(
+          "xl:hidden sticky top-30 md:top-16 z-10 px-1 py-0.5 rounded-2xl bg-white/80 dark:bg-neutral-900/80 transition-all duration-300 ease-in-out will-change-transform",
+          visible ? "translate-y-0 opacity-100" : "-translate-y-[110%] opacity-0"
+        )}
         style={{
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
-          transform: visible ? "translateY(0)" : "translateY(-110%)",
-          opacity: visible ? 1 : 0,
-          transition:
-            "transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms ease",
-          willChange: "transform, opacity",
         }}
       >
         <div
@@ -122,9 +114,10 @@ export default function MobileFeedTabs({
               role="tab"
               aria-selected={activeTab === tab}
               onClick={() => setActiveTab(tab)}
-              className={`relative z-10 flex-1 py-1.5 px-1 rounded-[9px] text-[13px] font-medium transition-colors duration-200 whitespace-nowrap border-none bg-transparent cursor-pointer ${
+              className={cn(
+                "relative z-10 flex-1 py-1.5 px-1 rounded-[9px] text-[13px] font-medium transition-colors duration-200 whitespace-nowrap border-none bg-transparent cursor-pointer",
                 activeTab === tab ? "text-[#1c4d8d]" : "text-gray-500"
-              }`}
+              )}
             >
               {tab}
             </button>
@@ -132,15 +125,19 @@ export default function MobileFeedTabs({
         </div>
       </div>
       <div className="xl:hidden mt-2">
-        {activeTab === "Feed" && (
+        <div className={activeTab === "Feed" ? "block" : "hidden"}>
           <FilteredFeed
             groupid={groupid}
             deepLinkPostId={deepLinkPostId}
             deepLinkType={deepLinkType}
           />
-        )}
-        {activeTab === "Upcoming" && <UpComingEventCard groupid={groupid} />}
-        {activeTab === "Members" && <GroupMemberCard groupid={groupid} />}
+        </div>
+        <div className={activeTab === "Upcoming" ? "block" : "hidden"}>
+          <UpComingEventCard groupid={groupid} />
+        </div>
+        <div className={activeTab === "Members" ? "block" : "hidden"}>
+          <GroupMemberCard groupid={groupid} />
+        </div>
       </div>
     </>
   );

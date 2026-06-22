@@ -1,8 +1,16 @@
 "use client";
+import { usePathname, useSearchParams } from "next/navigation";
 import { MobileBottomNav } from "@/components/site/button-nav/MobileBottomNav";
-import { useNotificationStore } from "@/store/useNotificationStore";
+
 
 export function MobileBottomNavWrapper() {
-  const { unreadCount } = useNotificationStore();
-  return <MobileBottomNav alertCount={unreadCount} />;
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const isChatRoute = pathname.startsWith("/chat");
+  const isMobileChatOpen = isChatRoute && !!searchParams.get("target");
+
+  if (isMobileChatOpen) return null;
+
+  return <MobileBottomNav/>;
 }

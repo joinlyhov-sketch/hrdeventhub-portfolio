@@ -26,18 +26,17 @@ export default function ChatPage() {
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [hydrating, setHydrating] = useState(false);
 
-
   const refreshRef = useRef(refresh);
   useEffect(() => {
     refreshRef.current = refresh;
   }, [refresh]);
 
   const stableRefresh = useCallback((delay = 0) => {
-  if (delay > 0) {
-    setTimeout(() => refreshRef.current(), delay);
-  } else {
-    refreshRef.current();
-  }
+    if (delay > 0) {
+      setTimeout(() => refreshRef.current(), delay);
+    } else {
+      refreshRef.current();
+    }
   }, []);
 
   useEffect(() => {
@@ -52,8 +51,9 @@ export default function ChatPage() {
 
     const match = conversations.find(
       (c) =>
-        String(c.otherUserName ?? "").trim().toLowerCase() ===
-        String(targetUsername).trim().toLowerCase(),
+        String(c.otherUserName ?? "")
+          .trim()
+          .toLowerCase() === String(targetUsername).trim().toLowerCase(),
     );
 
     if (match) {
@@ -98,13 +98,12 @@ export default function ChatPage() {
     );
   }
 
- const handleSelectConversation = (conv: Conversation) => {
-
-  if (conv.unreadCount > 0) {
-    useChatStore.getState().markRead(conv.id, auth!.userId);
-  }
-  router.push(`/chat?target=${conv.otherUserName}`);
-};
+  const handleSelectConversation = (conv: Conversation) => {
+    if (conv.unreadCount > 0) {
+      useChatStore.getState().markRead(conv.id, auth!.userId);
+    }
+    router.push(`/chat?target=${conv.otherUserName}`);
+  };
 
   const handleBack = () => {
     router.push("/chat");
@@ -116,7 +115,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-64px)] md:h-[100dvh] w-full antialiased bg-white overflow-hidden relative z-10 pointer-events-auto">
+    <div className="flex h-[calc(100dvh)] md:h-[100dvh] w-full antialiased bg-white overflow-hidden relative z-10 pointer-events-auto">
       <div
         className={cn(
           "w-full md:w-80 flex-shrink-0 border-r border-gray-200 h-full flex flex-col relative z-20 bg-white pointer-events-auto",

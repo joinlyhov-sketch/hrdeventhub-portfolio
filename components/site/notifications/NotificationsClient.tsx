@@ -1,14 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Bell, Trash2, MoreHorizontal, CheckCheck, AlertCircle, BarChart2, CalendarDays, FileText, MessageCircle } from "lucide-react";
+import { Bell, Trash2, MoreHorizontal, CheckCheck, AlertCircle, BarChart2, CalendarDays, FileText, MessageCircle, ArrowLeft } from "lucide-react";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { NotificationPayload } from "@/types/notification";
 import { cn } from "@/libs/utils";
 import { formatDistanceToNow } from "date-fns";
 import { useRef, useState, useEffect } from "react";
-
-//filter
 
 type Filter = "all" | "post" | "update" | "mention" | "message";
 
@@ -28,8 +26,6 @@ function matchesFilter(n: NotificationPayload, filter: Filter): boolean {
   if (filter === "message") return n.type === "NEW_MESSAGE";
   return true;
 }
-
-//noti menu
 
 function NotificationMenu({ onRemove }: { onRemove: () => void }) {
   const [open, setOpen] = useState(false);
@@ -51,21 +47,21 @@ function NotificationMenu({ onRemove }: { onRemove: () => void }) {
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
+        className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
         aria-label="More options"
       >
         <MoreHorizontal className="w-4 h-4" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-9 z-50 w-36 rounded-xl bg-white border border-gray-100 shadow-lg overflow-hidden">
+        <div className="absolute right-0 top-9 z-50 w-36 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-lg overflow-hidden">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onRemove();
               setOpen(false);
             }}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
           >
             <Trash2 className="w-4 h-4" />
             Delete
@@ -97,68 +93,33 @@ function TypeBadge({ type, category }: {
   switch (type) {
     case "POST_CREATED":
     case "POST_UPDATED":
-      if (cat === "event") {
-        return (
-          <div className={cn(base)} style={{ backgroundColor: "#1c4d8d" }}>
-            <CalendarDays className="w-2.5 h-2.5 text-white" />
-          </div>
-        );
-      }
-      if (cat === "survey") {
-        return (
-          <div className={cn(base, "bg-amber-500")}>
-            <BarChart2 className="w-2.5 h-2.5 text-white" />
-          </div>
-        );
-      }
-      if (cat === "poll") {
-        return (
-          <div className={cn(base, "bg-teal-500")}>
-            <BarChart2 className="w-2.5 h-2.5 text-white" />
-          </div>
-        );
-      }
+      if (cat === "event") return (
+        <div className={cn(base)} style={{ backgroundColor: "#1c4d8d" }}>
+          <CalendarDays className="w-2.5 h-2.5 text-white" />
+        </div>
+      );
+      if (cat === "survey" || cat === "poll") return (
+        <div className={cn(base, cat === "survey" ? "bg-amber-500" : "bg-teal-500")}>
+          <BarChart2 className="w-2.5 h-2.5 text-white" />
+        </div>
+      );
       return (
         <div className={cn(base)} style={{ backgroundColor: type === "POST_UPDATED" ? "#2e7d32" : "#1c4d8d" }}>
           <FileText className="w-2.5 h-2.5 text-white" />
         </div>
       );
     case "POST_DELETED":
-      return (
-        <div className={cn(base, "bg-red-500")}>
-          <AlertCircle className="w-2.5 h-2.5 text-white" />
-        </div>
-      );
+      return <div className={cn(base, "bg-red-500")}><AlertCircle className="w-2.5 h-2.5 text-white" /></div>;
     case "MENTION":
-      return (
-        <div className={cn(base, "bg-purple-500")}>
-          <span className="text-white text-[9px] font-bold leading-none">@</span>
-        </div>
-      );
+      return <div className={cn(base, "bg-purple-500")}><span className="text-white text-[9px] font-bold leading-none">@</span></div>;
     case "SURVEY_CREATED":
-      return (
-        <div className={cn(base, "bg-amber-500")}>
-          <BarChart2 className="w-2.5 h-2.5 text-white" />
-        </div>
-      );
+      return <div className={cn(base, "bg-amber-500")}><BarChart2 className="w-2.5 h-2.5 text-white" /></div>;
     case "POLL_CREATED":
-      return (
-        <div className={cn(base, "bg-teal-500")}>
-          <BarChart2 className="w-2.5 h-2.5 text-white" />
-        </div>
-      );
+      return <div className={cn(base, "bg-teal-500")}><BarChart2 className="w-2.5 h-2.5 text-white" /></div>;
     case "NEW_MESSAGE":
-      return (
-        <div className={cn(base, "bg-blue-500")}>
-          <MessageCircle className="w-2.5 h-2.5 text-white" />
-        </div>
-      );
+      return <div className={cn(base, "bg-blue-500")}><MessageCircle className="w-2.5 h-2.5 text-white" /></div>;
     default:
-      return (
-        <div className={cn(base, "bg-gray-400")}>
-          <Bell className="w-2.5 h-2.5 text-white" />
-        </div>
-      );
+      return <div className={cn(base, "bg-gray-400")}><Bell className="w-2.5 h-2.5 text-white" /></div>;
   }
 }
 
@@ -175,24 +136,18 @@ function ActorAvatar({ avatar, name, type, category }: {
   return (
     <div className="relative shrink-0">
       {avatar ? (
-        <img
-          src={avatar}
-          alt={name ?? "User"}
-          className="w-14 h-14 rounded-full object-cover"
-        />
+        <img src={avatar} alt={name ?? "User"} className="w-14 h-14 rounded-full object-cover" />
       ) : (
-        <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-sm font-semibold text-gray-500">{initials}</span>
+        <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{initials}</span>
         </div>
       )}
-      <div className="absolute -bottom-0.5 -right-0.5 ring-2 ring-white rounded-full">
+      <div className="absolute -bottom-0.5 -right-0.5 ring-2 ring-white dark:ring-gray-950 rounded-full">
         <TypeBadge type={type} category={category} />
       </div>
     </div>
   );
 }
-
-//gruop logic
 
 type Group = "new" | "earlier-today" | "yesterday" | "older";
 
@@ -214,7 +169,6 @@ function getGroup(createdAt: string): Group {
 }
 
 const GROUP_ORDER: Group[] = ["new", "earlier-today", "yesterday", "older"];
-
 const GROUP_LABELS: Record<Group, string> = {
   "new":           "New",
   "earlier-today": "Earlier today",
@@ -224,13 +178,11 @@ const GROUP_LABELS: Record<Group, string> = {
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <p className="px-3 pt-4 pb-1 text-[13px] font-semibold text-gray-500 tracking-wide">
+    <p className="px-3 pt-4 pb-1 text-[13px] font-semibold text-gray-500 dark:text-gray-400 tracking-wide">
       {label}
     </p>
   );
 }
-
-//notification row
 
 function NotificationRow({
   n,
@@ -247,43 +199,33 @@ function NotificationRow({
   return (
     <div
       className={cn(
-        "relative flex items-center gap-3 px-3 py-3  transition-colors",
-        !n.read ? "hover:bg-white" : "bg-white hover:bg-gray-100",
+        "relative flex items-center gap-3 px-3 py-3 transition-colors border-b border-gray-50 dark:border-gray-900/50",
+        !n.read ? "hover:bg-white/80" : "bg-white dark:bg-gray-950 hover:bg-gray-100 dark:hover:bg-gray-900",
         href ? "cursor-pointer" : "cursor-default"
       )}
       style={!n.read ? { backgroundColor: "#e8eef6" } : undefined}
       onClick={() => onNavigate(n)}
     >
-      <ActorAvatar
-        avatar={n.actorAvatar}
-        name={n.actorName}
-        type={n.type}
-        category={n.postCategory}
-      />
+      <ActorAvatar avatar={n.actorAvatar} name={n.actorName} type={n.type} category={n.postCategory} />
 
       <div className="flex-1 min-w-0">
         <p className={cn(
           "text-sm leading-snug line-clamp-3",
-          !n.read ? "text-gray-900" : "text-gray-600"
+          !n.read ? "text-gray-900 font-medium" : "text-gray-600 dark:text-gray-300"
         )}>
           {n.message}
         </p>
-        <p
-          className="text-xs mt-1 font-medium"
-          style={{ color: !n.read ? "#1c4d8d" : "#9ca3af" }}
-        >
+        <p className="text-xs mt-1 font-medium" style={{ color: !n.read ? "#1c4d8d" : "#9ca3af" }}>
           {timeAgo}
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-2 shrink-0">
+      <div className="flex flex-col items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
         <NotificationMenu onRemove={() => onRemove(n.notificationId)} />
       </div>
     </div>
   );
 }
-
-//main component
 
 export function NotificationsClient() {
   const router = useRouter();
@@ -295,8 +237,11 @@ export function NotificationsClient() {
   const handleNavigate = (n: NotificationPayload) => {
     markRead(n.notificationId);
     if (n.type === "POST_DELETED") return;
+    
     const href = resolveNotificationHref(n);
-    if (href) router.push(href);
+    if (href) {
+      router.push(href);
+    }
   };
 
   const filtered = notifications.filter((n) => matchesFilter(n, activeFilter));
@@ -312,16 +257,25 @@ export function NotificationsClient() {
   const hasAny = filtered.length > 0;
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <div className="sticky top-0 z-10 bg-white px-4 pt-5 pb-0 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold" style={{ color: "#1c4d8d" }}>
+    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 md:pt-0">
+      <div className="sticky top-14 md:top-0 z-20 bg-white dark:bg-gray-950 px-4 pt-5 pb-0 border-b border-gray-100 dark:border-gray-900 shadow-sm md:shadow-none">
+        <div className="flex items-center gap-3 mb-3">
+          <button
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors shrink-0 text-gray-700 dark:text-gray-300 md:hidden"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          
+          <h1 className="flex-1 text-2xl font-bold" style={{ color: "#1c4d8d" }}>
             Notifications
           </h1>
+          
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="flex items-center gap-1.5 text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 text-sm font-medium transition-colors shrink-0"
               style={{ color: "#1c4d8d" }}
             >
               <CheckCheck className="w-4 h-4" />
@@ -340,30 +294,22 @@ export function NotificationsClient() {
                 className={cn(
                   "relative shrink-0 px-4 py-2.5 text-sm font-medium transition-colors rounded-none border-b-2",
                   isActive
-                    ? "border-b-2 text-[#1c4d8d]"
-                    : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                    ? "text-[#1c4d8d]"
+                    : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900"
                 )}
                 style={isActive ? { borderBottomColor: "#1c4d8d" } : undefined}
               >
                 {label}
                 {key !== "all" && (() => {
-                  const count = notifications.filter(
-                    (n) => !n.read && matchesFilter(n, key)
-                  ).length;
+                  const count = notifications.filter((n) => !n.read && matchesFilter(n, key)).length;
                   return count > 0 ? (
-                    <span
-                      className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white"
-                      style={{ backgroundColor: "#1c4d8d" }}
-                    >
+                    <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: "#1c4d8d" }}>
                       {count}
                     </span>
                   ) : null;
                 })()}
                 {key === "all" && unreadCount > 0 && (
-                  <span
-                    className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white"
-                    style={{ backgroundColor: "#1c4d8d" }}
-                  >
+                  <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: "#1c4d8d" }}>
                     {unreadCount}
                   </span>
                 )}
@@ -376,7 +322,7 @@ export function NotificationsClient() {
       <div className="flex-1 px-2 py-2">
         {!hasAny ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center mb-4">
               <Bell className="w-8 h-8 opacity-40" />
             </div>
             <p className="text-base font-semibold text-gray-500">No notifications</p>
@@ -393,7 +339,7 @@ export function NotificationsClient() {
             return (
               <div key={group}>
                 <SectionHeader label={GROUP_LABELS[group]} />
-                <div>
+                <div className="rounded-xl overflow-hidden">
                   {items.map((n) => (
                     <NotificationRow
                       key={n.notificationId}
