@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Bell, Trash2, MoreHorizontal, CheckCheck, AlertCircle, BarChart2, CalendarDays, FileText } from "lucide-react";
+import { Bell, Trash2, MoreHorizontal, CheckCheck, AlertCircle, BarChart2, CalendarDays, FileText, MessageCircle } from "lucide-react";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { NotificationPayload } from "@/types/notification";
 import { cn } from "@/libs/utils";
@@ -10,13 +10,14 @@ import { useRef, useState, useEffect } from "react";
 
 //filter
 
-type Filter = "all" | "post" | "update" | "mention";
+type Filter = "all" | "post" | "update" | "mention" | "message";
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all",     label: "All" },
   { key: "post",    label: "Posts" },
   { key: "update",  label: "Updates" },
   { key: "mention", label: "Mentions" },
+  { key: "message", label: "Messages" },
 ];
 
 function matchesFilter(n: NotificationPayload, filter: Filter): boolean {
@@ -24,6 +25,7 @@ function matchesFilter(n: NotificationPayload, filter: Filter): boolean {
   if (filter === "post")    return n.type === "POST_CREATED" || n.type === "SURVEY_CREATED" || n.type === "POLL_CREATED";
   if (filter === "update")  return n.type === "POST_UPDATED" || n.type === "POST_DELETED";
   if (filter === "mention") return n.type === "MENTION";
+  if (filter === "message") return n.type === "NEW_MESSAGE";
   return true;
 }
 
@@ -75,6 +77,9 @@ function NotificationMenu({ onRemove }: { onRemove: () => void }) {
 }
 
 function resolveNotificationHref(n: NotificationPayload): string | null {
+  if (n.type === "NEW_MESSAGE") {
+    return n.actorName ? `/chat?target=${encodeURIComponent(n.actorName)}` : null;
+  }
   if (!n.workspaceId || !n.postId) return null;
   const category = n.postCategory?.toLowerCase();
   if (category === "event") return `/group/${n.workspaceId}/event/${n.postId}`;
@@ -140,6 +145,12 @@ function TypeBadge({ type, category }: {
       return (
         <div className={cn(base, "bg-teal-500")}>
           <BarChart2 className="w-2.5 h-2.5 text-white" />
+        </div>
+      );
+    case "NEW_MESSAGE":
+      return (
+        <div className={cn(base, "bg-blue-500")}>
+          <MessageCircle className="w-2.5 h-2.5 text-white" />
         </div>
       );
     default:
