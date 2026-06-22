@@ -18,7 +18,6 @@ export const fileService = {
     token?: string,
   ): Promise<FileUploadBackendResponse> {
     const path = `/files/delete?key=${encodeURIComponent(fileKey)}`;
-
     return apiDelete<FileUploadBackendResponse>(path, {
       authToken: token,
       accept: "*/*",

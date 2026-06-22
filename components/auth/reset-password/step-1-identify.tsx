@@ -2,9 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useState, useTransition } from "react";
+import { z } from "zod";
 import { forgotPasswordAction } from "../../../actions/auth.action";
 import { useResetPasswordStore } from "../../../store/useResetPasswordStore";
 import { Mail, AlertCircle } from "lucide-react";
+
+const emailSchema = z.string().min(1, "Email is required").email("Email is invalid");
 
 export default function IdentifyStep() {
   const storeEmail = useResetPasswordStore((s) => s.storeEmail);
@@ -15,8 +18,10 @@ export default function IdentifyStep() {
 
   const handleSubmit = () => {
     setError(null);
-    if (!value.trim()) {
-      setError("Email is required.");
+
+    const result = emailSchema.safeParse(value.trim());
+    if (!result.success) {
+      setError(result.error.issues[0].message);
       return;
     }
 

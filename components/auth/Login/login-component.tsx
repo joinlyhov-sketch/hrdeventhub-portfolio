@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { z } from "zod";
 import { motion, Variants } from "framer-motion";
-import { loginAction } from "../../../actions/auth.action";
+import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -66,15 +66,20 @@ export default function LoginComponent() {
 
     setErrors({});
 
-    const formData = new FormData();
-    formData.append("identifier", identifier.trim());
-    formData.append("password", password);
-    formData.append("rememberMe", String(rememberMe));
-
     startTransition(async () => {
-      const res = await loginAction(formData);
+      const res = await signIn("credentials", {
+        identifier: identifier.trim(),
+        password,
+        rememberMe: String(rememberMe),
+        redirect: false,
+      });
+
       if (res?.error) {
-        setServerError(res.error);
+        setServerError(
+          res.error === "CredentialsSignin"
+            ? "Invalid email or password."
+            : "Something went wrong. Please try again."
+        );
         return;
       }
       if (res?.ok) {
