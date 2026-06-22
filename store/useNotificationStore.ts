@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from "zustand";
 import { NotificationPayload } from "@/types/notification";
 import { notificationService } from "@/service/notification.service";
@@ -16,6 +18,8 @@ interface NotificationStore {
   markAllRead: () => void;
   removeNotification: (id: string) => void;
   clearAll: () => void;
+  
+  clearChatNotificationsForUser: (actorName: string) => void;
 
   _token: string | null;
 }
@@ -96,4 +100,18 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   },
 
   clearAll: () => set({ notifications: [], unreadCount: 0 }),
+
+  clearChatNotificationsForUser: (actorName) => {
+    set((state) => {
+      const updated = state.notifications.map((n) =>
+        n.type === "NEW_MESSAGE" && n.actorName === actorName
+          ? { ...n, read: true }
+          : n
+      );
+      return {
+        notifications: updated,
+        unreadCount: updated.filter((x) => !x.read).length,
+      };
+    });
+  },
 }));
