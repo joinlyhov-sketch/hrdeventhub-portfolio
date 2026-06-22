@@ -15,6 +15,26 @@ const authRoutes = [
   "/join",
 ];
 
+const roleProtectedRoutes: Record<string, UserRole[]> = {
+  "/feedback": ["admin", "organizer"],
+  "/transaction-history": ["admin", "organizer"],
+  "/user-management": ["admin", "organizer"],
+  "/event-management": ["admin", "organizer"],
+  "/check-in": ["admin", "organizer"],
+
+
+};
+
+function getAllowedRoles(pathname: string) {
+  const matchedRoute = Object.keys(roleProtectedRoutes)
+    .sort((a, b) => b.length - a.length)
+    .find((route) => pathname.startsWith(route));
+
+  if (!matchedRoute) return null;
+
+  return roleProtectedRoutes[matchedRoute];
+}
+
 export async function proxy(req: NextRequest) {
   const { nextUrl } = req;
   const token = await getToken({ req, secret: env?.NEXTAUTH_SECRET });
