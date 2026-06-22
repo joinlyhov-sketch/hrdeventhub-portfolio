@@ -7,6 +7,7 @@ export interface Transaction {
   username: string;
   avatar?: string;
   amount: number;
+  senderBankName?: string;
   status: TransactionStatus;
   timestamp: string;
   eventId?: string;

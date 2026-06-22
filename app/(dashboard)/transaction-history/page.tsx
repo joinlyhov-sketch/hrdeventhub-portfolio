@@ -1,6 +1,9 @@
 import Header from "../../../components/dashboard/header/Header";
 import { TransactionTableSection } from "../../../components/dashboard/transaction-history/TransactionTableSection";
-import { getTransactions, getEventSummaries } from "@/actions/transaction.action";
+import {
+  getTransactions,
+  getEventSummaries,
+} from "@/actions/transaction.action";
 import { eventService, EventItem } from "@/service/event.service";
 import { paymentService, Transaction } from "@/service/payment.service";
 import { authService } from "@/service/auth.service";
