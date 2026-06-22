@@ -52,7 +52,7 @@ export default function MessageInput({
     e.target.value = "";
   }
 
-  const isDisabled = disabled || uploading;
+  const fileDisabled = disabled || uploading;
 
   return (
     <div className="p-4 bg-white border-t border-gray-200 flex-shrink-0">
@@ -63,22 +63,23 @@ export default function MessageInput({
         </div>
       )}
 
-      <div className="w-full flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
+      <div className="w-full flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-blue-500/20  transition-all">
         <input
           ref={fileRef}
           type="file"
           accept={ACCEPTED_TYPES}
           style={{ display: "none" }}
           onChange={handleFileChange}
-          disabled={isDisabled}
+          disabled={fileDisabled}
         />
 
         {!editingMsg && (
           <button
             type="button"
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shrink-0 disabled:opacity-50"
+            className="p-2 text-gray-400 hover:text-[#1c4d8d] hover:bg-blue-50 rounded-xl transition-all shrink-0 disabled:opacity-50"
             onClick={() => fileRef.current?.click()}
-            disabled={isDisabled}
+            disabled={fileDisabled}
+            title={disabled ? "Connecting... attachments need an active connection" : undefined}
           >
             {uploading ? (
               <span className="block animate-ping text-sm">...</span>
@@ -107,14 +108,13 @@ export default function MessageInput({
               : "Type a message... (Enter to send)"
           }
           className="flex-1 bg-transparent border-0 outline-none text-sm text-gray-800 resize-none max-h-24 py-1.5 px-2 focus:ring-0 focus:outline-none placeholder:text-gray-400 font-normal leading-relaxed"
-          disabled={isDisabled}
         />
 
         <button
           type="button"
           onClick={onSend}
-          disabled={isDisabled || !value.trim()}
-          className="p-2 bg-[#1c4d8d]  text-white rounded-xl transition-all shrink-0 disabled:opacity-40 disabled:bg-[#235698] shadow-sm"
+          disabled={!value.trim()}
+          className="p-2 bg-[#1c4d8d] text-white rounded-xl transition-all shrink-0 disabled:opacity-40 disabled:bg-[#235698] shadow-sm"
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" />
