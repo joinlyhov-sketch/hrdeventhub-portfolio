@@ -2,6 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { env } from "./libs/env";
+import { UserRole } from "./data/UserData";
 
 const landingRoute = "/";
 const authRoutes = [
