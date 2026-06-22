@@ -61,6 +61,16 @@ const featureItem = {
 };
 
 export default function HeroSession() {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   return (
     <>
       <section className="relative w-screen h-full bg-white text-secondary flex flex-col justify-between select-none overflow-x-hidden">
@@ -370,10 +380,10 @@ export default function HeroSession() {
           </div>
         </motion.div>
 
-        <div className="min-h-0 lg:min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start px-4 py-6 md:px-12 md:py-10 max-w-7xl mx-auto relative z-[12] text-center">
-          <div className="w-full flex flex-col items-center justify-center mb-3 sm:mb-8 md:mb-12">
+        <div className="min-h-0 lg:min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start px-4 py-6 md:px-8 md:py-10 lg:px-12 max-w-7xl mx-auto relative z-[12] text-center">
+          <div className="w-full flex flex-col items-center justify-center mb-3 sm:mb-8 md:mb-10 lg:mb-12">
             <motion.h2
-              className="text-base sm:text-3xl md:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2"
+              className="text-base sm:text-3xl md:text-[32px] lg:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -381,7 +391,7 @@ export default function HeroSession() {
             >
               <span>Bring Together</span>
               <motion.span
-                className="text-secondary text-lg sm:text-4xl md:text-[50px]"
+                className="text-secondary text-lg sm:text-4xl md:text-[36px] lg:text-[50px]"
                 variants={fadeUp}
                 custom={0.1}
               >
@@ -389,7 +399,7 @@ export default function HeroSession() {
               </motion.span>
               <span className="text-action">&amp;</span>
               <motion.span
-                className="text-secondary text-lg sm:text-4xl md:text-[50px]"
+                className="text-secondary text-lg sm:text-4xl md:text-[36px] lg:text-[50px]"
                 variants={fadeUp}
                 custom={0.18}
               >
@@ -398,7 +408,7 @@ export default function HeroSession() {
             </motion.h2>
 
             <motion.h1
-              className="text-lg sm:text-5xl md:text-[60px] text-secondary mt-2 sm:mt-3 mb-3 sm:mb-4 md:mb-6 max-w-5xl font-bold leading-tight"
+              className="text-lg sm:text-5xl md:text-[44px] lg:text-[60px] text-secondary mt-2 sm:mt-3 mb-3 sm:mb-4 md:mb-5 lg:mb-6 max-w-5xl font-bold leading-tight"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -409,7 +419,7 @@ export default function HeroSession() {
             </motion.h1>
 
             <motion.p
-              className="text-sm sm:text-lg md:text-[20px] text-secondary/90 text-center max-w-4xl mx-auto w-full leading-relaxed px-2"
+              className="text-sm sm:text-lg md:text-[16px] lg:text-[20px] text-secondary/90 text-center max-w-4xl mx-auto w-full leading-relaxed px-2"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -421,22 +431,65 @@ export default function HeroSession() {
             </motion.p>
           </div>
 
-          <div className="relative w-full top-0 sm:-top-10 md:-top-20 lg:-top-25 max-w-7xl h-50 sm:h-55 md:h-80 lg:h-120 flex items-center justify-center px-1 md:px-0 md:overflow-visible">
+          <div className="relative w-full top-0 sm:-top-10 md:-top-16 lg:-top-25 max-w-7xl h-50 sm:h-55 md:h-72 lg:h-120 flex items-center justify-center px-1 md:px-0 md:overflow-visible">
+
+            {/* Mobile-only decorative dashed ellipse */}
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none sm:hidden z-5"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <linearGradient id="mobileEllipseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#00508D" />
+                  <stop offset="100%" stopColor="#0A74FF" />
+                </linearGradient>
+              </defs>
+              {/*
+                Ellipse: cx=50% cy=52% rx=42% ry=38%
+                Dots placed at exact points ON the ellipse stroke:
+                  Top    → (50%, 14%)
+                  Bot-R  → (80%, 79%)   verified: (-30²/42²)+(27²/38²)≈1
+                  Bot-L  → (20%, 79%)   symmetric
+              */}
+              <ellipse
+                cx="50%" cy="52%"
+                rx="42%" ry="38%"
+                stroke="url(#mobileEllipseGrad)"
+                strokeWidth="1.5"
+                strokeOpacity="0.65"
+                strokeDasharray="10 10"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <circle cx="50%" cy="14%" r="5" fill="#FF9F2E" stroke="white" strokeWidth="1.5" />
+              <circle cx="80%" cy="79%" r="5" fill="#FF9F2E" stroke="white" strokeWidth="1.5" />
+              <circle cx="20%" cy="79%" r="5" fill="#FF9F2E" stroke="white" strokeWidth="1.5" />
+            </svg>
+
             <motion.div
               className="absolute left-[-2%] sm:left-[-1%] md:left-[-3%] w-[32%] md:w-[33%] translate-y-4 sm:translate-y-8 md:translate-y-16 z-30"
               variants={slideInLeft}
               initial="hidden"
               animate="visible"
             >
-              <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <Image
-                  src="/images/HeroSession1.webp"
-                  alt="HRD Student Event Assembly"
-                  width={400}
-                  height={300}
-                  className="w-full h-auto block rotate-[15deg]"
-                />
-              </div>
+              <motion.div
+                animate={isMobile ? { y: [0, -5, 0] } : {}}
+                transition={isMobile ? { duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 1 } : {}}
+                className="w-full"
+              >
+                <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
+                  <Image
+                    src="/images/HeroSession1.webp"
+                    alt="HRD Student Event Assembly"
+                    width={400}
+                    height={300}
+                    quality={95}
+                    priority
+                    sizes="(max-width: 640px) 32vw, (max-width: 768px) 33vw, 400px"
+                    className="w-full h-auto block rotate-15"
+                  />
+                </div>
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -446,39 +499,57 @@ export default function HeroSession() {
               animate="visible"
             >
               <motion.div
-                className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:top-5 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center"
-                variants={slideInCenter}
-                initial="hidden"
-                animate="visible"
+                animate={isMobile ? { y: [0, -6, 0] } : {}}
+                transition={isMobile ? { duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 1.3 } : {}}
+                className="relative w-full"
               >
-                <Heart className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 fill-current text-destructive" />
+                <motion.div
+                  className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:top-5 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center"
+                  variants={slideInCenter}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <Heart className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 fill-current text-destructive" />
+                </motion.div>
+                <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
+                  <Image
+                    src="/images/HeroSession2.webp"
+                    alt="HRD Main Event Group Photo"
+                    width={600}
+                    height={400}
+                    quality={95}
+                    priority
+                    sizes="(max-width: 640px) 48vw, (max-width: 768px) 48vw, 600px"
+                    className="w-full h-auto block"
+                  />
+                </div>
               </motion.div>
-              <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <Image
-                  src="/images/HeroSession2.webp"
-                  alt="HRD Main Event Group Photo"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto block"
-                />
-              </div>
             </motion.div>
 
             <motion.div
-              className="absolute right-[-2%] sm:right-[-1%] md:right-[-3%] w-[34%] md:w-[35%] rotate-[10deg] md:rotate-[12deg] translate-y-4 sm:translate-y-8 md:translate-y-15"
+              className="absolute right-[-2%] sm:right-[-1%] md:right-[-3%] w-[34%] md:w-[35%] rotate-[10deg] md:rotate-[12deg] translate-y-4 sm:translate-y-8 md:translate-y-15 z-10"
               variants={slideInRight}
               initial="hidden"
               animate="visible"
             >
-              <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <Image
-                  src="/images/HeroSession3.webp"
-                  alt="HRD Campus Community Event"
-                  width={400}
-                  height={300}
-                  className="w-full h-auto block rotate-[-20deg]"
-                />
-              </div>
+              <motion.div
+                animate={isMobile ? { y: [0, -5, 0] } : {}}
+                transition={isMobile ? { duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1.6 } : {}}
+                className="w-full"
+              >
+                <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
+                  <Image
+                    src="/images/HeroSession3.webp"
+                    alt="HRD Campus Community Event"
+                    width={400}
+                    height={300}
+                    quality={95}
+                    priority
+                    sizes="(max-width: 640px) 34vw, (max-width: 768px) 35vw, 400px"
+                    className="w-full h-auto block rotate-[-20deg]"
+                  />
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
