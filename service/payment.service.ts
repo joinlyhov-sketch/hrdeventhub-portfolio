@@ -143,36 +143,64 @@ export const paymentService = {
   },
 
   generateBakongQr: async (
-    payload: GenerateQrPayload,
-    authToken: string,
-  ): Promise<BakongQrGenerateResponse> => {
-    return apiPost<BakongQrGenerateResponse, GenerateQrPayload>(
-      "/payments/bakong/qr/generate",
-      payload,
-      { authToken, accept: "*/*" },
-    );
-  },
+  payload: GenerateQrPayload,
+  authToken: string,
+): Promise<BakongQrGenerateResponse> => {
+  const response = await apiPost<
+    BakongQrGenerateResponse | { payload: BakongQrGenerateResponse },
+    GenerateQrPayload
+  >("/payments/bakong/qr/generate", payload, {
+    authToken,
+    accept: "*/*",
+  });
 
-  checkBakongPayment: async (
-    paymentIntentId: string,
-    authToken: string,
-  ): Promise<BakongPaymentStatusResponse> => {
-    return apiGet<BakongPaymentStatusResponse>(
-      `/payments/bakong/check/${paymentIntentId}`,
-      { authToken, accept: "*/*" },
-    );
-  },
+  if ("payload" in response) {
+    return response.payload;
+  }
 
-  mockConfirmBakongPayment: async (
-    paymentIntentId: string,
-    authToken: string,
-  ): Promise<BakongPaymentStatusResponse> => {
-    return apiPost<BakongPaymentStatusResponse, Record<string, never>>(
-      `/payments/bakong/mock/confirm/${paymentIntentId}`,
-      {},
-      { authToken, accept: "*/*" },
-    );
-  },
+  return response;
+},
+
+checkBakongPayment: async (
+  paymentIntentId: string,
+  authToken: string,
+): Promise<BakongPaymentStatusResponse> => {
+  const response = await apiGet<
+    BakongPaymentStatusResponse | { payload: BakongPaymentStatusResponse }
+  >(`/payments/bakong/check/${paymentIntentId}`, {
+    authToken,
+    accept: "*/*",
+  });
+
+  if ("payload" in response) {
+    return response.payload;
+  }
+
+  return response;
+},
+
+mockConfirmBakongPayment: async (
+  paymentIntentId: string,
+  authToken: string,
+): Promise<BakongPaymentStatusResponse> => {
+  const response = await apiPost<
+    BakongPaymentStatusResponse | { payload: BakongPaymentStatusResponse },
+    Record<string, never>
+  >(
+    `/payments/bakong/mock/confirm/${paymentIntentId}`,
+    {},
+    {
+      authToken,
+      accept: "*/*",
+    },
+  );
+
+  if ("payload" in response) {
+    return response.payload;
+  }
+
+  return response;
+},
 
   getMyTransactions: async (authToken: string): Promise<Transaction[]> => {
     const response = await apiGet<TransactionsResponse>(
