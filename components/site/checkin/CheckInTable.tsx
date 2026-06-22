@@ -44,6 +44,8 @@ const getStatusColor = (status: string): string => {
       return "bg-[#E6F9F1] text-accent";
     case "PENDING":
       return "bg-yellow-100 text-yellow-700";
+    case "ABSENT":
+      return "bg-gray-100 text-gray-500";
     default:
       return "bg-gray-100 text-gray-700";
   }
@@ -55,6 +57,8 @@ const getStatusLabel = (status: string): string => {
       return "Checked In";
     case "PENDING":
       return "Pending";
+    case "ABSENT":
+      return "Absent";
     default:
       return status;
   }
@@ -263,6 +267,12 @@ export function CheckInTable({ data, selectedPost }: CheckInTableProps) {
                         className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
                       >
                         Pending
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="ABSENT"
+                        className="rounded-lg cursor-pointer text-sm font-medium text-slate-600 focus:bg-slate-50"
+                      >
+                        Absent
                       </DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
