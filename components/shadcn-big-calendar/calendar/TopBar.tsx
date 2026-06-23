@@ -6,7 +6,6 @@ export default function TopBar() {
       <header className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="type-title flex items-center gap-2">
-            <CalendarDays className="text-action" size={20} />
             <span className="text-primary">Calendar</span>
           </h1>
           <p className="type-desc mt-1 text-muted-foreground">

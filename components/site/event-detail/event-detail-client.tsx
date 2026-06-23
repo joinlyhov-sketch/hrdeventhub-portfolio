@@ -370,22 +370,22 @@ export default function EventDetailClient({
   const [isRegistered, setIsRegistered] = useState(false);
 
   useEffect(() => {
-    if (!event?.postId || !session?.accessToken || !currentUser?.id) return;
+  if (!event?.postId || !session?.accessToken || !currentUser?.id) return;
 
     const checkRegistration = async () => {
-      try {
-        const data = (await postService.getParticipants(
-          event.postId,
-          session.accessToken,
-          1,
-          100,
-        )) as { payload?: { user: { appUserId: string } }[] };
+  try {
+      const data = (await postService.getParticipants(
+        event.postId,
+        session.accessToken,
+        1,
+        100,
+      )) as { payload?: { user: { appUserId: string } }[] };
 
-        const list = data.payload ?? [];
-        setIsRegistered(list.some((p) => p.user?.appUserId === currentUser.id));
-      } catch (err) {
-        console.error("Failed to check registration status:", err);
-      }
+      const list = data.payload ?? [];
+      setIsRegistered(list.some((p) => p.user?.appUserId === currentUser.id));
+    } catch (err) {
+      console.error("Failed to check registration status:", err);
+    }
     };
 
     checkRegistration();

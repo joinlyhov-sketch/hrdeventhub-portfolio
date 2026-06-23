@@ -39,6 +39,8 @@ import {
   Bell,
   MessagesSquare,
   ChevronLeft,
+  UserRound,
+  MessageCircleMore,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -431,7 +433,7 @@ const { workspaces, mutate } = useMyWorkspaces();
                 >
                   <Link href="/chat">
                     <span className="relative inline-flex shrink-0">
-                      <MessagesSquare size={18} className="text-[#878787]" />
+                      <MessageCircleMore size={18} className="text-[#878787]" />
                       {totalUnreadMessages > 0 && (
                         <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
                           {totalUnreadMessages > 99
@@ -508,7 +510,7 @@ const { workspaces, mutate } = useMyWorkspaces();
                   className="h-11"
                 >
                   <Link href={profileHref}>
-                    <User size={18} className="shrink-0 text-[#878787]" />
+                    <UserRound size={18} className="shrink-0 text-[#878787]" />
                     <span
                       className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
                         state === "collapsed"

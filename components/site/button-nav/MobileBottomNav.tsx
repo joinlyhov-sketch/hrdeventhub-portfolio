@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCurrentUser } from "@/context/user-context";
 import { useSession, signOut } from "next-auth/react";
 import { logoutAction } from "@/actions/auth.action";
-import { LogOut } from "lucide-react";
+import { LogOut, MessageCircleMore } from "lucide-react";
 import { cn } from "@/libs/utils";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
@@ -29,9 +29,7 @@ import type {
 
 function IconChat() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
+    <MessageCircleMore />
   );
 }
 
