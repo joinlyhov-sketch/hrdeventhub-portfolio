@@ -188,7 +188,7 @@ export default function EditArticleForm() {
               <Controller
                 control={control}
                 name="status"
-                render={({ field }) => (
+                render={() => (
                   <div className="flex flex-col gap-1.5 w-full">
                     <Label className="text-subtitle font-bold text-sm text-secondary md:text-base lg:text-lg">
                       Visibility Status

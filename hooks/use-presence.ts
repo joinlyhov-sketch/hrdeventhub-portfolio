@@ -20,8 +20,8 @@ export function usePresence(
       try {
         const map = await queryPresence([userId!], token);
         if (!cancelled) setPresence(map[userId!] ?? null);
-      } catch {
-       
+      } catch (err) {
+        console.error("[usePresence] Failed to query presence:", err);
       }
     }
 

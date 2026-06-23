@@ -10,7 +10,7 @@ interface EditProfilePageClientProps {
   profileId: string;
 }
 
-export default function EditProfilePageClient({ profileId }: EditProfilePageClientProps) {
+export default function EditProfilePageClient({ profileId: _profileId }: EditProfilePageClientProps) {
   const { currentUser } = useCurrentUser();
 
   if (!currentUser) {

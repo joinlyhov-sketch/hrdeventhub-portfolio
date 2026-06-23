@@ -87,9 +87,6 @@ export default function ReactivateModal({
             <CancelButton onClick={onClose} />
             <ReactivateButton
               onClick={() => {
-                console.log(
-                  `Reactivate — User: ${user.username} (ID: ${user.no})`,
-                );
                 onConfirm(user.no);
               }}
             />

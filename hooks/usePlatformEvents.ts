@@ -8,5 +8,8 @@ const fetchEvents = async ([, token]: [string, string]) => {
 };
 
 export function usePlatformEvents(token?: string) {
-  return useSWR(token ? ["platform-events", token] : null, fetchEvents);
+  return useSWR(token ? ["platform-events", token] : null, fetchEvents, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30_000,
+  });
 }

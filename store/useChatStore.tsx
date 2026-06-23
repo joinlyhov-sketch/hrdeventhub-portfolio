@@ -23,7 +23,7 @@ interface ChatStore {
 
 export const useChatStore = create<ChatStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       conversations: [],
       messages: {},
       locallyReadIds: {},

@@ -35,7 +35,6 @@ import {
 
 import { Calendar } from "@/components/ui/calendar";
 import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
-import { profile } from "console";
 import Loading from "@/app/loading";
 
 function UploadSVG() {
@@ -638,7 +637,6 @@ export default function StudentProfileForm() {
     }
 
     const result = (await deleteMe()) as { success?: boolean };
-    console.log(result);
     if (result.success) {
       setCvResumeUrl("");
       toast.success("Resume deleted successfully.");
@@ -837,7 +835,6 @@ export default function StudentProfileForm() {
             Promise.resolve({ success: true, skipped: true }),
           );
         if (profileChanged) {
-          console.log("result: ", JSON.stringify(currentProfilePayload));
           updatePromises.push(updateProfileMeAction(currentProfilePayload));
         } else
           updatePromises.push(

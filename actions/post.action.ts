@@ -314,7 +314,6 @@ export async function publishDraftPostAction(
     );
 
     if (response.success) {
-      console.log("response :", response);
       return { ok: true, data: response.payload };
     }
 

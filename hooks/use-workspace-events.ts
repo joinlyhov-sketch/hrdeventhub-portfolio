@@ -41,6 +41,7 @@ export function useWorkspaceEvents(workspaceId?: string, role?: string) {
 
       return eventService.getByWorkspace(token!, workspaceId!);
     },
+    { revalidateOnFocus: false, dedupingInterval: 30_000 }
   );
 
   return {

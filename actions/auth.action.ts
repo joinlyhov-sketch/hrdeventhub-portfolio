@@ -5,7 +5,7 @@ import type { RegisterRequest } from "../types/auth-types";
 export async function logoutAction(refreshToken: string) {
   try {
     await authService.logout(refreshToken);
-  } catch (error) {
+  } catch {
   }
 }
 

@@ -63,8 +63,9 @@ function PollItem({
     {
       fallbackData: initialPoll,
       refreshInterval: 5000,
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,
       revalidateOnMount: true,
+      dedupingInterval: 5000,
     },
   );
 

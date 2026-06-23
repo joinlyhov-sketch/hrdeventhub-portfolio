@@ -11,7 +11,7 @@ import ChatWindow from "@/components/site/chat/ChatWindow";
 import { cn } from "@/libs/utils";
 
 export default function ChatPage() {
-  const { auth, isHydrated, logout } = useAuth();
+  const { auth, isHydrated } = useAuth();
   const { conversations, refresh, startChat } = useConversations(
   auth?.token ?? null,);
   
@@ -41,6 +41,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (auth) refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth]);
 
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function ChatPage() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetUsername, auth?.token]);
 
   if (!isHydrated) {
@@ -172,7 +174,6 @@ export default function ChatPage() {
             conversation={activeConv}
             token={auth.token}
             userId={auth.userId}
-            userName={auth.name}
             onConversationUpdate={stableRefresh}
             onBack={handleBack}
           />

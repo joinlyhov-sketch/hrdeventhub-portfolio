@@ -414,7 +414,7 @@ function ConversationRow({
 export default function ConversationList({
   conversations,
   activeId,
-  myName,
+  myName: _myName,
   token,
   onSelect,
   onNewChat,
@@ -475,7 +475,7 @@ export default function ConversationList({
       try {
         const users = await searchUsersAction(query, token);
         setResults(Array.isArray(users) ? users : []);
-      } catch (err) {
+      } catch {
         setSearchError("Could not search users. Try again.");
         setResults([]);
       } finally {
@@ -530,7 +530,7 @@ export default function ConversationList({
             aria-label="New conversation"
             className="shrink-0 w-10 h-10 flex items-center justify-center border border-gray-200  rounded-xl text-gray-500 hover:bg-gray-50 hover:text-[#1c4d8d] transition-colors hover:cursor-pointer"
           >
-           <SquarePen/>
+            <SquarePen />
           </button>
         </div>
       </div>

@@ -72,7 +72,7 @@ function useScrollFade() {
 export function MobileBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, isLoading } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
   const { data: session } = useSession();
   const [showMore, setShowMore] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);

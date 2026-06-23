@@ -46,8 +46,6 @@ const MediaUpload = ({
             filePath: result.payload.fileUrl,
             isCover: isFirstFile,
           };
-          console.log(newMediaItem);
-
           const alreadyExists = updatedMediaList.some(
             (item) => item.filePath === newMediaItem.filePath,
           );
@@ -108,14 +106,11 @@ const MediaUpload = ({
     setDeletingKeys((prev) => ({ ...prev, [filePathToRemove]: true }));
 
     try {
-      console.log("Sending delete request with precise query key:", storageKey);
       const response = await deleteFileAction(storageKey);
       if (!response.ok) {
-        console.warn("Storage deletion warning from backend:", response.error);
+        console.error("Storage deletion warning from backend:", response.error);
       }
       toast.success("File delete success!");
-
-      console.log("result :", response);
     } catch (err) {
       console.error("Network file destruction pipeline failure:", err);
     } finally {

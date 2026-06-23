@@ -139,9 +139,6 @@ function ActorAvatar({
           <span className="text-sm font-semibold text-gray-500">
             {initials}
           </span>
-          <span className="text-sm font-semibold text-gray-500">
-            {initials}
-          </span>
         </div>
       )}
       <div className="absolute -bottom-0.5 -right-0.5 ring-2 ring-white rounded-full">
