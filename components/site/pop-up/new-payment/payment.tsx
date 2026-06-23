@@ -128,12 +128,6 @@ export function PaymentWizardDialog({
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    if (flow && isOpen) {
-      queueMicrotask(() => setStep(initialStep));
-    }
-  }, [flow, isOpen, initialStep]);
-
-  useEffect(() => {
     if (
       isOpen &&
       flow === "alumni-fixed" &&
@@ -250,12 +244,33 @@ export function PaymentWizardDialog({
   const handleClose = () => {
     if (isSubmittingRef.current) return;
     const isSuccess = step === "success" || step === "receipt";
-    resetState();
-    onClose();
     if (isSuccess) {
+      resetState();
+      setStep(initialStep);
       onSuccess?.();
     }
+    onClose();
   };
+
+  const handleForceClose = () => {
+    if (isSubmittingRef.current) return;
+    resetState();
+    setStep(initialStep);
+    onClose();
+  };
+
+  const prevContextRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const currentContext = `${post.postId}-${flow}`;
+      if (prevContextRef.current !== currentContext) {
+        resetState();
+        setStep(initialStep);
+        prevContextRef.current = currentContext;
+      }
+    }
+  }, [isOpen, post.postId, flow, initialStep]);
 
   const handleFixedProviderChange = async (provider: PaymentProvider) => {
     if (!currentUser?.role) return;
@@ -588,7 +603,14 @@ export function PaymentWizardDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[480px] w-[calc(100%-2rem)] sm:w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
+      <DialogContent 
+        className="sm:max-w-[480px] w-[calc(100%-2rem)] sm:w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0"
+        onInteractOutside={(e) => {
+          if (step !== initialStep) {
+            e.preventDefault();
+          }
+        }}
+      >
         <div className="relative border-b border-gray-100 bg-white px-5 sm:px-8 pt-5 sm:pt-7 pb-4">
           <DialogHeader className="space-y-1 pr-8">
             <DialogTitle className="text-[18px] sm:text-[22px] font-bold text-[#1e3a8a]">
@@ -601,7 +623,7 @@ export function PaymentWizardDialog({
           </DialogHeader>
 
           <button
-            onClick={handleClose}
+            onClick={handleForceClose}
             className="absolute right-4 sm:right-7 top-4 sm:top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
             aria-label="Close"
           >
@@ -648,6 +670,7 @@ export function PaymentWizardDialog({
                   qrDataUrl={qrDataUrl}
                   billNo={billNo}
                   provider={selectedProvider}
+                  payerName={currentUser?.name ?? "HRD EventHub"}
                   isLoadingQr={isGeneratingQr}
                   submitError={submitError}
                   onProviderChange={
