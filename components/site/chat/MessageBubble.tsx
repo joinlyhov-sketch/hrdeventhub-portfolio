@@ -184,8 +184,8 @@ export default function MessageBubble({
             onClick={(e) => e.target === e.currentTarget && !deleting && setDeleteOpen(false)}
           >
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden">
-              <div className="px-5 pt-5 pb-4 flex flex-col items-center text-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
+  <div className="px-5 pt-5 pb-4 flex flex-col items-center text-center gap-3">
+    <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -209,7 +209,7 @@ export default function MessageBubble({
                 </div>
               </div>
 
-              <div className="px-5 pb-5 flex gap-2">
+                <div className="px-5 pb-5 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setDeleteOpen(false)}

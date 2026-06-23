@@ -52,6 +52,7 @@ import { setOnlineAction, setOfflineAction } from "@/actions/presence.action";
 import { useStatusContext, ActiveStatus } from "@/context/StatusContext";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useChatStore } from "@/store/useChatStore";
+import { useGlobalChatSync } from "@/hooks/useGlobalChatSync";
 
 const ADMIN_ROLES = ["admin", "organizer"] as const;
 const STUDENT_ALUMNI_ROLES = ["student", "alumni"] as const;
@@ -123,6 +124,7 @@ const { workspaces, mutate } = useMyWorkspaces();
   const totalUnreadMessages = useChatStore((s) =>
     s.conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0),
   );
+   useGlobalChatSync(session?.accessToken ?? null, currentUser?.id ?? null);
   useEffect(() => {
   const refreshSidebar = () => {
     mutate();

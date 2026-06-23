@@ -1,13 +1,16 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Conversation } from "@/types/chat";
 import { getConversations, getOrCreateConversation } from "@/service/conversation.service";
 import { useChatStore } from "@/store/useChatStore";
 
+const REVALIDATE_INTERVAL_MS = 30_000;
+
 export function useConversations(token: string | null) {
   const [loading, setLoading] = useState(false);
   const conversations = useChatStore((s) => s.conversations);
+  const revalidateTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refresh = useCallback(async () => {
     if (!token) return;
@@ -34,6 +37,16 @@ export function useConversations(token: string | null) {
     },
     [token],
   );
+
+
+  useEffect(() => {
+    if (!token) return;
+    refresh();
+    revalidateTimerRef.current = setInterval(refresh, REVALIDATE_INTERVAL_MS);
+    return () => {
+      if (revalidateTimerRef.current) clearInterval(revalidateTimerRef.current);
+    };
+  }, [token, refresh]);
 
   return { conversations, loading, refresh, startChat };
 }

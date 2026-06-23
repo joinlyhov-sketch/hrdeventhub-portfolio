@@ -338,12 +338,6 @@ export default function ChatWindow({
           )}
           {!loading && messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full py-16 gap-3">
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-                <i
-                  className="ti ti-message-2 text-xl text-[#1c4d8d]"
-                  aria-hidden="true"
-                />
-              </div>
               <p className="text-xs text-gray-400 font-semibold">
                 Say hello to {conversation.otherUserName}!
               </p>
