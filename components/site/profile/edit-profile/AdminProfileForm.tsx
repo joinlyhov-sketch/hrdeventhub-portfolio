@@ -115,6 +115,8 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const startMonth = new Date(minBirthYear, 0);
   const endMonth = new Date(maxBirthYear, 11);
 
+  const hasPendingImage = isAdjustOpen && selectedImageSrc !== null;
+
   const validateField = (name: string, value: string) => {
     switch (name) {
       case "firstName":
@@ -411,29 +413,45 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     }
   }, []);
 
+  const MAX_IMAGE_SIZE = 15 * 1024 * 1024;
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
 
-    const reader = new FileReader();
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file.");
+      e.target.value = "";
+      return;
+    }
 
-    reader.onload = () => {
-      const base64 = reader.result as string;
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error("Image size must be less than 10MB.");
+      e.target.value = "";
+      return;
+    }
 
-      sessionStorage.setItem("pending-avatar", base64);
-      setSelectedImageSrc(base64);
-      setIsAdjustOpen(true);
-    };
+    setError(null);
 
-    reader.readAsDataURL(file);
+    const objectUrl = URL.createObjectURL(file);
+
+    sessionStorage.setItem("pending-avatar", objectUrl);
+
+    setSelectedImageSrc(objectUrl);
+    setIsAdjustOpen(true);
+
+    e.target.value = "";
   };
 
   const handleSaveCroppedAvatar = async (croppedBlob: Blob) => {
     setIsAdjustOpen(false);
     setIsUploading(true);
     setError(null);
-    sessionStorage.removeItem("pending-avatar");
+    if (croppedBlob.size > MAX_IMAGE_SIZE) {
+      toast.error("Cropped image must be less than 10MB.");
+      return;
+    }
 
     const localBlobUrl = URL.createObjectURL(croppedBlob);
     setAvatarUrl(localBlobUrl);
@@ -499,7 +517,9 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     initialProfile?.avatar !== avatarUrl ||
     socialsChanged;
 
-  const isFormDirty = (identityChanged || profileChanged) && !isPending;
+  // const isFormDirty = (identityChanged || profileChanged) && !isPending;
+  const isFormDirty =
+    (identityChanged || profileChanged || hasPendingImage) && !isPending;
 
   const handleDiscardClick = () => {
     if (isFormDirty) {
@@ -626,6 +646,23 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
       }
     });
   };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isFormDirty) return;
+
+      e.preventDefault();
+
+      e.returnValue =
+        "You have unsaved changes. Are you sure you want to leave?";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isFormDirty]);
 
   return (
     <div className="space-y-6 w-full text-left">
