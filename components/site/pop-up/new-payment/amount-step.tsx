@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  Target,
-  TrendingUp,
-  Loader2,
-  ChevronRight,
-  Gift,
-  CreditCard,
-  Landmark,
-} from "lucide-react";
+import { Target, TrendingUp, Loader2, ChevronRight, Gift } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { PaymentProvider } from "@/service/payment.service";
@@ -99,28 +92,43 @@ export function AmountStep({
             type="button"
             onClick={() => onProviderChange("webill")}
             disabled={isGeneratingQr}
-            className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${
+            className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${
               selectedProvider === "webill"
-                ? "border-[#1e3a8a] bg-blue-50 text-[#1e3a8a]"
-                : "border-blue-100 bg-white text-gray-500 hover:bg-blue-50"
+                ? "border-[#1e3a8a] bg-blue-50 shadow-sm"
+                : "border-gray-200 bg-white hover:border-[#1e3a8a]/40 hover:bg-blue-50/50"
             }`}
           >
-            <CreditCard size={16} />
-            Webill365
+            <Image
+              src="/images/webill365.svg"
+              alt="Webill365"
+              width={80}
+              height={20}
+              className="h-5 w-auto max-w-20 object-contain"
+            />
           </button>
 
           <button
             type="button"
             onClick={() => onProviderChange("bakong")}
             disabled={isGeneratingQr}
-            className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${
+            className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${
               selectedProvider === "bakong"
-                ? "border-[#1e3a8a] bg-blue-50 text-[#1e3a8a]"
-                : "border-blue-100 bg-white text-gray-500 hover:bg-blue-50"
+                ? "border-[#1e3a8a] bg-blue-50 shadow-sm"
+                : "border-gray-200 bg-white hover:border-[#1e3a8a]/40 hover:bg-blue-50/50"
             }`}
           >
-            <Landmark size={16} />
-            Bakong
+            <Image
+              src="/images/bakong.png"
+              alt="Bakong"
+              width={20}
+              height={20}
+              className="h-5 w-5 object-contain"
+            />
+            <span
+              className={`text-[13px] font-semibold ${selectedProvider === "bakong" ? "text-[#1e3a8a]" : "text-gray-500"}`}
+            >
+              Bakong
+            </span>
           </button>
         </div>
       </div>
@@ -189,9 +197,9 @@ export function AmountStep({
           variant="outline"
           onClick={onSkipDonation}
           disabled={isGeneratingQr}
-          className="w-full h-[48px] rounded-xl font-semibold text-[15px] border-blue-100 text-gray-600 hover:bg-blue-50 transition-all disabled:opacity-50"
+          className="w-full h-12 rounded-xl font-semibold text-[15px] border-[#1e3a8a]/25 text-[#1e3a8a] bg-white hover:bg-[#1e3a8a] hover:text-white hover:border-[#1e3a8a] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Skip Donation & Register
+          Skip Donation &amp; Register
         </Button>
       </div>
     </div>

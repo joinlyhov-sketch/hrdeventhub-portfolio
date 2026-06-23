@@ -427,7 +427,7 @@ export function PaymentWizardDialog({
   if (!currentUser || !flow) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="sm:max-w-[480px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
+        <DialogContent className="sm:max-w-[480px] w-[calc(100%-2rem)] sm:w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="animate-spin text-blue-300" size={28} />
           </div>
@@ -439,7 +439,7 @@ export function PaymentWizardDialog({
   if (flow === "not-allowed") {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="sm:max-w-[480px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
+        <DialogContent className="sm:max-w-[480px] w-[calc(100%-2rem)] sm:w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
           <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-4">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-[22px] font-bold text-[#1e3a8a]">
@@ -536,24 +536,24 @@ export function PaymentWizardDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[480px] w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
-        <div className="relative border-b border-gray-100 bg-white px-8 pt-7 pb-4">
-          <DialogHeader className="space-y-1">
-            <DialogTitle className="text-[22px] font-bold text-[#1e3a8a]">
+      <DialogContent className="sm:max-w-[480px] w-[calc(100%-2rem)] sm:w-full rounded-2xl border-none bg-white p-0 shadow-2xl overflow-hidden [&>button]:hidden gap-0">
+        <div className="relative border-b border-gray-100 bg-white px-5 sm:px-8 pt-5 sm:pt-7 pb-4">
+          <DialogHeader className="space-y-1 pr-8">
+            <DialogTitle className="text-[18px] sm:text-[22px] font-bold text-[#1e3a8a]">
               {meta.title}
             </DialogTitle>
 
-            <DialogDescription className="text-[14px] text-gray-500 font-normal">
+            <DialogDescription className="text-[13px] sm:text-[14px] text-gray-500 font-normal">
               {meta.description}
             </DialogDescription>
           </DialogHeader>
 
           <button
             onClick={handleClose}
-            className="absolute right-7 top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            className="absolute right-4 sm:right-7 top-4 sm:top-7 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
             aria-label="Close"
           >
-            <X size={22} strokeWidth={2.5} />
+            <X size={20} strokeWidth={2.5} />
           </button>
         </div>
 
@@ -565,7 +565,7 @@ export function PaymentWizardDialog({
           />
         </div>
 
-        <div className="px-8 py-6 bg-white overflow-y-auto max-h-[70vh]">
+        <div className="px-4 sm:px-8 py-5 sm:py-6 bg-white overflow-y-auto max-h-[75vh] sm:max-h-[70vh]">
           {step === "amount" && (
             <AmountStep
               donationGoal={donationGoal}
