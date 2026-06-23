@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Conversation, ChatMessage } from "@/types/chat";
 import { useMessages } from "@/hooks/useMessages";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -32,6 +33,7 @@ export default function ChatWindow({
 }: Readonly<ChatWindowProps>) {
   const normalizedUserId = String(userId ?? "").trim();
   const presence = usePresence(conversation.otherUserId, token);
+  const router = useRouter();
   const [inputVal, setInputVal] = useState("");
   const [editingMsg, setEditingMsg] = useState<ChatMessage | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -44,6 +46,9 @@ export default function ChatWindow({
   const updateReadRef = useRef<
     ((convId: string, userId: string) => void) | null
   >(null);
+  const pendingQueueRef = useRef<
+    { conversationId: string; content: string; pendingId: string }[]
+  >([]);
 
   useEffect(() => {
     onUpdateRef.current = onConversationUpdate;
@@ -70,6 +75,16 @@ export default function ChatWindow({
         onUpdateRef.current();
         return;
       }
+      if (String(msg.senderId ?? "").trim() === normalizedUserId) {
+        const pendingMatch = (
+          useChatStore.getState().messages[conversation.id] ?? []
+        ).find(
+          (m: any) => m._pending && m.content === msg.content,
+        );
+        if (pendingMatch) {
+          removeMessage(pendingMatch.id, conversation.id);
+        }
+      }
       addMessage(msg);
       onUpdateRef.current();
       readSentRef.current = false;
@@ -81,7 +96,7 @@ export default function ChatWindow({
         onUpdateRef.current();
       }, 50);
     },
-    [addMessage, conversation.id, normalizedUserId],
+    [addMessage, removeMessage, conversation.id, normalizedUserId],
   );
 
   const handleEdit = useCallback(
@@ -146,6 +161,17 @@ export default function ChatWindow({
   }, [status, conversation.id]);
 
   useEffect(() => {
+    if (status !== "connected") return;
+    if (pendingQueueRef.current.length === 0) return;
+
+    const queue = pendingQueueRef.current;
+    pendingQueueRef.current = [];
+    queue.forEach((item) => {
+      sendMessage(item.conversationId, item.content);
+    });
+  }, [status, sendMessage]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
@@ -156,14 +182,45 @@ export default function ChatWindow({
       try {
         await editMessage(editingMsg.id, content);
         updateMessage({ ...editingMsg, content, isEdited: true });
-      } catch {}
+      } catch { }
       setEditingMsg(null);
       setInputVal("");
       return;
     }
-    const sent = sendMessage(conversation.id, content);
-    if (!sent) return;
+
+    const pendingId = `pending-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const optimisticMsg = {
+      id: pendingId,
+      conversationId: conversation.id,
+      senderId: normalizedUserId,
+      content,
+      messageType: "TEXT",
+      createdAt: new Date().toISOString(),
+      read: false,
+      isEdited: false,
+      _pending: true,
+    } as unknown as ChatMessage;
+
+    addMessage(optimisticMsg);
     setInputVal("");
+
+    if (status !== "connected") {
+      pendingQueueRef.current.push({
+        conversationId: conversation.id,
+        content,
+        pendingId,
+      });
+      return;
+    }
+
+    const sent = sendMessage(conversation.id, content);
+    if (!sent) {
+      pendingQueueRef.current.push({
+        conversationId: conversation.id,
+        content,
+        pendingId,
+      });
+    }
   }
 
   async function handleFileUpload(file: File) {
@@ -181,7 +238,6 @@ export default function ChatWindow({
   }
 
   async function handleDeleteMsg(id: string) {
-    if (!confirm("Delete this message?")) return;
     await deleteMessage(id, conversation.id);
   }
 
@@ -193,6 +249,11 @@ export default function ChatWindow({
   function cancelEdit() {
     setEditingMsg(null);
     setInputVal("");
+  }
+
+  function handleViewProfile() {
+    if (!conversation.otherUserId) return;
+    router.push(`/profile/${conversation.otherUserId}`);
   }
 
   return (
@@ -219,27 +280,32 @@ export default function ChatWindow({
             />
           </svg>
         </button>
-        <ChatAvatar
-          name={conversation.otherUserName}
-          avatarUrl={conversation.otherUserAvatar}
-          size="sm"
-        />
-        <div className="flex flex-col flex-1 min-w-0">
-          <h2 className="text-sm font-bold text-gray-900 leading-tight truncate">
-            {conversation.otherUserName}
-          </h2>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                presence?.status === "ONLINE" ? "bg-emerald-500" : "bg-gray-300"
-              }`}
-            />
-            <span className="text-[10px] font-semibold text-gray-400">
-              {presence?.label ??
-                (presence?.status === "ONLINE" ? "Active now" : "Offline")}
-            </span>
+        <button
+          type="button"
+          onClick={handleViewProfile}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left rounded-lg transition-colors -ml-1 pl-1 py-1"
+        >
+          <ChatAvatar
+            name={conversation.otherUserName}
+            avatarUrl={conversation.otherUserAvatar}
+            size="sm"
+          />
+          <div className="flex flex-col flex-1 min-w-0 hover:cursor-pointer">
+            <h2 className="text-sm font-bold text-gray-900 leading-tight truncate">
+              {conversation.otherUserName}
+            </h2>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${presence?.status === "ONLINE" ? "bg-emerald-500" : "bg-gray-300"
+                  }`}
+              />
+              <span className="text-[10px] font-semibold text-gray-400">
+                {presence?.label ??
+                  (presence?.status === "ONLINE" ? "Active now" : "Offline")}
+              </span>
+            </div>
           </div>
-        </div>
+        </button>
         <button
           type="button"
           aria-label="More options"

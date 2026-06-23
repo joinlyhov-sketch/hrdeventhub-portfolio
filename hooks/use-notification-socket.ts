@@ -10,10 +10,12 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 import {
   WsPostNotification,
   WsMentionNotification,
+  WsMessageNotification,
+  WsNotification,
   NotificationPayload,
 } from "@/types/notification";
 
-function buildMessage(raw: WsPostNotification | WsMentionNotification): string {
+function buildMessage(raw: WsNotification): string {
   switch (raw.type) {
     case "POST_CREATED":
       return `${raw.actorName} posted "${(raw as WsPostNotification).postTitle}" in your workspace.`;
@@ -27,6 +29,8 @@ function buildMessage(raw: WsPostNotification | WsMentionNotification): string {
       return `${raw.actorName} created a new survey "${(raw as WsPostNotification).postTitle}".`;
     case "POLL_CREATED":
       return `${raw.actorName} created a new poll "${(raw as WsPostNotification).postTitle}".`;
+    case "NEW_MESSAGE":
+      return `${raw.actorName} sent you a message.`;
     default:
       return "You have a new notification.";
   }
@@ -39,19 +43,17 @@ const TOAST_LABELS: Record<string, string> = {
   MENTION: "You were mentioned",
   SURVEY_CREATED: "New Survey",
   POLL_CREATED: "New Poll",
+  NEW_MESSAGE: "New Message",
 };
 
-function toNotificationPayload(
-  raw: WsPostNotification | WsMentionNotification,
-): NotificationPayload {
+function toNotificationPayload(raw: WsNotification): NotificationPayload {
   const base: Partial<NotificationPayload> = {
     notificationId: crypto.randomUUID(),
     type: raw.type,
-    workspaceId: raw.workspaceId,
     actorId: raw.actorId,
     actorName: raw.actorName,
     actorAvatar: raw.actorAvatar,
-    message: buildMessage(raw),
+    message: (raw as any).message || buildMessage(raw), 
     createdAt: raw.timestamp ?? new Date().toISOString(),
     read: false,
   };
@@ -60,15 +62,25 @@ function toNotificationPayload(
     const mention = raw as WsMentionNotification;
     return {
       ...base,
+      workspaceId: mention.workspaceId,
       postId: mention.postId,
       postTitle: mention.postTitle,
       mentionedInCommentId: mention.commentId,
     } as NotificationPayload;
   }
 
+  if (raw.type === "NEW_MESSAGE") {
+    const msg = raw as WsMessageNotification;
+    return {
+      ...base,
+      conversationId: msg.conversationId,
+    } as NotificationPayload;
+  }
+
   const post = raw as WsPostNotification;
   return {
     ...base,
+    workspaceId: post.workspaceId,
     postId: post.postId,
     postTitle: post.postTitle,
     postCategory: post.postCategory,
@@ -88,8 +100,11 @@ export function useNotificationSocket({
 }: UseNotificationSocketOptions) {
   const addNotification = useNotificationStore((s) => s.addNotification);
   const addNotificationRef = useRef(addNotification);
-  addNotificationRef.current = addNotification;
   const workspaceKey = workspaceIds.join(",");
+
+  useEffect(() => {
+    addNotificationRef.current = addNotification;
+  }, [addNotification]);
 
   useEffect(() => {
     if (!token || !appUserId) return;
@@ -105,7 +120,8 @@ export function useNotificationSocket({
       reconnectDelay: 5000,
 
       onConnect: () => {
-        console.log("[WS] Connected. Subscribing to mentions + workspace topics.");
+        console.log("[WS] Connected. Subscribing to mentions + notifications + workspace topics.");
+
         client.subscribe("/user/queue/mentions", (message) => {
           try {
             const raw: WsMentionNotification = JSON.parse(message.body);
@@ -117,6 +133,20 @@ export function useNotificationSocket({
             });
           } catch (err) {
             console.error("[WS] /user/queue/mentions parse error", err, message.body);
+          }
+        });
+
+        client.subscribe("/user/queue/notifications", (message) => {
+          try {
+            const raw: WsMessageNotification = JSON.parse(message.body);
+            const payload = toNotificationPayload(raw);
+            addNotificationRef.current(payload);
+            toast(TOAST_LABELS[raw.type] ?? "Notification", {
+              description: payload.message,
+              duration: 4000,
+            });
+          } catch (err) {
+            console.error("[WS] /user/queue/notifications parse error", err, message.body);
           }
         });
 

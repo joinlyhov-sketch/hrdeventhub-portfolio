@@ -8,6 +8,29 @@ interface BackgroundTabProps {
   isPublicView?: boolean;
 }
 
+const handleDownloadResume = async (url: string, fileName: string) => {
+  try {
+    const response = await fetch(url);
+
+    const blob = await response.blob();
+
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Failed to download resume:", error);
+  }
+};
+
 export default function BackgroundTab({
   profile,
   loading,
@@ -106,7 +129,10 @@ export default function BackgroundTab({
 
                   <div>
                     <h4 className="type-detail-semibold text-secondary">
-                      {edu.degree} - <span className="text-primary">{edu.institutionAbbreviation}</span>
+                      {edu.degree} -{" "}
+                      <span className="text-primary">
+                        {edu.institutionAbbreviation}
+                      </span>
                     </h4>
                     <p className="type-desc-semibold text-primary">
                       {edu.institutionName}
@@ -153,11 +179,15 @@ export default function BackgroundTab({
         <section>
           <h3 className="type-subtitle-24 text-primary mb-4">Resume</h3>
           {hasResume ? (
-            <a
-              href={profile.cvResumeUrl ?? "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between gap-3 p-4 border border-border rounded-lg bg-grey-50 group cursor-pointer hover:border-primary transition-colors"
+            <button
+              type="button"
+              onClick={async () =>
+                handleDownloadResume(
+                  profile.cvResumeUrl!,
+                  `CV_${profile.appUser?.firstName || "User"}_Resume.pdf`,
+                )
+              }
+              className="w-full flex items-center justify-between gap-3 p-4 border border-border rounded-lg bg-grey-50 group cursor-pointer hover:border-primary transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <ClipboardList
@@ -172,7 +202,7 @@ export default function BackgroundTab({
                 size={20}
                 className="text-secondary group-hover:text-primary transition-colors shrink-0"
               />
-            </a>
+            </button>
           ) : (
             <div className="p-4 border border-dashed border-border rounded-lg bg-grey-25/50 text-center type-desc text-muted-foreground">
               No resume file uploaded yet.

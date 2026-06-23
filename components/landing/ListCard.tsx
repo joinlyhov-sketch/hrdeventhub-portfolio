@@ -54,7 +54,7 @@ export default function MediaListSection() {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-5 md:gap-3 h-full"
     >
       {customCardsData.map((data) => (
         <ListCard key={data.id} item={data} />
@@ -74,27 +74,31 @@ const ListCard: React.FC<{ item: MediaItem }> = ({ item }) => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       variants={cardVariants}
-      className="flex flex-col md:flex-row items-stretch md:items-start w-full gap-4 p-4 border border-border rounded-xl bg-card shadow-sm"
+      className="flex flex-col md:flex-row md:items-center w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden md:gap-3 md:p-3 md:flex-1"
     >
-      <div className="relative w-full h-40 md:w-25 md:h-25 rounded-lg overflow-hidden shrink-0 bg-grey-100">
+      {/* Mobile: full-width image top / Desktop: compact thumbnail */}
+      <div className="relative w-full h-52 md:w-28 md:h-22 md:rounded-lg md:shrink-0 overflow-hidden">
         <Image
           src={item.imageUrl}
           alt={item.title}
-          width={100}
-          height={100}
-          className="w-full h-full object-cover"
+          fill
+          quality={95}
+          sizes="(max-width: 768px) 100vw, 112px"
+          className="object-cover"
         />
       </div>
-      <div className="flex flex-col items-start gap-1 flex-1 min-w-0 mt-2 md:mt-0">
+
+      {/* Text */}
+      <div className="flex flex-col items-start gap-1.5 flex-1 min-w-0 p-4 md:p-0">
         <span className="text-xs font-semibold text-secondary bg-muted px-2 py-0.5 rounded-full uppercase tracking-wider">
           {item.category}
         </span>
-        <h4 className="text-lg font-bold text-secondary w-full">
+        <h4 className="text-base md:text-sm font-bold text-secondary w-full leading-snug line-clamp-2">
           {item.title}
         </h4>
-        <p className="text-sm text-muted-foreground leading-relaxed">
+        <p className="text-sm md:text-xs text-muted-foreground leading-relaxed line-clamp-3 md:line-clamp-2">
           {item.description}
         </p>
       </div>

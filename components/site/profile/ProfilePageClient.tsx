@@ -95,7 +95,7 @@ export default function ProfilePageClient({ userId }: ProfilePageClientProps) {
       : adjustedViewMode;
 
   return (
-    <div className="w-full bg-background z-30">
+    <div className="w-full bg-background z-30 ">
       <ProfileHeader description={headerDesc} titlePrimary={titlePrimary} />
 
       <div className="w-full max-w-475 px-4 sm:px-6 lg:pr-12 lg:pl-12 mx-auto">

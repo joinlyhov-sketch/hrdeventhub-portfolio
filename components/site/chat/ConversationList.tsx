@@ -6,6 +6,7 @@ import { searchUsersAction } from "@/actions/chat.action";
 import { initials, cn, formatConvTime } from "@/libs/utils";
 import { createPortal } from "react-dom";
 import ChatAvatar from "./ChatAvatar";
+import { usePresence } from "@/hooks/use-presence";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -14,6 +15,63 @@ interface ConversationListProps {
   token: string;
   onSelect: (conv: Conversation) => void;
   onNewChat: (username: string) => void;
+}
+
+interface ConversationRowProps {
+  conv: Conversation;
+  isActive: boolean;
+  token: string;
+  onSelect: (conv: Conversation) => void;
+}
+
+function ConversationRow({ conv, isActive, token, onSelect }: ConversationRowProps) {
+  const presence = usePresence(conv.otherUserId, token);
+  const isOnline = presence?.status === "ONLINE";
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(conv)}
+      className={cn(
+        "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all outline-none mb-0.5",
+        isActive ? "bg-[#1C4D8D]/10" : "hover:bg-gray-50",
+      )}
+    >
+      <div className="relative shrink-0">
+        <ChatAvatar name={conv.otherUserName} avatarUrl={conv.otherUserAvatar} size="md" />
+        <span
+          className={cn(
+            "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white",
+            isOnline ? "bg-emerald-500" : "bg-gray-300",
+          )}
+          aria-label={isOnline ? "Online" : "Offline"}
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <span className={cn("text-sm truncate", isActive ? "font-bold text-gray-900" : "font-semibold text-gray-800")}>
+            {conv.otherUserName ?? "Unknown"}
+          </span>
+          {conv.lastMessageAt && (
+            <span className="text-[11px] text-gray-400 shrink-0">
+              {formatConvTime(conv.lastMessageAt)}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <p className="text-xs text-gray-400 truncate">
+            {conv.lastMessage ?? "No messages yet"}
+          </p>
+        </div>
+      </div>
+
+      {conv.unreadCount > 0 && (
+        <span className="bg-[#1c4d8d] text-white text-[10px] font-black w-[18px] h-[18px] flex items-center justify-center rounded-full shrink-0">
+          {conv.unreadCount}
+        </span>
+      )}
+    </button>
+  );
 }
 
 export default function ConversationList({
@@ -66,9 +124,15 @@ export default function ConversationList({
     setModalOpen(false);
   }
 
-  const filteredConversations = conversations.filter((c) =>
-    (c.otherUserName ?? "").toLowerCase().includes(filterText.trim().toLowerCase()),
-  );
+  const filteredConversations = conversations
+    .filter((c) =>
+      (c.otherUserName ?? "").toLowerCase().includes(filterText.trim().toLowerCase()),
+    )
+    .sort((a, b) => {
+      const timeA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const timeB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return timeB - timeA;
+    });
 
   if (!conversations) {
     return <div className="p-4 text-sm text-gray-400">Loading chats...</div>;
@@ -121,43 +185,15 @@ export default function ConversationList({
             <p className="text-xs text-gray-400 font-medium">No matches found</p>
           </div>
         ) : (
-          filteredConversations.map((c) => {
-            const isActive = c.id === activeId;
-            return (
-              <button
-                type="button"
-                key={c.id}
-                onClick={() => onSelect(c)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all outline-none mb-0.5",
-                  isActive ? "bg-blue-50" : "hover:bg-gray-50",
-                )}
-              >
-                <ChatAvatar name={c.otherUserName} avatarUrl={c.otherUserAvatar} size="md" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={cn("text-sm truncate", isActive ? "font-bold text-gray-900" : "font-semibold text-gray-800")}>
-                      {c.otherUserName ?? "Unknown"}
-                    </span>
-                    {c.lastMessageAt && (
-                      <span className="text-[11px] text-gray-400 shrink-0">
-                        {formatConvTime(c.lastMessageAt)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-400 truncate mt-0.5">
-                    {c.lastMessage ?? "No messages yet"}
-                  </p>
-                </div>
-
-                {c.unreadCount > 0 && (
-                  <span className="bg-[#1c4d8d] text-white text-[10px] font-black w-[18px] h-[18px] flex items-center justify-center rounded-full shrink-0">
-                    {c.unreadCount}
-                  </span>
-                )}
-              </button>
-            );
-          })
+          filteredConversations.map((c) => (
+            <ConversationRow
+              key={c.id}
+              conv={c}
+              isActive={c.id === activeId}
+              token={token}
+              onSelect={onSelect}
+            />
+          ))
         )}
       </div>
 

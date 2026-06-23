@@ -106,6 +106,14 @@ function EventItem({
         .slice(0, 2)
     : "?";
 
+  const isLive = (() => {
+    if (!post.eventStart || !post.eventEnd) return false;
+    const now = new Date();
+    const start = new Date(post.eventStart);
+    const end = new Date(post.eventEnd);
+    return now >= start && now <= end;
+  })();
+
   const handleSubmitComment = async () => {
     if (!commentInput.trim()) return;
     const result = await createCommentAction(
@@ -258,8 +266,14 @@ function EventItem({
           )}
           <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-primary/90 to-primary/0 p-3 sm:p-6 text-white z-10 flex items-end justify-between gap-2 sm:gap-4">
             <div className="min-w-0 flex-1">
-              <span className="inline-flex bg-subtle text-secondary type-desc-small-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-md tracking-wide mb-1 sm:mb-2 text-[10px] sm:text-xs">
-                Event
+              <span className="inline-flex items-center gap-1.5 bg-subtle text-secondary type-desc-small-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-md tracking-wide mb-1 sm:mb-2 text-[10px] sm:text-xs">
+                {isLive && (
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  </span>
+                )}
+                {isLive ? "Live Event" : "Event"}
               </span>
               <h4 className="text-xs sm:text-sm md:text-base font-semibold line-clamp-1">
                 {post.title}
