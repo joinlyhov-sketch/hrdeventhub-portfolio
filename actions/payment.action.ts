@@ -321,6 +321,43 @@ export async function generateBakongQrAction(
   }
 }
 
+export async function checkBakongPaymentStatusAction(
+  paymentIntentId: string,
+): Promise<ServerActionResponse2<BakongPaymentStatusResponse>> {
+  try {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    if (!token) {
+      return { ok: false, error: "Your session has expired." };
+    }
+
+    try {
+      const status = await paymentService.checkBakongPayment(
+        paymentIntentId,
+        token,
+      );
+      return { ok: true, payload: status };
+    } catch (err) {
+      return {
+        ok: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Failed to check Bakong payment status.",
+      };
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
+    };
+  }
+}
+
 export interface ConfirmBakongPaymentInput {
   paymentIntentId: string;
   postId: string;
@@ -352,7 +389,7 @@ export async function confirmBakongPaymentAction(
     let status: BakongPaymentStatusResponse;
 
     try {
-      status = await paymentService.mockConfirmBakongPayment(
+      status = await paymentService.checkBakongPayment(
         input.paymentIntentId,
         token,
       );
@@ -361,8 +398,8 @@ export async function confirmBakongPaymentAction(
         ok: false,
         error:
           err instanceof Error
-            ? `Bakong confirmation failed: ${err.message}`
-            : "Bakong confirmation failed. Please try again.",
+            ? `Bakong verification failed: ${err.message}`
+            : "Bakong verification failed. Please try again.",
       };
     }
 

@@ -39,11 +39,10 @@ export function QrStep({
               type="button"
               onClick={() => onProviderChange("webill")}
               disabled={isLoadingQr}
-              className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${
-                provider === "webill"
+              className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${provider === "webill"
                   ? "border-[#1e3a8a] bg-blue-50 text-[#1e3a8a]"
                   : "border-blue-100 bg-white text-gray-500 hover:bg-blue-50"
-              }`}
+                }`}
             >
               <CreditCard size={16} />
               Webill365
@@ -53,11 +52,10 @@ export function QrStep({
               type="button"
               onClick={() => onProviderChange("bakong")}
               disabled={isLoadingQr}
-              className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${
-                provider === "bakong"
+              className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${provider === "bakong"
                   ? "border-[#1e3a8a] bg-blue-50 text-[#1e3a8a]"
                   : "border-blue-100 bg-white text-gray-500 hover:bg-blue-50"
-              }`}
+                }`}
             >
               <Landmark size={16} />
               Bakong
@@ -115,13 +113,20 @@ export function QrStep({
         </div>
       )}
 
-      <Button
-        onClick={onContinue}
-        disabled={isLoadingQr || !qrDataUrl || !billNo}
-        className="w-full h-[48px] rounded-xl font-semibold text-[15px] bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white shadow-md shadow-blue-900/10 transition-all disabled:opacity-50"
-      >
-        I&apos;ve Paid — Continue <ChevronRight size={18} className="ml-1" />
-      </Button>
+      {provider === "bakong" ? (
+        <div className="w-full flex items-center justify-center gap-2 h-[48px] rounded-xl font-semibold text-[15px] bg-[#1e3a8a]/10 text-[#1e3a8a] border border-[#1e3a8a]/20">
+          <Loader2 className="animate-spin" size={18} />
+          Waiting for payment...
+        </div>
+      ) : (
+        <Button
+          onClick={onContinue}
+          disabled={isLoadingQr || !qrDataUrl || !billNo}
+          className="w-full h-[48px] rounded-xl font-semibold text-[15px] bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white shadow-md shadow-blue-900/10 transition-all disabled:opacity-50"
+        >
+          I&apos;ve Paid — Continue <ChevronRight size={18} className="ml-1" />
+        </Button>
+      )}
     </div>
   );
 }
