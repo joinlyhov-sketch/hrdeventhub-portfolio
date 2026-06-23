@@ -35,7 +35,6 @@ import {
 
 import { Calendar } from "@/components/ui/calendar";
 import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
-import { profile } from "console";
 import Loading from "@/app/loading";
 
 function UploadSVG() {
@@ -650,20 +649,22 @@ export default function StudentProfileForm() {
   const handleContainerClick = () => {
     if (!isUploading) fileInputRef.current?.click();
   };
-
+  const MAX_IMAGE_SIZE = 15 * 1024 * 1024;
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error("Image size must be less than 15MB.");
+      e.target.value = "";
+      return;
+    }
     setError(null);
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64String = reader.result as string;
-      sessionStorage.setItem("pending-avatar", base64String);
-      setSelectedImageSrc(base64String);
-      setIsAdjustModalOpen(true);
-    };
-    reader.readAsDataURL(file);
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedImageSrc(objectUrl);
+    setIsAdjustModalOpen(true);
+
     e.target.value = "";
   };
 
@@ -1164,26 +1165,6 @@ export default function StudentProfileForm() {
                     <span className="text-primary">+855</span>
                   </div>
 
-                  {/* <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={9}
-                    value={phoneNumber}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "");
-
-                      if (/^\d{0,9}$/.test(value)) {
-                        setPhoneNumber(value);
-
-                        setErrors((prev) => ({
-                          ...prev,
-                          phoneNumber: "",
-                        }));
-                      }
-                    }}
-                    className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
-                    placeholder="123 456 7898"
-                  /> */}
                   <input
                     type="text"
                     inputMode="numeric"
