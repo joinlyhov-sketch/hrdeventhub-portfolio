@@ -8,12 +8,17 @@ interface ChatStore {
   locallyReadIds: Record<string, true>;
   setConversations: (convs: Conversation[]) => void;
   upsertConversation: (conv: Conversation) => void;
+  removeConversation: (conversationId: string) => void;
   mergeMessages: (conversationId: string, incoming: ChatMessage[]) => void;
   addMessage: (msg: ChatMessage) => void;
   updateMessage: (updated: ChatMessage) => void;
   removeMessage: (messageId: string, conversationId: string) => void;
   markRead: (conversationId: string, readerUserId: string) => void;
-  bumpLastMessage: (conversationId: string, content: string, at: string) => void;
+  bumpLastMessage: (
+    conversationId: string,
+    content: string,
+    at: string,
+  ) => void;
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -82,8 +87,9 @@ export const useChatStore = create<ChatStore>()(
               ? { ...c, lastMessage: msg.content, lastMessageAt: msg.createdAt }
               : c,
           );
-        
-          const { [msg.conversationId]: _drop, ...restLocallyRead } = s.locallyReadIds;
+
+          const { [msg.conversationId]: _drop, ...restLocallyRead } =
+            s.locallyReadIds;
           return {
             messages: {
               ...s.messages,
@@ -98,7 +104,10 @@ export const useChatStore = create<ChatStore>()(
         set((s) => {
           const list = s.messages[updated.conversationId] ?? [];
           const existing = list.find((m) => m.id === updated.id);
-          if (existing?.content === updated.content && existing?.isEdited === updated.isEdited)
+          if (
+            existing?.content === updated.content &&
+            existing?.isEdited === updated.isEdited
+          )
             return s;
           return {
             messages: {
@@ -122,13 +131,29 @@ export const useChatStore = create<ChatStore>()(
           };
         }),
 
+      removeConversation: (conversationId) =>
+        set((s) => {
+          const { [conversationId]: _msgs, ...restMessages } = s.messages;
+          const { [conversationId]: _read, ...restLocallyRead } =
+            s.locallyReadIds;
+          return {
+            conversations: s.conversations.filter(
+              (c) => String(c.id) !== String(conversationId),
+            ),
+            messages: restMessages,
+            locallyReadIds: restLocallyRead,
+          };
+        }),
+
       markRead: (conversationId, readerUserId) =>
         set((s) => {
           const list = s.messages[conversationId] ?? [];
           const hasUnread = list.some(
             (m) => String(m.senderId) !== String(readerUserId) && !m.read,
           );
-          const alreadyZero = s.conversations.find((c) => c.id === conversationId)?.unreadCount === 0;
+          const alreadyZero =
+            s.conversations.find((c) => c.id === conversationId)
+              ?.unreadCount === 0;
           if (!hasUnread && alreadyZero) return s;
 
           return {
