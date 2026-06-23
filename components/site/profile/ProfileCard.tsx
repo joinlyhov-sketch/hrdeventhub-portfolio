@@ -125,7 +125,7 @@ export default function ProfileCard({
     const hash = (profile.appUser.username || "user")
       .split("")
       .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return (hash % 9) + 1;
+    return (hash % 10) + 1;
   }, [profile.appUser.username]);
 
   const sharingMode = profile.profileSharingMode;
