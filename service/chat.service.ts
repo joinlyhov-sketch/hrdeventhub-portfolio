@@ -70,6 +70,13 @@ searchUsers(query: string, token: string): Promise<UserResult[]> {
     }).then((res) => handle<void>(res));
   },
 
+  deleteConversation(conversationId: string, token: string): Promise<void> {
+    return fetch(`${API_BASE}/chat/conversations/${conversationId}`, {
+      method: "DELETE",
+      headers: authHeaders(token),
+    }).then((res) => handle<void>(res));
+  },
+
   uploadFile(conversationId: string, file: File, token: string): Promise<ChatMessage> {
     const formData = new FormData();
     formData.append("file", file);
