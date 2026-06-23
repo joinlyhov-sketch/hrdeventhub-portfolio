@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, QrCode, ChevronRight, CreditCard, Landmark } from "lucide-react";
+import { Loader2, QrCode, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import type { PaymentProvider } from "@/service/payment.service";
@@ -39,26 +39,39 @@ export function QrStep({
               type="button"
               onClick={() => onProviderChange("webill")}
               disabled={isLoadingQr}
-              className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${provider === "webill"
-                  ? "border-[#1e3a8a] bg-blue-50 text-[#1e3a8a]"
-                  : "border-blue-100 bg-white text-gray-500 hover:bg-blue-50"
+              className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${provider === "webill"
+                  ? "border-[#1e3a8a] bg-blue-50 shadow-sm"
+                  : "border-gray-200 bg-white hover:border-[#1e3a8a]/40 hover:bg-blue-50/50"
                 }`}
             >
-              <CreditCard size={16} />
-              Webill365
+              <Image
+                src="/images/webill365.svg"
+                alt="Webill365"
+                width={80}
+                height={20}
+                className="h-5 w-auto max-w-20 object-contain"
+              />
             </button>
 
             <button
               type="button"
               onClick={() => onProviderChange("bakong")}
               disabled={isLoadingQr}
-              className={`h-[52px] rounded-xl border px-3 flex items-center justify-center gap-2 text-[13px] font-semibold transition-all ${provider === "bakong"
-                  ? "border-[#1e3a8a] bg-blue-50 text-[#1e3a8a]"
-                  : "border-blue-100 bg-white text-gray-500 hover:bg-blue-50"
+              className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${provider === "bakong"
+                  ? "border-[#1e3a8a] bg-blue-50 shadow-sm"
+                  : "border-gray-200 bg-white hover:border-[#1e3a8a]/40 hover:bg-blue-50/50"
                 }`}
             >
-              <Landmark size={16} />
-              Bakong
+              <Image
+                src="/images/bakong.png"
+                alt="Bakong"
+                width={20}
+                height={20}
+                className="h-5 w-5 object-contain"
+              />
+              <span className={`text-[13px] font-semibold ${provider === "bakong" ? "text-[#1e3a8a]" : "text-gray-500"}`}>
+                Bakong
+              </span>
             </button>
           </div>
         </div>
