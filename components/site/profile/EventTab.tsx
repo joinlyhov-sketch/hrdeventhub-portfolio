@@ -76,9 +76,9 @@ export default function EventTab({ userId }: EventTabProps) {
             return (
               <div
                 key={item.participantId || index}
-                className="flex items-center justify-between p-4 border border-border rounded-lg bg-grey-50 hover:bg-grey-100 transition-colors duration-200"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-border rounded-lg bg-grey-50 hover:bg-grey-100 transition-colors duration-200"
               >
-                <div className="flex gap-4 items-center">
+                <div className="flex gap-4 items-center min-w-0">
                   <div className="w-24 h-16 bg-muted border border-border/40 rounded-md shrink-0 overflow-hidden relative">
                     <Image
                       src={coverImage}
@@ -93,8 +93,8 @@ export default function EventTab({ userId }: EventTabProps) {
                     />
                   </div>
 
-                  <div>
-                    <p className="type-desc-semibold text-secondary">
+                  <div className="min-w-0">
+                    <p className="type-desc-semibold text-secondary line-clamp-2">
                       {eventDetails?.title || "Untitled Event"}
                     </p>
                     <p className="type-detail-small-medium text-muted-foreground">
@@ -107,9 +107,9 @@ export default function EventTab({ userId }: EventTabProps) {
 
                 <a
                   href={`/group/${eventDetails?.workspaceId}/event/${item.postId}`}
-                  className="shrink-0"
+                  className="shrink-0 self-start sm:self-auto"
                 >
-                  <button className="flex items-center gap-1 type-detail-small-medium text-muted-foreground border border-border bg-card px-3 py-1.5 rounded-md hover:border-primary transition-all duration-200 cursor-pointer">
+                  <button className="flex items-center gap-1 type-detail-small-medium text-muted-foreground border border-border bg-card px-3 py-1.5 rounded-md hover:border-primary transition-all duration-200 cursor-pointer whitespace-nowrap">
                     View Detail <ChevronRight size={14} />
                   </button>
                 </a>

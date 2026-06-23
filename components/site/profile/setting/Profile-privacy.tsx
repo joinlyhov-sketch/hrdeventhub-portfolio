@@ -165,7 +165,7 @@ export default function ProfilePrivacy({
     const hash = (appUser.username || "user")
       .split("")
       .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return (hash % 3) + 1;
+    return (hash % 10) + 1;
   }, [appUser.username]);
 
   if (visibilityMode === "private") {

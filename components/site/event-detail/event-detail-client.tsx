@@ -497,11 +497,10 @@ export default function EventDetailClient({
                   key={t}
                   type="button"
                   onClick={() => setActiveTab(t)}
-                  className={`flex-1 py-2.5 text-sm font-semibold capitalize transition-colors ${
-                    activeTab === t
+                  className={`flex-1 py-2.5 text-sm font-semibold capitalize transition-colors ${activeTab === t
                       ? "bg-primary text-white shadow-sm"
                       : "text-grey-500 bg-grey-50 hover:bg-grey-100"
-                  }`}
+                    }`}
                 >
                   {t}
                 </button>
@@ -511,11 +510,10 @@ export default function EventDetailClient({
               type="button"
               onClick={() => !isRegistered && setIsPaymentOpen(true)}
               disabled={isRegistered}
-              className={`w-full rounded-xl py-2.5 font-semibold text-sm text-center transition-all cursor-pointer ${
-                isRegistered
+              className={`w-full rounded-xl py-2.5 font-semibold text-sm text-center transition-all cursor-pointer ${isRegistered
                   ? "bg-green-400/15 text-accent cursor-default"
                   : "bg-primary text-white hover:bg-primary/85 hover:shadow-lg active:scale-[0.98]"
-              }`}
+                }`}
             >
               {isRegistered ? "✓ You are registered!" : "Register now"}
             </button>
@@ -659,11 +657,10 @@ export default function EventDetailClient({
                 <button
                   type="button"
                   onClick={handleLikeToggle}
-                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${
-                    activeReaction
+                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${activeReaction
                       ? `${activeReaction.color} font-semibold`
                       : "hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {activeReaction ? (
                     <TwemojiImg emoji={activeReaction.emoji} size={18} />
@@ -812,8 +809,8 @@ export default function EventDetailClient({
                       key={index}
                       onClick={() => goToIndex(index + 1)}
                       className={`h-2 w-2 rounded-full transition-all cursor-pointer ${currentImgIndex === index + 1
-                          ? "bg-white scale-125"
-                          : "bg-white/50"
+                        ? "bg-white scale-125"
+                        : "bg-white/50"
                         }`}
                     />
                   ))}
@@ -882,8 +879,8 @@ export default function EventDetailClient({
                 onClick={() => !isRegistered && setIsPaymentOpen(true)}
                 disabled={isRegistered}
                 className={`w-full rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${isRegistered
-                    ? "bg-green-400/15 text-accent cursor-default font-regular"
-                    : "text-primary-foreground bg-primary hover:opacity-95"
+                  ? "bg-green-400/15 text-accent cursor-default font-regular"
+                  : "text-primary-foreground bg-primary hover:opacity-95"
                   }`}
               >
                 {isRegistered ? "✓ You are registered!" : "Register now"}
@@ -902,8 +899,8 @@ export default function EventDetailClient({
                 <button
                   onClick={handleLikeToggle}
                   className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${activeReaction
-                      ? `${activeReaction.color} font-semibold`
-                      : "hover:text-primary"
+                    ? `${activeReaction.color} font-semibold`
+                    : "hover:text-primary"
                     }`}
                 >
                   {activeReaction ? (

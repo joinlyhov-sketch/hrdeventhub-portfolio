@@ -113,12 +113,12 @@ export default function BackgroundTab({
                   key={index}
                   className="flex gap-4 items-start pb-6 border-b border-border last:border-0 last:pb-0"
                 >
-                  <div className="w-12 h-12 rounded-lg border border-border bg-grey-50 flex items-center justify-center shrink-0 overflow-hidden relative">
+                  <div className="w-12 h-12 p-1 flex items-center justify-center shrink-0 overflow-hidden relative">
                     {edu.institutionLogo ? (
                       <img
                         src={edu.institutionLogo}
                         alt={edu.institutionName || "Institution logo"}
-                        className="w-full h-full object-cover"
+                        className="w-full h-fit object-cover"
                       />
                     ) : (
                       <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase">
