@@ -19,6 +19,7 @@ import {
   alumniFlexiblePaymentAction,
   generateBakongQrAction,
   confirmBakongPaymentAction,
+  checkBakongPaymentStatusAction,
 } from "@/actions/payment.action";
 import { generateBillNo } from "./billno";
 import { StepIndicator } from "./indicator";
@@ -27,6 +28,7 @@ import { QrStep } from "./qr-step";
 import { RemarkStep } from "./remark-step";
 import { SuccessStep } from "./success-step";
 import { ReceiptStep } from "./receipt-step";
+import { motion, AnimatePresence } from "framer-motion";
 import type {
   Transaction,
   GenerateQrResponse,
@@ -38,6 +40,7 @@ import type { Post } from "@/types/posts";
 interface PaymentWizardDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   post: Post;
 }
 
@@ -68,6 +71,7 @@ function resolveFlow(
 export function PaymentWizardDialog({
   isOpen,
   onClose,
+  onSuccess,
   post,
 }: PaymentWizardDialogProps) {
   const { currentUser } = useCurrentUser();
@@ -170,15 +174,60 @@ export function PaymentWizardDialog({
     QRCode.toDataURL(khqr, {
       width: 240,
       margin: 2,
-      color: { dark: "#1e3a8a", light: "#ffffff" },
+      color: {
+        dark: selectedProvider === "bakong" ? "#000000" : "#1e3a8a",
+        light: "#ffffff"
+      },
     }).then(setQrDataUrl);
   }, [
     selectedProvider,
     flow,
     payment?.khqrData,
-    flexQrData?.khqrData,
     bakongQrData?.khqrData,
+    flexQrData?.khqrData,
   ]);
+
+  useEffect(() => {
+    if (step !== "qr" || selectedProvider !== "bakong" || !bakongQrData?.paymentIntentId || isSubmitting) {
+      return;
+    }
+
+    const intervalId = setInterval(async () => {
+      if (isSubmittingRef.current) return;
+      try {
+        const result = await checkBakongPaymentStatusAction(bakongQrData.paymentIntentId);
+        if (result.ok && result.payload?.paid) {
+          clearInterval(intervalId);
+
+          if (!currentUser?.role) return;
+
+          isSubmittingRef.current = true;
+          setIsSubmitting(true);
+
+          const confirmResult = await confirmBakongPaymentAction({
+            paymentIntentId: bakongQrData.paymentIntentId,
+            postId: post.postId,
+            role: currentUser.role,
+            remark: remark.trim() || "—",
+          });
+
+          isSubmittingRef.current = false;
+          setIsSubmitting(false);
+
+          if (confirmResult.ok && confirmResult.payload) {
+            setTransaction(confirmResult.payload);
+            setStep("receipt");
+          } else {
+            setSubmitError(confirmResult.error ?? "Bakong payment confirmation failed.");
+          }
+        }
+      } catch (err) {
+        console.error("Bakong poll error:", err);
+      }
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [step, selectedProvider, bakongQrData?.paymentIntentId, isSubmitting, currentUser?.role, post.postId, remark]);
 
   const resetState = () => {
     setRemark("");
@@ -200,8 +249,12 @@ export function PaymentWizardDialog({
 
   const handleClose = () => {
     if (isSubmittingRef.current) return;
+    const isSuccess = step === "success" || step === "receipt";
     resetState();
     onClose();
+    if (isSuccess) {
+      onSuccess?.();
+    }
   };
 
   const handleFixedProviderChange = async (provider: PaymentProvider) => {
@@ -218,7 +271,7 @@ export function PaymentWizardDialog({
       setRequestId(payment?.requestId ?? "");
       return;
     }
-    
+
 
     setBillNo("");
     setRequestId("");
@@ -229,7 +282,6 @@ export function PaymentWizardDialog({
       amount: fixedAmount,
       role: currentUser.role,
       remark: "",
-      
     });
 
     setIsGeneratingQr(false);
@@ -484,12 +536,12 @@ export function PaymentWizardDialog({
   const isFlexibleDonation = flow === "flexible-donation";
   const isFreeRegistration = flow === "student-free";
 
- const activePaidAmount =
-  selectedProvider === "bakong"
-    ? bakongQrData?.amount ?? fixedAmount
-    : isFlexibleDonation
-      ? flexQrData?.amount
-      : fixedAmount;
+  const activePaidAmount =
+    selectedProvider === "bakong"
+      ? bakongQrData?.amount ?? fixedAmount
+      : isFlexibleDonation
+        ? flexQrData?.amount
+        : fixedAmount;
 
   const displayAmount = `$${(activePaidAmount ?? fixedAmount ?? 0).toFixed(
     2,
@@ -566,78 +618,88 @@ export function PaymentWizardDialog({
         </div>
 
         <div className="px-4 sm:px-8 py-5 sm:py-6 bg-white overflow-y-auto max-h-[75vh] sm:max-h-[70vh]">
-          {step === "amount" && (
-            <AmountStep
-              donationGoal={donationGoal}
-              amountRaised={amountRaised}
-              donationAmount={donationAmount}
-              donationAmountError={donationAmountError}
-              submitError={submitError}
-              isGeneratingQr={isGeneratingQr}
-              selectedProvider={selectedProvider}
-              onProviderChange={setSelectedProvider}
-              onAmountChange={setDonationAmount}
-              onGenerateQr={handleGenerateQr}
-              onSkipDonation={handleSkipDonation}
-            />
-          )}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              {step === "amount" && (
+                <AmountStep
+                  donationGoal={donationGoal}
+                  amountRaised={amountRaised}
+                  donationAmount={donationAmount}
+                  donationAmountError={donationAmountError}
+                  submitError={submitError}
+                  isGeneratingQr={isGeneratingQr}
+                  selectedProvider={selectedProvider}
+                  onProviderChange={setSelectedProvider}
+                  onAmountChange={setDonationAmount}
+                  onGenerateQr={handleGenerateQr}
+                  onSkipDonation={handleSkipDonation}
+                />
+              )}
 
-          {step === "qr" && (
-            <QrStep
-              displayAmount={displayAmount}
-              qrDataUrl={qrDataUrl}
-              billNo={billNo}
-              provider={selectedProvider}
-              isLoadingQr={isGeneratingQr}
-              submitError={submitError}
-              onProviderChange={
-                flow === "alumni-fixed" ? handleFixedProviderChange : undefined
-              }
-              onContinue={() => setStep("confirm")}
-            />
-          )}
+              {step === "qr" && (
+                <QrStep
+                  displayAmount={displayAmount}
+                  qrDataUrl={qrDataUrl}
+                  billNo={billNo}
+                  provider={selectedProvider}
+                  isLoadingQr={isGeneratingQr}
+                  submitError={submitError}
+                  onProviderChange={
+                    flow === "alumni-fixed" ? handleFixedProviderChange : undefined
+                  }
+                  onContinue={() => setStep("confirm")}
+                />
+              )}
 
-          {step === "confirm" && (
-            <RemarkStep
-              post={post}
-              isFreeRegistration={isFreeRegistration}
-              isSkippingDonation={isSkippingDonation}
-              confirmAmount={confirmAmount}
-              payerName={currentUser?.name ?? "—"}
-              confirmBillNo={confirmBillNo}
-              remark={remark}
-              onRemarkChange={setRemark}
-              submitError={submitError}
-              isSubmitting={isSubmitting}
-              onBack={() => {
-                if (isSkippingDonation) {
-                  setStep("amount");
-                  return;
-                }
+              {step === "confirm" && (
+                <RemarkStep
+                  post={post}
+                  isFreeRegistration={isFreeRegistration}
+                  isSkippingDonation={isSkippingDonation}
+                  confirmAmount={confirmAmount}
+                  payerName={currentUser?.name ?? "—"}
+                  confirmBillNo={confirmBillNo}
+                  remark={remark}
+                  onRemarkChange={setRemark}
+                  submitError={submitError}
+                  isSubmitting={isSubmitting}
+                  onBack={() => {
+                    if (isSkippingDonation) {
+                      setStep("amount");
+                      return;
+                    }
 
-                setStep("qr");
-              }}
-              onSubmit={
-                isNoPayment
-                  ? handleRegisterWithoutPayment
-                  : handlePaymentConfirm
-              }
-            />
-          )}
+                    setStep("qr");
+                  }}
+                  onSubmit={
+                    isNoPayment
+                      ? handleRegisterWithoutPayment
+                      : handlePaymentConfirm
+                  }
+                />
+              )}
 
-          {step === "success" && (
-            <SuccessStep
-              post={post}
-              successMessage={successMessage}
-              remark={remark}
-              amountLabel={successAmountLabel}
-              onClose={handleClose}
-            />
-          )}
+              {step === "success" && (
+                <SuccessStep
+                  post={post}
+                  successMessage={successMessage}
+                  remark={remark}
+                  amountLabel={successAmountLabel}
+                  onClose={handleClose}
+                />
+              )}
 
-          {step === "receipt" && (
-            <ReceiptStep transaction={transaction} onClose={handleClose} />
-          )}
+              {step === "receipt" && (
+                <ReceiptStep transaction={transaction} onClose={handleClose} />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </DialogContent>
     </Dialog>

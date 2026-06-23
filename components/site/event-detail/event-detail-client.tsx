@@ -83,9 +83,9 @@ export default function EventDetailClient({
   const mediaList =
     event?.media && event.media.length > 0
       ? event.media.map((m) => {
-          const path = m.filePath || "";
-          return path.startsWith("http") ? path : `${API_BASE}${path}`;
-        })
+        const path = m.filePath || "";
+        return path.startsWith("http") ? path : `${API_BASE}${path}`;
+      })
       : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
 
   const extendedList = [
@@ -270,17 +270,17 @@ export default function EventDetailClient({
       isCurrentlyActive
         ? prev.filter((r) => r.reactor.appUserId !== currentUser?.id)
         : [
-            ...prev,
-            {
-              reactionId: "temp",
-              type: "like",
-              createdAt: "",
-              postId: event.postId,
-              reactor: {
-                appUserId: currentUser?.id ?? "",
-              },
+          ...prev,
+          {
+            reactionId: "temp",
+            type: "like",
+            createdAt: "",
+            postId: event.postId,
+            reactor: {
+              appUserId: currentUser?.id ?? "",
             },
-          ],
+          },
+        ],
     );
 
     try {
@@ -364,12 +364,12 @@ export default function EventDetailClient({
 
   const formattedCreationDate = event?.createdAt
     ? new Date(event.createdAt).toLocaleDateString("en-US", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     : "—";
 
   const [isRegistered, setIsRegistered] = useState(false);
@@ -811,11 +811,10 @@ export default function EventDetailClient({
                     <div
                       key={index}
                       onClick={() => goToIndex(index + 1)}
-                      className={`h-2 w-2 rounded-full transition-all cursor-pointer ${
-                        currentImgIndex === index + 1
+                      className={`h-2 w-2 rounded-full transition-all cursor-pointer ${currentImgIndex === index + 1
                           ? "bg-white scale-125"
                           : "bg-white/50"
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>
@@ -845,9 +844,8 @@ export default function EventDetailClient({
                     tabBtnRefs.current[i] = el;
                   }}
                   onClick={() => setActiveTab(t)}
-                  className={`relative z-10 flex-1 py-2 rounded-[9px] capitalize cursor-pointer transition-colors duration-200 text-sm font-medium border-none bg-transparent ${
-                    activeTab === t ? "text-white" : "text-gray-500"
-                  }`}
+                  className={`relative z-10 flex-1 py-2 rounded-[9px] capitalize cursor-pointer transition-colors duration-200 text-sm font-medium border-none bg-transparent ${activeTab === t ? "text-white" : "text-gray-500"
+                    }`}
                 >
                   {t}
                 </button>
@@ -883,11 +881,10 @@ export default function EventDetailClient({
               <button
                 onClick={() => !isRegistered && setIsPaymentOpen(true)}
                 disabled={isRegistered}
-                className={`w-full rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${
-                  isRegistered
+                className={`w-full rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${isRegistered
                     ? "bg-green-400/15 text-accent cursor-default font-regular"
                     : "text-primary-foreground bg-primary hover:opacity-95"
-                }`}
+                  }`}
               >
                 {isRegistered ? "✓ You are registered!" : "Register now"}
               </button>
@@ -904,11 +901,10 @@ export default function EventDetailClient({
               >
                 <button
                   onClick={handleLikeToggle}
-                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${
-                    activeReaction
+                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${activeReaction
                       ? `${activeReaction.color} font-semibold`
                       : "hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {activeReaction ? (
                     <TwemojiImg emoji={activeReaction.emoji} size={20} />
@@ -985,6 +981,7 @@ export default function EventDetailClient({
       <PaymentWizardDialog
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
+        onSuccess={() => setIsRegistered(true)}
         post={event}
       />
     </>

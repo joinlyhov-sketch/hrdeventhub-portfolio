@@ -39,11 +39,10 @@ export function QrStep({
               type="button"
               onClick={() => onProviderChange("webill")}
               disabled={isLoadingQr}
-              className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${
-                provider === "webill"
+              className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${provider === "webill"
                   ? "border-[#1e3a8a] bg-blue-50 shadow-sm"
                   : "border-gray-200 bg-white hover:border-[#1e3a8a]/40 hover:bg-blue-50/50"
-              }`}
+                }`}
             >
               <Image
                 src="/images/webill365.svg"
@@ -58,11 +57,10 @@ export function QrStep({
               type="button"
               onClick={() => onProviderChange("bakong")}
               disabled={isLoadingQr}
-              className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${
-                provider === "bakong"
+              className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${provider === "bakong"
                   ? "border-[#1e3a8a] bg-blue-50 shadow-sm"
                   : "border-gray-200 bg-white hover:border-[#1e3a8a]/40 hover:bg-blue-50/50"
-              }`}
+                }`}
             >
               <Image
                 src="/images/bakong.png"
@@ -128,13 +126,20 @@ export function QrStep({
         </div>
       )}
 
-      <Button
-        onClick={onContinue}
-        disabled={isLoadingQr || !qrDataUrl || !billNo}
-        className="w-full h-[48px] rounded-xl font-semibold text-[15px] bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white shadow-md shadow-blue-900/10 transition-all disabled:opacity-50"
-      >
-        I&apos;ve Paid — Continue <ChevronRight size={18} className="ml-1" />
-      </Button>
+      {provider === "bakong" ? (
+        <div className="w-full flex items-center justify-center gap-2 h-[48px] rounded-xl font-semibold text-[15px] bg-[#1e3a8a]/10 text-[#1e3a8a] border border-[#1e3a8a]/20">
+          <Loader2 className="animate-spin" size={18} />
+          Waiting for payment...
+        </div>
+      ) : (
+        <Button
+          onClick={onContinue}
+          disabled={isLoadingQr || !qrDataUrl || !billNo}
+          className="w-full h-[48px] rounded-xl font-semibold text-[15px] bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white shadow-md shadow-blue-900/10 transition-all disabled:opacity-50"
+        >
+          I&apos;ve Paid — Continue <ChevronRight size={18} className="ml-1" />
+        </Button>
+      )}
     </div>
   );
 }
