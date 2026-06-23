@@ -432,28 +432,27 @@ export default function HeroSession() {
           </div>
 
           <div className="relative w-full top-0 sm:-top-10 md:-top-16 lg:-top-25 max-w-7xl h-50 sm:h-55 md:h-72 lg:h-120 flex items-center justify-center px-1 md:px-0 md:overflow-visible">
-
-            {/* Mobile-only decorative dashed ellipse */}
             <svg
               className="absolute inset-0 w-full h-full pointer-events-none sm:hidden z-5"
               xmlns="http://www.w3.org/2000/svg"
             >
               <defs>
-                <linearGradient id="mobileEllipseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient
+                  id="mobileEllipseGrad"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
                   <stop offset="0%" stopColor="#00508D" />
                   <stop offset="100%" stopColor="#0A74FF" />
                 </linearGradient>
               </defs>
-              {/*
-                Ellipse: cx=50% cy=52% rx=42% ry=38%
-                Dots placed at exact points ON the ellipse stroke:
-                  Top    → (50%, 14%)
-                  Bot-R  → (80%, 79%)   verified: (-30²/42²)+(27²/38²)≈1
-                  Bot-L  → (20%, 79%)   symmetric
-              */}
               <ellipse
-                cx="50%" cy="52%"
-                rx="42%" ry="38%"
+                cx="50%"
+                cy="52%"
+                rx="42%"
+                ry="38%"
                 stroke="url(#mobileEllipseGrad)"
                 strokeWidth="1.5"
                 strokeOpacity="0.65"
@@ -461,9 +460,30 @@ export default function HeroSession() {
                 strokeLinecap="round"
                 fill="none"
               />
-              <circle cx="50%" cy="14%" r="5" fill="#FF9F2E" stroke="white" strokeWidth="1.5" />
-              <circle cx="80%" cy="79%" r="5" fill="#FF9F2E" stroke="white" strokeWidth="1.5" />
-              <circle cx="20%" cy="79%" r="5" fill="#FF9F2E" stroke="white" strokeWidth="1.5" />
+              <circle
+                cx="50%"
+                cy="14%"
+                r="5"
+                fill="#FF9F2E"
+                stroke="white"
+                strokeWidth="1.5"
+              />
+              <circle
+                cx="80%"
+                cy="79%"
+                r="5"
+                fill="#FF9F2E"
+                stroke="white"
+                strokeWidth="1.5"
+              />
+              <circle
+                cx="20%"
+                cy="79%"
+                r="5"
+                fill="#FF9F2E"
+                stroke="white"
+                strokeWidth="1.5"
+              />
             </svg>
 
             <motion.div
@@ -474,7 +494,16 @@ export default function HeroSession() {
             >
               <motion.div
                 animate={isMobile ? { y: [0, -5, 0] } : {}}
-                transition={isMobile ? { duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 1 } : {}}
+                transition={
+                  isMobile
+                    ? {
+                        duration: 3.2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1,
+                      }
+                    : {}
+                }
                 className="w-full"
               >
                 <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
@@ -500,7 +529,16 @@ export default function HeroSession() {
             >
               <motion.div
                 animate={isMobile ? { y: [0, -6, 0] } : {}}
-                transition={isMobile ? { duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 1.3 } : {}}
+                transition={
+                  isMobile
+                    ? {
+                        duration: 2.8,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1.3,
+                      }
+                    : {}
+                }
                 className="relative w-full"
               >
                 <motion.div
@@ -534,7 +572,16 @@ export default function HeroSession() {
             >
               <motion.div
                 animate={isMobile ? { y: [0, -5, 0] } : {}}
-                transition={isMobile ? { duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1.6 } : {}}
+                transition={
+                  isMobile
+                    ? {
+                        duration: 3.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1.6,
+                      }
+                    : {}
+                }
                 className="w-full"
               >
                 <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
