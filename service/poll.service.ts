@@ -224,6 +224,15 @@ export const pollService = {
     return response.payload;
   },
 
+  getVoters: async (pollId: string): Promise<import("@/types/poll-voter").OptionVotersDTO[]> => {
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<import("@/types/poll-voter").OptionVotersDTO[]>>(
+      `/polls/${pollId}/voters`,
+      { authToken: token },
+    );
+    return response.payload || [];
+  },
+
   setupWebSocket: async (
     pollId: string,
     handlers: PollWebSocketHandlers,
