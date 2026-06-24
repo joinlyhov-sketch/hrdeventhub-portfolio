@@ -29,7 +29,7 @@ interface EditRoleModalProps {
   onSave: (userId: string | number, newRole: RoleType) => void;
 }
 
-const ROLES: RoleType[] = ["ADMIN", "ORGANIZER", "ALUMNI", "STUDENT"];
+const ROLES: RoleType[] = ["ORGANIZER", "ALUMNI", "STUDENT"];
 
 function isValidRole(role: unknown): role is RoleType {
   return ROLES.includes(role as RoleType);

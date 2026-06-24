@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import {
   X,
   PenLine,
-  Link2,
   Settings2,
   Users2,
   ChevronDown,
@@ -59,9 +58,6 @@ export default function EditGroupModal({
     workspace.generationId ?? "",
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [telegramChannelUrl, setTelegramChannelUrl] = React.useState(
-    workspace.telegramChannelUrl ?? "",
-  );
   const [description, setDescription] = React.useState(workspace.description);
   const [isOpenType, setIsOpenType] = React.useState(false);
   const [isOpenGen, setIsOpenGen] = React.useState(false);
@@ -90,7 +86,6 @@ export default function EditGroupModal({
   React.useEffect(() => {
     const name = workspace.name;
     const description = workspace.description;
-    const telegramChannelUrl = workspace.telegramChannelUrl ?? "";
     const groupType = workspace.isPublic ? "external" : "internal";
     let generationId = workspace.generationId ?? null;
     if (!generationId && workspace.generationName && generations.length > 0) {
@@ -102,7 +97,6 @@ export default function EditGroupModal({
     queueMicrotask(() => {
       setGroupName(name);
       setDescription(description);
-      setTelegramChannelUrl(telegramChannelUrl);
       setGroupType(groupType);
       if (generationId) setSelectedGenerationId(generationId);
       setErrors({});
@@ -159,7 +153,6 @@ export default function EditGroupModal({
         description,
         isPublic: groupType === "external",
         generationId: groupType === "internal" ? selectedGenerationId : "",
-        telegramChannelUrl,
       };
       await updateWorkspaceAction(workspace.workspaceId, payload);
       await mutate((key) => Array.isArray(key) && key[0] === "workspaces");
@@ -353,23 +346,6 @@ export default function EditGroupModal({
             </div>
           )}
 
-          <div className="space-y-2.5">
-            <label className="text-[16px] sm:text-[17px] font-bold text-primary block">
-              Telegram Channel
-            </label>
-            <div className="relative flex items-center">
-              <Link2
-                className="absolute left-4 text-gray-400 pointer-events-none"
-                size={18}
-              />
-              <Input
-                value={telegramChannelUrl}
-                onChange={(e) => setTelegramChannelUrl(e.target.value)}
-                placeholder="https://t.me/..."
-                className="h-[52px] pl-11 pr-4 rounded-xl border border-blue-100 bg-white text-[15px] placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent transition-all"
-              />
-            </div>
-          </div>
 
           <div className="space-y-2.5">
             <label className="text-[16px] sm:text-[17px] font-bold text-primary block">

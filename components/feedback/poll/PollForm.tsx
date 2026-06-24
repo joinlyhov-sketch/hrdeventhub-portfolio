@@ -149,16 +149,7 @@ export default function PollForm({
       setError("All new options must have text");
       return false;
     }
-    if (!settings.closingDate || !settings.closingTime) {
-      setError("Closing date and time are required");
-      return false;
-    }
-    if (
-      new Date(`${settings.closingDate}T${settings.closingTime}`) <= new Date()
-    ) {
-      setError("Closing date and time must be in the future");
-      return false;
-    }
+
     if (!workspaceIdState) {
       setError("Workspace is required");
       return false;
@@ -178,9 +169,9 @@ export default function PollForm({
         await updatePollAction(pollId, {
           title: title.trim(),
           description: description.trim(),
-          closingTime: new Date(
+          closingTime: settings.closingDate && settings.closingTime ? new Date(
             `${settings.closingDate}T${settings.closingTime}`,
-          ).toISOString(),
+          ).toISOString() : null as any,
           workspaceId: workspaceIdState,
           type: "text",
           multiSelect: settings.multipleSelect,
@@ -196,9 +187,9 @@ export default function PollForm({
           title: title.trim(),
           description: description.trim(),
           options: newOptions.map((o) => o.trim()),
-          closingTime: new Date(
+          closingTime: settings.closingDate && settings.closingTime ? new Date(
             `${settings.closingDate}T${settings.closingTime}`,
-          ).toISOString(),
+          ).toISOString() : null as any,
           workspaceId: workspaceIdState,
           type: "text",
           multiSelect: settings.multipleSelect,
