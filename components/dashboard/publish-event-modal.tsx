@@ -44,13 +44,13 @@ export function PublishEventModal({
       <DialogContent className="sm:max-w-106.25 rounded-xl bg-white p-6">
         <DialogHeader className="flex flex-col items-center text-center space-y-3">
           <div className="w-12 h-12 rounded-full flex items-center justify-center text-primary border bg-primary/10">
-            <Globe size={24} />
+            <Globe className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={2} />
           </div>
           <div className="space-y-1">
-            <DialogTitle className="text-xl font-bold text-slate-900">
+            <DialogTitle className="text-xl sm:text-2xl font-bold text-secondary">
               Publish Draft Event
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500 max-w-[320px]">
+            <DialogDescription className="text-sm sm:text-[15px] text-slate-500 max-w-[320px]">
               Are you sure you want to go live with{" "}
               <span className="font-semibold text-slate-800">
                 “{eventTitle}”
@@ -60,13 +60,13 @@ export function PublishEventModal({
           </div>
         </DialogHeader>
 
-        <DialogFooter className="flex sm:flex-row gap-2 mt-4">
+        <DialogFooter className="flex sm:flex-row gap-2 mt-2">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={isPublishing}
-            className="flex-1 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-black"
+            className="flex-1 h-11 sm:h-12 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-secondary font-medium"
           >
             Cancel
           </Button>
@@ -74,7 +74,7 @@ export function PublishEventModal({
             type="button"
             onClick={handleConfirm}
             disabled={isPublishing}
-            className="flex-1 rounded-xl bg-primary hover:bg-primary-hover text-white font-medium"
+            className="flex-1 h-11 sm:h-12 rounded-xl bg-primary hover:bg-primary-hover text-white font-medium"
           >
             {isPublishing ? (
               <>
