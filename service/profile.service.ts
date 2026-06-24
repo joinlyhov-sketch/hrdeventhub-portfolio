@@ -221,4 +221,16 @@ export const profileService = {
       accept: "*/*",
     });
   },
+  disconnectTelegram: async (
+  userId: string,
+  token: string,
+): Promise<unknown> => {
+  return await apiDelete<unknown>(
+    `/telegram-bot/disconnect/${userId}`,
+    {
+      authToken: token,
+      accept: "*/*",
+    },
+  );
+},
 };

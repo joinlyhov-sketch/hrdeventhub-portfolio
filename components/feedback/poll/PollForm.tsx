@@ -328,6 +328,7 @@ export default function PollForm({
               onOptionChange={handleNewOptionChange}
               onAddOption={handleAddOption}
               onRemoveOption={handleRemoveNewOption}
+              allowAdd={!isEditMode || settings.addOption}
             />
 
             {isEditMode && (
