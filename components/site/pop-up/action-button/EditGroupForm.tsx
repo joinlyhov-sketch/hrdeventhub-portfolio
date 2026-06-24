@@ -153,6 +153,7 @@ export default function EditGroupModal({
         description,
         isPublic: groupType === "external",
         generationId: groupType === "internal" ? selectedGenerationId : "",
+        telegramChannelUrl: workspace.telegramChannelUrl || "",
       };
       await updateWorkspaceAction(workspace.workspaceId, payload);
       await mutate((key) => Array.isArray(key) && key[0] === "workspaces");
