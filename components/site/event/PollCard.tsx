@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import { pollService } from "@/service/poll.service";
 import { deletePollAction } from "@/actions/poll.action";
 import { formatEventDate } from "@/libs/format-date";
+import { PollVotersModal } from "./PollVotersModal";
 
 interface PollCardProps {
   role: UserRole;
@@ -32,6 +33,9 @@ function PollItem({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [isVotersModalOpen, setIsVotersModalOpen] = useState(false);
+  const [votersData, setVotersData] = useState<import("@/types/poll-voter").OptionVotersDTO[]>([]);
 
   const [localVoted, setLocalVoted] = useState(false);
   const [justVoted, setJustVoted] = useState(false);
@@ -205,12 +209,50 @@ function PollItem({
     votedOptionsCountSnapshot !== null &&
     rawOptions.length > votedOptionsCountSnapshot;
 
+  const isAdminOrOrganizer = role === "admin" || role === "organizer";
+
   const canReVote =
+    !isAdminOrOrganizer &&
     !justVoted &&
     hasVoted &&
     !isExpired &&
     (pollTypeHasChangedToSingle || hasNewOptionsBeenAddedByAdmin);
-  const showResult = justVoted || (!canReVote && (hasVoted || isExpired));
+
+  let showResult = false;
+  if (isAdminOrOrganizer) {
+      showResult = true;
+  } else {
+      if (poll.hiddenPoll) {
+          showResult = false;
+      } else {
+          switch (poll.showResult) {
+              case "always":
+              case "always_visible":
+                  showResult = true;
+                  break;
+              case "after_vote":
+                  showResult = justVoted || hasVoted;
+                  break;
+              case "after_close":
+              case "after_poll":
+                  showResult = isExpired;
+                  break;
+              default:
+                  showResult = justVoted || hasVoted || isExpired;
+          }
+      }
+  }
+
+  const handleOpenVoters = async () => {
+    if (poll.anonymousVoting && !isAdminOrOrganizer) return;
+    try {
+      const data = await pollService.getVoters(poll.pollId);
+      setVotersData(data);
+      setIsVotersModalOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch voters", err);
+    }
+  };
 
   const options = rawOptions.map((opt, idx) => {
     let currentCount = opt.voteCount ?? 0;
@@ -441,6 +483,9 @@ function PollItem({
     }
   };
 
+  const showVotingForm = !isAdminOrOrganizer && !showResult && (!hasVoted || canReVote);
+  const showVotersClickable = (!poll.anonymousVoting || isAdminOrOrganizer) && showResult;
+
   return (
     <article
       className={`w-full bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-subtle shadow-sm text-foreground transition-opacity ${isDeleting ? "opacity-0 pointer-events-none hidden" : ""}`}
@@ -473,7 +518,7 @@ function PollItem({
         {poll.description ?? poll.title}
       </legend>
 
-      {canReVote ? (
+      {canReVote && showVotingForm ? (
         <form onSubmit={handleSubmit}>
           <div className="space-y-3 sm:space-y-5 mb-3 sm:mb-4">
             {options.map((option) => {
@@ -580,9 +625,23 @@ function PollItem({
           </div>
           <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
             {isExpired ? "Poll closed" : `Total participants: ${denominator}`}
+            {showVotersClickable && (
+              <button 
+                type="button"
+                onClick={handleOpenVoters} 
+                className="ml-2 text-subtle hover:underline font-medium"
+              >
+                View Voters
+              </button>
+            )}
           </div>
+          <PollVotersModal 
+            isOpen={isVotersModalOpen} 
+            onClose={() => setIsVotersModalOpen(false)} 
+            payload={votersData} 
+          />
         </div>
-      ) : (
+      ) : showVotingForm ? (
         <form onSubmit={handleSubmit}>
           <div className="space-y-3 sm:space-y-5 mb-4 sm:mb-6">
             {options.map((option) => {
@@ -631,6 +690,12 @@ function PollItem({
             {isSubmitting ? "Submitting..." : "Vote Now"}
           </button>
         </form>
+      ) : (
+        <div className="w-full space-y-6">
+          <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
+            You cannot see the result yet.
+          </div>
+        </div>
       )}
     </article>
   );

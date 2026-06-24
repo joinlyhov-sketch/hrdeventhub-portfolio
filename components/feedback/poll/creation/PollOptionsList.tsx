@@ -8,6 +8,7 @@ interface PollOptionsListProps {
   onOptionChange: (index: number, text: string) => void;
   onAddOption: () => void;
   onRemoveOption: (index: number) => void;
+  allowAdd?: boolean;
 }
 
 export default function PollOptionsList({
@@ -15,6 +16,7 @@ export default function PollOptionsList({
   onOptionChange,
   onAddOption,
   onRemoveOption,
+  allowAdd = true,
 }: PollOptionsListProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
@@ -46,14 +48,16 @@ export default function PollOptionsList({
         ))}
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onAddOption}
-        className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-gray-500 type-desc text-sm font-semibold shadow-sm hover:bg-transparent hover:text-gray-600"
-      >
-        <Plus size={16} /> Add Option
-      </Button>
+      {allowAdd && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onAddOption}
+          className="w-full p-5 border-dashed border-gray-300 bg-white rounded-xl flex items-center justify-center gap-2 text-gray-500 type-desc text-sm font-semibold shadow-sm hover:bg-transparent hover:text-gray-600"
+        >
+          <Plus size={16} /> Add Option
+        </Button>
+      )}
     </div>
   );
 }
