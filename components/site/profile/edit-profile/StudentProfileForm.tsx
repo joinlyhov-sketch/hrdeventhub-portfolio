@@ -952,6 +952,7 @@ export default function StudentProfileForm() {
                   <input
                     type="text"
                     value={firstName}
+                    maxLength={50}
                     onChange={(e) => {
                       setFirstName(e.target.value);
 
@@ -974,6 +975,7 @@ export default function StudentProfileForm() {
                   <input
                     type="text"
                     value={lastName}
+                    maxLength={50}
                     onChange={(e) => {
                       setLastName(e.target.value);
 
@@ -998,6 +1000,7 @@ export default function StudentProfileForm() {
                   <input
                     type="text"
                     value={username}
+                    maxLength={50}
                     onChange={(e) => {
                       const value = e.target.value;
 
@@ -1207,9 +1210,9 @@ export default function StudentProfileForm() {
             <div className="flex flex-col gap-1.5 w-full">
               <label className="type-desc text-secondary">Profile Bio</label>
               <textarea
-                rows={4}
+                rows={6}
                 value={bio}
-                maxLength={50}
+                maxLength={500}
                 onChange={(e) => setBio(e.target.value)}
                 className="w-full p-3 bg-white border border-border rounded-lg type-detail text-primary focus:outline-hidden focus:border-primary resize-none"
               />
@@ -1267,6 +1270,7 @@ export default function StudentProfileForm() {
                     <input
                       type="text"
                       value={linkedinUrl}
+                      maxLength={256}
                       placeholder="https://linkedin.com/in/username"
                       onChange={(e) => {
                         setLinkedinUrl(e.target.value);
@@ -1311,6 +1315,7 @@ export default function StudentProfileForm() {
                   <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                     <input
                       type="text"
+                      maxLength={256}
                       placeholder="https://github.com/username"
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
@@ -1357,6 +1362,7 @@ export default function StudentProfileForm() {
                   <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                     <input
                       type="text"
+                      maxLength={256}
                       placeholder="https://facebook.com/username"
                       value={facebookUrl}
                       onChange={(e) => setFacebookUrl(e.target.value)}
@@ -1403,6 +1409,7 @@ export default function StudentProfileForm() {
                   <div className="flex items-center h-12 px-3 border border-border bg-white rounded-xl focus-within:border-primary transition-all">
                     <input
                       type="text"
+                      maxLength={256}
                       placeholder="https://t.me/username"
                       value={telegramUrl}
                       onChange={(e) => setTelegramUrl(e.target.value)}

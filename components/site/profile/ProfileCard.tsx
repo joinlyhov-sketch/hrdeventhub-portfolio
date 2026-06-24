@@ -296,14 +296,14 @@ export default function ProfileCard({
         </div>
 
         <div className="text-center w-full px-2">
-          <h2 className="type-title text-primary font-bold text-xl">
+          <h2 className="type-title text-primary font-bold text-xl wrap-break-word overflow-wrap-anywhere">
             {displayName}
           </h2>
-          <p className="text-detail text-secondary mb-4 border-b pb-2.5 border-border">
+          <p className="text-detail text-secondary mb-4 border-b pb-2.5 border-border wrap-break-word overflow-wrap-anywhere">
             @{profile.appUser.username.split("@")[0]}
           </p>
           {isVisible("showBio") && profile.bio && (
-            <p className="text-detail font-medium text-secondary mb-2 leading-relaxed italic">
+            <p className="text-detail font-medium text-secondary mb-2 leading-relaxed italic wrap-break-word overflow-wrap-anywhere">
               &quot;{profile.bio}&quot;
             </p>
           )}
