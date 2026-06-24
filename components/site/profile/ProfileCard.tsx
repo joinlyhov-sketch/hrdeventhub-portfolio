@@ -11,6 +11,8 @@ import {
   BriefcaseBusiness,
   BookOpen,
   MessageCircleMore,
+  Venus,
+  Mars,
 } from "lucide-react";
 import Link from "next/link";
 import { UserProfilePayload } from "@/types/profile-types";
@@ -208,63 +210,17 @@ export default function ProfileCard({
   const showLockedState = isPublicView && sharingMode === "PRIVATE";
 
   const GenderIcon = ({ gender }: { gender: string }) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 18 18"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <div>
       {gender === "F" ? (
         <>
-          <path
-            d="M7.6875 16.125C10.8977 16.125 13.5 13.5227 13.5 10.3125C13.5 7.10234 10.8977 4.5 7.6875 4.5C4.47734 4.5 1.875 7.10234 1.875 10.3125C1.875 13.5227 4.47734 16.125 7.6875 16.125Z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M16.125 1.875L12 6"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M11.25 1.875H16.125V6.75"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <Venus size={18} />
         </>
       ) : (
         <>
-          <path
-            d="M10.5 7.5C10.5 9.98528 8.48528 12 6 12C3.51472 12 1.5 9.98528 1.5 7.5C1.5 5.01472 3.51472 3 6 3C8.48528 3 10.5 5.01472 10.5 7.5Z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M16.5 1.5L11.25 6.75"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M13.5 1.5H16.5V4.5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <Mars size={18} />
         </>
       )}
-    </svg>
+    </div>
   );
 
   return (

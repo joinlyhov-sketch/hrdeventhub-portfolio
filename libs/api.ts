@@ -89,6 +89,10 @@ export const apiRequest = async <T>(options: ApiRequestOptions): Promise<T> => {
     throw new Error(error.message);
   }
 
+  if (response.status === 204) {
+  return null as T;
+  }
+
   return response.json() as Promise<T>;
 };
 

@@ -22,3 +22,7 @@ export async function connectTelegramAction(userId: string): Promise<TelegramAct
     return { error: msg };
   }
 }
+
+export async function disconnectTelegramAction(): Promise<TelegramActionResponse> {
+  return { ok: true };
+}
