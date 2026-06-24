@@ -30,6 +30,36 @@ export function formatDate(iso: string): string {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+export function formatMessageTimestamp(iso: string): string {
+  const date = new Date(iso);
+  const now = new Date();
+
+  const time = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYesterday = new Date(startOfToday.getTime() - 86_400_000);
+  const startOfWeek = new Date(startOfToday.getTime() - 6 * 86_400_000);
+
+  if (date >= startOfToday) {
+    return time;
+  }
+  if (date >= startOfYesterday) {
+    return `Yesterday ${time}`;
+  }
+  if (date >= startOfWeek) {
+    const day = date.toLocaleDateString([], { weekday: "short" });
+    return `${day} ${time}`;
+  }
+
+  const sameYear = date.getFullYear() === now.getFullYear();
+  const datePart = date.toLocaleDateString([], {
+    day: "numeric",
+    month: "short",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+  return `${datePart} ${time}`;
+}
+
 export function formatConvTime(iso: string | null | undefined): string {
   if (!iso) return "";
   const date = new Date(iso);
