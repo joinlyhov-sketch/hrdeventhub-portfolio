@@ -2,6 +2,7 @@
 
 import { CheckCircle2, ChevronDown, ChevronUp, Loader2, Lock, Unlock } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   profileService,
@@ -190,6 +191,10 @@ interface SaveButtonLayoutProps {
   setTelegramError: (err: string | null) => void;
   isConnectingTelegram: boolean;
   setIsConnectingTelegram: (connecting: boolean) => void;
+  isTelegramConnected: boolean;
+  telegramNotice: string | null;
+  setTelegramNotice: (msg: string | null) => void;
+  setAwaitingTelegramRefresh: (pending: boolean) => void;
 }
 
 function SaveButtonLayout({
@@ -202,47 +207,121 @@ function SaveButtonLayout({
   setTelegramError,
   isConnectingTelegram,
   setIsConnectingTelegram,
+  isTelegramConnected,
+  telegramNotice,
+  setTelegramNotice,
+  setAwaitingTelegramRefresh,
 }: SaveButtonLayoutProps) {
-  const handleTelegramConnect = async () => {
-    if (!appUserId) {
-      setTelegramError("Session context has expired. Please authenticate again.");
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  const accessToken = session?.accessToken;
+  const handleTelegramAction = async () => {
+  if (!appUserId) {
+    setTelegramError(
+      "Session context has expired. Please authenticate again."
+    );
+    return;
+  }
+
+  setIsConnectingTelegram(true);
+  setTelegramError(null);
+  setTelegramNotice(null);
+
+  try {
+    if (isTelegramConnected) {
+    if (!accessToken) {
+      setTelegramError("Authentication session has expired.");
       return;
     }
-    setIsConnectingTelegram(true);
-    setTelegramError(null);
-    try {
-      const result = await connectTelegramAction(appUserId);
 
-      if (result.error) {
-        if (typeof result.error === "object" && result.error !== null) {
-          setTelegramError((result.error as { message?: string }).message || JSON.stringify(result.error));
-        } else {
-          setTelegramError(result.error as string);
+    await profileService.disconnectTelegram(
+      appUserId,
+      accessToken
+    );
+
+    setTelegramNotice("Telegram disconnected successfully.");
+    router.refresh();
+    return;
+  }
+
+    const result = await connectTelegramAction(appUserId);
+
+    const pollTelegramConnection = async () => {
+      const token = session?.accessToken;
+
+      if (!token) return;
+
+      let attempts = 0;
+
+      const interval = setInterval(async () => {
+        try {
+          attempts++;
+
+          const profile = await profileService.getProfileMe(token);
+
+          if (profile.payload.appUser.telegramSubscribed) {
+            clearInterval(interval);
+
+            setTelegramNotice("Telegram connected successfully.");
+
+            router.refresh();
+          }
+
+          if (attempts >= 20) {
+            clearInterval(interval);
+          }
+        } catch {
+          clearInterval(interval);
         }
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setTelegramError(err.message);
+      }, 3000);
+    };
+
+    if (result?.error) {
+      if (typeof result.error === "object" && result.error !== null) {
+        setTelegramError(
+          (result.error as { message?: string }).message ??
+            JSON.stringify(result.error)
+        );
       } else {
-        setTelegramError("An unexpected error occurred during redirection setup.");
+        setTelegramError(result.error as string);
       }
-    } finally {
-      setIsConnectingTelegram(false);
+
+      return;
     }
-  };
+
+    pollTelegramConnection();
+
+    setAwaitingTelegramRefresh(true);
+
+  } catch (err) {
+    setTelegramError(
+      err instanceof Error
+        ? err.message
+        : "An unexpected error occurred."
+    );
+  } finally {
+    setIsConnectingTelegram(false);
+  }
+};
 
   return (
     <div className="flex flex-col sm:items-end gap-2 mt-6 w-full">
       {saveError && <p className="text-xs text-destructive">{saveError}</p>}
       {telegramError && <p className="text-xs text-destructive">{telegramError}</p>}
+      {telegramNotice && <p className="text-xs text-muted-foreground">{telegramNotice}</p>}
       {saveSuccess && <p className="text-xs text-emerald-600">Changes saved successfully.</p>}
 
       <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-2">
         <button
           type="button"
-          onClick={handleTelegramConnect}
+          onClick={handleTelegramAction}
           disabled={isConnectingTelegram}
-          className="w-full sm:w-auto px-6 py-2.5 bg-[#0088cc] hover:bg-[#0077b3] text-white rounded-2xl text-sm font-semibold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+          className={`w-full sm:w-auto px-6 py-2.5 text-white rounded-2xl text-sm font-semibold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm ${
+            isTelegramConnected
+              ? "bg-destructive hover:bg-destructive/90"
+              : "bg-[#0088cc] hover:bg-[#0077b3]"
+          }`}
         >
           {isConnectingTelegram ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -251,7 +330,13 @@ function SaveButtonLayout({
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-1-.65-.35-1 .22-1.62.15-.15 2.7-2.46 2.75-2.67.01-.03.01-.13-.05-.18-.06-.05-.14-.03-.2-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.13-.31-1.09-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
             </svg>
           )}
-          {isConnectingTelegram ? "Connecting Bot…" : "Connect Telegram"}
+          {isConnectingTelegram
+            ? isTelegramConnected
+              ? "Disconnecting…"
+              : "Connecting Bot…"
+            : isTelegramConnected
+              ? "Disconnect Telegram"
+              : "Connect Telegram"}
         </button>
 
         <button
@@ -276,6 +361,7 @@ export default function SettingVisibilityModeCard({
   setSelectiveConfig,
 }: SettingVisibilityModeCardProps) {
   const { data: session } = useSession();
+  const router = useRouter();
 
   const [expandedSections, setExpandedSections] = useState<Record<AccordionKey, boolean>>({
     profile: false,
@@ -289,6 +375,38 @@ export default function SettingVisibilityModeCard({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isConnectingTelegram, setIsConnectingTelegram] = useState(false);
   const [telegramError, setTelegramError] = useState<string | null>(null);
+  const [telegramNotice, setTelegramNotice] = useState<string | null>(null);
+  const [awaitingTelegramRefresh, setAwaitingTelegramRefresh] = useState(false);
+  const [isTelegramConnected, setIsTelegramConnected] = useState(
+    Boolean(profile.appUser?.telegramSubscribed)
+  );
+
+  useEffect(() => {
+  setIsTelegramConnected(Boolean(profile.appUser?.telegramSubscribed));
+}, [profile.appUser?.telegramSubscribed]);
+
+  useEffect(() => {
+    if (!awaitingTelegramRefresh) return;
+
+    const triggerRefresh = () => {
+      setAwaitingTelegramRefresh(false);
+      router.refresh();
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        triggerRefresh();
+      }
+    };
+
+    window.addEventListener("focus", triggerRefresh);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.removeEventListener("focus", triggerRefresh);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [awaitingTelegramRefresh, router]);
 
   useEffect(() => {
     if (visibilityMode === "share_all") {
@@ -673,6 +791,10 @@ export default function SettingVisibilityModeCard({
           setTelegramError={setTelegramError}
           isConnectingTelegram={isConnectingTelegram}
           setIsConnectingTelegram={setIsConnectingTelegram}
+          isTelegramConnected={isTelegramConnected}
+          telegramNotice={telegramNotice}
+          setTelegramNotice={setTelegramNotice}
+          setAwaitingTelegramRefresh={setAwaitingTelegramRefresh}
         />
       </div>
     </div>
