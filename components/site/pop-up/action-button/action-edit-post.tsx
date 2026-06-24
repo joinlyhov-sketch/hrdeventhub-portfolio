@@ -49,7 +49,7 @@ export default function GenericPostDropDown({
     startTransition(async () => {
       try {
         await onTogglePin(currentPinned);
-      } catch (error) {
+      } catch {
       }
     });
   };

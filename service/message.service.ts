@@ -11,8 +11,8 @@ export async function getMessages(
     `${API_BASE}/chat/conversations/${conversationId}/messages?page=${page}&size=${size}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  const data: ApiResponse<ChatMessage[]> = await res.json();
-  return data.payload ?? (data as any).data ?? [];
+  const data: ApiResponse<ChatMessage[]> & { data?: ChatMessage[] } = await res.json();
+  return data.payload ?? data.data ?? [];
 }
 
 export async function editMessage(

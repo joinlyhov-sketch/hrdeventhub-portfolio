@@ -1,5 +1,6 @@
 import { Download, ClipboardList } from "lucide-react";
 import { UserProfilePayload } from "@/types/profile-types";
+import Image from "next/image";
 
 interface BackgroundTabProps {
   profile: UserProfilePayload | null;
@@ -113,12 +114,14 @@ export default function BackgroundTab({
                   key={index}
                   className="flex gap-4 items-start pb-6 border-b border-border last:border-0 last:pb-0"
                 >
-                  <div className="w-12 h-12 rounded-lg border border-border bg-grey-50 flex items-center justify-center shrink-0 overflow-hidden relative">
+                  <div className="w-12 h-12 p-1 flex items-center justify-center shrink-0 overflow-hidden relative">
                     {edu.institutionLogo ? (
-                      <img
-                        src={edu.institutionLogo}
+                      <Image
+                        width={47}
+                        height={47}
+                        src={edu.institutionLogo.trimEnd()}
                         alt={edu.institutionName || "Institution logo"}
-                        className="w-full h-full object-cover"
+                        className="w-full h-fit object-cover"
                       />
                     ) : (
                       <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase">
@@ -181,12 +184,15 @@ export default function BackgroundTab({
           {hasResume ? (
             <button
               type="button"
-              onClick={async () =>
+              onClick={async () => {
+                console.log("profile.cvResumeUrl:", profile.cvResumeUrl);
+                const url = profile.cvResumeUrl;
+                const extension = url?.split(".").pop();
                 handleDownloadResume(
                   profile.cvResumeUrl!,
-                  `CV_${profile.appUser?.firstName || "User"}_Resume.pdf`,
-                )
-              }
+                  `CV_${profile.appUser?.username || "User"}.${extension}`,
+                );
+              }}
               className="w-full flex items-center justify-between gap-3 p-4 border border-border rounded-lg bg-grey-50 group cursor-pointer hover:border-primary transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -195,7 +201,8 @@ export default function BackgroundTab({
                   className="text-secondary group-hover:text-primary transition-colors shrink-0"
                 />
                 <span className="type-desc-medium text-secondary truncate">
-                  CV_{profile.appUser?.firstName || "User"}_Resume.pdf
+                  CV_{profile.appUser?.username || "User"}.
+                  {profile.cvResumeUrl?.split(".").pop()}
                 </span>
               </div>
               <Download

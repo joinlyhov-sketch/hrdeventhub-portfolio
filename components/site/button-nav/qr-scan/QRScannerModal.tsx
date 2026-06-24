@@ -17,11 +17,6 @@ interface Props {
   onError: (err: CheckInError) => void;
 }
 
-declare class BarcodeDetector {
-  constructor(options?: { formats: string[] });
-  detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>;
-}
-
 export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const scannerRef = useRef<QrScanner | null>(null);
@@ -76,7 +71,7 @@ export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
 
         let isLate = false;
         try {
-          let payload: any = null;
+          let payload: Record<string, unknown> | null = null;
           if (result.data.split('.').length === 3) {
             payload = JSON.parse(atob(result.data.split('.')[1]));
           } else if (result.data.startsWith('{')) {
@@ -84,7 +79,7 @@ export function QRScannerModal({ token, onClose, onSuccess, onError }: Props) {
           }
 
           if (payload && (payload.eventStart || payload.start)) {
-            const startString = payload.eventStart || payload.start;
+            const startString = (payload.eventStart || payload.start) as string;
             const eventStart = new Date(startString);
             const now = new Date();
             const oneHourBefore = new Date(eventStart.getTime() - 60 * 60 * 1000);

@@ -211,9 +211,6 @@ export default function PollForm({
 
       const savedWorkspaceId = workspaceIdState;
       setSuccess(true);
-      console.log(
-        isEditMode ? "Poll updated successfully" : "Poll created successfully",
-      );
 
       if (!isEditMode) {
         setTitle("");

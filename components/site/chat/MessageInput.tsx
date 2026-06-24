@@ -76,7 +76,7 @@ export default function MessageInput({
         {!editingMsg && (
           <button
             type="button"
-            className="p-2 text-gray-400 hover:text-[#1c4d8d] hover:bg-blue-50 rounded-xl transition-all shrink-0 disabled:opacity-50"
+            className="p-2 text-gray-400 hover:text-[#1c4d8d] hover:bg-blue-50 rounded-xl transition-all shrink-0 disabled:opacity-50 hover:cursor-pointer"
             onClick={() => fileRef.current?.click()}
             disabled={fileDisabled}
             title={disabled ? "Connecting... attachments need an active connection" : undefined}

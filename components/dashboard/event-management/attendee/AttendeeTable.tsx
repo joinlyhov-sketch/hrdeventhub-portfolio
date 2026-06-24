@@ -35,11 +35,7 @@ export default function AttendeeTableClient({
   const itemsPerPage = 10;
 
   useEffect(() => {
-    console.log(
-      "[AttendeeTableClient] initialAttendees prop changed! New data:",
-      initialAttendees,
-    );
-    queueMicrotask(() => setAttendees(initialAttendees));
+    setAttendees(initialAttendees);
   }, [initialAttendees]);
 
   const uniqueStatuses = useMemo(() => {
@@ -169,9 +165,7 @@ export default function AttendeeTableClient({
                     key={attendee.participantId}
                     indexNumber={absoluteIndex}
                     attendee={attendee}
-                    onViewProfile={(item) => {
-                      console.log("View profile clicked for:", item);
-                    }}
+                    onViewProfile={() => {}}
                     onDeleteAttendee={(id) => {
                       setAttendees((prev) =>
                         prev.filter((item) => item.participantId !== id),

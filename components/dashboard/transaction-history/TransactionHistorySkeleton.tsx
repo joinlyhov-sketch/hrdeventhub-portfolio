@@ -1,4 +1,13 @@
-const headerWidths = ["w-24", "w-28", "w-20", "w-24", "w-20", "w-16"];
+const HEADER_COLS = [
+  { label: "ID", w: "w-10" },
+  { label: "Username", w: "w-20" },
+  { label: "Amount", w: "w-16" },
+  { label: "Payment", w: "w-20" },
+  { label: "Status", w: "w-16" },
+  { label: "Timestamp", w: "w-20" },
+  { label: "Action", w: "w-12" },
+];
+
 const rowNameWidths = ["w-14", "w-16", "w-12", "w-16", "w-14", "w-12", "w-16", "w-14"];
 const sidebarTitleWidths = ["w-3/5", "w-2/3", "w-3/4", "w-1/2", "w-3/5"];
 
@@ -28,39 +37,46 @@ export default function TransactionHistorySkeleton() {
             <div className="h-5 w-40 rounded bg-gray-100 animate-pulse" />
             <div className="h-9 w-36 rounded-xl bg-gray-100 animate-pulse" />
           </div>
-          <div className="grid grid-cols-6 px-2">
-            {headerWidths.map((w, i) => (
-              <div key={i} className="py-2 px-1">
-                <div className={`h-3 rounded bg-gray-100 animate-pulse ${w}`} />
+
+          <div className="rounded-tl-2xl rounded-tr-2xl overflow-hidden">
+            <div className="bg-[#0f2854] grid grid-cols-7 px-4">
+              {HEADER_COLS.map((col) => (
+                <div key={col.label} className="py-3.5 px-2 flex items-center justify-center">
+                  <div className={`h-3 rounded bg-white/15 animate-pulse ${col.w}`} />
+                </div>
+              ))}
+            </div>
+
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-7 px-4 h-12 items-center border-b border-gray-50 last:border-0"
+              >
+                <div className="px-1 flex justify-center">
+                  <div className="h-3 w-10 rounded bg-gray-100 animate-pulse" />
+                </div>
+                <div className="px-1 flex items-center justify-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-gray-100 animate-pulse shrink-0" />
+                  <div className={`h-3 rounded bg-gray-100 animate-pulse ${rowNameWidths[i % rowNameWidths.length]}`} />
+                </div>
+                <div className="px-1 flex justify-center">
+                  <div className="h-3 w-12 rounded bg-gray-100 animate-pulse" />
+                </div>
+                <div className="px-1 flex justify-center">
+                  <div className="h-3 w-16 rounded bg-gray-100 animate-pulse" />
+                </div>
+                <div className="px-1 flex justify-center">
+                  <div className="h-5 w-16 rounded-full bg-gray-100 animate-pulse" />
+                </div>
+                <div className="px-1 flex justify-center">
+                  <div className="h-3 w-16 rounded bg-gray-100 animate-pulse" />
+                </div>
+                <div className="px-1 flex justify-center">
+                  <div className="h-3 w-8 rounded bg-gray-100 animate-pulse" />
+                </div>
               </div>
             ))}
           </div>
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className="grid grid-cols-6 px-2 h-12 items-center border-b border-gray-50 last:border-0"
-            >
-              <div className="px-1">
-                <div className="h-3 w-20 rounded bg-gray-100 animate-pulse" />
-              </div>
-              <div className="px-1 flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-gray-100 animate-pulse shrink-0" />
-                <div className={`h-3 rounded bg-gray-100 animate-pulse ${rowNameWidths[i % rowNameWidths.length]}`} />
-              </div>
-              <div className="px-1">
-                <div className="h-3 w-12 rounded bg-gray-100 animate-pulse" />
-              </div>
-              <div className="px-1">
-                <div className="h-3 w-16 rounded bg-gray-100 animate-pulse" />
-              </div>
-              <div className="px-1">
-                <div className="h-5 w-16 rounded-full bg-gray-100 animate-pulse" />
-              </div>
-              <div className="px-1">
-                <div className="h-3 w-16 rounded bg-gray-100 animate-pulse" />
-              </div>
-            </div>
-          ))}
         </div>
 
         <div className="w-full bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">

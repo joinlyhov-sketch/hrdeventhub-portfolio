@@ -37,7 +37,7 @@ export default function FilteredFeed({
 }: FilteredFeedProps) {
   const searchParams = useSearchParams();
   const deepLinkPostId = searchParams.get("postId") ?? deepLinkPostIdProp;
-  const deepLinkType = searchParams.get("type") ?? deepLinkTypeProp;
+  const _deepLinkType = searchParams.get("type") ?? deepLinkTypeProp;
 
   const [mounted, setMounted] = useState(false);
   const { currentUser, isLoading: userLoading } = useCurrentUser();
@@ -238,6 +238,15 @@ export default function FilteredFeed({
     }
   };
 
+  const handleDeletePoll = (pollId: string) => {
+    mutate(
+      (current) =>
+        current?.filter((item) => item.id !== pollId && (item.data as Record<string, unknown>)?.pollId !== pollId) ?? [],
+      false
+    );
+    setTimeout(() => mutate(), 800);
+  };
+
   const handleDeleteSurvey = (surveyId: string) => {
     mutate(
       (current) =>
@@ -399,7 +408,7 @@ export default function FilteredFeed({
                       role={role}
                       polls={[item.data as Poll]}
                       searchQuery={debouncedSearch}
-                      onDeletePoll={(pollId) => console.log(pollId)}
+                      onDeletePoll={handleDeletePoll}
                     />
                   </div>
                 );

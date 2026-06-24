@@ -14,7 +14,7 @@ interface ProfileTabsContainerProps {
   viewerRole: string;
   subjectRole: string;
   isPublicView: boolean;
-  calculatedViewMode: any;
+  calculatedViewMode: string | null;
   profileLoading: boolean;
 }
 

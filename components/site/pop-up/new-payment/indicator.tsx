@@ -57,16 +57,16 @@ export function StepIndicator({
   const currentIdx = steps.findIndex((s) => s.id === current);
 
   return (
-    <div className="flex items-center justify-center gap-0 px-8 pt-2 pb-4">
+    <div className="flex items-center justify-center gap-0 px-4 sm:px-8 pt-2 pb-4 w-full">
       {steps.map((step, idx) => {
         const isDone = idx < currentIdx;
         const isActive = idx === currentIdx;
 
         return (
-          <div key={step.id} className="flex items-center">
-            <div className="flex flex-col items-center gap-1">
+          <div key={step.id} className="flex items-center min-w-0">
+            <div className="flex flex-col items-center gap-1 shrink-0">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold transition-all duration-300 ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[12px] sm:text-[13px] font-bold transition-all duration-300 ${
                   isDone
                     ? "bg-[#1e3a8a] text-white"
                     : isActive
@@ -74,11 +74,11 @@ export function StepIndicator({
                       : "bg-gray-100 text-gray-400"
                 }`}
               >
-                {isDone ? <CheckCircle2 size={16} /> : idx + 1}
+                {isDone ? <CheckCircle2 size={14} /> : idx + 1}
               </div>
 
               <span
-                className={`text-[11px] font-medium whitespace-nowrap transition-colors ${
+                className={`text-[10px] sm:text-[11px] font-medium whitespace-nowrap transition-colors ${
                   isActive || isDone ? "text-[#1e3a8a]" : "text-gray-400"
                 }`}
               >
@@ -88,7 +88,7 @@ export function StepIndicator({
 
             {idx < steps.length - 1 && (
               <div
-                className={`w-12 h-[2px] mb-5 mx-1 rounded-full transition-all duration-500 ${
+                className={`flex-1 min-w-3 max-w-12 h-0.5 mb-5 mx-1 rounded-full transition-all duration-500 ${
                   isDone ? "bg-[#1e3a8a]" : "bg-gray-100"
                 }`}
               />

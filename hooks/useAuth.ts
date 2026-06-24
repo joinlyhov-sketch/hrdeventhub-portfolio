@@ -11,7 +11,8 @@ export function useAuth() {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
-      const token = (session as any).accessToken || (session as any).user?.token;
+      const s = session as { accessToken?: string; user?: { token?: string } } & typeof session;
+      const token = s.accessToken || s.user?.token;
 
       if (token) {
         try {

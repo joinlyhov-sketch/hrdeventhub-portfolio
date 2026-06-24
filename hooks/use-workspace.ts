@@ -7,9 +7,10 @@ export function useWorkspace(workspaceId: string) {
   const { data: session } = useSession();
   const token = session?.accessToken;
 
-  const { data, error, isLoading ,mutate} = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     workspaceId && token ? ["workspace", workspaceId, token] : null,
-    () => workspaceService.getById(workspaceId, token!)
+    () => workspaceService.getById(workspaceId, token!),
+    { revalidateOnFocus: false, dedupingInterval: 30_000 }
   );
 
   return {

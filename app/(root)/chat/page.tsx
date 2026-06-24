@@ -11,11 +11,11 @@ import ChatWindow from "@/components/site/chat/ChatWindow";
 import { cn } from "@/libs/utils";
 
 export default function ChatPage() {
-  const { auth, isHydrated, logout } = useAuth();
+  const { auth, isHydrated } = useAuth();
   const { conversations, refresh, startChat } = useConversations(
-    auth?.token ?? null,
-  );
-  const { upsertConversation } = useChatStore();
+  auth?.token ?? null,);
+  
+  const { upsertConversation, removeConversation } = useChatStore();
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,6 +41,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (auth) refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth]);
 
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function ChatPage() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetUsername, auth?.token]);
 
   if (!isHydrated) {
@@ -114,6 +116,18 @@ export default function ChatPage() {
     if (conv) router.push(`/chat?target=${conv.otherUserName}`);
   };
 
+  const handleDeleteConversation = (conversationId: string) => {
+    removeConversation(conversationId);
+
+    const wasActive = String(activeConv?.id ?? "") === String(conversationId);
+    if (wasActive) {
+      setActiveConv(null);
+      router.replace("/chat");
+    }
+
+    refresh();
+  };
+
   return (
     <div className="flex h-[calc(100dvh)] md:h-[100dvh] w-full antialiased bg-white overflow-hidden relative z-10 pointer-events-auto">
       <div
@@ -129,6 +143,7 @@ export default function ChatPage() {
           token={auth.token}
           onSelect={handleSelectConversation}
           onNewChat={handleNewChat}
+          onDelete={handleDeleteConversation}
         />
       </div>
 
@@ -159,7 +174,6 @@ export default function ChatPage() {
             conversation={activeConv}
             token={auth.token}
             userId={auth.userId}
-            userName={auth.name}
             onConversationUpdate={stableRefresh}
             onBack={handleBack}
           />

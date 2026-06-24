@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Conversation, ChatMessage } from "@/types/chat";
+import { Conversation, ChatMessage, WsEditEvent, WsDeleteEvent, WsReadEvent } from "@/types/chat";
 import { useMessages } from "@/hooks/useMessages";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useChatStore } from "@/store/useChatStore";
-import { initials } from "@/libs/utils";
 import { uploadFileAction } from "@/actions/chat.action";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
@@ -17,7 +16,6 @@ interface ChatWindowProps {
   conversation: Conversation;
   token: string;
   userId: string;
-  userName: string;
   onConversationUpdate: () => void;
   onBack: () => void;
 }
@@ -79,7 +77,7 @@ export default function ChatWindow({
         const pendingMatch = (
           useChatStore.getState().messages[conversation.id] ?? []
         ).find(
-          (m: any) => m._pending && m.content === msg.content,
+          (m) => m._pending && m.content === msg.content,
         );
         if (pendingMatch) {
           removeMessage(pendingMatch.id, conversation.id);
@@ -100,15 +98,15 @@ export default function ChatWindow({
   );
 
   const handleEdit = useCallback(
-    (e: any) => updateMessage(e.message),
+    (e: WsEditEvent) => updateMessage(e.message),
     [updateMessage],
   );
   const handleDelete = useCallback(
-    (e: any) => removeMessage(e.messageId, e.conversationId),
+    (e: WsDeleteEvent) => removeMessage(e.messageId, e.conversationId),
     [removeMessage],
   );
   const handleRead = useCallback(
-    (e: any) => {
+    (e: WsReadEvent) => {
       if (String(e.readBy) === normalizedUserId) return;
       updateRead(e.conversationId, e.readBy);
       onUpdateRef.current();
@@ -230,8 +228,8 @@ export default function ChatWindow({
       await uploadFileAction(conversation.id, file, token);
       onUpdateRef.current();
       loadMessages(conversation.id);
-    } catch (err: any) {
-      setUploadError(err.message ?? "Upload failed");
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -338,12 +336,6 @@ export default function ChatWindow({
           )}
           {!loading && messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full py-16 gap-3">
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-                <i
-                  className="ti ti-message-2 text-xl text-[#1c4d8d]"
-                  aria-hidden="true"
-                />
-              </div>
               <p className="text-xs text-gray-400 font-semibold">
                 Say hello to {conversation.otherUserName}!
               </p>

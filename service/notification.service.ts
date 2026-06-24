@@ -41,7 +41,7 @@ export const notificationService = {
     const res = await apiGet<NotificationApiItem[]>(`/notifications?limit=${limit}`, {
       authToken: token,
     });
-    const items: NotificationApiItem[] = (res as any)?.payload ?? res ?? [];
+    const items: NotificationApiItem[] = (res as { payload?: NotificationApiItem[] })?.payload ?? (res as NotificationApiItem[]) ?? [];
     return items.map(toPayload);
   },
 

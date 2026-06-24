@@ -14,7 +14,8 @@ export function useWorkspacePosts(workspaceId: string) {
 
   const { data, error, isLoading } = useSWR(
     cacheKey,
-    () => postService.getByWorkspace(workspaceId, token!)
+    () => postService.getByWorkspace(workspaceId, token!),
+    { revalidateOnFocus: false, dedupingInterval: 10_000 }
   );
 
   const deletePost = async (postId: string) => {

@@ -53,7 +53,7 @@ function toNotificationPayload(raw: WsNotification): NotificationPayload {
     actorId: raw.actorId,
     actorName: raw.actorName,
     actorAvatar: raw.actorAvatar,
-    message: (raw as any).message || buildMessage(raw), 
+    message: (raw as { message?: string }).message || buildMessage(raw),
     createdAt: raw.timestamp ?? new Date().toISOString(),
     read: false,
   };
@@ -120,7 +120,6 @@ export function useNotificationSocket({
       reconnectDelay: 5000,
 
       onConnect: () => {
-        console.log("[WS] Connected. Subscribing to mentions + notifications + workspace topics.");
 
         client.subscribe("/user/queue/mentions", (message) => {
           try {
@@ -151,7 +150,6 @@ export function useNotificationSocket({
         });
 
         ids.forEach((wsId) => {
-          console.log("[WS] Subscribing to /topic/workspace/" + wsId + "/notifications");
           client.subscribe(
             `/topic/workspace/${wsId}/notifications`,
             (message) => {
@@ -175,15 +173,12 @@ export function useNotificationSocket({
         console.error("[WS] STOMP error:", frame.headers["message"], frame.body);
       },
 
-      onDisconnect: () => {
-        console.warn("[WS] Disconnected");
-      },
+      onDisconnect: () => {},
     });
 
     client.activate();
 
     return () => {
-      console.log("[WS] Deactivating client");
       client.deactivate();
     };
   }, [token, appUserId, workspaceKey]);

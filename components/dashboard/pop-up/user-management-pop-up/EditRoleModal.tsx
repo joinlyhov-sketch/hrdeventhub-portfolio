@@ -136,10 +136,6 @@ export default function EditRoleModal({
 
             <SaveButton
               onClick={() => {
-                console.log(
-                  `Role update triggered — User: ${user.username} | ID: ${userId} | New Role: ${role}`,
-                );
-
                 onSave(userId, role);
               }}
             />

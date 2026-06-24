@@ -36,6 +36,13 @@ export async function deleteMessageAction(messageId: string, token: string): Pro
   return chatService.deleteMessage(messageId, token);
 }
 
+export async function deleteConversationAction(
+  conversationId: string,
+  token: string,
+): Promise<void> {
+  return chatService.deleteConversation(conversationId, token);
+}
+
 export async function uploadFileAction(
   conversationId: string,
   file: File,

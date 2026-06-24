@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface ChatAvatarProps {
   name: string;
   avatarUrl?: string | null;
@@ -11,9 +13,11 @@ export default function ChatAvatar({ name, avatarUrl, size = "md" }: ChatAvatarP
 
   if (avatarUrl) {
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={name}
+        width={192}
+        height={192}
         className={`${dim} rounded-full object-cover flex-shrink-0`}
       />
     );

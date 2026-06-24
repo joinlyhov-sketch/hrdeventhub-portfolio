@@ -9,6 +9,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ThumbsUp,
+  CalendarMinus2,
+  MapPin,
+  Users,
 } from "lucide-react";
 import PriceContentComponent from "@/components/site/event-detail/price-content";
 import MapContentComponent from "@/components/site/event-detail/map-content";
@@ -66,6 +69,7 @@ export default function EventDetailClient({
   const tabTrackRef = useRef<HTMLDivElement>(null);
   const tabPillRef = useRef<HTMLDivElement>(null);
   const tabBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const mobileDiscussionRef = useRef<HTMLDivElement>(null);
 
   const [detailData, setDetailData] = useState({
     id: event?.postId || "det-4401",
@@ -79,9 +83,9 @@ export default function EventDetailClient({
   const mediaList =
     event?.media && event.media.length > 0
       ? event.media.map((m) => {
-          const path = m.filePath || "";
-          return path.startsWith("http") ? path : `${API_BASE}${path}`;
-        })
+        const path = m.filePath || "";
+        return path.startsWith("http") ? path : `${API_BASE}${path}`;
+      })
       : ["https://images.unsplash.com/photo-1511578314322-379afb476865"];
 
   const extendedList = [
@@ -234,10 +238,11 @@ export default function EventDetailClient({
   const handleScrollToDiscussion = () => {
     if (isAdminOrOrganizer) setActiveAdminTab("discussion");
     setTimeout(() => {
-      discussionRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      const isMobileView = window.innerWidth < 768;
+      const target = isMobileView
+        ? mobileDiscussionRef.current
+        : discussionRef.current;
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
 
@@ -265,17 +270,17 @@ export default function EventDetailClient({
       isCurrentlyActive
         ? prev.filter((r) => r.reactor.appUserId !== currentUser?.id)
         : [
-            ...prev,
-            {
-              reactionId: "temp",
-              type: "like",
-              createdAt: "",
-              postId: event.postId,
-              reactor: {
-                appUserId: currentUser?.id ?? "",
-              },
+          ...prev,
+          {
+            reactionId: "temp",
+            type: "like",
+            createdAt: "",
+            postId: event.postId,
+            reactor: {
+              appUserId: currentUser?.id ?? "",
             },
-          ],
+          },
+        ],
     );
 
     try {
@@ -359,15 +364,26 @@ export default function EventDetailClient({
 
   const formattedCreationDate = event?.createdAt
     ? new Date(event.createdAt).toLocaleDateString("en-US", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     : "—";
 
   const [isRegistered, setIsRegistered] = useState(false);
+
+  interface MobileParticipant {
+    user: {
+      appUserId: string;
+      username: string;
+      firstName?: string;
+      lastName?: string;
+      profilePicture?: string;
+    };
+  }
+  const [participants, setParticipants] = useState<MobileParticipant[]>([]);
 
   useEffect(() => {
     if (!event?.postId || !session?.accessToken || !currentUser?.id) return;
@@ -379,9 +395,10 @@ export default function EventDetailClient({
           session.accessToken,
           1,
           100,
-        )) as { payload?: { user: { appUserId: string } }[] };
+        )) as { payload?: MobileParticipant[] };
 
         const list = data.payload ?? [];
+        setParticipants(list);
         setIsRegistered(list.some((p) => p.user?.appUserId === currentUser.id));
       } catch (err) {
         console.error("Failed to check registration status:", err);
@@ -391,9 +408,299 @@ export default function EventDetailClient({
     checkRegistration();
   }, [event?.postId, session?.accessToken, currentUser?.id]);
 
+  const mobileParts = event?.eventStart
+    ? event.eventStart.split(",").map((s) => s.trim())
+    : [];
+  const mobileDateSegment =
+    mobileParts.length >= 3
+      ? `${mobileParts[1]}, ${mobileParts[2]}`
+      : (mobileParts[0] ?? "Date Pending");
+  const mobileTimeSegment =
+    mobileParts.length >= 4 ? mobileParts[mobileParts.length - 1] : "";
+
   return (
     <>
-      <section className="max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card">
+      {!isAdminOrOrganizer && (
+        <div className="md:hidden flex flex-col bg-card border border-border rounded-lg overflow-hidden">
+          <div className="relative w-full aspect-video overflow-hidden">
+            <Image
+              unoptimized
+              src={imgErrors[mediaList[0]] ? FALLBACK : mediaList[0]}
+              alt="Event cover"
+              fill
+              className="object-cover"
+              onError={() =>
+                setImgErrors((prev) => ({ ...prev, [mediaList[0]]: true }))
+              }
+            />
+            {mediaList.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                {mediaList.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`h-1.5 rounded-full transition-all ${idx === 0 ? "w-4 bg-white" : "w-1.5 bg-white/50"}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="mx-4 -mt-5 relative z-10 bg-card rounded-2xl shadow-md px-4 py-3 flex items-center justify-between border border-border">
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-2">
+                {participants.slice(0, 3).map(({ user }) => {
+                  const name =
+                    [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+                    user.username;
+                  return (
+                    <Link
+                      key={user.appUserId}
+                      href={`/profile/${user.appUserId}`}
+                      className="relative h-7 w-7 rounded-full ring-2 ring-card overflow-hidden bg-grey-200 flex items-center justify-center shrink-0"
+                    >
+                      {user.profilePicture ? (
+                        <Image
+                          unoptimized
+                          src={user.profilePicture}
+                          alt={name}
+                          fill
+                          sizes="28px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-[9px] font-semibold text-grey-600">
+                          {name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+              <span className="text-sm font-semibold text-primary">
+                +{participants.length} Going
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsShareOpen(true)}
+              className="bg-primary text-white text-sm font-semibold px-4 py-1.5 rounded-xl hover:bg-primary/85 transition-colors cursor-pointer"
+            >
+              Invite
+            </button>
+          </div>
+          <div className="flex flex-col gap-5 px-4 pt-5 pb-6">
+            <h1 className="text-xl font-bold text-secondary">
+              {event?.title || "Event"}
+            </h1>
+            <div className="flex rounded-xl border border-border overflow-hidden bg-grey-50">
+              {(["details", "price", "map"] as Tab[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setActiveTab(t)}
+                  className={`flex-1 py-2.5 text-sm font-semibold capitalize transition-colors ${activeTab === t
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-grey-500 bg-grey-50 hover:bg-grey-100"
+                    }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => !isRegistered && setIsPaymentOpen(true)}
+              disabled={isRegistered}
+              className={`w-full rounded-xl py-2.5 font-semibold text-sm text-center transition-all cursor-pointer ${isRegistered
+                  ? "bg-green-400/15 text-accent cursor-default"
+                  : "bg-primary text-white hover:bg-primary/85 hover:shadow-lg active:scale-[0.98]"
+                }`}
+            >
+              {isRegistered ? "✓ You are registered!" : "Register now"}
+            </button>
+            <div className="flex flex-col gap-5 min-h-55">
+              {activeTab === "details" && (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <CalendarMinus2 size={20} className="text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-secondary">
+                        {mobileDateSegment}
+                      </p>
+                      <p className="text-xs text-grey-500">
+                        {mobileTimeSegment}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <MapPin size={20} className="text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-secondary">
+                        {event?.location?.locationName || "Location TBD"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <Users size={20} className="text-primary" />
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-secondary">
+                        Joined by {participants.length} others
+                      </p>
+                      <div className="flex -space-x-2">
+                        {participants.slice(0, 3).map(({ user }) => {
+                          const name =
+                            [user.firstName, user.lastName]
+                              .filter(Boolean)
+                              .join(" ") || user.username;
+                          return (
+                            <Link
+                              key={user.appUserId}
+                              href={`/profile/${user.appUserId}`}
+                              className="relative h-6 w-6 rounded-full ring-2 ring-card overflow-hidden bg-grey-200 flex items-center justify-center shrink-0"
+                            >
+                              {user.profilePicture ? (
+                                <Image
+                                  unoptimized
+                                  src={user.profilePicture}
+                                  alt={name}
+                                  fill
+                                  sizes="24px"
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <span className="text-[8px] font-semibold text-grey-600">
+                                  {name.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                        {participants.length > 3 && (
+                          <span className="relative h-6 w-6 rounded-full ring-2 ring-card bg-grey-100 flex items-center justify-center text-[8px] font-semibold text-grey-600 shrink-0">
+                            +{participants.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-grey-50/50 rounded-xl border border-border/60">
+                    <Link
+                      href={`/profile/${event.creator?.userId}`}
+                      className="shrink-0"
+                    >
+                      {event?.creator?.profilePicture && !avatarError ? (
+                        <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-secondary">
+                          <Image
+                            unoptimized
+                            src={event.creator.profilePicture}
+                            alt={event.creator.fullName || "Organizer"}
+                            fill
+                            className="object-cover"
+                            onError={() => setAvatarError(true)}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-grey-200 border-2 border-secondary flex items-center justify-center font-bold text-primary text-sm uppercase">
+                          {event?.creator?.fullName?.slice(0, 2) || "EV"}
+                        </div>
+                      )}
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-secondary truncate">
+                        {event?.creator?.fullName || "Organizer"}
+                      </p>
+                      <p className="text-xs text-grey-500">Organizer</p>
+                    </div>
+                    <Link href={`/profile/${event.creator?.userId}`}>
+                      <span className="text-xs border border-border px-3 py-1.5 rounded-xl text-grey-700 hover:bg-grey-100 transition-colors cursor-pointer">
+                        Follow
+                      </span>
+                    </Link>
+                  </div>
+                  <div className="flex flex-col gap-2 pt-1">
+                    <h2 className="text-base font-bold text-secondary">
+                      About Event
+                    </h2>
+                    <p className="text-sm text-grey-500 leading-relaxed">
+                      {event?.content || "No event description provided."}
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {activeTab === "price" && (
+                <div className="flex flex-col items-center justify-center h-55">
+                  <PriceContentComponent payment={event?.payment} />
+                </div>
+              )}
+
+              {activeTab === "map" && (
+                <MapContentComponent
+                  locationId={event?.location?.locationId}
+                  locationName={event?.location?.locationName}
+                  googleMapUrl={event?.location?.googleMapUrl}
+                  latitude={event?.location?.latitude}
+                  longitude={event?.location?.longitude}
+                />
+              )}
+            </div>
+            <div className="flex items-center gap-6 py-2 border-t border-border text-grey-400 text-sm">
+              <ReactionPopover
+                selectedValue={selectedReaction}
+                onReactionSelect={handleReactionSelect}
+              >
+                <button
+                  type="button"
+                  onClick={handleLikeToggle}
+                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${activeReaction
+                      ? `${activeReaction.color} font-semibold`
+                      : "hover:text-primary"
+                    }`}
+                >
+                  {activeReaction ? (
+                    <TwemojiImg emoji={activeReaction.emoji} size={18} />
+                  ) : (
+                    <ThumbsUp size={18} />
+                  )}
+                  <span>
+                    {activeReaction ? activeReaction.displayText : "Like"}
+                  </span>
+                </button>
+              </ReactionPopover>
+              <button
+                type="button"
+                onClick={handleScrollToDiscussion}
+                className="flex items-center gap-x-1.5 text-grey-500 font-medium hover:text-primary transition-colors cursor-pointer"
+              >
+                <MessageCircleMore size={18} className="text-grey-400" />
+                <span>{detailData.commentsCount}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsShareOpen(true)}
+                className="flex items-center gap-x-1.5 hover:text-primary cursor-pointer"
+              >
+                <Share2 size={18} /> Share
+              </button>
+            </div>
+            <div ref={mobileDiscussionRef}>
+              <DiscussionSection
+                event={event}
+                workspaceId={workspaceId}
+                onCommentsCountChange={handleCommentsCountChange}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      <section
+        className={`max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-6 bg-card${!isAdminOrOrganizer ? " hidden md:flex" : ""}`}
+      >
         <section className="flex justify-between items-center gap-x-2 sm:gap-x-4 w-full">
           <Link
             href={`/profile/${event.creator?.userId}`}
@@ -501,11 +808,10 @@ export default function EventDetailClient({
                     <div
                       key={index}
                       onClick={() => goToIndex(index + 1)}
-                      className={`h-2 w-2 rounded-full transition-all cursor-pointer ${
-                        currentImgIndex === index + 1
-                          ? "bg-white scale-125"
-                          : "bg-white/50"
-                      }`}
+                      className={`h-2 w-2 rounded-full transition-all cursor-pointer ${currentImgIndex === index + 1
+                        ? "bg-white scale-125"
+                        : "bg-white/50"
+                        }`}
                     />
                   ))}
                 </div>
@@ -535,9 +841,8 @@ export default function EventDetailClient({
                     tabBtnRefs.current[i] = el;
                   }}
                   onClick={() => setActiveTab(t)}
-                  className={`relative z-10 flex-1 py-2 rounded-[9px] capitalize cursor-pointer transition-colors duration-200 text-sm font-medium border-none bg-transparent ${
-                    activeTab === t ? "text-white" : "text-gray-500"
-                  }`}
+                  className={`relative z-10 flex-1 py-2 rounded-[9px] capitalize cursor-pointer transition-colors duration-200 text-sm font-medium border-none bg-transparent ${activeTab === t ? "text-white" : "text-gray-500"
+                    }`}
                 >
                   {t}
                 </button>
@@ -573,11 +878,10 @@ export default function EventDetailClient({
               <button
                 onClick={() => !isRegistered && setIsPaymentOpen(true)}
                 disabled={isRegistered}
-                className={`w-full rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${
-                  isRegistered
-                    ? "bg-green-400/15 text-accent cursor-default font-regular"
-                    : "text-primary-foreground bg-primary hover:opacity-95"
-                }`}
+                className={`w-full rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${isRegistered
+                  ? "bg-green-400/15 text-accent cursor-default font-regular"
+                  : "text-primary-foreground bg-primary hover:opacity-95"
+                  }`}
               >
                 {isRegistered ? "✓ You are registered!" : "Register now"}
               </button>
@@ -594,11 +898,10 @@ export default function EventDetailClient({
               >
                 <button
                   onClick={handleLikeToggle}
-                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${
-                    activeReaction
-                      ? `${activeReaction.color} font-semibold`
-                      : "hover:text-primary"
-                  }`}
+                  className={`flex items-center gap-x-1.5 transition-colors cursor-pointer select-none ${activeReaction
+                    ? `${activeReaction.color} font-semibold`
+                    : "hover:text-primary"
+                    }`}
                 >
                   {activeReaction ? (
                     <TwemojiImg emoji={activeReaction.emoji} size={20} />
@@ -645,7 +948,7 @@ export default function EventDetailClient({
             </section>
             {activeAdminTab === "overview" ? (
               <AdminOverview event={event} workspaceId={workspaceId} />
-             ) : (
+            ) : (
               <div ref={discussionRef}>
                 <DiscussionSection
                   event={event}
@@ -675,6 +978,7 @@ export default function EventDetailClient({
       <PaymentWizardDialog
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
+        onSuccess={() => setIsRegistered(true)}
         post={event}
       />
     </>

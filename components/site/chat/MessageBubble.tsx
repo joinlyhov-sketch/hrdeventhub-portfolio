@@ -53,7 +53,7 @@ export default function MessageBubble({
       <div className={`flex items-center gap-2 max-w-[75%] group ${isMine ? "flex-row-reverse" : "flex-row"}`}>
         <div
           className={`text-xs px-3.5 py-2.5 rounded-2xl shadow-sm ${
-            (message as any)._pending ? "opacity-60" : ""
+            message._pending ? "opacity-60" : ""
           } ${
             isMine
               ? "bg-[#1c4d8d] text-white rounded-tr-none"
@@ -101,7 +101,7 @@ export default function MessageBubble({
           )}
         </div>
 
-        {isMine && hover && !(message as any)._pending && (
+        {isMine && hover && !message._pending && (
           <div className="flex gap-1 items-center bg-white shadow-sm border border-gray-100 rounded-md p-0.5 h-7">
             {isText && (
               <button
@@ -122,7 +122,7 @@ export default function MessageBubble({
       </div>
 
       <div className={`text-[10px] text-gray-400 mt-1 flex items-center gap-1 ${isMine ? "mr-1" : "ml-1"}`}>
-        {(message as any)._pending ? (
+        {message._pending ? (
           <span className="flex items-center gap-1 text-gray-400 italic">
             <span className="w-2.5 h-2.5 rounded-full border-[1.5px] border-gray-300 border-t-gray-500 animate-spin shrink-0" />
             Sending...
@@ -184,8 +184,8 @@ export default function MessageBubble({
             onClick={(e) => e.target === e.currentTarget && !deleting && setDeleteOpen(false)}
           >
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden">
-              <div className="px-5 pt-5 pb-4 flex flex-col items-center text-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
+  <div className="px-5 pt-5 pb-4 flex flex-col items-center text-center gap-3">
+    <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -209,7 +209,7 @@ export default function MessageBubble({
                 </div>
               </div>
 
-              <div className="px-5 pb-5 flex gap-2">
+                <div className="px-5 pb-5 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setDeleteOpen(false)}
