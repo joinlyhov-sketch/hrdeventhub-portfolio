@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { ChatMessage } from "@/types/chat";
-import { formatTime } from "@/libs/utils";
+import { formatMessageTimestamp } from "@/libs/utils";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -50,7 +50,9 @@ export default function MessageBubble({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <div className={`flex items-center gap-2 max-w-[75%] group ${isMine ? "flex-row-reverse" : "flex-row"}`}>
+      <div
+        className={`flex items-center gap-2 max-w-[75%] group ${isMine ? "flex-row-reverse" : "flex-row"}`}
+      >
         <div
           className={`text-xs px-3.5 py-2.5 rounded-2xl shadow-sm ${
             message._pending ? "opacity-60" : ""
@@ -86,18 +88,29 @@ export default function MessageBubble({
               className={`flex items-center gap-2 font-medium underline ${isMine ? "text-blue-50" : "text-[#1c4d8d]"}`}
             >
               <div className="flex flex-col text-left">
-                <span className="truncate max-w-[150px] text-xs">{message.fileName ?? "Download Document"}</span>
+                <span className="truncate max-w-[150px] text-xs">
+                  {message.fileName ?? "Download Document"}
+                </span>
                 {message.fileSize && (
-                  <span className="text-[10px] opacity-75">{formatFileSize(message.fileSize)}</span>
+                  <span className="text-[10px] opacity-75">
+                    {formatFileSize(message.fileSize)}
+                  </span>
                 )}
               </div>
             </a>
           )}
 
-          {isText && <span className="whitespace-pre-wrap leading-relaxed">{message.content}</span>}
+          {isText && (
+            <span className="whitespace-pre-wrap leading-relaxed">
+              {message.content}
+            </span>
+          )}
 
           {message.isEdited && (
-            <span className="text-[10px] ml-1 font-normal opacity-70"> (edited)</span>
+            <span className="text-[10px] ml-1 font-normal opacity-70">
+              {" "}
+              (edited)
+            </span>
           )}
         </div>
 
@@ -121,7 +134,9 @@ export default function MessageBubble({
         )}
       </div>
 
-      <div className={`text-[10px] text-gray-400 mt-1 flex items-center gap-1 ${isMine ? "mr-1" : "ml-1"}`}>
+      <div
+        className={`text-[10px] text-gray-400 mt-1 flex items-center gap-1 ${isMine ? "mr-1" : "ml-1"}`}
+      >
         {message._pending ? (
           <span className="flex items-center gap-1 text-gray-400 italic">
             <span className="w-2.5 h-2.5 rounded-full border-[1.5px] border-gray-300 border-t-gray-500 animate-spin shrink-0" />
@@ -129,9 +144,15 @@ export default function MessageBubble({
           </span>
         ) : (
           <>
-            <span>{formatTime(message.createdAt)}</span>
+            <span>{formatMessageTimestamp(message.createdAt)}</span>
             {isMine && (
-              <span className={message.read ? "text-[#1c4d8d] font-semibold" : "text-gray-300"}>
+              <span
+                className={
+                  message.read
+                    ? "text-[#1c4d8d] font-semibold"
+                    : "text-gray-300"
+                }
+              >
                 {message.read ? "✓✓" : "✓"}
               </span>
             )}
@@ -164,7 +185,11 @@ export default function MessageBubble({
                   stroke="currentColor"
                   className="w-5 h-5"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <img
@@ -181,11 +206,13 @@ export default function MessageBubble({
         createPortal(
           <div
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40"
-            onClick={(e) => e.target === e.currentTarget && !deleting && setDeleteOpen(false)}
+            onClick={(e) =>
+              e.target === e.currentTarget && !deleting && setDeleteOpen(false)
+            }
           >
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden">
-  <div className="px-5 pt-5 pb-4 flex flex-col items-center text-center gap-3">
-    <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
+              <div className="px-5 pt-5 pb-4 flex flex-col items-center text-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -202,14 +229,17 @@ export default function MessageBubble({
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-gray-900">Delete message?</h2>
+                  <h2 className="text-sm font-bold text-gray-900">
+                    Delete message?
+                  </h2>
                   <p className="text-xs text-gray-400 mt-1">
-                    This message will be removed for everyone. This action can&apos;t be undone.
+                    This message will be removed for everyone. This action
+                    can&apos;t be undone.
                   </p>
                 </div>
               </div>
 
-                <div className="px-5 pb-5 flex gap-2">
+              <div className="px-5 pb-5 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setDeleteOpen(false)}
