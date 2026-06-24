@@ -9,7 +9,8 @@ export function useWorkspacePosts(workspaceId: string) {
 
   const { data, error, isLoading, mutate } = useSWR(
     workspaceId && token ? ["workspace-posts", workspaceId, token] : null,
-    () => postService.getByWorkspace(workspaceId, token!)
+    () => postService.getByWorkspace(workspaceId, token!),
+    { revalidateOnFocus: false, dedupingInterval: 10_000 }
   );
 
   return {

@@ -11,6 +11,7 @@ export function useWorkspacePolls(workspaceId: string) {
   const { data, error, isLoading, mutate } = useSWR(
     workspaceId && token ? ["workspace-polls", workspaceId, token] : null,
     () => pollService.getByWorkspace(workspaceId),
+    { revalidateOnFocus: false, dedupingInterval: 10_000 }
   );
 
   return {

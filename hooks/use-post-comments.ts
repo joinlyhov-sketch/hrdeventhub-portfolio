@@ -29,7 +29,7 @@ export function usePostComments(postId: string, showComments: boolean) {
 
   useEffect(() => {
     if (postId && showComments) {
-      queueMicrotask(() => { fetchComments(); });
+      fetchComments();
     }
   }, [postId, showComments, fetchComments]);
 

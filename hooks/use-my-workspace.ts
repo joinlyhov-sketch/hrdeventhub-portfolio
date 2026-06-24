@@ -12,7 +12,8 @@ export function useMyWorkspaces() {
 
   const { data, error, isLoading, mutate } = useSWR(
     token ? ["workspaces-me", token] : null,
-    () => workspaceService.getMyWorkspaces(token!)
+    () => workspaceService.getMyWorkspaces(token!),
+    { revalidateOnFocus: false, dedupingInterval: 30_000 }
   );
 
   const workspaces = useMemo(() => data ?? EMPTY_WORKSPACES, [data]);

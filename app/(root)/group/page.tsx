@@ -16,7 +16,6 @@ interface PageProps {
 export default async function GroupPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
   const searchQuery = resolvedParams?.search || "";
-  console.log("searchQuery:", searchQuery);
   return (
     <div className="min-h-full flex mt-6 flex-col px-4 md:pr-8 lg:pr-12 lg:pl-12 w-full">
       <GroupHeader />

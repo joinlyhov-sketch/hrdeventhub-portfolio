@@ -144,7 +144,7 @@ export function CommentNode({
     }
   };
 
-  const handleDelete = async () => {
+  const _handleDelete = async () => {
     const result = await deleteCommentAction(comment.commentId);
     if (result.ok) await onRefetch();
   };

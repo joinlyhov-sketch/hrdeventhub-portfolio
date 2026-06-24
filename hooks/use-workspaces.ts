@@ -31,6 +31,7 @@ export function useWorkspaces(
 
       return workspaceService.getAllWithFilters(token!, params);
     },
+    { revalidateOnFocus: false, dedupingInterval: 30_000 }
   );
 
   return {

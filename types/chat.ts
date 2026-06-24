@@ -40,6 +40,7 @@ export interface ChatMessage {
   fileSize?: number;
   isEdited?: boolean;
   createdAt: string;
+  _pending?: boolean;
 }
 
 export interface SendMessagePayload {

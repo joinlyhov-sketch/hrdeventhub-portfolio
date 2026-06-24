@@ -124,7 +124,7 @@ export default function ProfilePrivacy({
   const {
     appUser,
     generation,
-    skills = [],
+    skills: _skills = [],
     currentStatus,
     socialAccount = [],
     profilePicture,

@@ -62,7 +62,6 @@ const canCreateContent =
     { label: "Survey", icon: CheckCircle2, href: getCreationRoute("survey") },
     { label: "Poll", icon: BarChart3, href: getCreationRoute("poll") },
   ];
-console.log("SearchEvent role:", role);
   return (
     <div className="w-full">
       <div className="flex items-center gap-1.5 sm:gap-2 relative">

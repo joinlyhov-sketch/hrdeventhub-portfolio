@@ -26,7 +26,6 @@ export async function getAllUsersAction(): Promise<UserData[]> {
 }
 
 export async function suspendUserAction(userId: string, reason: string) {
-  console.log("Sending to backend:", { reason });
   try {
     const result = await userService.suspend(userId, { reason });
     revalidateTag("users", "max");

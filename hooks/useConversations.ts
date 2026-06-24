@@ -18,7 +18,8 @@ export function useConversations(token: string | null) {
     try {
       const data = await getConversations(token);
       useChatStore.getState().setConversations(data);
-    } catch {
+    } catch (err) {
+      console.error("[Conversations] Failed to fetch:", err);
     } finally {
       setLoading(false);
     }

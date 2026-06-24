@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "../../../ui/modal-user-management/dialog";
 import {
   Select,
@@ -56,9 +55,6 @@ export default function SuspendModal({
     }
 
     onConfirm(user.no, selectedReason || "OTHER");
-    console.log(
-      `Suspend — User: ${user.username} (ID: ${user.no}) | Reason: ${selectedReason || "OTHER"}`,
-    );
   };
 
   return (

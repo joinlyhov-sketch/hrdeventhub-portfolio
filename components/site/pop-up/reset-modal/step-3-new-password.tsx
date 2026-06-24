@@ -35,7 +35,6 @@ type NewPasswordErrors = Partial<Record<"password" | "confirmPassword", string>>
 
 export default function NewPasswordStep({ startTransition, isPending, handleClose }: StepProps) {
   const resetToken = useResetPasswordStore((s) => s.resetToken);
-console.log("step 3 resetToken:", resetToken);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

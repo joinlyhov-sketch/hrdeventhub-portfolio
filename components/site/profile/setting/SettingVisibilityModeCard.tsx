@@ -212,17 +212,16 @@ function SaveButtonLayout({
     setTelegramError(null);
     try {
       const result = await connectTelegramAction(appUserId);
-      const actionResult = result as any;
 
-      if (actionResult?.error) {
-        if (typeof actionResult.error === "object" && actionResult.error !== null) {
-          setTelegramError(actionResult.error.message || JSON.stringify(actionResult.error));
+      if (result.error) {
+        if (typeof result.error === "object" && result.error !== null) {
+          setTelegramError((result.error as { message?: string }).message || JSON.stringify(result.error));
         } else {
-          setTelegramError(actionResult.error);
+          setTelegramError(result.error as string);
         }
       }
-    } catch (err: any) {
-      if (err && typeof err === "object" && err.message) {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
         setTelegramError(err.message);
       } else {
         setTelegramError("An unexpected error occurred during redirection setup.");
