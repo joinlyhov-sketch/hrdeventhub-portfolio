@@ -36,8 +36,8 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "api.dev.hrdevent.app",
-        pathname: "/api/v5/files/**",
+        hostname: "hrdevent.app",
+        pathname: "/**",
       },
       {
         protocol: "https",

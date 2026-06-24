@@ -25,11 +25,10 @@ export default function PollOptionItem({
   return (
     <div
       onClick={() => onSelect(index)}
-      className={`flex items-center gap-3 bg-white border rounded-2xl px-5 py-3.5 shadow-sm transition group cursor-pointer ${
-        isSelected
+      className={`flex items-center gap-3 bg-white border rounded-2xl px-5 py-3.5 shadow-sm transition group cursor-pointer ${isSelected
           ? "border-primary ring-1 ring-primary/10"
           : "border-slate-200 hover:border-slate-300"
-      }`}
+        }`}
     >
       <button
         type="button"
@@ -37,16 +36,16 @@ export default function PollOptionItem({
           e.stopPropagation();
           onSelect(index);
         }}
-        className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
-          isSelected
+        className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${isSelected
             ? "border-primary bg-primary ring-2 ring-white ring-inset"
             : "border-gray-300 bg-white hover:border-gray-400"
-        }`}
+          }`}
       />
 
       <Input
         type="text"
         value={option}
+        maxLength={100}
         onClick={(e) => e.stopPropagation()}
         onChange={(e) => onOptionChange(index, e.target.value)}
         className="w-full bg-transparent border-0 shadow-none p-1 h-auto font-medium text-slate-700 placeholder-slate-400 focus-visible:ring-0 focus-visible:border-0 cursor-text"

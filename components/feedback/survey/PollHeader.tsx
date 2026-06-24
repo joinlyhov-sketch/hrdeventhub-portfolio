@@ -38,6 +38,7 @@ export default function PollHeader({
         <input
           type="text"
           value={title}
+          maxLength={50}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Untitled Poll"
           className="w-full bg-transparent outline-none border-0 p-0 m-0 font-inherit text-inherit placeholder:text-muted-foreground/30 focus:ring-0 focus-visible:ring-0"
@@ -46,6 +47,7 @@ export default function PollHeader({
       <Input
         type="text"
         value={description}
+        maxLength={200}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Add a description for your poll participants..."
         className="w-full text-desc text-muted-foreground placeholder:text-muted-foreground/30 border-0 border-b border-border p-0 pb-2 shadow-none rounded-none bg-transparent transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary mb-6"
