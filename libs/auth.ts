@@ -68,7 +68,9 @@ export const authOptions: NextAuthOptions = {
           console.error("Login failed", error);
           if (
             error?.message &&
-            error.message.toLowerCase().includes("verified")
+            (error.message.toLowerCase().includes("verify") ||
+             error.message.toLowerCase().includes("unverified") ||
+             error.message.includes("ACCOUNT_UNVERIFIED"))
           ) {
             throw new Error(`NOT_VERIFIED:${credentials.identifier}`);
           }
