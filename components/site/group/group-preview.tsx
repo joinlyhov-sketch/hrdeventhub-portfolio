@@ -183,7 +183,14 @@ export default function GroupPreviewClient({
     try {
       setJoinError("");
       setIsJoining(true);
-      await joinInvitationAction(token);
+      const result = await joinInvitationAction(token);
+      
+      if (result && result.success === false) {
+        setJoinError(result.message || "Failed to join group.");
+        setIsJoining(false);
+        return;
+      }
+      
       router.push("/group");
     } catch (err) {
       setJoinError(err instanceof Error ? err.message : "Failed to join group.");

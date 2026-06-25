@@ -165,9 +165,9 @@ export default function FilteredFeed({
 
     const categoryFiltered = activeFilter
       ? feedItems.filter((item) => {
-          const itemType = (item.subType || item.type || "").toLowerCase();
-          return itemType === activeFilter.toLowerCase();
-        })
+        const itemType = (item.subType || item.type || "").toLowerCase();
+        return itemType === activeFilter.toLowerCase();
+      })
       : feedItems;
 
     if (!q) return categoryFiltered;
@@ -409,7 +409,7 @@ export default function FilteredFeed({
                       survey={item.data as Survey}
                       role={role}
                       searchQuery={debouncedSearch}
-                      onVisibilityChange={() => {}}
+                      onVisibilityChange={() => { }}
                       onDelete={handleDeleteSurvey}
                     />
                   </div>

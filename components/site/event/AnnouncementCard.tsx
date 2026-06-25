@@ -193,6 +193,13 @@ function AnnouncementItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("postId") === post.postId && searchParams.get("action") === "comment") {
+      setShowComments(true);
+    }
+  }, [searchParams, post.postId]);
 
   const {
     selectedReaction,
@@ -221,11 +228,11 @@ function AnnouncementItem({
   const profilePictureUrl = getMediaUrl(creator?.profilePicture);
   const initials = creator?.fullName
     ? creator.fullName
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : "?";
 
   const hasLocation = !!post.location?.locationName;
@@ -257,11 +264,10 @@ function AnnouncementItem({
     <>
       <div
         id={`post-${post.postId}`}
-        className={`bg-background rounded-[12px] border p-5 shadow-sm transition-all duration-300 ${
-          isTargeted
+        className={`bg-background rounded-[12px] border p-5 shadow-sm transition-all duration-300 ${isTargeted
             ? "border-primary ring-2 ring-primary/20 scale-[1.01]"
             : "border-border"
-        }`}
+          }`}
       >
         <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
           <div className="flex items-center gap-3">

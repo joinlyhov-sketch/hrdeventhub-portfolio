@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { ThumbsUp, Share2, MessageCircleMore } from "lucide-react";
 import ShareModal from "@/components/site/pop-up/action-button/ShareModal";
@@ -64,6 +65,13 @@ function ArticleItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("postId") === post.postId && searchParams.get("action") === "comment") {
+      setShowComments(true);
+    }
+  }, [searchParams, post.postId]);
 
   const {
     selectedReaction,
@@ -85,11 +93,11 @@ function ArticleItem({
   const profilePictureUrl = getMediaUrl(creator?.profilePicture);
   const initials = creator?.fullName
     ? creator.fullName
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : "?";
 
   const handleSubmitComment = async () => {
@@ -297,6 +305,20 @@ export function ArticleCard({
   groupId,
   members,
 }: ArticleCardProps) {
+  const searchParams = useSearchParams();
+  const targetPostId = searchParams.get("postId");
+
+  useEffect(() => {
+    if (targetPostId) {
+      const element = document.getElementById(`post-${targetPostId}`);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+      }
+    }
+  }, [targetPostId, posts]);
+
   return (
     <>
       {posts.map((post) => (

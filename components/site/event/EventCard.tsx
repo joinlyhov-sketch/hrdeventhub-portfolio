@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ThumbsUp, Share2, MessageCircleMore } from "lucide-react";
@@ -76,6 +77,13 @@ function EventItem({
   const { currentUser } = useCurrentUser();
   const [showComments, setShowComments] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("postId") === post.postId && searchParams.get("action") === "comment") {
+      setShowComments(true);
+    }
+  }, [searchParams, post.postId]);
 
   const {
     selectedReaction,
@@ -99,11 +107,11 @@ function EventItem({
   const profilePictureUrl = getMediaUrl(creator?.profilePicture);
   const initials = creator?.fullName
     ? creator.fullName
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : "?";
 
   const isLive = (() => {
@@ -423,6 +431,25 @@ export function EventCard({
   onTogglePin,
   members,
 }: EventCardProps) {
+  const searchParams = useSearchParams();
+  const targetPostId = searchParams.get("postId");
+
+  useEffect(() => {
+    if (targetPostId) {
+      const elements = document.querySelectorAll(`[id="post-${targetPostId}"]`);
+      elements.forEach((el) => {
+        if (el instanceof HTMLElement && el.offsetParent !== null) {
+          setTimeout(() => {
+            el.style.scrollMarginTop = "100px";
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.classList.add("deep-link-highlight");
+            setTimeout(() => el.classList.remove("deep-link-highlight"), 2600);
+          }, 300);
+        }
+      });
+    }
+  }, [targetPostId, posts]);
+
   return (
     <>
       {posts.map((post) => (

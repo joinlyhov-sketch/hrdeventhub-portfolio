@@ -59,10 +59,18 @@ function resolveNotificationHref(n: NotificationPayload): string | null {
   }
 
   if (category === "event") {
-    return `/group/${n.workspaceId}/event/${n.postId}`;
+    let url = `/group/${n.workspaceId}/event/${n.postId}`;
+    if (n.type === "MENTION") {
+      url += "?action=comment";
+    }
+    return url;
   }
   const typeParam = category ? `&type=${category}` : "";
-  return `/group/${n.workspaceId}?postId=${n.postId}${typeParam}`;
+  let actionParam = "";
+  if (n.type === "MENTION") {
+    actionParam = "&action=comment";
+  }
+  return `/group/${n.workspaceId}?postId=${n.postId}${typeParam}${actionParam}`;
 }
 
 function getGroup(createdAt: string): Group {

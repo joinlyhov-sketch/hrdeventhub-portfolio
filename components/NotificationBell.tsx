@@ -24,9 +24,19 @@ import { useStatusContext } from "@/context/StatusContext";
 function resolveNotificationHref(n: NotificationPayload): string | null {
   if (!n.workspaceId || !n.postId) return null;
   const category = n.postCategory?.toLowerCase();
-  if (category === "event") return `/group/${n.workspaceId}/event/${n.postId}`;
+  if (category === "event") {
+    let url = `/group/${n.workspaceId}/event/${n.postId}`;
+    if (n.type === "MENTION") {
+      url += "?action=comment";
+    }
+    return url;
+  }
   const typeParam = category ? `&type=${category}` : "";
-  return `/group/${n.workspaceId}?postId=${n.postId}${typeParam}`;
+  let actionParam = "";
+  if (n.type === "MENTION") {
+    actionParam = "&action=comment";
+  }
+  return `/group/${n.workspaceId}?postId=${n.postId}${typeParam}${actionParam}`;
 }
 
 function TypeBadge({

@@ -609,12 +609,7 @@ export default function HeroSession() {
         >
           <div className="flex flex-col gap-4 sm:grid sm:grid-cols-3 sm:gap-y-0 sm:gap-x-4 md:gap-x-12 lg:gap-x-16 sm:items-start sm:justify-center sm:text-center">
             <motion.div
-              className="
-                flex flex-row items-center gap-4 text-left
-                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
-                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
-                sm:border-b-0 sm:border-r sm:border-border/60 sm:pb-0 sm:pr-4 md:pr-6
-              "
+              className="flex flex-row items-center gap-4 text-left bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40 sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0 sm:border-b-0 sm:border-r sm:border-border/60 sm:pb-0 sm:pr-4 md:pr-6"
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
@@ -677,12 +672,7 @@ export default function HeroSession() {
             </motion.div>
 
             <motion.div
-              className="
-                flex flex-row items-center gap-4 text-left
-                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
-                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
-                sm:border-b-0 sm:border-r sm:border-border/60 sm:pb-0 sm:px-4 md:px-6
-              "
+              className="flex flex-row items-center gap-4 text-left bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40 sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0 sm:border-b-0 sm:border-r sm:border-border/60 sm:pb-0 sm:px-4 md:px-6"
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
@@ -753,12 +743,7 @@ export default function HeroSession() {
             </motion.div>
 
             <motion.div
-              className="
-                flex flex-row items-center gap-4 text-left
-                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
-                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
-                sm:pl-4 md:pl-6
-              "
+              className="flex flex-row items-center gap-4 text-left bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40 sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0 sm:pl-4 md:pl-6"
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
