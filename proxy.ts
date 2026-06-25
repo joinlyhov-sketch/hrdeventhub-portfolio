@@ -22,6 +22,9 @@ export async function proxy(req: NextRequest) {
 
   const isLoggedIn = Boolean(token);
   const isExpired = token?.error === "RefreshTokenExpired";
+  const role = token?.role as string;
+  const isStudentOrAlumni = role === "student" || role === "alumni";
+
   const isAuthRoute = authRoutes.some((route) =>
     nextUrl.pathname.startsWith(route),
   );
@@ -38,6 +41,23 @@ export async function proxy(req: NextRequest) {
 
   if (isLoggedIn && !isExpired && (isAuthRoute || isLandingRoute)) {
     if (isJoinRoute) return NextResponse.next();
+    return NextResponse.redirect(new URL("/group", nextUrl.origin));
+  }
+
+
+  const restrictedRoutes = [
+    "/event-management",
+    "/feedback",
+    "/transaction-history",
+    "/user-management",
+    "/check-in",
+  ];
+
+  const isRestrictedRoute = restrictedRoutes.some((route) =>
+    nextUrl.pathname.startsWith(route)
+  );
+
+  if (isLoggedIn && isStudentOrAlumni && isRestrictedRoute) {
     return NextResponse.redirect(new URL("/group", nextUrl.origin));
   }
 

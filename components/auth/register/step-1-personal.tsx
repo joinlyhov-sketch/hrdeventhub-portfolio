@@ -168,8 +168,12 @@ export default function Step1Personal() {
 
               <input
                 placeholder="First Name"
+                maxLength={50}
                 value={form.firstName}
-                onChange={(e) => handleChange("firstName", e.target.value)}
+                onChange={(e) => {
+                    const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                    handleChange("firstName", val);
+                }}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
               />
             </div>
@@ -192,8 +196,12 @@ export default function Step1Personal() {
 
               <input
                 placeholder="Last Name"
+                maxLength={50}
                 value={form.lastName}
-                onChange={(e) => handleChange("lastName", e.target.value)}
+                onChange={(e) => {
+                    const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                    handleChange("lastName", val);
+                }}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-[#aab3c0] text-[#2d3748]"
               />
             </div>

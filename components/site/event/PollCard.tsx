@@ -36,7 +36,9 @@ function PollItem({
   const [error, setError] = useState<string | null>(null);
 
   const [isVotersModalOpen, setIsVotersModalOpen] = useState(false);
-  const [votersData, setVotersData] = useState<import("@/types/poll-voter").OptionVotersDTO[]>([]);
+  const [votersData, setVotersData] = useState<
+    import("@/types/poll-voter").OptionVotersDTO[]
+  >([]);
 
   const [localVoted, setLocalVoted] = useState(false);
   const [justVoted, setJustVoted] = useState(false);
@@ -99,7 +101,7 @@ function PollItem({
       if (rawIds) {
         try {
           parsedIds = new Set(JSON.parse(rawIds));
-        } catch { }
+        } catch {}
       }
 
       const typeKey = `poll_type_snapshot_${initialPoll.pollId}_${userId}`;
@@ -114,7 +116,7 @@ function PollItem({
       if (savedCounts) {
         try {
           parsedCounts = JSON.parse(savedCounts);
-        } catch { }
+        } catch {}
       }
     }
 
@@ -176,27 +178,24 @@ function PollItem({
   const pollRec = poll as unknown as Record<string, unknown>;
   const serverHasVotedFlag = (() => {
     if (!rawOptions.length) return false;
-    if (pollRec.hasVoted === true || pollRec.voted === true)
-      return true;
-    if (pollRec.votedOptionId || pollRec.selectedOptionId)
-      return true;
+    if (pollRec.hasVoted === true || pollRec.voted === true) return true;
+    if (pollRec.votedOptionId || pollRec.selectedOptionId) return true;
 
     if (userId) {
-      return rawOptions.some(
-        (opt) => {
-          const optRec = opt as unknown as Record<string, unknown>;
-          return (
-            (optRec.voters as unknown[])?.includes(userId) ||
-            (optRec.votedUserIds as unknown[])?.includes(userId) ||
-            (optRec.userVotes as unknown[])?.includes(userId) ||
-            (optRec.votedUsers as Record<string, unknown>[])?.some(
-              (u: Record<string, unknown>) => u.id === userId || u === userId || u.userId === userId,
-            ) ||
-            (pollRec.votedUserIds as unknown[])?.includes(userId) ||
-            (pollRec.voters as unknown[])?.includes(userId)
-          );
-        },
-      );
+      return rawOptions.some((opt) => {
+        const optRec = opt as unknown as Record<string, unknown>;
+        return (
+          (optRec.voters as unknown[])?.includes(userId) ||
+          (optRec.votedUserIds as unknown[])?.includes(userId) ||
+          (optRec.userVotes as unknown[])?.includes(userId) ||
+          (optRec.votedUsers as Record<string, unknown>[])?.some(
+            (u: Record<string, unknown>) =>
+              u.id === userId || u === userId || u.userId === userId,
+          ) ||
+          (pollRec.votedUserIds as unknown[])?.includes(userId) ||
+          (pollRec.voters as unknown[])?.includes(userId)
+        );
+      });
     }
     return false;
   })();
@@ -279,7 +278,7 @@ function PollItem({
               currentCount = parsed[`fallback_text_${opt.text}`];
             else if (parsed[`fallback_idx_${idx}`] !== undefined)
               currentCount = parsed[`fallback_idx_${idx}`];
-          } catch { }
+          } catch {}
         }
       }
     }
@@ -307,13 +306,19 @@ function PollItem({
     (() => {
       const uniqueUsers = new Set<unknown>();
       options.forEach((opt: Record<string, unknown>) => {
-        const voters = (opt.voters || opt.votedUserIds || opt.userVotes || []) as unknown[];
-        voters.forEach(
-          (id: unknown) => {
-            if (id)
-              uniqueUsers.add(typeof id === "object" ? (id as Record<string, unknown>).id || (id as Record<string, unknown>).userId : id);
-          },
-        );
+        const voters = (opt.voters ||
+          opt.votedUserIds ||
+          opt.userVotes ||
+          []) as unknown[];
+        voters.forEach((id: unknown) => {
+          if (id)
+            uniqueUsers.add(
+              typeof id === "object"
+                ? (id as Record<string, unknown>).id ||
+                    (id as Record<string, unknown>).userId
+                : id,
+            );
+        });
       });
       return uniqueUsers.size > 0 ? uniqueUsers.size : null;
     })();
@@ -431,7 +436,9 @@ function PollItem({
       );
       setPersistedVoteCounts(countsToSave);
     } catch (err: unknown) {
-      const message = (err instanceof Error ? err.message : String(err)).toLowerCase();
+      const message = (
+        err instanceof Error ? err.message : String(err)
+      ).toLowerCase();
       if (
         message.includes("already voted") ||
         message.includes("already_voted") ||
@@ -455,7 +462,11 @@ function PollItem({
         setJustVoted(true);
         mutate();
       } else {
-        setError(err instanceof Error ? err.message : "Failed to submit vote. Please try again.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to submit vote. Please try again.",
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -484,8 +495,10 @@ function PollItem({
     }
   };
 
-  const showVotingForm = !isAdminOrOrganizer && !showResult && (!hasVoted || canReVote);
-  const showVotersClickable = (!poll.anonymousVoting || isAdminOrOrganizer) && showResult;
+  const showVotingForm =
+    !isAdminOrOrganizer && !showResult && (!hasVoted || canReVote);
+  const showVotersClickable =
+    (!poll.anonymousVoting || isAdminOrOrganizer) && showResult;
 
   return (
     <article
@@ -530,10 +543,11 @@ function PollItem({
               return (
                 <label
                   key={option.id}
-                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden ${isOldOptionVoted
+                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden ${
+                    isOldOptionVoted
                       ? "border-grey-200 bg-grey-100 opacity-70 cursor-not-allowed"
                       : "border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer"
-                    }`}
+                  }`}
                 >
                   <div className="relative z-10 flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <input
@@ -546,10 +560,11 @@ function PollItem({
                       className="sr-only"
                     />
                     <div
-                      className={`w-5 h-5 border flex items-center justify-center shrink-0 transition-all rounded-md ${isOldOptionVoted
+                      className={`w-5 h-5 border flex items-center justify-center shrink-0 transition-all rounded-md ${
+                        isOldOptionVoted
                           ? "bg-grey-300 border-grey-400"
                           : "bg-white border-grey-300"
-                        }`}
+                      }`}
                     >
                       {isChecked && (
                         <div className="bg-subtle w-2.5 h-2.5 rounded-sm" />
@@ -576,17 +591,18 @@ function PollItem({
           <button
             type="submit"
             disabled={selectedOptions.length === 0 || isSubmitting}
-            className={`w-full py-2.5 sm:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${selectedOptions.length > 0 && !isSubmitting
+            className={`w-full py-2.5 sm:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${
+              selectedOptions.length > 0 && !isSubmitting
                 ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]"
                 : "bg-subtle/40 text-white cursor-not-allowed"
-              }`}
+            }`}
           >
             {isSubmitting
               ? "Submitting Additional Votes..."
               : "Submit New Options"}
           </button>
         </form>
-      ) : (!hasVoted && showVotingForm) ? (
+      ) : !hasVoted && showVotingForm ? (
         <form onSubmit={handleSubmit}>
           <div className="space-y-3 sm:space-y-5 mb-4 sm:mb-6">
             {options.map((option) => {
@@ -658,9 +674,6 @@ function PollItem({
                       {option.text}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      {/* <span className="type-detail-small text-grey-400">
-                        ({currentVotes})
-                      </span> */}
                       <span className="type-detail-semibold text-subtle font-bold">
                         {percentage}%
                       </span>
