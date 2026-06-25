@@ -756,6 +756,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <input
                       type="text"
                       value={firstName}
+                      maxLength={50}
                       onChange={(e) => {
                         const value = e.target.value;
                         setFirstName(value);
@@ -793,6 +794,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <input
                       type="text"
                       value={lastName}
+                      maxLength={50}
                       onChange={(e) => {
                         const value = e.target.value;
                         setLastName(value);
@@ -830,6 +832,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                     <input
                       type="text"
                       value={username}
+                      maxLength={50}
                       onChange={(e) => {
                         const value = e.target.value;
                         setUsername(value);
@@ -1023,8 +1026,9 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                 </label>
 
                 <textarea
-                  rows={3}
+                  rows={6}
                   value={bio}
+                  maxLength={500}
                   onChange={(e) => setBio(e.target.value)}
                   className="w-full p-3 bg-background border border-border rounded-md type-detail text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
                   placeholder="Tell us about yourself..."
@@ -1086,6 +1090,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                         <input
                           type="text"
                           value={linkedinUrl}
+                          maxLength={256}
                           placeholder="https://linkedin.com/in/username"
                           onChange={(e) => {
                             const value = e.target.value;
@@ -1142,6 +1147,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                         <input
                           type="text"
                           placeholder="https://github.com/username"
+                          maxLength={256}
                           value={githubUrl}
                           onChange={(e) => {
                             const value = e.target.value;
@@ -1205,6 +1211,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                       >
                         <input
                           type="text"
+                          maxLength={256}
                           placeholder="https://facebook.com/username"
                           value={facebookUrl}
                           onChange={(e) => {
@@ -1269,6 +1276,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
                       >
                         <input
                           type="text"
+                          maxLength={256}
                           placeholder="https://t.me/username"
                           value={telegramUrl}
                           onChange={(e) => {
