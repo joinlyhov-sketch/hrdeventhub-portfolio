@@ -600,19 +600,25 @@ export default function HeroSession() {
             </motion.div>
           </div>
         </div>
+
         <motion.div
           className="w-full max-w-6xl mx-auto border-t border-border/60 pt-8 md:pt-10 mt-10 md:mt-16 z-10 px-4 pb-8 md:pb-12"
           variants={stagger}
           initial="hidden"
           animate="visible"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-8 sm:gap-y-0 gap-x-4 md:gap-x-12 lg:gap-x-16 items-start justify-center text-center">
+          <div className="flex flex-col gap-4 sm:grid sm:grid-cols-3 sm:gap-y-0 sm:gap-x-4 md:gap-x-12 lg:gap-x-16 sm:items-start sm:justify-center sm:text-center">
             <motion.div
-              className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 pr-0 sm:pr-4 md:pr-6"
+              className="
+                flex flex-row items-center gap-4 text-left
+                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
+                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
+                sm:border-b-0 sm:border-r sm:border-border/60 sm:pb-0 sm:pr-4 md:pr-6
+              "
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
-              <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
+              <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
                   viewBox="0 0 44 44"
@@ -660,16 +666,27 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
-                Digital Payment
-              </h3>
+              <div className="flex flex-col gap-0.5">
+                <h3 className="text-base font-bold text-primary tracking-tight leading-tight">
+                  Digital Payment
+                </h3>
+                <p className="text-sm text-secondary/70 leading-snug">
+                  Secure and fast ticketing for all premium events.
+                </p>
+              </div>
             </motion.div>
+
             <motion.div
-              className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 px-0 sm:px-4 md:px-6"
+              className="
+                flex flex-row items-center gap-4 text-left
+                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
+                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
+                sm:border-b-0 sm:border-r sm:border-border/60 sm:pb-0 sm:px-4 md:px-6
+              "
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
-              <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
+              <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
                   viewBox="0 0 44 44"
@@ -725,17 +742,27 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
-                Event Management
-              </h3>
+              <div className="flex flex-col gap-0.5">
+                <h3 className="text-base font-bold text-primary tracking-tight leading-tight">
+                  Event Management
+                </h3>
+                <p className="text-sm text-secondary/70 leading-snug">
+                  Organize, track, and manage your registrations easily.
+                </p>
+              </div>
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center justify-center gap-3 pl-0 sm:pl-4 md:pl-6"
+              className="
+                flex flex-row items-center gap-4 text-left
+                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
+                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
+                sm:pl-4 md:pl-6
+              "
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
-              <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
+              <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
                   viewBox="0 0 44 44"
@@ -766,9 +793,14 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
-                Community Engagement
-              </h3>
+              <div className="flex flex-col gap-0.5">
+                <h3 className="text-base font-bold text-primary tracking-tight leading-tight">
+                  Community Engagement
+                </h3>
+                <p className="text-sm text-secondary/70 leading-snug">
+                  Link up with students and alumni across departments.
+                </p>
+              </div>
             </motion.div>
           </div>
         </motion.div>
