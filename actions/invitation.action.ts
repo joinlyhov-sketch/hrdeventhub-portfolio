@@ -15,6 +15,15 @@ export async function getInvitationPreviewAction(inviteToken: string) {
 export async function joinInvitationAction(inviteToken: string) {
   const session = await getServerSession(authOptions);
   const accessToken = session?.accessToken;
-  if (!accessToken) throw new Error("Not authenticated");
-  return invitationService.join(inviteToken, accessToken);
+  if (!accessToken) return { success: false, message: "Not authenticated" };
+  
+  try {
+    const result = await invitationService.join(inviteToken, accessToken);
+    return result;
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "An unknown error occurred" };
+  }
 }

@@ -5,6 +5,8 @@ import { workspaceService } from "@/service/workspace.service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function CheckInPage() {
   const session = await getServerSession(authOptions);
   const token = session?.accessToken || "";
@@ -19,7 +21,7 @@ export default async function CheckInPage() {
 
       if (role === "organizer") {
         const organizerWorkspaces = await workspaceService.getMyWorkspaces(token);
-        const organizerWorkspaceIds = new Set(organizerWorkspaces.map((w) => w.id));
+        const organizerWorkspaceIds = new Set(organizerWorkspaces.map((w) => w.workspaceId));
         attendees = allAttendees.filter((a) =>
           organizerWorkspaceIds.has(a.workspaceId),
         );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { BarChart3 } from "lucide-react";
 import useSWR from "swr";
 import type { UserRole } from "@/context/user-context";
@@ -502,6 +503,7 @@ function PollItem({
 
   return (
     <article
+      id={`post-${poll.pollId}`}
       className={`w-full bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-subtle shadow-sm text-foreground transition-opacity ${isDeleting ? "opacity-0 pointer-events-none hidden" : ""}`}
     >
       <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
@@ -692,7 +694,7 @@ function PollItem({
               <button
                 type="button"
                 onClick={handleOpenVoters}
-                className="ml-2 text-subtle hover:underline font-medium"
+                className="ml-2 text-subtle hover:underline font-medium cursor-pointer"
               >
                 View Voters
               </button>
@@ -716,6 +718,20 @@ function PollItem({
 }
 
 export function PollCard({ role, polls, onDeletePoll }: PollCardProps) {
+  const searchParams = useSearchParams();
+  const targetPostId = searchParams.get("postId");
+
+  useEffect(() => {
+    if (targetPostId) {
+      const element = document.getElementById(`post-${targetPostId}`);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+      }
+    }
+  }, [targetPostId, polls]);
+
   return (
     <>
       {polls.map((poll) => (

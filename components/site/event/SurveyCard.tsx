@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import type { UserRole } from "@/context/user-context";
 import EditPostDropDown from "@/components/site/pop-up/action-button/action-edit-post";
@@ -105,11 +106,10 @@ function QuestionField({
             return (
               <label
                 key={`${choice}-${idx}`}
-                className={`flex items-center gap-3 sm:gap-4 border p-3 sm:p-4 rounded-xl cursor-pointer transition-all ${
-                  isSelected
+                className={`flex items-center gap-3 sm:gap-4 border p-3 sm:p-4 rounded-xl cursor-pointer transition-all ${isSelected
                     ? "border-secondary bg-secondary/[0.04]"
                     : "border-grey-200 hover:border-grey-300 bg-white"
-                } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
+                  } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 <input
                   type="radio"
@@ -121,9 +121,8 @@ function QuestionField({
                   className="sr-only"
                 />
                 <div
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
-                    isSelected ? "border-secondary" : "border-grey-300"
-                  }`}
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${isSelected ? "border-secondary" : "border-grey-300"
+                    }`}
                 >
                   {isSelected && (
                     <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
@@ -217,11 +216,10 @@ function QuestionField({
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(opt)}
-                className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm font-bold border transition-all ${
-                  isSelected
+                className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm font-bold border transition-all ${isSelected
                     ? "bg-secondary text-white border-secondary"
                     : "bg-white text-grey-600 border-grey-200 hover:border-grey-300"
-                } disabled:opacity-60`}
+                  } disabled:opacity-60`}
               >
                 {opt}
               </button>
@@ -309,6 +307,20 @@ export function SurveyCard({
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const targetPostId = searchParams.get("postId");
+
+  useEffect(() => {
+    if (targetPostId) {
+      const element = document.getElementById(`post-${targetPostId}`);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+      }
+    }
+  }, [targetPostId, survey]);
+
   const isActiveSafe =
     (survey as unknown as { active?: boolean }).active ??
     survey.isActive ??
@@ -338,7 +350,7 @@ export function SurveyCard({
       .then((has) => {
         if (!cancelled) setAlreadySubmitted(has);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         if (!cancelled) setLoadingStatus(false);
       });
@@ -401,7 +413,7 @@ export function SurveyCard({
 
   if (submitted || alreadySubmitted) {
     return (
-      <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
+      <div id={`post-${survey.surveyId}`} className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
         <HeaderBadgeLayout
           {...sharedHeaderProps}
           badge={
@@ -427,7 +439,7 @@ export function SurveyCard({
 
   if (isClosed) {
     return (
-      <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
+      <div id={`post-${survey.surveyId}`} className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
         <HeaderBadgeLayout
           {...sharedHeaderProps}
           showMenu
@@ -457,7 +469,7 @@ export function SurveyCard({
   }
 
   return (
-    <div className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
+    <div id={`post-${survey.surveyId}`} className="bg-background rounded-[12px] border border-border p-3 sm:p-4 md:p-5 shadow-sm text-grey-900">
       <HeaderBadgeLayout
         {...sharedHeaderProps}
         showMenu
@@ -513,11 +525,10 @@ export function SurveyCard({
         <button
           onClick={handleBack}
           disabled={currentStep === 1 || submitting}
-          className={`flex items-center gap-2 text-xs sm:text-sm font-bold transition-colors select-none ${
-            currentStep === 1
+          className={`flex items-center gap-2 text-xs sm:text-sm font-bold transition-colors select-none ${currentStep === 1
               ? "text-grey-300 cursor-not-allowed"
               : "text-secondary hover:text-primary cursor-pointer"
-          }`}
+            }`}
         >
           <ChevronLeft size={18} />
           <span className="uppercase tracking-wider">
