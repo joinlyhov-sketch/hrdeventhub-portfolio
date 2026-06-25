@@ -38,7 +38,7 @@ export default async function CheckInPage() {
         titleSecondary="Management"
         description="Monitor attendee check-ins and review insights from your events."
       />
-      <div className="w-full min-w-0 max-w-475 mx-auto pr-8 lg:pr-12 lg:pl-12">
+      <div className="w-full min-w-0 max-w-475 mx-auto px-4 md:px-6 lg:pr-12 lg:pl-12">
         <CheckInTableSection attendees={attendees} />
       </div>
     </main>
