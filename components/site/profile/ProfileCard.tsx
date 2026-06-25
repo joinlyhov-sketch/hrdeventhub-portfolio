@@ -277,11 +277,13 @@ export default function ProfileCard({
                   text={formatDate(profile.appUser.dateOfBirth)}
                 />
               )}
-              {isVisible("showGeneration") && profile.generation?.name && (
-                <InfoRow
-                  icon={<Users size={16} />}
-                  text={profile.generation.name}
-                />
+              {isVisible("showGeneration") &&
+                profile.generation?.name &&
+                profile.roles !== "ORGANIZER" && (
+                  <InfoRow
+                    icon={<Users size={16} />}
+                    text={profile.generation.name}
+                  />
               )}
               {isVisible("showMajor") && profile.major && (
                 <InfoRow icon={<BookOpen size={16} />} text={profile.major} />
