@@ -429,7 +429,7 @@ export default function EventDetailClient({
   }, [refreshParticipants]);
 
   const rawDescription = event?.content || "No event description provided.";
-  const DESCRIPTION_LIMIT = 150;
+  const DESCRIPTION_LIMIT = 250;
   const isLongDescription = rawDescription.length > DESCRIPTION_LIMIT;
 
   const mobileParts = event?.eventStart
@@ -530,18 +530,34 @@ export default function EventDetailClient({
       </div>
       <div className="flex flex-col gap-2 pt-1">
         <h2 className="text-base font-bold text-secondary">About Event</h2>
-        <p className={`text-sm text-grey-500 leading-relaxed break-all${!isDescExpanded ? " line-clamp-4" : ""}`}>
-          {rawDescription}
+        <p className="text-sm text-grey-500 leading-relaxed break-all">
+          {isLongDescription && !isDescExpanded ? (
+            <>
+              {rawDescription.slice(0, DESCRIPTION_LIMIT)}
+              {"... "}
+              <button
+                type="button"
+                onClick={() => setIsDescExpanded(true)}
+                className="text-primary font-semibold text-sm"
+              >
+                Read more
+              </button>
+            </>
+          ) : (
+            <>
+              {rawDescription}
+              {isLongDescription && (
+                <button
+                  type="button"
+                  onClick={() => setIsDescExpanded(false)}
+                  className="ml-1 text-primary font-semibold text-sm"
+                >
+                  Read less
+                </button>
+              )}
+            </>
+          )}
         </p>
-        {isLongDescription && (
-          <button
-            type="button"
-            onClick={() => setIsDescExpanded((v) => !v)}
-            className="text-primary font-semibold text-sm text-left"
-          >
-            {isDescExpanded ? "Read less" : "Read more"}
-          </button>
-        )}
       </div>
     </>
   );
