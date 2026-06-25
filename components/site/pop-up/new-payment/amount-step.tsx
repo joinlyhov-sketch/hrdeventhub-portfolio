@@ -1,14 +1,10 @@
 "use client";
 
-import {
-  Target,
-  TrendingUp,
-  Loader2,
-  ChevronRight,
-  Gift,
-} from "lucide-react";
+import { Target, TrendingUp, Loader2, ChevronRight, Gift } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { PaymentProvider } from "@/service/payment.service";
 
 interface AmountStepProps {
   donationGoal: number;
@@ -17,6 +13,8 @@ interface AmountStepProps {
   donationAmountError: string | null;
   submitError: string | null;
   isGeneratingQr: boolean;
+  selectedProvider: PaymentProvider;
+  onProviderChange: (value: PaymentProvider) => void;
   onAmountChange: (value: string) => void;
   onGenerateQr: () => void;
   onSkipDonation: () => void;
@@ -29,6 +27,8 @@ export function AmountStep({
   donationAmountError,
   submitError,
   isGeneratingQr,
+  selectedProvider,
+  onProviderChange,
   onAmountChange,
   onGenerateQr,
   onSkipDonation,
@@ -80,6 +80,57 @@ export function AmountStep({
           Donation is optional. You can add an amount to support this event, or
           skip and register without payment.
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-[15px] font-bold text-[#1e3a8a] block">
+          Payment Method
+        </label>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => onProviderChange("webill")}
+            disabled={isGeneratingQr}
+            className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${
+              selectedProvider === "webill"
+                ? "border-[#1e3a8a] bg-blue-50 shadow-sm"
+                : "border-gray-200 bg-white hover:border-[#1e3a8a]/40 hover:bg-blue-50/50"
+            }`}
+          >
+            <Image
+              src="/images/webill365.svg"
+              alt="Webill365"
+              width={80}
+              height={20}
+              className="h-5 w-auto max-w-20 object-contain"
+            />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onProviderChange("bakong")}
+            disabled={isGeneratingQr}
+            className={`h-14 rounded-xl border px-3 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed ${
+              selectedProvider === "bakong"
+                ? "border-[#1e3a8a] bg-blue-50 shadow-sm"
+                : "border-gray-200 bg-white hover:border-[#1e3a8a]/40 hover:bg-blue-50/50"
+            }`}
+          >
+            <Image
+              src="/images/bakong.png"
+              alt="Bakong"
+              width={20}
+              height={20}
+              className="h-5 w-5 object-contain"
+            />
+            <span
+              className={`text-[13px] font-semibold ${selectedProvider === "bakong" ? "text-[#1e3a8a]" : "text-gray-500"}`}
+            >
+              Bakong
+            </span>
+          </button>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -146,9 +197,9 @@ export function AmountStep({
           variant="outline"
           onClick={onSkipDonation}
           disabled={isGeneratingQr}
-          className="w-full h-[48px] rounded-xl font-semibold text-[15px] border-blue-100 text-gray-600 hover:bg-blue-50 transition-all disabled:opacity-50"
+          className="w-full h-12 rounded-xl font-semibold text-[15px] border-[#1e3a8a]/25 text-[#1e3a8a] bg-white hover:bg-[#1e3a8a] hover:text-white hover:border-[#1e3a8a] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Skip Donation & Register
+          Skip Donation &amp; Register
         </Button>
       </div>
     </div>

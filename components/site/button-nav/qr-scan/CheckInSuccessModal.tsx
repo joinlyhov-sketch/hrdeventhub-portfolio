@@ -110,10 +110,15 @@ export function CheckInSuccessModal({ result, onClose, onScanAgain }: Props) {
           </div>
 
           <h2
-            className="text-lg font-medium text-gray-900 dark:text-white mb-1"
+            className="text-lg font-medium text-gray-900 dark:text-white mb-1 flex items-center justify-center gap-2"
             style={{ animation: "fadeSlideUp 0.4s ease 0.5s both", opacity: 0 }}
           >
             Checked in!
+            {result.isLate && (
+              <span className="text-[10px] font-bold text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Late
+              </span>
+            )}
           </h2>
           <p
             className="text-sm text-gray-500 dark:text-gray-400 mb-4"

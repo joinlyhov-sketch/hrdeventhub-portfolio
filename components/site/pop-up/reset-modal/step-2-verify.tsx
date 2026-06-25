@@ -62,8 +62,6 @@ export default function VerifyStep({ startTransition, isPending }: StepProps) {
         }
         if (result?.ok && result.token) {
           advanceToNewPassword(result.token);
-          console.log("token received:", result.token);
-advanceToNewPassword(result.token);
         }
       });
       

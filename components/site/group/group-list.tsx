@@ -16,6 +16,9 @@ export default function GroupList() {
   const [page, setPage] = useState(1);
   const { currentUser } = useCurrentUser();
   const isAdmin = currentUser?.role === "admin";
+  const handlePinChanged = () => {
+    window.dispatchEvent(new Event("workspace-sidebar-refresh"));
+  };
 
   useEffect(() => {
     queueMicrotask(() => setPage(1));
@@ -97,6 +100,7 @@ export default function GroupList() {
             key={workspace.workspaceId}
             workspace={workspace}
             pinnedCount={pinnedCount}
+            onPinChanged={handlePinChanged}
           />
         ))}
       </div>

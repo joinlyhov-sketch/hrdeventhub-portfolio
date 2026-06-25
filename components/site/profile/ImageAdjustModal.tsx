@@ -1,4 +1,3 @@
-// components/pop-up/ImageAdjustModal.tsx
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -29,12 +28,28 @@ export default function ImageAdjustModal({
 }: ImageAdjustModalProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
   const [isCropping, setIsCropping] = useState(false);
 
-  const onCropComplete = useCallback((_croppedArea: unknown, croppedAreaPixels: { x: number; y: number; width: number; height: number }) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const onCropComplete = useCallback(
+    (
+      _croppedArea: unknown,
+      croppedAreaPixels: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      },
+    ) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    [],
+  );
 
   const handleSave = async () => {
     if (!imageSrc || !croppedAreaPixels) return;
@@ -60,7 +75,8 @@ export default function ImageAdjustModal({
               Adjust Profile Picture
             </DialogTitle>
             <DialogDescription className="text-[14px] text-gray-500 font-normal">
-              Drag to freely position. Zoom out past borders to fit the full photo.
+              Drag to freely position. Zoom out past borders to fit the full
+              photo.
             </DialogDescription>
           </DialogHeader>
           <button
@@ -84,9 +100,9 @@ export default function ImageAdjustModal({
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={onCropComplete}
-              restrictPosition={false} 
-              minZoom={0.5}            
-              maxZoom={4}             
+              restrictPosition={false}
+              minZoom={0.5}
+              maxZoom={4}
             />
           </div>
           <div className="space-y-2">
@@ -98,16 +114,16 @@ export default function ImageAdjustModal({
                 {Math.round(zoom * 100)}%
               </span>
             </div>
-            
+
             <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
-              <button 
+              <button
                 type="button"
                 onClick={() => setZoom((prev) => Math.max(0.5, prev - 0.2))}
                 className="p-1.5 hover:bg-gray-200 text-gray-500 rounded-lg transition"
               >
                 <Minus size={16} strokeWidth={2.5} />
               </button>
-              
+
               <input
                 type="range"
                 min={0.5}
@@ -117,8 +133,8 @@ export default function ImageAdjustModal({
                 onChange={(e) => setZoom(Number(e.target.value))}
                 className="w-full accent-[#1e3a8a] h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
-              
-              <button 
+
+              <button
                 type="button"
                 onClick={() => setZoom((prev) => Math.min(4, prev + 0.2))}
                 className="p-1.5 hover:bg-gray-200 text-gray-500 rounded-lg transition"
@@ -133,7 +149,7 @@ export default function ImageAdjustModal({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="h-11 px-5 text-gray-500 hover:bg-gray-50 font-semibold rounded-xl text-sm"
+              className="h-11 px-5 text-gray-500 hover:bg-gray-50 hover:text-black font-semibold rounded-xl text-sm"
             >
               Cancel
             </Button>
@@ -147,7 +163,6 @@ export default function ImageAdjustModal({
             </Button>
           </div>
         </div>
-
       </DialogContent>
     </Dialog>
   );

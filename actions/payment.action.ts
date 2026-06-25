@@ -6,6 +6,8 @@ import {
   paymentService,
   Transaction,
   GenerateQrResponse,
+  BakongQrGenerateResponse,
+  BakongPaymentStatusResponse,
   BankCredentialPayload,
 } from "@/service/payment.service";
 import { participantService } from "@/service/participant.service";
@@ -50,6 +52,7 @@ export async function studentRegisterAction(
         error: "Your session has expired. Please log in again.",
       };
     }
+
     if (!isStudentOrAlumni(input.role)) {
       return {
         ok: false,
@@ -118,6 +121,7 @@ export async function alumniFixedPaymentAction(
         error: "Your session has expired. Please log in again.",
       };
     }
+
     if (role !== "alumni") {
       return {
         ok: false,
@@ -221,14 +225,15 @@ export async function generateFlexibleQrAction(
       };
     }
 
-    const qrPayload = {
-      postId: input.postId,
-      amount: input.amount,
-      remark: "",
-    };
-
     try {
-      const qrResponse = await paymentService.generateQr(qrPayload, token);
+      const qrResponse = await paymentService.generateQr(
+        {
+          postId: input.postId,
+          amount: input.amount,
+          remark: "",
+        },
+        token,
+      );
 
       return {
         ok: true,
@@ -241,6 +246,205 @@ export async function generateFlexibleQrAction(
           err instanceof Error
             ? `QR generation failed: ${err.message}`
             : "Failed to generate payment QR. Please try again.",
+      };
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
+    };
+  }
+}
+
+export interface GenerateBakongQrInput {
+  postId: string;
+  amount: number;
+  role: string;
+  remark?: string;
+}
+
+export async function generateBakongQrAction(
+  input: GenerateBakongQrInput,
+): Promise<ServerActionResponse2<BakongQrGenerateResponse>> {
+  try {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    if (!token) {
+      return {
+        ok: false,
+        error: "Your session has expired. Please log in again.",
+      };
+    }
+
+    if (!isStudentOrAlumni(input.role)) {
+      return {
+        ok: false,
+        error: "Bakong payment is only available for students and alumni.",
+      };
+    }
+
+    try {
+      const qrResponse = await paymentService.generateBakongQr(
+        {
+          postId: input.postId,
+          amount: input.amount,
+          remark: input.remark ?? "",
+        },
+        token,
+      );
+
+      return {
+        ok: true,
+        payload: qrResponse,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        error:
+          err instanceof Error
+            ? `Bakong QR generation failed: ${err.message}`
+            : "Failed to generate Bakong QR. Please try again.",
+      };
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
+    };
+  }
+}
+
+export async function checkBakongPaymentStatusAction(
+  paymentIntentId: string,
+): Promise<ServerActionResponse2<BakongPaymentStatusResponse>> {
+  try {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    if (!token) {
+      return { ok: false, error: "Your session has expired." };
+    }
+
+    try {
+      const status = await paymentService.checkBakongPayment(
+        paymentIntentId,
+        token,
+      );
+      return { ok: true, payload: status };
+    } catch (err) {
+      return {
+        ok: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Failed to check Bakong payment status.",
+      };
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
+    };
+  }
+}
+
+export interface ConfirmBakongPaymentInput {
+  paymentIntentId: string;
+  postId: string;
+  role: string;
+  remark: string;
+}
+
+export async function confirmBakongPaymentAction(
+  input: ConfirmBakongPaymentInput,
+): Promise<ServerActionResponse2<Transaction>> {
+  try {
+    const session = await getServerSession(authOptions);
+    const token = session?.accessToken as string | undefined;
+
+    if (!token) {
+      return {
+        ok: false,
+        error: "Your session has expired. Please log in again.",
+      };
+    }
+
+    if (!isStudentOrAlumni(input.role)) {
+      return {
+        ok: false,
+        error: "Bakong payment is only available for students and alumni.",
+      };
+    }
+
+    let status: BakongPaymentStatusResponse;
+
+    try {
+      status = await paymentService.checkBakongPayment(
+        input.paymentIntentId,
+        token,
+      );
+    } catch (err) {
+      return {
+        ok: false,
+        error:
+          err instanceof Error
+            ? `Bakong verification failed: ${err.message}`
+            : "Bakong verification failed. Please try again.",
+      };
+    }
+
+    if (!status.paid) {
+      return {
+        ok: false,
+        error: status.message || "Bakong payment has not been confirmed yet.",
+      };
+    }
+
+    try {
+      await participantService.register(
+        input.postId,
+        {
+          remark: input.remark,
+          billNo: status.billNo,
+        },
+        token,
+      );
+    } catch {
+    }
+
+    try {
+      const transaction = await paymentService.getTransactionByBillNo(
+        status.billNo,
+        token,
+      );
+
+      if (!transaction) {
+        return {
+          ok: false,
+          error:
+            "Bakong payment confirmed, but receipt not found. Check your transaction history.",
+        };
+      }
+
+      return {
+        ok: true,
+        payload: transaction,
+      };
+    } catch {
+      return {
+        ok: false,
+        error:
+          "Bakong payment confirmed, but we couldn't load your receipt. Check your transaction history.",
       };
     }
   } catch (error) {
@@ -267,6 +471,7 @@ async function flexiblePaymentAction(
         error: "Your session has expired. Please log in again.",
       };
     }
+
     if (!isStudentOrAlumni(input.role)) {
       return {
         ok: false,

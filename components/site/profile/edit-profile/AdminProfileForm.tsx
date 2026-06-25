@@ -2,20 +2,11 @@
 
 import React, { useEffect, useRef, useState, useTransition } from "react";
 import NextImage from "next/image";
-import { User, Mails, Cake, Link2, Camera } from "lucide-react";
-import { format } from "date-fns";
+import { Camera, Link2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import * as Flags from "country-flag-icons/react/3x2";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-
-import { Calendar } from "@/components/ui/calendar";
 import { profileService } from "@/service/profile.service";
 
 import {
@@ -30,6 +21,10 @@ import ConnectBankModal from "@/components/site/pop-up/payment/WebillConnectModa
 import ImageAdjustModal from "@/components/site/profile/ImageAdjustModal";
 import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
 import Loading from "@/app/loading";
+
+import AdminBasicInfo from "./sections/admin/AdminBasicInfo";
+import AdminBio from "./sections/admin/AdminBio";
+import AdminSocialAccounts from "./sections/admin/AdminSocialAccounts";
 
 interface CurrentUser {
   name: string;
@@ -105,15 +100,9 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
   const [facebookUrl, setFacebookUrl] = useState("");
   const [telegramUrl, setTelegramUrl] = useState("");
 
-  const selectedDate =
-    dob && !isNaN(new Date(dob).getTime()) ? new Date(dob) : undefined;
 
-  const currentYear = new Date().getFullYear();
-  const maxBirthYear = currentYear - 16;
-  const minBirthYear = currentYear - 100;
 
-  const startMonth = new Date(minBirthYear, 0);
-  const endMonth = new Date(maxBirthYear, 11);
+  const hasPendingImage = isAdjustOpen && selectedImageSrc !== null;
 
   const validateField = (name: string, value: string) => {
     switch (name) {
@@ -133,8 +122,8 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
       case "username":
         if (!value.trim()) return "Username is required";
-        if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-          return "Username can only contain letters, numbers and underscore";
+        if (!/^[a-z0-9_]+$/.test(value)) {
+          return "Username can only contain lowercase letters, numbers and underscore";
         }
         if (value.length < 3) return "Username must be at least 3 characters";
         return "";
@@ -394,11 +383,39 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         console.error(err);
       } finally {
         setIsLoadingData(false);
+        const draftStr = sessionStorage.getItem(`draft-admin-profile-${session?.user?.email}`);
+        if (draftStr) {
+          try {
+            const draft = JSON.parse(draftStr);
+            if (draft.firstName) setFirstName(draft.firstName);
+            if (draft.lastName) setLastName(draft.lastName);
+            if (draft.username) setUsername(draft.username);
+            if (draft.dob) setDob(draft.dob);
+            if (draft.phoneNumber) setPhoneNumber(draft.phoneNumber);
+            if (draft.email) setEmail(draft.email);
+            if (draft.gender) setGender(draft.gender);
+            if (draft.bio !== undefined) setBio(draft.bio);
+            if (draft.linkedinUrl !== undefined) setLinkedinUrl(draft.linkedinUrl);
+            if (draft.githubUrl !== undefined) setGithubUrl(draft.githubUrl);
+            if (draft.facebookUrl !== undefined) setFacebookUrl(draft.facebookUrl);
+            if (draft.telegramUrl !== undefined) setTelegramUrl(draft.telegramUrl);
+          } catch {
+          }
+        }
       }
     };
 
     loadAllUserData();
   }, [session]);
+
+  useEffect(() => {
+    if (isLoadingData) return;
+    const draft = {
+      firstName, lastName, username, dob, phoneNumber, email, gender,
+      bio, linkedinUrl, githubUrl, facebookUrl, telegramUrl
+    };
+    sessionStorage.setItem(`draft-admin-profile-${session?.user?.email}`, JSON.stringify(draft));
+  }, [firstName, lastName, username, dob, phoneNumber, email, gender, bio, linkedinUrl, githubUrl, facebookUrl, telegramUrl, isLoadingData, session?.user?.email]);
 
   useEffect(() => {
     const pendingAvatar = sessionStorage.getItem("pending-avatar");
@@ -411,29 +428,45 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     }
   }, []);
 
+  const MAX_IMAGE_SIZE = 15 * 1024 * 1024;
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
 
-    const reader = new FileReader();
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file.");
+      e.target.value = "";
+      return;
+    }
 
-    reader.onload = () => {
-      const base64 = reader.result as string;
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error("Image size must be less than 10MB.");
+      e.target.value = "";
+      return;
+    }
 
-      sessionStorage.setItem("pending-avatar", base64);
-      setSelectedImageSrc(base64);
-      setIsAdjustOpen(true);
-    };
+    setError(null);
 
-    reader.readAsDataURL(file);
+    const objectUrl = URL.createObjectURL(file);
+
+    sessionStorage.setItem("pending-avatar", objectUrl);
+
+    setSelectedImageSrc(objectUrl);
+    setIsAdjustOpen(true);
+
+    e.target.value = "";
   };
 
   const handleSaveCroppedAvatar = async (croppedBlob: Blob) => {
     setIsAdjustOpen(false);
     setIsUploading(true);
     setError(null);
-    sessionStorage.removeItem("pending-avatar");
+    if (croppedBlob.size > MAX_IMAGE_SIZE) {
+      toast.error("Cropped image must be less than 10MB.");
+      return;
+    }
 
     const localBlobUrl = URL.createObjectURL(croppedBlob);
     setAvatarUrl(localBlobUrl);
@@ -499,7 +532,9 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     initialProfile?.avatar !== avatarUrl ||
     socialsChanged;
 
-  const isFormDirty = (identityChanged || profileChanged) && !isPending;
+  // const isFormDirty = (identityChanged || profileChanged) && !isPending;
+  const isFormDirty =
+    (identityChanged || profileChanged || hasPendingImage) && !isPending;
 
   const handleDiscardClick = () => {
     if (isFormDirty) {
@@ -514,7 +549,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     }
 
     sessionStorage.removeItem("pending-avatar");
-    router.replace(profileRoute);
+    router.push(profileRoute);
   };
 
   const handleSaveChanges = () => {
@@ -561,7 +596,8 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     };
 
     if (!identityChanged && !profileChanged) {
-      router.replace(profileRoute);
+      sessionStorage.removeItem(`draft-admin-profile-${session?.user?.email}`);
+      router.push(profileRoute);
       return;
     }
 
@@ -596,9 +632,10 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
         )) as [ActionResult, ActionResult];
 
         if (identityResult?.success && profileResult?.success) {
+          sessionStorage.removeItem(`draft-admin-profile-${session?.user?.email}`);
           sessionStorage.removeItem("pending-avatar");
           toast.success("Profile updated successfully.");
-          router.replace(profileRoute);
+          router.push(profileRoute);
           return;
         }
 
@@ -626,6 +663,23 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
       }
     });
   };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isFormDirty) return;
+
+      e.preventDefault();
+
+      e.returnValue =
+        "You have unsaved changes. Are you sure you want to leave?";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isFormDirty]);
 
   return (
     <div className="space-y-6 w-full text-left">
@@ -704,560 +758,41 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
               Personal Information
             </h2>
 
-            <div className="space-y-6 w-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label className="type-detail-semibold text-secondary">
-                    First Name
-                  </label>
+              <AdminBasicInfo
+                firstName={firstName}
+                setFirstName={setFirstName}
+                lastName={lastName}
+                setLastName={setLastName}
+                username={username}
+                setUsername={setUsername}
+                gender={gender}
+                dob={dob}
+                setDob={setDob}
+                phoneNumber={phoneNumber}
+                setPhoneNumber={setPhoneNumber}
+                email={email}
+                errors={errors}
+                setErrors={setErrors}
+                validateField={validateField}
+                isCalendarOpen={isCalendarOpen}
+                setIsCalendarOpen={setIsCalendarOpen}
+              />
 
-                  <div className="relative flex items-center w-full">
-                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                      <User className="w-4 h-4" />
-                    </div>
+              <AdminBio bio={bio} setBio={setBio} />
 
-                    <input
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setFirstName(value);
-
-                        setErrors((prev) => ({
-                          ...prev,
-                          firstName: validateField("firstName", value),
-                        }));
-                      }}
-                      className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md ${
-                        errors.firstName
-                          ? "border-red-500"
-                          : "border-border focus:border-primary"
-                      }`}
-                    />
-                  </div>
-
-                  {errors.firstName && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.firstName}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label className="type-detail-semibold text-secondary">
-                    Last Name
-                  </label>
-
-                  <div className="relative flex items-center w-full">
-                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                      <User className="w-4 h-4" />
-                    </div>
-
-                    <input
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setLastName(value);
-
-                        setErrors((prev) => ({
-                          ...prev,
-                          lastName: validateField("lastName", value),
-                        }));
-                      }}
-                      className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md ${
-                        errors.lastName
-                          ? "border-red-500"
-                          : "border-border focus:border-primary"
-                      }`}
-                    />
-                  </div>
-
-                  {errors.lastName && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.lastName}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label className="type-detail-semibold text-secondary">
-                    Username
-                  </label>
-
-                  <div className="relative flex items-center w-full">
-                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                      <User className="w-4 h-4" />
-                    </div>
-
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setUsername(value);
-
-                        setErrors((prev) => ({
-                          ...prev,
-                          username: validateField("username", value),
-                        }));
-                      }}
-                      className={`w-full h-10 pl-11 pr-10 bg-background border rounded-md ${
-                        errors.username
-                          ? "border-red-500"
-                          : "border-border focus:border-primary"
-                      }`}
-                    />
-                  </div>
-
-                  {errors.username && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.username}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label className="type-detail-semibold text-secondary">
-                    Gender
-                  </label>
-
-                  <div className="relative flex items-center w-full">
-                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                      <User className="w-4 h-4" />
-                    </div>
-
-                    <input
-                      type="text"
-                      value={gender}
-                      disabled
-                      className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-muted-foreground opacity-70 focus:outline-none cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label className="type-detail-semibold text-secondary">
-                    Date of Birth
-                  </label>
-
-                  <Popover
-                    open={isCalendarOpen}
-                    onOpenChange={setIsCalendarOpen}
-                  >
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border bg-background text-left ${
-                          errors.dateOfBirth
-                            ? "border-red-500"
-                            : "border-border"
-                        }`}
-                      >
-                        <Cake className="w-4 h-4 text-[#93A3CA] shrink-0" />
-
-                        <span
-                          className={`text-sm ${
-                            dob ? "text-foreground" : "text-muted-foreground"
-                          }`}
-                        >
-                          {selectedDate
-                            ? format(selectedDate, "dd/MM/yyyy")
-                            : "DD/MM/YYYY"}
-                        </span>
-                      </button>
-                    </PopoverTrigger>
-
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => {
-                          if (!date) return;
-
-                          setDob(format(date, "yyyy-MM-dd"));
-                          setIsCalendarOpen(false);
-
-                          setErrors((prev) => ({
-                            ...prev,
-                            dateOfBirth: "",
-                          }));
-                        }}
-                        disabled={(date) => {
-                          const today = new Date();
-
-                          const maxBirthDate = new Date(
-                            today.getFullYear() - 16,
-                            today.getMonth(),
-                            today.getDate(),
-                          );
-
-                          return date > maxBirthDate;
-                        }}
-                        captionLayout="dropdown"
-                        startMonth={startMonth}
-                        endMonth={endMonth}
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  {errors.dateOfBirth && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.dateOfBirth}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="type-desc text-secondary">
-                    Phone Number
-                  </label>
-
-                  <div
-                    className={`flex items-center h-10 rounded-lg border bg-white overflow-hidden transition-all ${
-                      errors.phoneNumber
-                        ? "border-red-500"
-                        : "border-border focus-within:border-primary"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 bg-gray-50 border-r border-border h-full px-3 shrink-0 text-sm font-medium text-gray-500">
-                      <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/10 items-center justify-center">
-                        <Flags.KH className="w-full object-cover" />
-                      </span>
-
-                      <span className="text-primary">+855</span>
-                    </div>
-
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={11}
-                      value={phoneNumber.replace(
-                        /(\d{2})(\d{3})(\d{0,4})/,
-                        (_, a, b, c) => [a, b, c].filter(Boolean).join(" "),
-                      )}
-                      onChange={(e) => {
-                        const rawValue = e.target.value.replace(/\D/g, "");
-
-                        if (/^\d{0,9}$/.test(rawValue)) {
-                          setPhoneNumber(rawValue);
-
-                          setErrors((prev) => ({
-                            ...prev,
-                            phoneNumber: "",
-                          }));
-                        }
-                      }}
-                      className="w-full h-full border-0 bg-transparent px-3 text-primary outline-none focus-visible:ring-0 shadow-none placeholder:text-gray-400"
-                      placeholder="89 124 5768"
-                    />
-                  </div>
-
-                  {errors.phoneNumber && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.phoneNumber}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1.5 md:col-span-2 w-full">
-                  <label className="type-detail-semibold text-secondary">
-                    Email
-                  </label>
-
-                  <div className="relative flex items-center w-full">
-                    <div className="absolute left-3.5 text-[#93A3CA] pointer-events-none">
-                      <Mails className="w-4 h-4" />
-                    </div>
-
-                    <input
-                      type="email"
-                      value={email}
-                      disabled
-                      className="w-full h-10 pl-11 pr-10 bg-background border border-border rounded-md type-detail text-muted-foreground focus:outline-none opacity-70 cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5 w-full">
-                <label className="type-detail-semibold text-secondary">
-                  Profile Bio
-                </label>
-
-                <textarea
-                  rows={3}
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="w-full p-3 bg-background border border-border rounded-md type-detail text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
-                  placeholder="Tell us about yourself..."
-                />
-              </div>
-
-              <section className="space-y-4">
-                <h2 className="type-subtitle-24 text-primary">
-                  Social Accounts
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                  <div className="flex items-end gap-3 w-full min-w-0">
-                    <div className="shrink-0 mb-1">
-                      <svg
-                        width="40"
-                        height="40"
-                        viewBox="0 0 40 40"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                        <path
-                          d="M22.9883 25.5H24.4983C27.5183 25.5 29.9983 23.03 29.9983 20C29.9983 16.98 27.5283 14.5 24.4983 14.5H22.9883"
-                          stroke="#F9F9F9"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M17 14.5H15.5C12.47 14.5 10 16.97 10 20C10 23.02 12.47 25.5 15.5 25.5H17"
-                          stroke="#F9F9F9"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M16 20H24"
-                          stroke="#F9F9F9"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                      <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
-                        LinkedIn
-                      </label>
-
-                      <div
-                        className={`flex items-center h-12 px-3 border rounded-xl bg-white transition-all ${
-                          errors.linkedinUrl
-                            ? "border-red-500"
-                            : "border-border focus-within:border-primary"
-                        }`}
-                      >
-                        <input
-                          type="text"
-                          value={linkedinUrl}
-                          placeholder="https://linkedin.com/in/username"
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setLinkedinUrl(value);
-
-                            setErrors((prev) => ({
-                              ...prev,
-                              linkedinUrl: validateField("linkedinUrl", value),
-                            }));
-                          }}
-                          className="w-full bg-transparent outline-none type-detail text-foreground font-medium placeholder:text-gray-400"
-                        />
-                      </div>
-
-                      {errors.linkedinUrl && (
-                        <p className="text-xs text-red-500">
-                          {errors.linkedinUrl}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-end gap-3 w-full min-w-0">
-                    <div className="shrink-0 mb-1">
-                      <svg
-                        width="40"
-                        height="40"
-                        viewBox="0 0 40 40"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                        <path
-                          d="M17 27.0034C12 28.5034 12 24.5034 10 24.0034M24 30.0034V26.1334C24.0375 25.6565 23.9731 25.1772 23.811 24.7271C23.6489 24.2771 23.3929 23.8668 23.06 23.5234C26.2 23.1734 29.5 21.9834 29.5 16.5234C29.4997 15.1272 28.9627 13.7846 28 12.7734C28.4559 11.5519 28.4236 10.2017 27.91 9.00336C27.91 9.00336 26.73 8.65336 24 10.4834C21.708 9.86218 19.292 9.86218 17 10.4834C14.27 8.65336 13.09 9.00336 13.09 9.00336C12.5764 10.2017 12.5441 11.5519 13 12.7734C12.0301 13.7921 11.4925 15.1468 11.5 16.5534C11.5 21.9734 14.8 23.1634 17.94 23.5534C17.611 23.8933 17.3573 24.2988 17.1953 24.7433C17.0334 25.1878 16.9668 25.6614 17 26.1334V30.0034"
-                          stroke="white"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                      <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
-                        GitHub
-                      </label>
-
-                      <div
-                        className={`flex items-center h-12 px-3 border rounded-xl bg-white transition-all ${
-                          errors.githubUrl
-                            ? "border-red-500"
-                            : "border-border focus-within:border-primary"
-                        }`}
-                      >
-                        <input
-                          type="text"
-                          placeholder="https://github.com/username"
-                          value={githubUrl}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setGithubUrl(value);
-
-                            setErrors((prev) => ({
-                              ...prev,
-                              githubUrl: validateField("githubUrl", value),
-                            }));
-                          }}
-                          className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
-                        />
-                      </div>
-
-                      {errors.githubUrl && (
-                        <p className="text-xs text-red-500">
-                          {errors.githubUrl}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-end gap-3 w-full min-w-0">
-                    <div className="shrink-0 mb-1">
-                      <svg
-                        width="40"
-                        height="40"
-                        viewBox="0 0 40 40"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                        <path
-                          d="M22 17.3V20.2H24.6C24.8 20.2 24.9 20.4 24.9 20.6L24.5 22.5C24.5 22.6 24.3 22.7 24.2 22.7H22V30H19V22.8H17.3C17.1 22.8 17 22.7 17 22.5V20.6C17 20.4 17.1 20.3 17.3 20.3H19V17C19 15.3 20.3 14 22 14H24.7C24.9 14 25 14.1 25 14.3V16.7C25 16.9 24.9 17 24.7 17H22.3C22.1 17 22 17.1 22 17.3Z"
-                          stroke="#F9F9F9"
-                          strokeWidth="1.5"
-                          strokeMiterlimit="10"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M23 30H17C12 30 10 28 10 23V17C10 12 12 10 17 10H23C28 10 30 12 30 17V23C30 28 28 30 23 30Z"
-                          stroke="#F9F9F9"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                      <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
-                        Facebook
-                      </label>
-
-                      <div
-                        className={`flex items-center h-12 px-3 border rounded-xl bg-white transition-all ${
-                          errors.facebookUrl
-                            ? "border-red-500"
-                            : "border-border focus-within:border-primary"
-                        }`}
-                      >
-                        <input
-                          type="text"
-                          placeholder="https://facebook.com/username"
-                          value={facebookUrl}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setFacebookUrl(value);
-
-                            setErrors((prev) => ({
-                              ...prev,
-                              facebookUrl: validateField("facebookUrl", value),
-                            }));
-                          }}
-                          className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
-                        />
-                      </div>
-
-                      {errors.facebookUrl && (
-                        <p className="text-xs text-red-500">
-                          {errors.facebookUrl}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-end gap-3 w-full min-w-0">
-                    <div className="shrink-0 mb-1">
-                      <svg
-                        width="40"
-                        height="40"
-                        viewBox="0 0 40 40"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <rect width="40" height="40" rx="20" fill="#1C4D8D" />
-                        <path
-                          d="M15.3997 14.3202L23.8897 11.4902C27.6997 10.2202 29.7697 12.3002 28.5097 16.1102L25.6797 24.6002C23.7797 30.3102 20.6597 30.3102 18.7597 24.6002L17.9197 22.0802L15.3997 21.2402C9.68969 19.3402 9.68969 16.2302 15.3997 14.3202Z"
-                          stroke="#F9F9F9"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M18.1094 21.6525L21.6894 18.0625"
-                          stroke="#F9F9F9"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                      <label className="type-detail-small-medium text-accent uppercase tracking-wider text-xs font-semibold">
-                        Telegram
-                      </label>
-
-                      <div
-                        className={`flex items-center h-12 px-3 border rounded-xl bg-white transition-all ${
-                          errors.telegramUrl
-                            ? "border-red-500"
-                            : "border-border focus-within:border-primary"
-                        }`}
-                      >
-                        <input
-                          type="text"
-                          placeholder="https://t.me/username"
-                          value={telegramUrl}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setTelegramUrl(value);
-
-                            setErrors((prev) => ({
-                              ...prev,
-                              telegramUrl: validateField("telegramUrl", value),
-                            }));
-                          }}
-                          className="type-detail w-full outline-hidden text-foreground bg-transparent font-medium"
-                        />
-                      </div>
-
-                      {errors.telegramUrl && (
-                        <p className="text-xs text-red-500">
-                          {errors.telegramUrl}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </div>
-
+              <AdminSocialAccounts
+                linkedinUrl={linkedinUrl}
+                setLinkedinUrl={setLinkedinUrl}
+                githubUrl={githubUrl}
+                setGithubUrl={setGithubUrl}
+                facebookUrl={facebookUrl}
+                setFacebookUrl={setFacebookUrl}
+                telegramUrl={telegramUrl}
+                setTelegramUrl={setTelegramUrl}
+                errors={errors}
+                setErrors={setErrors}
+                validateField={validateField}
+              />
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border">
               <button
                 type="button"

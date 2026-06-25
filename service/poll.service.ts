@@ -35,7 +35,7 @@ function formatShowResult(value: string | undefined): string {
   if (cleanValue.includes("voting") || cleanValue.includes("aftervote"))
     return "after_vote";
   if (cleanValue.includes("expire") || cleanValue.includes("close"))
-    return "after_close";
+    return "after_closed";
   return "always";
 }
 
@@ -172,18 +172,18 @@ export const pollService = {
       payload.showResult = formatShowResult(request.showResult);
 
     if (request.newOptionTexts && request.newOptionTexts.length > 0) {
-    const existingTexts = (request.options ?? []).map((opt) =>
-      typeof opt === "string" ? opt : opt.text,
-    );
-    const newCleaned = request.newOptionTexts
-      .map((t) => t.trim())
-      .filter(Boolean);
-    payload.options = [...existingTexts, ...newCleaned];
-  } else if (request.options !== undefined) {
-    payload.options = request.options.map((opt) =>
-      typeof opt === "string" ? opt : opt.text,
-    );
-  }
+      const existingTexts = (request.options ?? []).map((opt) =>
+        typeof opt === "string" ? opt : opt.text,
+      );
+      const newCleaned = request.newOptionTexts
+        .map((t) => t.trim())
+        .filter(Boolean);
+      payload.options = [...existingTexts, ...newCleaned];
+    } else if (request.options !== undefined) {
+      payload.options = request.options.map((opt) =>
+        typeof opt === "string" ? opt : opt.text,
+      );
+    }
 
     const response = await apiPatch<BackendApiResponse<Poll>, typeof payload>(
       `/polls/${pollId}`,
@@ -222,6 +222,15 @@ export const pollService = {
       { authToken: token },
     );
     return response.payload;
+  },
+
+  getVoters: async (pollId: string): Promise<import("@/types/poll-voter").OptionVotersDTO[]> => {
+    const token = await getLiveToken();
+    const response = await apiGet<BackendApiResponse<import("@/types/poll-voter").OptionVotersDTO[]>>(
+      `/polls/${pollId}/voters`,
+      { authToken: token },
+    );
+    return response.payload || [];
   },
 
   setupWebSocket: async (

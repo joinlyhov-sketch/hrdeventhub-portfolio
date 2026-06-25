@@ -1,34 +1,15 @@
-"use client";
+"use server";
 
-import { signIn } from "next-auth/react";
 import { authService } from "../service/auth.service";
 import type { RegisterRequest } from "../types/auth-types";
 export async function logoutAction(refreshToken: string) {
   try {
     await authService.logout(refreshToken);
-  } catch (error) {
+  } catch {
   }
 }
 
-export async function loginAction(formData: FormData) {
-  const result = await signIn("credentials", {
-    identifier: formData.get("identifier"),
-    password: formData.get("password"),
-    rememberMe: formData.get("rememberMe"),
-    redirect: false,
-  });
 
-  if (result?.error) {
-    return {
-      error:
-        result.error === "CredentialsSignin"
-          ? "Invalid email or password."
-          : "Something went wrong. Please try again.",
-    };
-  }
-
-  return { ok: true };
-}
 
 export async function registerAction(payload: RegisterRequest) {
   const {

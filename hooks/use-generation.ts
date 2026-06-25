@@ -5,7 +5,8 @@ import { generationService } from "@/service/generation.service";
 export function useGenerations() {
   const { data, error, isLoading, mutate } = useSWR(
     ["generations"],
-    () => generationService.getAll()
+    () => generationService.getAll(),
+    { revalidateOnFocus: false, dedupingInterval: 60_000 }
   );
 
   return {

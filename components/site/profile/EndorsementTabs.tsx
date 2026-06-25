@@ -6,6 +6,7 @@ import { EndorsementItem } from "@/types/endorsement";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import EndorsementTabSkeleton from "./EndorsementTabSkeleton";
 
 interface EndorsementTabsProps {
   studentId?: string;
@@ -47,12 +48,7 @@ export default function EndorsementTabs({ studentId }: EndorsementTabsProps) {
   }
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
-        <p className="text-muted-foreground">Loading endorsements...</p>
-      </div>
-    );
+    return <EndorsementTabSkeleton />;
   }
 
   if (error) {

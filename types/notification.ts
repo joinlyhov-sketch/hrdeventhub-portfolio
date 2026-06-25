@@ -4,15 +4,17 @@ export type NotificationType =
   | "POST_DELETED"
   | "MENTION"
   | "SURVEY_CREATED"
-  | "POLL_CREATED";
+  | "POLL_CREATED"
+  | "NEW_MESSAGE";
 
 export interface NotificationPayload {
   notificationId: string;
   type: NotificationType;
-  workspaceId: string;
+  workspaceId?: string;
   postId?: string;
   postTitle?: string;
   postCategory?: string;
+  conversationId?: string;
   actorId: string;
   actorName: string;
   actorAvatar?: string;
@@ -46,4 +48,16 @@ export interface WsMentionNotification {
   timestamp: string;
 }
 
-export type WsNotification = WsPostNotification | WsMentionNotification;
+export interface WsMessageNotification {
+  type: "NEW_MESSAGE";
+  conversationId: string;
+  actorId: string;
+  actorName: string;
+  actorAvatar?: string;
+  timestamp: string;
+}
+
+export type WsNotification =
+  | WsPostNotification
+  | WsMentionNotification
+  | WsMessageNotification;

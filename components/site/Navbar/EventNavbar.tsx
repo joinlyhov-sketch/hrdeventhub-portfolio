@@ -11,7 +11,7 @@ export default function EventNavbar({ workspace, isLoading }: EventNavbarProps) 
 
   return (
     <section className="flex items-center bg-white gap-2 sm:gap-3 px-4 lg:px-12 border-b sticky top-0 z-[100] py-2">
-      <div className="bg-primary p-2 rounded-md text-white">
+      <div className="bg-primary p-1 md:p-2 rounded-md text-white">
          <FolderClosed />
       </div>
       <div>

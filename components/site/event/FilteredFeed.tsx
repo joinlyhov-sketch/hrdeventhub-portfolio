@@ -37,7 +37,7 @@ export default function FilteredFeed({
 }: FilteredFeedProps) {
   const searchParams = useSearchParams();
   const deepLinkPostId = searchParams.get("postId") ?? deepLinkPostIdProp;
-  const deepLinkType = searchParams.get("type") ?? deepLinkTypeProp;
+  const _deepLinkType = searchParams.get("type") ?? deepLinkTypeProp;
 
   const [mounted, setMounted] = useState(false);
   const { currentUser, isLoading: userLoading } = useCurrentUser();
@@ -92,22 +92,7 @@ export default function FilteredFeed({
     }
   }, [swrItems, groupid, setFeed]);
 
-  const commentsSeedDone = useRef(false);
-  useEffect(() => {
-    if (commentsSeedDone.current) return;
-    if (!feedItems || feedItems.length === 0) return;
 
-    feedItems.forEach((item) => {
-      const d = item.data as Record<string, unknown> | undefined;
-      const postId = d?.postId ?? d?.pollId ?? d?.surveyId;
-      const comments = d?.comments;
-      if (postId && Array.isArray(comments)) {
-        globalMutate(commentCacheKey(postId as string), comments, { revalidate: false });
-      }
-    });
-
-    commentsSeedDone.current = true;
-  }, [feedItems]);
 
   const { members } = useWorkspaceMembers(groupid);
 
@@ -236,6 +221,15 @@ export default function FilteredFeed({
       console.error(error);
       mutate();
     }
+  };
+
+  const handleDeletePoll = (pollId: string) => {
+    mutate(
+      (current) =>
+        current?.filter((item) => item.id !== pollId && (item.data as Record<string, unknown>)?.pollId !== pollId) ?? [],
+      false
+    );
+    setTimeout(() => mutate(), 800);
   };
 
   const handleDeleteSurvey = (surveyId: string) => {
@@ -399,7 +393,7 @@ export default function FilteredFeed({
                       role={role}
                       polls={[item.data as Poll]}
                       searchQuery={debouncedSearch}
-                      onDeletePoll={(pollId) => console.log(pollId)}
+                      onDeletePoll={handleDeletePoll}
                     />
                   </div>
                 );

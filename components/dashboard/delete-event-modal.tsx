@@ -59,7 +59,7 @@ export function DeleteEventModal({
         </div>
 
         <AlertDialogHeader className="!flex !flex-col !items-center !text-center w-full space-y-2 sm:space-y-3 mb-5 sm:mb-6 gap-0">
-          <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-[#0B192C] w-full text-center block">
+          <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-secondary w-full text-center block">
             Delete Event Post
           </AlertDialogTitle>
           
@@ -85,7 +85,7 @@ export function DeleteEventModal({
               variant="outline"
               onClick={onClose}
               disabled={isDeleting}
-              className="h-11 sm:h-12 w-full px-4 border border-[#1E3A8A] text-[#1E3A8A] hover:bg-slate-50 font-medium rounded-xl text-sm sm:text-[15px] transition-colors"
+              className="h-11 sm:h-12 w-full px-4 border border-primary text-primary hover:bg-slate-50 hover:text-primary font-medium rounded-xl text-sm sm:text-[15px] transition-colors"
             >
               Cancel
             </Button>

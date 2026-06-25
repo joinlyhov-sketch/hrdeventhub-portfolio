@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import type { CompatClient, StompSubscription, IMessage } from "@stomp/stompjs";
 import { WS_URL } from "@/libs/constants";
 import {
   WsEvent,
@@ -29,11 +30,12 @@ export function useWebSocket({
 }: UseWebSocketOptions) {
   const [status, setStatus] = useState<WsStatus>("disconnected");
 
-  const stompRef = useRef<any>(null);
-  const subRef = useRef<any>(null);
+  const stompRef = useRef<CompatClient | null>(null);
+  const subRef = useRef<StompSubscription | null>(null);
   const pendingConvRef = useRef<string | null>(null);
   const cancelledRef = useRef(false);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectRef = useRef<(() => Promise<void>) | null>(null);
 
   const onMessageRef = useRef(onMessage);
   const onEditRef = useRef(onEdit);
@@ -45,21 +47,23 @@ export function useWebSocket({
   useEffect(() => { onDeleteRef.current = onDelete; }, [onDelete]);
   useEffect(() => { onReadRef.current = onRead; }, [onRead]);
 
-  const doSubscribe = useCallback((client: any, conversationId: string) => {
+  const doSubscribe = useCallback((client: CompatClient, conversationId: string) => {
     subRef.current?.unsubscribe();
     subRef.current = client.subscribe(
       `/topic/conversation/${conversationId}`,
-      (frame: any) => {
+      (frame: IMessage) => {
         try {
           const payload: WsEvent = JSON.parse(frame.body);
-          if ("type" in payload && typeof (payload as any).type === "string") {
-            const t = (payload as any).type as string;
+          if ("type" in payload && typeof (payload as { type?: unknown }).type === "string") {
+            const t = (payload as { type: string }).type;
             if (t === "EDIT") { onEditRef.current(payload as WsEditEvent); return; }
             if (t === "DELETE") { onDeleteRef.current(payload as WsDeleteEvent); return; }
             if (t === "READ") { onReadRef.current?.(payload as WsReadEvent); return; }
           }
           onMessageRef.current(payload as ChatMessage);
-        } catch {}
+        } catch (err) {
+          console.error("[WS] Failed to parse message frame:", err);
+        }
       },
     );
   }, []);
@@ -91,11 +95,15 @@ export function useWebSocket({
         if (cancelledRef.current) return;
         setStatus("disconnected");
         reconnectTimerRef.current = setTimeout(() => {
-          connect();
+          connectRef.current?.();
         }, 4000);
       },
     );
   }, [token, doSubscribe]);
+
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   useEffect(() => {
     if (!token) return;

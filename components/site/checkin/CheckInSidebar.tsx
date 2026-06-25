@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Attendee } from "@/service/checkin.service";
 import { Button } from "../../ui/button";
-import { ChevronDown, Users } from "lucide-react";
+import { ChevronDown, ChevronUp, Users } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,6 +58,7 @@ export function CheckInSidebar({
 }: CheckInSidebarProps) {
   const [showAll, setShowAll] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState<string>("all");
+  const [isOpen, setIsOpen] = useState(false);
 
   const workspaces = useMemo(() => {
     const names = [...new Set(attendees.map((a) => a.workspaceName))];
@@ -97,7 +98,8 @@ export function CheckInSidebar({
 
   const totalForWorkspace = useMemo(() => {
     if (selectedWorkspace === "all") return attendees.length;
-    return attendees.filter((a) => a.workspaceName === selectedWorkspace).length;
+    return attendees.filter((a) => a.workspaceName === selectedWorkspace)
+      .length;
   }, [attendees, selectedWorkspace]);
 
   const selectedWorkspaceLabel =
@@ -111,11 +113,15 @@ export function CheckInSidebar({
         </h3>
       </div>
 
-      <DropdownMenu>
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <button className="w-full flex items-center justify-between px-3 py-2 mb-5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors duration-150 text-sm text-gray-700 font-medium cursor-pointer">
             <span className="truncate">{selectedWorkspaceLabel}</span>
-            <ChevronDown size={15} className="shrink-0 ml-2 text-gray-400" />
+            {isOpen ? (
+              <ChevronUp size={15} className="shrink-0 ml-2 text-gray-400" />
+            ) : (
+              <ChevronDown size={15} className="shrink-0 ml-2 text-gray-400" />
+            )}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -153,7 +159,9 @@ export function CheckInSidebar({
         <Users size={14} className="text-gray-400" />
         <p className="text-xs text-gray-400">
           Total Attendees:{" "}
-          <span className="font-semibold text-secondary">{totalForWorkspace}</span>
+          <span className="font-semibold text-secondary">
+            {totalForWorkspace}
+          </span>
         </p>
       </div>
 

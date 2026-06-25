@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useMyWorkspaces } from "@/hooks/use-my-workspace";
 import { useNotificationListener } from "@/hooks/use-notification-socket";
@@ -12,7 +12,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const token = session?.accessToken as string | undefined;
 
   const { workspaces } = useMyWorkspaces();
-  const workspaceIds = workspaces.map((w) => w.workspaceId).filter(Boolean);
+  const workspaceIds = useMemo(
+    () => workspaces.map((w) => w.workspaceId).filter(Boolean),
+    [workspaces],
+  );
 
   useNotificationListener(workspaceIds);
 
@@ -27,7 +30,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       .getMyNotifications(token)
       .then(hydrateNotifications)
       .catch((err) => console.error("[Notifications] hydration failed", err));
-  }, [token]);
+  }, [token, setToken, hydrateNotifications]);
 
   return <>{children}</>;
 }

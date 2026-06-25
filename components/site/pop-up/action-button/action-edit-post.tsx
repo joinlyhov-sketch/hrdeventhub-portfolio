@@ -40,17 +40,16 @@ export default function GenericPostDropDown({
   const handleTogglePin = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!hasPinFeature) return;
-    
+
     const currentPinned = isPinned ?? false;
     const currentCount = pinnedCount ?? 0;
-    
+
     if (!currentPinned && currentCount >= MAX_PINNED) return;
 
     startTransition(async () => {
       try {
         await onTogglePin(currentPinned);
-      } catch (error) {
-      }
+      } catch {}
     });
   };
 
@@ -73,7 +72,10 @@ export default function GenericPostDropDown({
             {hasPinFeature && (
               <DropdownMenuItem
                 onClick={handleTogglePin}
-                disabled={isPending || (!(isPinned ?? false) && (pinnedCount ?? 0) >= MAX_PINNED)}
+                disabled={
+                  isPending ||
+                  (!(isPinned ?? false) && (pinnedCount ?? 0) >= MAX_PINNED)
+                }
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-action hover:bg-action/10 focus:bg-action/10 hover:text-action focus:text-action cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPinned ? (
@@ -83,7 +85,9 @@ export default function GenericPostDropDown({
                 ) : (
                   <>
                     <Pin size={16} className="stroke-action" />{" "}
-                    {(pinnedCount ?? 0) >= MAX_PINNED ? "Pin limit reached" : "Pin Post"}
+                    {(pinnedCount ?? 0) >= MAX_PINNED
+                      ? "Pin limit reached"
+                      : "Pin Post"}
                   </>
                 )}
               </DropdownMenuItem>

@@ -9,6 +9,7 @@ import { submitSurveyResponseAction } from "@/actions/survey.action";
 import { surveyService } from "@/service/survey.service";
 import { deleteSurveyAction } from "@/actions/survey.action";
 import { isAfter } from "date-fns";
+import ExpandableText from "./ExpandableText";
 
 interface SurveyCardProps {
   survey: Survey;
@@ -37,8 +38,8 @@ function HeaderBadgeLayout({
   onDelete,
 }: HeaderBadgeLayoutProps) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
-      <h2 className="text-base sm:text-lg md:text-xl font-bold text-secondary break-words">
+    <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4 wrap-break-word overflow-wrap-anywhere">
+      <h2 className="text-base sm:text-lg md:text-xl font-bold text-secondary min-w-0 wrap-break-word overflow-wrap-anywhere">
         {title}
       </h2>
       <div className="flex items-center gap-2 shrink-0">
@@ -99,11 +100,11 @@ function QuestionField({
     case "choice":
       return (
         <div className="space-y-2 sm:space-y-3">
-          {(element.choices ?? []).map((choice) => {
+          {(element.choices ?? []).map((choice, idx) => {
             const isSelected = value === choice;
             return (
               <label
-                key={choice}
+                key={`${choice}-${idx}`}
                 className={`flex items-center gap-3 sm:gap-4 border p-3 sm:p-4 rounded-xl cursor-pointer transition-all ${
                   isSelected
                     ? "border-secondary bg-secondary/[0.04]"
@@ -146,8 +147,8 @@ function QuestionField({
           className={`${base} bg-white`}
         >
           <option value="">— Select an option —</option>
-          {(element.choices ?? []).map((c) => (
-            <option key={c} value={c}>
+          {(element.choices ?? []).map((c, idx) => (
+            <option key={`${c}-${idx}`} value={c}>
               {c}
             </option>
           ))}
@@ -331,7 +332,6 @@ export function SurveyCard({
 
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingStatus(true);
     surveyService
       .hasSubmitted(survey.surveyId)
@@ -437,7 +437,9 @@ export function SurveyCard({
             </span>
           }
         />
-        <p className="text-xs sm:text-sm text-grey-400">{description}</p>
+        <legend className="text-xs sm:text-sm text-grey-400 block w-full">
+          <ExpandableText text={description} maxLength={150} />
+        </legend>
         <p className="text-xs sm:text-sm text-grey-300 mt-4 italic">
           This survey is no longer accepting responses.
         </p>
@@ -466,7 +468,9 @@ export function SurveyCard({
         }
       />
 
-      <p className="text-xs sm:text-sm text-grey-500 mb-4 sm:mb-6">{description}</p>
+      <legend className="text-xs sm:text-sm text-grey-500 mb-4 sm:mb-6 block w-full">
+        <ExpandableText text={description} maxLength={150} />
+      </legend>
 
       {currentPage?.title && currentPage.title !== "Survey Page" && (
         <p className="text-xs font-semibold text-secondary uppercase tracking-widest mb-4 sm:mb-5">

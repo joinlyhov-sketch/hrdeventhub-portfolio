@@ -26,19 +26,17 @@ import Image from "next/image";
 import {
   LogOut,
   Pin,
-  MessageCircle,
   ClipboardList,
-  User,
   Pencil,
   Settings,
   ChevronRight,
-  ChevronUp,
   Circle,
   MinusCircle,
   Moon,
   Bell,
-  MessagesSquare,
   ChevronLeft,
+  UserRound,
+  MessageCircleMore,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -50,6 +48,7 @@ import { setOnlineAction, setOfflineAction } from "@/actions/presence.action";
 import { useStatusContext, ActiveStatus } from "@/context/StatusContext";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useChatStore } from "@/store/useChatStore";
+import { useGlobalChatSync } from "@/hooks/useGlobalChatSync";
 
 const ADMIN_ROLES = ["admin", "organizer"] as const;
 const STUDENT_ALUMNI_ROLES = ["student", "alumni"] as const;
@@ -60,25 +59,25 @@ const STATUS_OPTIONS: {
   icon: React.ReactNode;
   color: string;
 }[] = [
-  {
-    value: "online",
-    label: "Online",
-    icon: <Circle size={10} className="fill-current" />,
-    color: "text-green-500",
-  },
-  {
-    value: "do-not-disturb",
-    label: "Do Not Disturb",
-    icon: <MinusCircle size={10} />,
-    color: "text-red-500",
-  },
-  {
-    value: "offline",
-    label: "Appear Offline",
-    icon: <Moon size={10} />,
-    color: "text-gray-400",
-  },
-];
+    {
+      value: "online",
+      label: "Online",
+      icon: <Circle size={10} className="fill-current" />,
+      color: "text-green-500",
+    },
+    {
+      value: "do-not-disturb",
+      label: "Do Not Disturb",
+      icon: <MinusCircle size={10} />,
+      color: "text-red-500",
+    },
+    {
+      value: "offline",
+      label: "Appear Offline",
+      icon: <Moon size={10} />,
+      color: "text-gray-400",
+    },
+  ];
 
 function StatusDot({ status }: { status: ActiveStatus }) {
   const colorMap: Record<ActiveStatus, string> = {
@@ -109,10 +108,10 @@ export function AppSidebar() {
   const isStudentOrAlumni = STUDENT_ALUMNI_ROLES.includes(
     currentUser?.role as (typeof STUDENT_ALUMNI_ROLES)[number],
   );
-  const memberData = useMyWorkspaces();
+  const { workspaces, mutate } = useMyWorkspaces();
   const pinnedWorkspaces = isAdmin
     ? []
-    : memberData.workspaces.filter((w) => w.isPinned === true);
+    : workspaces.filter((w) => w.isPinned === true);
   const profileHref = `/profile/${currentUser?.id ?? "1"}`;
   const canSeeAdministration =
     currentUser !== null &&
@@ -121,6 +120,18 @@ export function AppSidebar() {
   const totalUnreadMessages = useChatStore((s) =>
     s.conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0),
   );
+  useGlobalChatSync(session?.accessToken ?? null, currentUser?.id ?? null);
+  useEffect(() => {
+    const refreshSidebar = () => {
+      mutate();
+    };
+
+    window.addEventListener("workspace-sidebar-refresh", refreshSidebar);
+
+    return () => {
+      window.removeEventListener("workspace-sidebar-refresh", refreshSidebar);
+    };
+  }, [mutate]);
 
   useEffect(() => {
     if (!session?.accessToken) return;
@@ -133,7 +144,7 @@ export function AppSidebar() {
 
     const statusToApply: ActiveStatus =
       savedStatus &&
-      ["online", "do-not-disturb", "offline"].includes(savedStatus)
+        ["online", "do-not-disturb", "offline"].includes(savedStatus)
         ? savedStatus
         : "online";
 
@@ -167,7 +178,7 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r z-50">
+      <Sidebar collapsible="icon" className="border-r z-50 bg-white">
         <SidebarHeader className="border-b py-4">
           <SidebarMenu>
             <SidebarMenuItem>
@@ -253,11 +264,10 @@ export function AppSidebar() {
                               <Pin />
                             </span>
                             <span
-                              className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
-                                state === "collapsed"
+                              className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed"
                                   ? "max-w-0 opacity-0 -translate-x-2"
                                   : "max-w-50 opacity-100 translate-x-0"
-                              }`}
+                                }`}
                             >
                               {workspace.name}
                             </span>
@@ -420,7 +430,7 @@ export function AppSidebar() {
                 >
                   <Link href="/chat">
                     <span className="relative inline-flex shrink-0">
-                      <MessagesSquare size={18} className="text-[#878787]" />
+                      <MessageCircleMore size={18} className="text-[#878787]" />
                       {totalUnreadMessages > 0 && (
                         <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
                           {totalUnreadMessages > 99
@@ -430,11 +440,10 @@ export function AppSidebar() {
                       )}
                     </span>
                     <span
-                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
-                        state === "collapsed"
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed"
                           ? "max-w-0 opacity-0 -translate-x-2"
                           : "max-w-50 opacity-100 translate-x-0"
-                      }`}
+                        }`}
                     >
                       Messages
                     </span>
@@ -467,28 +476,7 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              {!isStudentOrAlumni && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={pathname === "/check-in"}
-                    asChild
-                    tooltip="Register"
-                    className="h-11"
-                  >
-                    <Link href="/check-in">
-                      <ClipboardList
-                        size={18}
-                        className="shrink-0 text-[#878787]"
-                      />
-                      <span
-                        className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
-                      >
-                        Check-in
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
+
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={pathname === profileHref}
@@ -497,13 +485,12 @@ export function AppSidebar() {
                   className="h-11"
                 >
                   <Link href={profileHref}>
-                    <User size={18} className="shrink-0 text-[#878787]" />
+                    <UserRound size={18} className="shrink-0 text-[#878787]" />
                     <span
-                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
-                        state === "collapsed"
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed"
                           ? "max-w-0 opacity-0 -translate-x-2"
                           : "max-w-50 opacity-100 translate-x-0"
-                      }`}
+                        }`}
                     >
                       Profile
                     </span>
@@ -621,56 +608,79 @@ export function AppSidebar() {
                 Administration
               </SidebarGroupLabel>
               <SidebarMenu className="flex flex-col gap-1">
+                {isAdmin && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={pathname === "/user-management"}
+                      asChild
+                      tooltip="User Management"
+                      className="h-11"
+                    >
+                      <Link href="/user-management">
+                        <svg
+                          width={18}
+                          height={18}
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M14.4083 11.8048L11.7532 14.4598C11.6482 14.5648 11.5508 14.7598 11.5283 14.9023L11.3858 15.9148C11.3333 16.2823 11.5883 16.5373 11.9558 16.4848L12.9682 16.3423C13.1107 16.3198 13.3133 16.2223 13.4108 16.1173L16.0657 13.4623C16.5232 13.0048 16.7407 12.4723 16.0657 11.7973C15.3982 11.1298 14.8658 11.3473 14.4083 11.8048Z"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeMiterlimit={10}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M14.0273 12.1875C14.2523 12.9975 14.8823 13.6275 15.6923 13.8525"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeMiterlimit={10}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M2.55859 16.5C2.55859 13.5975 5.44611 11.25 9.00111 11.25C9.78111 11.25 10.5311 11.3625 11.2286 11.5725"
+                            stroke="#878787"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span
+                          className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
+                        >
+                          User Management
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    isActive={pathname === "/user-management"}
+                    isActive={pathname === "/check-in"}
                     asChild
-                    tooltip="User Management"
+                    tooltip="Register"
                     className="h-11"
                   >
-                    <Link href="/user-management">
-                      <svg
-                        width={18}
-                        height={18}
-                        viewBox="0 0 18 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9 9C11.0711 9 12.75 7.32107 12.75 5.25C12.75 3.17893 11.0711 1.5 9 1.5C6.92893 1.5 5.25 3.17893 5.25 5.25C5.25 7.32107 6.92893 9 9 9Z"
-                          stroke="#878787"
-                          strokeWidth={1.5}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.4083 11.8048L11.7532 14.4598C11.6482 14.5648 11.5508 14.7598 11.5283 14.9023L11.3858 15.9148C11.3333 16.2823 11.5883 16.5373 11.9558 16.4848L12.9682 16.3423C13.1107 16.3198 13.3133 16.2223 13.4108 16.1173L16.0657 13.4623C16.5232 13.0048 16.7407 12.4723 16.0657 11.7973C15.3982 11.1298 14.8658 11.3473 14.4083 11.8048Z"
-                          stroke="#878787"
-                          strokeWidth={1.5}
-                          strokeMiterlimit={10}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.0273 12.1875C14.2523 12.9975 14.8823 13.6275 15.6923 13.8525"
-                          stroke="#878787"
-                          strokeWidth={1.5}
-                          strokeMiterlimit={10}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M2.55859 16.5C2.55859 13.5975 5.44611 11.25 9.00111 11.25C9.78111 11.25 10.5311 11.3625 11.2286 11.5725"
-                          stroke="#878787"
-                          strokeWidth={1.5}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                    <Link href="/check-in">
+                      <ClipboardList
+                        size={18}
+                        className="shrink-0 text-[#878787]"
+                      />
                       <span
                         className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed" ? "max-w-0 opacity-0 -translate-x-2" : "max-w-50 opacity-100 translate-x-0"}`}
                       >
-                        User Management
+                        Check-in
                       </span>
                     </Link>
                   </SidebarMenuButton>
@@ -877,11 +887,10 @@ export function AppSidebar() {
                       </div>
 
                       <div
-                        className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
-                          state === "collapsed"
+                        className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed"
                             ? "max-w-0 opacity-0 -translate-x-2"
                             : "max-w-50 opacity-100 translate-x-0"
-                        }`}
+                          }`}
                       >
                         <span className="type-detail-semibold text-grey-900 leading-tight">
                           {currentUser?.name ?? "Loading..."}
@@ -893,9 +902,8 @@ export function AppSidebar() {
 
                       <ChevronLeft
                         size={10}
-                        className={`ml-auto shrink-0 rotate-180 text-gray-400 ${
-                          state === "collapsed" ? "hidden" : "block"
-                        }`}
+                        className={`ml-auto shrink-0 rotate-180 text-gray-400 ${state === "collapsed" ? "hidden" : "block"
+                          }`}
                       />
                     </SidebarMenuButton>
                   </DropdownMenuTrigger>

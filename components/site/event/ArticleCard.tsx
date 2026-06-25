@@ -164,10 +164,10 @@ function ArticleItem({
           </div>
         </div>
 
-        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2 wrap-break-word overflow-wrap-anywhere">
           {post.title}
         </h2>
-        <ExpandableText text={post.content} />
+        <ExpandableText text={post.content} className="type-desc text-muted-foreground leading-relaxed wrap-break-word block mb-4" />
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
           <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">
@@ -194,11 +194,10 @@ function ArticleItem({
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
               <MessageCircleMore size={20} />
-              {showComments
-                ? getTotalCommentsCount(comments)
-                : getTotalCommentsCount(comments) > 0
-                  ? `${getTotalCommentsCount(comments)} Comment${getTotalCommentsCount(comments) > 1 ? "s" : ""}`
-                  : "Comment"}
+              {(() => {
+                const count = comments && comments.length > 0 ? getTotalCommentsCount(comments) : (post.commentCount || 0);
+                return count > 0 ? `${count} Comment${count > 1 ? "s" : ""}` : "Comment";
+              })()}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}

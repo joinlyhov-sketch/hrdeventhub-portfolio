@@ -69,48 +69,50 @@ export function ReactionSummary({ payload }: ReactionSummaryProps) {
       </DialogTrigger>
 
       <DialogContent 
-        className="w-fit min-w-110 max-w-[95vw] p-2 bg-background border border-border rounded-2xl shadow-xl max-h-120 flex flex-col gap-0 [&>button]:hidden"
+        className="w-[92vw] min-w-0 sm:w-fit sm:min-w-110 max-w-[95vw] p-2 bg-background border border-border rounded-2xl shadow-xl max-h-[75vh] sm:max-h-120 flex flex-col gap-0 [&>button]:hidden"
       >
         <DialogTitle className="sr-only">Reaction Summary</DialogTitle>
 
-        <div className="w-full flex items-center gap-1 px-3 pt-3 pb-0 border-b border-border scrollbar-none">
-          <button
-            onClick={() => setActiveFilter(null)}
-            className={`relative -mb-px flex items-center gap-1.5 px-3 pb-2 pt-1 text-md font-semibold rounded-t-lg transition-colors shrink-0 border-b-2 ${
-              !activeFilter
-                ? "border-primary text-primary"
-                : "border-transparent text-grey-400 hover:text-grey-700"
-            }`}
-          >
-            All
-            <span className="text-md font-medium">{total}</span>
-          </button>
-
-          {grouped.map(({ type, count, reaction }) => (
+        <div className="w-full flex items-center gap-1 px-3 pt-3 pb-0 border-b border-border">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
             <button
-              key={type}
-              onClick={() => setActiveFilter(type)}
-              className={`relative -mb-px flex items-center gap-1.5 px-3 pb-2 pt-1 text-sm font-semibold rounded-t-lg transition-colors shrink-0 border-b-2 ${
-                activeFilter === type
+              onClick={() => setActiveFilter(null)}
+              className={`relative -mb-px flex items-center gap-1.5 px-3 pb-2 pt-1 text-md font-semibold rounded-t-lg transition-colors shrink-0 border-b-2 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
+                !activeFilter
                   ? "border-primary text-primary"
                   : "border-transparent text-grey-400 hover:text-grey-700"
               }`}
             >
-              {reaction ? (
-                <TwemojiImg emoji={reaction.emoji} size={20} />
-              ) : (
-                <span>👍</span>
-              )}
-              <span className="text-md font-medium">{count}</span>
+              All
+              <span className="text-md font-medium">{total}</span>
             </button>
-          ))}
+
+            {grouped.map(({ type, count, reaction }) => (
+              <button
+                key={type}
+                onClick={() => setActiveFilter(type)}
+                className={`relative -mb-px flex items-center gap-1.5 px-3 pb-2 pt-1 text-sm font-semibold rounded-t-lg transition-colors shrink-0 border-b-2 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
+                  activeFilter === type
+                    ? "border-primary text-primary"
+                    : "border-transparent text-grey-400 hover:text-grey-700"
+                }`}
+              >
+                {reaction ? (
+                  <TwemojiImg emoji={reaction.emoji} size={20} />
+                ) : (
+                  <span>👍</span>
+                )}
+                <span className="text-md font-medium">{count}</span>
+              </button>
+            ))}
+          </div>
 
           <button
             onClick={() => {
               setIsOpen(false);
               setActiveFilter(null);
             }}
-            className="ml-auto mb-2 p-1.5 text-grey-400 hover:text-grey-700 transition-colors cursor-pointer shrink-0"
+            className="ml-auto mb-2 p-1.5 text-grey-400 hover:text-grey-700 transition-colors cursor-pointer shrink-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
           >
             <X size={18} />
           </button>

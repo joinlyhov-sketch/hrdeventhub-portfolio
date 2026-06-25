@@ -4,11 +4,22 @@ import React, { useState } from "react";
 import { Input } from "../../ui/input";
 import { Card } from "../../ui/card";
 import { Label } from "../../ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/libs/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PollHeaderProps {
   title: string;
@@ -38,6 +49,7 @@ export default function PollHeader({
         <input
           type="text"
           value={title}
+          maxLength={50}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Untitled Poll"
           className="w-full bg-transparent outline-none border-0 p-0 m-0 font-inherit text-inherit placeholder:text-muted-foreground/30 focus:ring-0 focus-visible:ring-0"
@@ -46,17 +58,18 @@ export default function PollHeader({
       <Input
         type="text"
         value={description}
+        maxLength={200}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Add a description for your poll participants..."
         className="w-full text-desc text-muted-foreground placeholder:text-muted-foreground/30 border-0 border-b border-border p-0 pb-2 shadow-none rounded-none bg-transparent transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary mb-6"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex gap-6 items-start">
         {closingTime !== undefined && setClosingTime && (
-          <div>
+          <div className="animate-in fade-in slide-in-from-top-1 duration-200">
             <Label
               htmlFor="closing-time"
-              className="block mb-2 text-sm font-medium"
+              className="block mb-2 text-sm font-semibold text-gray-700"
             >
               Poll Closing Time
             </Label>

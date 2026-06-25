@@ -16,8 +16,13 @@ export async function connectTelegramAction(userId: string): Promise<TelegramAct
     }
 
     return { ok: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Telegram redirect routing failure:", error);
-    return { error: error?.message || "Could not open Telegram application." };
+    const msg = error instanceof Error ? error.message : "Could not open Telegram application.";
+    return { error: msg };
   }
+}
+
+export async function disconnectTelegramAction(): Promise<TelegramActionResponse> {
+  return { ok: true };
 }

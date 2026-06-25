@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   output: "standalone",
   productionBrowserSourceMaps: false,
   images: {
+    localPatterns: [
+      {
+        pathname: '/**',
+      },
+    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -36,8 +41,8 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "api.dev.hrdevent.app",
-        pathname: "/api/v5/files/**",
+        hostname: "hrdevent.app",
+        pathname: "/**",
       },
       {
         protocol: "https",
@@ -61,14 +66,12 @@ const nextConfig: NextConfig = {
       dynamic: 60,
       static: 300,
     },
-    cpus: 1,
-    workerThreads: false,
   },
   async rewrites() {
     return [
       {
         source: "/api/v5/:path*",
-        destination: "https://api.hrdevent.app/api/v5/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.hrdevent.app/api/v5"}/:path*`,
       },
     ];
   },

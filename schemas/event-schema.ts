@@ -1,16 +1,25 @@
 import { z } from "zod";
 
+const safeTextRegex = /^[a-zA-Z0-9\s.,'()\-–—!]+$/;
+const safeTextErrorMessage = "Special characters are not allowed";
+
 export const eventPostSchema = z
   .object({
     title: z
       .string()
       .min(3, "Title must be between 3 and 100 characters")
-      .max(100, "Event title must not exceed 100 characters"),
+      .max(100, "Event title must not exceed 100 characters")
+      .regex(safeTextRegex, {
+        message: `Event title ${safeTextErrorMessage.toLowerCase()}`,
+      }),
 
     purpose: z
       .string()
       .min(1, "Purpose selection is required")
-      .max(255, "Purpose must not exceed 255 characters"),
+      .max(255, "Purpose must not exceed 255 characters")
+      .regex(safeTextRegex, {
+        message: `Purpose ${safeTextErrorMessage.toLowerCase()}`,
+      }),
 
     date: z.string().min(1, "Date is required"),
 
@@ -102,7 +111,7 @@ export const eventPostSchema = z
 
     description: z
       .string()
-      .max(1300, "Description must not exceed 1300 characters")
+      .max(500, "Description must not exceed 500 characters")
       .optional(),
 
     media: z

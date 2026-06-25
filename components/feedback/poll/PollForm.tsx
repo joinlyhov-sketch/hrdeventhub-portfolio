@@ -13,6 +13,8 @@ import {
   updatePollAction,
 } from "../../../actions/poll.action";
 import { Poll } from "@/types/poll";
+import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
+import { mutate as globalMutate } from "swr";
 
 interface PollFormProps {
   workspaceId?: string;
@@ -63,7 +65,7 @@ export default function PollForm({
         anonymousVote: initialData.anonymousVoting ?? false,
         addOption: initialData.allowAddOptions ?? false,
         hiddenPoll: initialData.hiddenPoll ?? false,
-        showResult: initialData.showResult ?? "afterVote",
+        showResult: initialData.showResult ?? "after_vote",
         closingDate: dt[0],
         closingTime: dt[1] ?? "",
       };
@@ -73,7 +75,7 @@ export default function PollForm({
       anonymousVote: false,
       addOption: false,
       hiddenPoll: false,
-      showResult: "afterVote",
+      showResult: "after_vote",
       closingDate: "",
       closingTime: "",
     };
@@ -86,6 +88,60 @@ export default function PollForm({
     const resolvedId = urlQueryId || workspaceId;
     if (resolvedId) queueMicrotask(() => setWorkspaceIdState(resolvedId));
   }, [searchParams, workspaceId, isEditMode]);
+
+  const [isFormDirty, setIsFormDirty] = useState(false);
+
+  useEffect(() => {
+    if (success) {
+      setIsFormDirty(false);
+      return;
+    }
+
+    if (isEditMode && initialData) {
+      const dt = initialData.closingTime
+        ? new Date(initialData.closingTime)
+            .toISOString()
+            .slice(0, 16)
+            .split("T")
+        : ["", ""];
+      const isChanged =
+        title !== (initialData.title ?? "") ||
+        description !== (initialData.description ?? "") ||
+        newOptions.length > 0 ||
+        settings.multipleSelect !== (initialData.multiSelect ?? false) ||
+        settings.anonymousVote !== (initialData.anonymousVoting ?? false) ||
+        settings.addOption !== (initialData.allowAddOptions ?? false) ||
+        settings.hiddenPoll !== (initialData.hiddenPoll ?? false) ||
+        settings.showResult !== (initialData.showResult ?? "after_vote") ||
+        settings.closingDate !== dt[0] ||
+        settings.closingTime !== (dt[1] ?? "");
+
+      setIsFormDirty(isChanged);
+    } else {
+      const isChanged =
+        title !== "" ||
+        description !== "" ||
+        JSON.stringify(newOptions) !==
+          JSON.stringify(["Option 1", "Option 2", "Option 3"]) ||
+        settings.multipleSelect !== false ||
+        settings.anonymousVote !== false ||
+        settings.addOption !== false ||
+        settings.hiddenPoll !== false ||
+        settings.showResult !== "after_vote" ||
+        settings.closingDate !== "" ||
+        settings.closingTime !== "";
+
+      setIsFormDirty(isChanged);
+    }
+  }, [
+    title,
+    description,
+    newOptions,
+    settings,
+    isEditMode,
+    initialData,
+    success,
+  ]);
 
   const handleNewOptionChange = (index: number, text: string) => {
     const updated = [...newOptions];
@@ -149,16 +205,7 @@ export default function PollForm({
       setError("All new options must have text");
       return false;
     }
-    if (!settings.closingDate || !settings.closingTime) {
-      setError("Closing date and time are required");
-      return false;
-    }
-    if (
-      new Date(`${settings.closingDate}T${settings.closingTime}`) <= new Date()
-    ) {
-      setError("Closing date and time must be in the future");
-      return false;
-    }
+
     if (!workspaceIdState) {
       setError("Workspace is required");
       return false;
@@ -178,9 +225,12 @@ export default function PollForm({
         await updatePollAction(pollId, {
           title: title.trim(),
           description: description.trim(),
-          closingTime: new Date(
-            `${settings.closingDate}T${settings.closingTime}`,
-          ).toISOString(),
+          closingTime:
+            settings.closingDate && settings.closingTime
+              ? new Date(
+                  `${settings.closingDate}T${settings.closingTime}`,
+                ).toISOString()
+              : (null as any),
           workspaceId: workspaceIdState,
           type: "text",
           multiSelect: settings.multipleSelect,
@@ -196,9 +246,12 @@ export default function PollForm({
           title: title.trim(),
           description: description.trim(),
           options: newOptions.map((o) => o.trim()),
-          closingTime: new Date(
-            `${settings.closingDate}T${settings.closingTime}`,
-          ).toISOString(),
+          closingTime:
+            settings.closingDate && settings.closingTime
+              ? new Date(
+                  `${settings.closingDate}T${settings.closingTime}`,
+                ).toISOString()
+              : (null as any),
           workspaceId: workspaceIdState,
           type: "text",
           multiSelect: settings.multipleSelect,
@@ -211,9 +264,6 @@ export default function PollForm({
 
       const savedWorkspaceId = workspaceIdState;
       setSuccess(true);
-      console.log(
-        isEditMode ? "Poll updated successfully" : "Poll created successfully",
-      );
 
       if (!isEditMode) {
         setTitle("");
@@ -222,6 +272,13 @@ export default function PollForm({
       }
 
       setTimeout(() => {
+        globalMutate(
+          (key: string | string[]) =>
+            typeof key === "string" &&
+            key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          undefined,
+          { revalidate: true },
+        );
         if (onSuccess) {
           onSuccess();
         } else {
@@ -249,6 +306,7 @@ export default function PollForm({
       onSubmit={handleFormSubmission}
       className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start"
     >
+      <NavigationGuard isDirty={isFormDirty} />
       <div className="lg:col-span-9 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
@@ -331,6 +389,7 @@ export default function PollForm({
               onOptionChange={handleNewOptionChange}
               onAddOption={handleAddOption}
               onRemoveOption={handleRemoveNewOption}
+              allowAdd={!isEditMode || settings.addOption}
             />
 
             {isEditMode && (

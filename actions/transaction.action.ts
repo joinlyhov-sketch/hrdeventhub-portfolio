@@ -99,16 +99,18 @@ export async function getTransactions(): Promise<Transaction[]> {
   }
 
   const json = await transactionService.getTransactions(session.accessToken);
-
   return ((json.payload as Record<string, unknown>[]) ?? []).map((t) => ({
     id: `#TX-${String(t.transactionId).slice(-5)}`,
     uuid: t.id as string,
     username: (t.payerName ?? t.senderAccountName ?? "") as string,
     avatar: (t.profilePicture ?? "") as string,
+    senderBankName: (t.senderBankName ?? "") as string,
     amount: t.amount as number,
     status: statusMap[String(t.settlementStatus)] ?? "Pending",
     timestamp: formatRelative(String(t.createdAt ?? "")),
-    eventId: ((t.post as Record<string, unknown>)?.postId ?? t.postId ?? "") as string,
+    eventId: ((t.post as Record<string, unknown>)?.postId ??
+      t.postId ??
+      "") as string,
   }));
 }
 
@@ -119,7 +121,10 @@ export async function getEventSummaries(): Promise<Event[]> {
   }
 
   const json = await transactionService.getTransactions(session.accessToken);
-  const transactions = ((json.payload as unknown[]) ?? []) as Record<string, unknown>[];
+  const transactions = ((json.payload as unknown[]) ?? []) as Record<
+    string,
+    unknown
+  >[];
 
   const seenPostIds = new Set<string>();
   const events: Event[] = [];
@@ -211,7 +216,10 @@ export async function getTransactionDetail(
 
   let postJson = null;
   try {
-    postJson = await transactionService.getEventById(tx.postId as string, token);
+    postJson = await transactionService.getEventById(
+      tx.postId as string,
+      token,
+    );
   } catch {
     postJson = null;
   }
@@ -236,8 +244,8 @@ export async function getTransactionDetail(
 
   const postMedia = post?.media as Record<string, unknown>[] | undefined;
   const coverImage =
-    postMedia?.find((m) => m.isCover)?.filePath as string ??
-    postMedia?.[0]?.filePath as string ??
+    (postMedia?.find((m) => m.isCover)?.filePath as string) ??
+    (postMedia?.[0]?.filePath as string) ??
     "";
 
   const appUser = profile?.appUser as Record<string, unknown> | undefined;
@@ -261,19 +269,25 @@ export async function getTransactionDetail(
   const skills = profile?.skills;
   const firstSkill =
     Array.isArray(skills) && skills.length > 0 ? (skills[0] as string) : "";
-  const profileGeneration = profile?.generation as Record<string, unknown> | undefined;
+  const profileGeneration = profile?.generation as
+    | Record<string, unknown>
+    | undefined;
   const generation = (profileGeneration?.name ?? "") as string;
 
   const postLocation = post?.location as Record<string, unknown> | undefined;
 
   return {
     id: tx.id as string,
-    processedDate: formatDetailDate(tx.transactionDate as string, tx.transactionTime as string),
+    processedDate: formatDetailDate(
+      tx.transactionDate as string,
+      tx.transactionTime as string,
+    ),
     amount: tx.amount as number,
     currency: (tx.currencyCode ?? "USD") as string,
     status: detailStatusMap[tx.settlementStatus as string] ?? "Pending",
     referenceId: (tx.billNo ?? "") as string,
     transactionId: `#TX-${String(tx.transactionId).slice(-5)}`,
+    senderBankName: (tx.senderBankName ?? "") as string,
     payer: {
       id: payerProfileId,
       name: appUser
@@ -281,7 +295,9 @@ export async function getTransactionDetail(
           (appUser.username as string)
         : (tx.payerName as string),
       avatar: (profile?.profilePicture ?? "") as string,
-      badge: ((profile?.roles ?? "ALUMNI") as { toString(): string }).toString().toUpperCase(),
+      badge: ((profile?.roles ?? "ALUMNI") as { toString(): string })
+        .toString()
+        .toUpperCase(),
       generation,
       skill: firstSkill,
       email: (appUser?.email ?? "") as string,

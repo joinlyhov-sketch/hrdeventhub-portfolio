@@ -1,18 +1,18 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCurrentUser } from "@/context/user-context";
 import { useSession, signOut } from "next-auth/react";
 import { logoutAction } from "@/actions/auth.action";
-import { LogOut, MessagesSquare } from "lucide-react";
+import { LogOut, MessageCircleMore } from "lucide-react";
 import { cn } from "@/libs/utils";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { LogoutModal } from "@/components/site/pop-up/commons/LogoutModal";
+import { useChatStore } from "@/store/useChatStore"; 
 
 import {
   IconGroup,
-  IconBell,
   IconMore,
   IconProfile,
   IconEditProfile,
@@ -27,20 +27,69 @@ import type {
   CheckInError,
 } from "../../../types/bottom-nav/types";
 
-const SCANNER_ROLES = ["ADMIN", "ORGANIZER"];
+function IconChat() {
+  return (
+    <MessageCircleMore />
+  );
+}
 
-export function MobileBottomNav({ alertCount = 0 }: { alertCount?: number }) {
+const SCANNER_ROLES = ["ADMIN", "ORGANIZER"];
+const DIRECTION_THRESHOLD = 4;
+
+function useScrollFade() {
+  const [scrolling, setScrolling] = useState(false);
+  const lastYRef = useRef(0);
+  const ticking = useRef(false);
+
+  useEffect(() => {
+    lastYRef.current = window.scrollY;
+
+    function handleScroll() {
+      if (ticking.current) return;
+      ticking.current = true;
+
+      requestAnimationFrame(() => {
+        const currentY = window.scrollY;
+        const diff = currentY - lastYRef.current;
+
+        if (Math.abs(diff) > DIRECTION_THRESHOLD) {
+          setScrolling(diff > 0 && currentY > 20);
+        }
+        lastYRef.current = currentY;
+        ticking.current = false;
+      });
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  return scrolling;
+}
+
+export function MobileBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, isLoading } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
   const { data: session } = useSession();
   const [showMore, setShowMore] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  const [checkInResult, setCheckInResult] = useState<CheckInResult | null>(
-    null,
-  );
+  const [checkInResult, setCheckInResult] = useState<CheckInResult | null>(null);
   const [checkInError, setCheckInError] = useState<CheckInError | null>(null);
+  const searchParams = useSearchParams();
+  const isScrolling = useScrollFade();
+
+  const totalUnreadMessages = useChatStore((s) =>
+    s.conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0),
+  );
+
+  const isChatRoute = pathname.startsWith("/chat");
+  const isMobileChatOpen = isChatRoute && !!searchParams.get("target");
+
+  if (isMobileChatOpen) return null;
   const profileHref = currentUser?.id ? `/profile/${currentUser.id}` : null;
   const canScan = currentUser
     ? SCANNER_ROLES.includes(currentUser.role.toUpperCase())
@@ -49,19 +98,14 @@ export function MobileBottomNav({ alertCount = 0 }: { alertCount?: number }) {
 
   const LEFT_ITEMS = [
     { label: "Group", icon: IconGroup, href: "/group" },
-    { label: "Alerts", icon: IconBell, href: "/notifications", id: "alerts" },
+    { label: "Chat",  icon: IconChat,  href: "/chat" },
   ];
   const RIGHT_ITEMS = [
     { label: "Profile", icon: IconProfile, href: profileHref },
-    { label: "More", icon: IconMore, href: null, id: "more" },
+    { label: "More",    icon: IconMore,    href: null, id: "more" },
   ];
-  
+
   const MORE_ITEMS = [
-    {
-      label: "Messages",
-      icon: () => <MessagesSquare size={20} strokeWidth={1.75} />,
-      href: "/chat",
-    },
     {
       label: "Edit Profile",
       icon: IconEditProfile,
@@ -94,7 +138,7 @@ export function MobileBottomNav({ alertCount = 0 }: { alertCount?: number }) {
 
   const navItemClass = (active: boolean) =>
     cn(
-      "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+      "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors relative",
       active
         ? "text-[#1c4d8d] dark:text-blue-400"
         : "text-gray-500 dark:text-gray-400",
@@ -103,12 +147,17 @@ export function MobileBottomNav({ alertCount = 0 }: { alertCount?: number }) {
   return (
     <>
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-end border-t border-gray-200 bg-white dark:bg-gray-950 dark:border-gray-800 md:hidden"
+        className={cn(
+          "fixed bottom-0 left-0 right-0 z-50 flex items-end border-t border-gray-200 bg-white dark:bg-gray-950 dark:border-gray-800 md:hidden transition-all duration-300 ease-in-out will-change-transform",
+          isScrolling ? "translate-y-full opacity-0" : "translate-y-0 opacity-100",
+        )}
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {LEFT_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = item.href ? pathname.startsWith(item.href) : false;
+          const isChatTab = item.label === "Chat";
+
           return (
             <button
               key={item.label}
@@ -117,14 +166,14 @@ export function MobileBottomNav({ alertCount = 0 }: { alertCount?: number }) {
               aria-current={active ? "page" : undefined}
               className={navItemClass(active)}
             >
-              <span className="relative">
+              <div className="relative">
                 <Icon />
-                {item.id === "alerts" && alertCount > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
-                    {alertCount > 9 ? "9+" : alertCount}
+                {isChatTab && totalUnreadMessages > 0 && (
+                  <span className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-950 animate-in zoom-in-50 duration-200">
+                    {totalUnreadMessages > 99 ? "99+" : totalUnreadMessages}
                   </span>
                 )}
-              </span>
+              </div>
               <span>{item.label}</span>
             </button>
           );

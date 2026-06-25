@@ -206,10 +206,9 @@ function AnnouncementItem({
 
   const { comments, refetch, loading } = usePostComments(
     post.postId,
-    showComments || isTargeted, // Keep comments open if deep linked
+    showComments || isTargeted,
   );
 
-  // Auto-open comments section if this specific post was pasted in the browser URL
   useEffect(() => {
     if (isTargeted) {
       setShowComments(true);
@@ -259,7 +258,9 @@ function AnnouncementItem({
       <div
         id={`post-${post.postId}`}
         className={`bg-background rounded-[12px] border p-5 shadow-sm transition-all duration-300 ${
-          isTargeted ? "border-primary ring-2 ring-primary/20 scale-[1.01]" : "border-border"
+          isTargeted
+            ? "border-primary ring-2 ring-primary/20 scale-[1.01]"
+            : "border-border"
         }`}
       >
         <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
@@ -319,14 +320,17 @@ function AnnouncementItem({
           )}
         </div>
 
-        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2 wrap-break-word overflow-wrap-anywhere">
           {post.title}
         </h2>
 
-        <ExpandableText text={post.content} />
+        <ExpandableText
+          text={post.content}
+          className="type-desc text-muted-foreground leading-relaxed wrap-break-word block mb-4"
+        />
 
         {hasMetaInfo && (
-          <div className="bg-grey-50 rounded-[6px] p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-3 mb-3 sm:mb-6 border-l-4 sm:border-l-5 border-primary break-words">
+          <div className="bg-grey-50 rounded-[6px] p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-3 mb-3 sm:mb-6 border-l-4 sm:border-l-5 border-primary wrap-break-word overflow-wrap-anywhere">
             {post.location && (
               <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
                 <span className="text-[11px] sm:text-sm font-semibold text-foreground">
@@ -352,7 +356,7 @@ function AnnouncementItem({
               </p>
             )}
             {post.purpose && (
-              <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
+              <p className="text-[11px] sm:text-sm text-grey-500 leading-snug wrap-break-word overflow-wrap-anywhere">
                 <span className="text-[11px] sm:text-sm font-semibold text-foreground">
                   PURPOSE:{" "}
                 </span>
@@ -399,11 +403,15 @@ function AnnouncementItem({
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
               <MessageCircleMore size={20} />
-              {(showComments || isTargeted)
-                ? getTotalCommentsCount(comments)
-                : getTotalCommentsCount(comments) > 0
-                  ? `${getTotalCommentsCount(comments)} Comment${getTotalCommentsCount(comments) > 1 ? "s" : ""}`
-                  : "Comment"}
+              {(() => {
+                const count =
+                  comments && comments.length > 0
+                    ? getTotalCommentsCount(comments)
+                    : post.commentCount || 0;
+                return count > 0
+                  ? `${count} Comment${count > 1 ? "s" : ""}`
+                  : "Comment";
+              })()}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}
@@ -505,14 +513,13 @@ export function AnnouncementCard({
   const searchParams = useSearchParams();
   const targetPostId = searchParams.get("postId");
 
-
   useEffect(() => {
     if (targetPostId) {
       const element = document.getElementById(`post-${targetPostId}`);
       if (element) {
         setTimeout(() => {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 300); 
+        }, 300);
       }
     }
   }, [targetPostId, posts]);

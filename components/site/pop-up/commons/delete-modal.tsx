@@ -43,25 +43,26 @@ export function DeleteModal({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent className="sm:max-w-[420px] w-full rounded-2xl border-none bg-white p-8 shadow-2xl gap-0">
+      <AlertDialogContent className="w-[calc(100vw-2rem)] sm:max-w-105 rounded-2xl border-none bg-white p-6 sm:p-8 shadow-2xl gap-0">
         <div className="flex justify-center mb-5">
-          <div className="flex items-center justify-center bg-red-100 rounded-full w-16 h-16">
-            <TriangleAlert size={32} className="text-red-600" />
+          <div className="flex items-center justify-center bg-red-100 rounded-full w-14 h-14 sm:w-16 sm:h-16 shrink-0">
+            <TriangleAlert size={28} className="text-red-600 sm:size-8" />
           </div>
         </div>
 
         <AlertDialogHeader className="text-center space-y-3 mb-6">
-          <AlertDialogTitle className="text-[26px] font-bold text-secondary text-center w-full">
-            Delete {title}
+          <AlertDialogTitle className="text-xl sm:text-[26px] font-bold text-secondary text-center w-full leading-snug wrap-break-word">
+            Delete{" "}
+            <span className="break-all">{title}</span>
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-[15px] text-gray-600 font-normal text-center">
+          <AlertDialogDescription className="text-sm sm:text-[15px] text-gray-600 font-normal text-center wrap-break-word leading-relaxed">
             {description ?? (
               <>
                 Are you sure you want to delete{" "}
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-gray-900 break-all">
                   &apos;{title}&apos;
                 </span>
-                ? This action cannot be undone.
+                ?{" "}This action cannot be undone.
               </>
             )}
           </AlertDialogDescription>
@@ -72,7 +73,7 @@ export function DeleteModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="h-[48px] w-full border border-primary text-primary hover:bg-gray-50 hover:text-primary type-desc rounded-xl text-[15px] transition-colors"
+              className="h-11 sm:h-12 w-full border border-primary text-primary hover:bg-gray-50 hover:text-primary rounded-xl text-sm sm:text-[15px] transition-colors"
             >
               Cancel
             </Button>
@@ -81,7 +82,7 @@ export function DeleteModal({
             <Button
               onClick={handleConfirm}
               disabled={isDeleting}
-              className="h-[48px] w-full bg-red-700 hover:bg-red-600 text-white type-desc rounded-xl text-[15px] shadow-sm transition-colors disabled:opacity-50"
+              className="h-11 sm:h-12 w-full bg-red-700 hover:bg-red-600 text-white rounded-xl text-sm sm:text-[15px] shadow-sm transition-colors disabled:opacity-50"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </Button>

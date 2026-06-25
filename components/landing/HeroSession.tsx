@@ -61,6 +61,16 @@ const featureItem = {
 };
 
 export default function HeroSession() {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   return (
     <>
       <section className="relative w-screen h-full bg-white text-secondary flex flex-col justify-between select-none overflow-x-hidden">
@@ -90,19 +100,26 @@ export default function HeroSession() {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path
-              opacity="0.5"
-              d="M740.195 155.831C741.374 159.557 742.452 163.325 743.427 167.132H743.428L742.459 167.38C743.423 171.146 744.284 174.95 745.041 178.79L746.021 178.597C746.776 182.426 747.427 186.291 747.971 190.188L746.981 190.326C747.518 194.171 747.949 198.047 748.273 201.952L749.27 201.87C749.592 205.755 749.809 209.668 749.918 213.606L748.919 213.634C748.973 215.583 749 217.538 749 219.5C749 221.462 748.973 223.417 748.919 225.366L749.918 225.394C749.809 229.332 749.592 233.245 749.27 237.13L748.273 237.048C747.949 240.953 747.518 244.829 746.981 248.674L747.971 248.812C747.427 252.708 746.776 256.573 746.021 260.402L745.041 260.21C744.284 264.05 743.423 267.854 742.459 271.62L743.427 271.867C742.452 275.674 741.374 279.442 740.195 283.168L739.243 282.867C738.064 286.594 736.784 290.279 735.405 293.919L736.339 294.271C734.948 297.943 733.459 301.568 731.872 305.146L730.959 304.741C729.376 308.312 727.695 311.833 725.922 315.304L726.812 315.758C725.027 319.25 723.148 322.691 721.179 326.076L720.314 325.574C718.352 328.947 716.299 332.266 714.158 335.526L714.992 336.074C712.841 339.35 710.603 342.567 708.279 345.724L707.476 345.132C705.164 348.272 702.767 351.352 700.289 354.368L701.062 355.003C698.575 358.029 696.007 360.991 693.361 363.886L692.624 363.212C689.994 366.089 687.287 368.901 684.505 371.643L685.206 372.354C682.418 375.101 679.555 377.78 676.621 380.386L675.958 379.639C673.044 382.226 670.06 384.742 667.008 387.183L667.632 387.963C664.576 390.407 661.452 392.776 658.265 395.067L657.682 394.257C654.519 396.53 651.293 398.728 648.006 400.846L648.546 401.686C645.259 403.803 641.911 405.842 638.506 407.798L638.009 406.932C634.633 408.871 631.201 410.729 627.715 412.503L628.168 413.393C624.685 415.166 621.149 416.857 617.562 418.461L617.153 417.548C613.602 419.136 610 420.638 606.352 422.054L606.712 422.985C603.07 424.398 599.382 425.724 595.649 426.961L595.336 426.013C591.645 427.236 587.91 428.371 584.136 429.415L584.401 430.378C580.639 431.419 576.836 432.369 572.997 433.229L572.78 432.255C568.988 433.104 565.159 433.862 561.297 434.527L561.466 435.512C557.622 436.174 553.744 436.746 549.836 437.223L549.716 436.23C545.861 436.701 541.977 437.08 538.064 437.364L538.137 438.361C534.249 438.644 530.335 438.834 526.396 438.929L526.371 437.93C524.42 437.977 522.463 438 520.5 438C518.537 438 516.58 437.977 514.629 437.93L514.604 438.929H514.576C510.646 438.833 506.741 438.643 502.862 438.361H502.863L502.936 437.364C499.023 437.08 495.139 436.701 491.284 436.23L491.163 437.223C487.255 436.746 483.377 436.174 479.533 435.512L479.703 434.527C475.841 433.862 472.012 433.104 468.22 432.255L468.002 433.229C464.163 432.369 460.36 431.419 456.598 430.378L456.864 429.415C453.09 428.371 449.355 427.236 445.664 426.013L445.35 426.961C441.617 425.724 437.929 424.398 434.287 422.985L434.648 422.054C431 420.638 427.398 419.136 423.847 417.548L423.438 418.461C419.85 416.857 416.314 415.166 412.831 413.393L413.285 412.503C409.799 410.729 406.367 408.871 402.991 406.932L402.493 407.798C399.088 405.842 395.74 403.803 392.453 401.686L392.994 400.846C389.707 398.728 386.481 396.53 383.318 394.257L382.734 395.067C379.547 392.776 376.423 390.407 373.367 387.963L373.992 387.183C370.94 384.742 367.956 382.226 365.042 379.639L364.378 380.386C361.444 377.78 358.581 375.101 355.793 372.354L356.495 371.643C353.713 368.901 351.006 366.089 348.376 363.212L347.638 363.886C344.992 360.991 342.424 358.029 339.938 355.003L340.711 354.368C338.233 351.352 335.836 348.272 333.524 345.132L332.72 345.724C330.396 342.567 328.158 339.35 326.007 336.074L326.842 335.526C324.701 332.266 322.648 328.947 320.686 325.574L319.82 326.076C317.851 322.691 315.972 319.25 314.188 315.758L315.078 315.304C313.305 311.833 311.624 308.312 310.041 304.741L309.127 305.146C307.541 301.568 306.051 297.943 304.66 294.271L305.595 293.919C304.216 290.279 302.936 286.594 301.757 282.867L300.804 283.168C299.625 279.442 298.547 275.674 297.572 271.867L298.541 271.62C297.577 267.854 296.716 264.05 295.959 260.21L294.978 260.402C294.223 256.573 293.572 252.708 293.028 248.812L294.019 248.674C293.482 244.829 293.051 240.953 292.727 237.048L291.729 237.129C291.407 233.244 291.19 229.331 291.081 225.393L292.081 225.366C292.027 223.417 292 221.462 292 219.5C292 217.538 292.027 215.583 292.081 213.634L291.081 213.605C291.19 209.667 291.407 205.754 291.729 201.869L292.727 201.952C293.051 198.047 293.482 194.171 294.019 190.326L293.028 190.188C293.572 186.291 294.223 182.426 294.978 178.597L295.959 178.79C296.716 174.95 297.577 171.146 298.541 167.38L297.572 167.132C298.461 163.659 299.437 160.218 300.496 156.812L300.804 155.831L301.757 156.133C302.936 152.406 304.216 148.721 305.595 145.081L304.66 144.728C306.051 141.056 307.541 137.431 309.127 133.854L310.041 134.259C311.624 130.688 313.305 127.167 315.078 123.696L314.188 123.241C315.972 119.749 317.851 116.308 319.82 112.923L320.686 113.426C322.648 110.053 324.701 106.734 326.842 103.474L326.007 102.925C328.158 99.6492 330.396 96.4316 332.72 93.2754L333.524 93.8682C335.836 90.7276 338.233 87.6477 340.711 84.6318L339.938 83.9971L339.938 83.9961C342.424 80.9699 344.992 78.0084 347.638 75.1133L348.376 75.7881C351.006 72.9106 353.713 70.0989 356.495 67.3574L355.793 66.6455C358.581 63.8977 361.444 61.219 364.378 58.6133L365.042 59.3613C367.956 56.7738 370.94 54.2583 373.992 51.8174L373.367 51.0361C376.423 48.5922 379.547 46.2234 382.734 43.9316L383.318 44.7432C386.481 42.4695 389.707 40.2717 392.994 38.1543L392.453 37.3135C395.74 35.1959 399.088 33.1574 402.493 31.2012L402.991 32.0684C406.367 30.1292 409.799 28.2714 413.285 26.4971L412.831 25.6064C416.314 23.8334 419.85 22.1417 423.438 20.5381L423.438 20.5391L423.847 21.4521C427.398 19.8644 431 18.3617 434.648 16.9463L434.287 16.0137C437.929 14.6008 441.617 13.2746 445.35 12.0381L445.664 12.9873C449.355 11.7644 453.09 10.6294 456.864 9.58496L456.598 8.62109C460.36 7.57999 464.163 6.62981 468.002 5.77051L468.22 6.74512C472.012 5.89636 475.841 5.13829 479.703 4.47266L479.533 3.4873C483.377 2.82479 487.255 2.2533 491.163 1.77637L491.284 2.76953C495.139 2.29916 499.023 1.9201 502.936 1.63574L502.863 0.638672L502.862 0.637695C506.75 0.35512 510.664 0.165327 514.604 0.0703125L514.604 0.0712891L514.629 1.07031C516.58 1.02326 518.537 1 520.5 1C522.463 1 524.42 1.02326 526.371 1.07031L526.396 0.0712891V0.0703125C530.335 0.165311 534.249 0.355136 538.137 0.637695V0.638672L538.064 1.63574C541.977 1.9201 545.861 2.29916 549.716 2.76953L549.836 1.77637C553.744 2.25329 557.622 2.8248 561.466 3.4873L561.297 4.47266C565.159 5.13829 568.988 5.89636 572.78 6.74512L572.997 5.77051C576.836 6.6298 580.639 7.58 584.401 8.62109L584.136 9.58496C587.91 10.6294 591.645 11.7644 595.336 12.9873L595.649 12.0381C599.382 13.2746 603.07 14.6008 606.712 16.0137L606.352 16.9463C610 18.3617 613.602 19.8644 617.153 21.4521L617.562 20.5391V20.5381C621.149 22.1417 624.685 23.8334 628.168 25.6064L627.715 26.4971C631.201 28.2714 634.633 30.1292 638.009 32.0684L638.506 31.2012C641.911 33.1574 645.259 35.1959 648.546 37.3135L648.006 38.1543C651.293 40.2717 654.519 42.4695 657.682 44.7432L658.265 43.9316C661.452 46.2234 664.576 48.5922 667.632 51.0361L667.008 51.8174C670.06 54.2583 673.044 56.7738 675.958 59.3613L676.621 58.6133C679.555 61.219 682.418 63.8977 685.206 66.6455L684.505 67.3574C687.287 70.0989 689.994 72.9106 692.624 75.7881L693.361 75.1133C696.007 78.0084 698.575 80.9699 701.062 83.9961V83.9971L700.289 84.6318C702.767 87.6478 705.164 90.7276 707.476 93.8682L708.279 93.2754C710.603 96.4316 712.841 99.6492 714.992 102.925L714.158 103.474C716.299 106.734 718.352 110.053 720.314 113.426L721.179 112.923C723.148 116.308 725.027 119.749 726.812 123.241L725.922 123.696C727.695 127.167 729.376 130.688 730.959 134.259L731.872 133.854C733.459 137.431 734.948 141.056 736.339 144.728L735.405 145.081C736.784 148.721 738.064 152.406 739.243 156.133L740.195 155.831Z"
+            <ellipse
+              cx="520.5"
+              cy="219.5"
+              rx="228.5"
+              ry="218.5"
               stroke="url(#paint0_linear_1_2)"
               strokeWidth="2"
+              fill="none"
+              opacity="0.5"
+              pathLength="1392"
               strokeDasharray="12 12"
+              strokeLinecap="round"
             />
             <path
               opacity="0.8"
               d="M-80 116C181.152 217.006 276.147 191.621 291 166.302"
               stroke="url(#paint1_linear_1_2)"
-              strokeWidth="3"
+              strokeWidth="2"
               strokeDasharray="12 12"
+              strokeLinecap="round"
             />
             <circle
               cx="291.5"
@@ -195,12 +212,18 @@ export default function HeroSession() {
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <path
-                opacity="0.2"
-                d="M277.522 14.0605C281.542 14.1405 285.541 14.3002 289.516 14.5381L289.397 16.5342C293.383 16.7727 297.344 17.0895 301.28 17.4844L301.479 15.4951C305.477 15.8963 309.449 16.3766 313.393 16.9346L313.113 18.915C317.067 19.4744 320.992 20.1118 324.887 20.8262L325.246 18.8594C329.2 19.5847 333.124 20.3891 337.014 21.2695L336.573 23.2188C340.466 24.0998 344.326 25.0582 348.149 26.0918L348.67 24.1621C352.548 25.2104 356.391 26.3348 360.194 27.5352L359.594 29.4424C363.397 30.6427 367.162 31.9191 370.886 33.2686L371.566 31.3887C375.342 32.7567 379.076 34.1996 382.766 35.7158L382.007 37.5654C385.694 39.0806 389.338 40.67 392.935 42.3301L393.771 40.5137C397.416 42.1959 401.014 43.9514 404.562 45.7773L403.648 47.5557C407.192 49.379 410.686 51.2731 414.127 53.2363L415.117 51.499V51.498C418.603 53.4867 422.035 55.5469 425.413 57.6738L424.349 59.3662C427.719 61.4887 431.034 63.6798 434.291 65.9365L435.43 64.293C438.727 66.5779 441.966 68.9295 445.144 71.3467L443.934 72.9385C447.103 75.3493 450.21 77.8256 453.253 80.3643L454.533 78.8281C457.613 81.3977 460.629 84.0314 463.576 86.7266L462.228 88.2021C465.165 90.888 468.035 93.6357 470.834 96.4424L472.249 95.0303C475.081 97.8695 477.841 100.769 480.528 103.727L479.05 105.072C481.724 108.016 484.325 111.018 486.85 114.075L488.391 112.802C490.943 115.893 493.418 119.04 495.812 122.241H495.813L494.213 123.439C496.594 126.622 498.895 129.858 501.114 133.146L502.771 132.026V132.025C505.013 135.346 507.169 138.719 509.241 142.141L507.531 143.177C509.588 146.574 511.56 150.019 513.443 153.512L515.202 152.562C517.102 156.085 518.913 159.656 520.632 163.271L518.827 164.13C520.531 167.712 522.144 171.339 523.664 175.007L525.511 174.241C527.041 177.935 528.477 181.671 529.817 185.447H529.818L527.934 186.116C529.259 189.85 530.489 193.623 531.621 197.433L533.537 196.862C534.675 200.691 535.715 204.556 536.654 208.456L534.711 208.924C535.638 212.77 536.466 216.651 537.193 220.562L539.157 220.196C539.886 224.118 540.515 228.071 541.04 232.053L539.058 232.314C539.574 236.231 539.989 240.176 540.301 244.147L542.293 243.991C542.605 247.962 542.815 251.958 542.92 255.979L540.922 256.031C540.974 258.015 541 260.005 541 262C541 263.995 540.974 265.985 540.922 267.969L542.92 268.02C542.815 272.04 542.605 276.037 542.293 280.008L540.302 279.853C539.99 283.824 539.574 287.769 539.058 291.686L541.04 291.946C540.515 295.928 539.886 299.881 539.157 303.803L537.193 303.438C536.466 307.349 535.638 311.229 534.711 315.075L536.654 315.543C535.715 319.443 534.675 323.308 533.537 327.137L531.621 326.567C530.489 330.377 529.259 334.149 527.934 337.883L529.818 338.552C528.478 342.328 527.041 346.064 525.511 349.758L523.664 348.993C522.144 352.661 520.531 356.288 518.827 359.87L520.632 360.729C518.913 364.343 517.102 367.914 515.202 371.437L513.443 370.488C511.56 373.981 509.588 377.426 507.531 380.823L509.241 381.858C507.169 385.28 505.013 388.653 502.771 391.974L501.114 390.854C498.895 394.142 496.594 397.378 494.213 400.561L495.812 401.758C493.418 404.959 490.944 408.106 488.392 411.196L486.85 409.924C484.325 412.981 481.725 415.984 479.05 418.928L480.528 420.272C477.841 423.23 475.081 426.13 472.249 428.969L470.834 427.558C468.035 430.364 465.165 433.112 462.228 435.798L463.576 437.272C460.629 439.968 457.613 442.601 454.533 445.171L453.253 443.636C450.21 446.174 447.103 448.651 443.934 451.062L445.144 452.652C441.966 455.07 438.727 457.421 435.43 459.706L434.291 458.063C431.034 460.32 427.718 462.511 424.348 464.634L425.413 466.325C422.035 468.452 418.603 470.512 415.117 472.501L414.127 470.764C410.686 472.727 407.192 474.621 403.648 476.444L404.562 478.222C401.014 480.048 397.417 481.803 393.771 483.485L392.935 481.67C389.338 483.33 385.694 484.919 382.007 486.435L382.766 488.283C379.076 489.799 375.342 491.242 371.566 492.61L370.886 490.731C367.162 492.081 363.397 493.357 359.594 494.558L360.194 496.464C356.391 497.664 352.548 498.789 348.67 499.837L348.149 497.908C344.326 498.942 340.466 499.899 336.573 500.78L337.014 502.729C333.123 503.61 329.2 504.414 325.246 505.14L324.887 503.174C320.992 503.888 317.067 504.526 313.113 505.085L313.393 507.064C309.449 507.622 305.477 508.103 301.479 508.504L301.28 506.516C297.344 506.911 293.383 507.227 289.397 507.466L289.516 509.461C285.541 509.699 281.542 509.859 277.522 509.938L277.483 507.94C275.494 507.98 273.5 508 271.5 508C269.5 508 267.506 507.98 265.517 507.94L265.477 509.938C261.457 509.859 257.458 509.699 253.483 509.461L253.603 507.466C249.617 507.227 245.656 506.911 241.72 506.516L241.521 508.504C237.522 508.103 233.55 507.622 229.606 507.064L229.887 505.085C225.933 504.526 222.008 503.888 218.113 503.174L217.753 505.14C213.799 504.414 209.876 503.61 205.985 502.729L206.427 500.781C202.534 499.9 198.674 498.942 194.851 497.908L194.329 499.837C190.451 498.789 186.608 497.664 182.805 496.464L183.406 494.558C179.603 493.357 175.838 492.081 172.114 490.731L171.433 492.61C167.657 491.242 163.923 489.799 160.233 488.283L160.993 486.435C157.306 484.919 153.662 483.33 150.065 481.67L149.228 483.485C145.583 481.803 141.985 480.048 138.437 478.222L139.352 476.444C135.808 474.621 132.314 472.727 128.873 470.764L127.883 472.501H127.882C124.396 470.512 120.964 468.452 117.586 466.325L118.651 464.634C115.281 462.511 111.966 460.32 108.709 458.063L107.569 459.706C104.272 457.421 101.033 455.07 97.8555 452.652L99.0664 451.062C95.8975 448.651 92.7903 446.174 89.7471 443.636L88.4658 445.171C85.3856 442.601 82.3705 439.968 79.4229 437.272L80.7725 435.798C77.835 433.112 74.9654 430.364 72.166 427.558L70.75 428.969C67.9181 426.13 65.1575 423.23 62.4707 420.272L63.9502 418.928C61.2756 415.984 58.6748 412.982 56.1504 409.925L54.6084 411.197C52.0561 408.106 49.5815 404.959 47.1865 401.758L48.7871 400.561C46.406 397.378 44.1045 394.142 41.8857 390.854L40.2275 391.974C37.9863 388.653 35.8297 385.28 33.7578 381.858L35.4688 380.823C33.4119 377.426 31.4398 373.981 29.5566 370.488L27.7969 371.437C25.8972 367.914 24.0864 364.343 22.3672 360.729L24.1729 359.87C22.4691 356.288 20.8556 352.661 19.3359 348.993L17.4883 349.758C15.9579 346.064 14.5217 342.328 13.1816 338.552L15.0664 337.884C13.7413 334.15 12.5111 330.377 11.3789 326.567L9.46191 327.137C8.32402 323.308 7.28426 319.443 6.34473 315.543L8.28906 315.076C7.36239 311.23 6.53353 307.349 5.80664 303.438L3.8418 303.803C3.11302 299.881 2.48367 295.928 1.95898 291.946L3.94238 291.686C3.4263 287.769 3.01122 283.824 2.69922 279.853L0.706055 280.008C0.394128 276.037 0.183958 272.041 0.0791016 268.021L2.07812 267.969C2.02638 265.985 2 263.995 2 262C2 260.005 2.02638 258.015 2.07812 256.031L0.0791016 255.979C0.183966 251.959 0.394086 247.962 0.706055 243.991L2.69824 244.148C3.01024 240.177 3.42628 236.231 3.94238 232.314L1.95898 232.053C2.48369 228.071 3.113 224.118 3.8418 220.196L5.80664 220.562C6.53351 216.651 7.36242 212.771 8.28906 208.925L6.34473 208.456C7.28428 204.556 8.324 200.691 9.46191 196.862L11.3789 197.433C12.5111 193.623 13.7413 189.851 15.0664 186.117L13.1816 185.448L13.1807 185.447C14.5208 181.671 15.9579 177.935 17.4883 174.241L19.3359 175.007C20.8556 171.339 22.4691 167.712 24.1729 164.13L22.3672 163.271C24.0864 159.656 25.8972 156.085 27.7969 152.562L29.5566 153.512C31.4398 150.019 33.4118 146.574 35.4688 143.177L33.7578 142.141C35.8297 138.719 37.9863 135.346 40.2275 132.025L40.2285 132.026L41.8857 133.146C44.1046 129.858 46.406 126.622 48.7871 123.439L47.1865 122.241C49.5812 119.04 52.0554 115.893 54.6074 112.803L56.1504 114.076C58.6749 111.019 61.2754 108.016 63.9502 105.072L62.4707 103.727C65.1576 100.769 67.9181 97.8695 70.75 95.0303L72.166 96.4424C74.9654 93.6357 77.835 90.888 80.7725 88.2021L79.4229 86.7266C82.3705 84.0314 85.3856 81.3977 88.4658 78.8281L89.7471 80.3643C92.7903 77.8256 95.8975 75.3493 99.0664 72.9385L97.8555 71.3467C101.033 68.9295 104.272 66.5779 107.569 64.293L108.709 65.9365C111.966 63.6798 115.281 61.4887 118.651 59.3662L117.586 57.6738C120.964 55.5469 124.396 53.4867 127.882 51.498L127.883 51.499L128.873 53.2363C132.314 51.2731 135.808 49.379 139.352 47.5557L138.437 45.7773C141.985 43.9514 145.583 42.196 149.228 40.5137L150.065 42.3301C153.662 40.67 157.306 39.0806 160.993 37.5654L160.233 35.7158C163.923 34.1996 167.657 32.7567 171.433 31.3887L172.114 33.2686C175.838 31.9191 179.603 30.6427 183.406 29.4424L182.805 27.5352C186.608 26.3348 190.451 25.2105 194.329 24.1621L194.851 26.0918C198.674 25.0582 202.534 24.1008 206.427 23.2197L205.985 21.2695C209.876 20.3891 213.799 19.5847 217.753 18.8594L218.113 20.8262C222.008 20.1118 225.933 19.4744 229.887 18.915L229.606 16.9346C233.55 16.3766 237.522 15.8963 241.521 15.4951L241.72 17.4844C245.656 17.0895 249.617 16.7727 253.603 16.5342L253.483 14.5381C257.458 14.3002 261.457 14.1405 265.477 14.0605L265.517 16.0596C267.506 16.02 269.5 16 271.5 16C273.5 16 275.494 16.02 277.483 16.0596L277.522 14.0605Z"
+              <ellipse
+                cx="271.5"
+                cy="261.5"
+                rx="269.5"
+                ry="247.5"
                 stroke="#1C4D8D"
-                strokeWidth="4"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.35"
+                pathLength="1632"
                 strokeDasharray="12 12"
+                strokeLinecap="round"
               />
               <circle
                 cx="14"
@@ -357,10 +380,10 @@ export default function HeroSession() {
           </div>
         </motion.div>
 
-        <div className="min-h-0 lg:min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start px-4 py-6 md:px-12 md:py-10 max-w-7xl mx-auto relative z-[12] text-center">
-          <div className="w-full flex flex-col items-center justify-center mb-3 sm:mb-8 md:mb-12">
+        <div className="min-h-0 lg:min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start px-4 py-6 md:px-8 md:py-10 lg:px-12 max-w-7xl mx-auto relative z-[12] text-center">
+          <div className="w-full flex flex-col items-center justify-center mb-3 sm:mb-8 md:mb-10 lg:mb-12">
             <motion.h2
-              className="text-base sm:text-3xl md:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2"
+              className="text-base sm:text-3xl md:text-[32px] lg:text-[45px] text-action tracking-wide font-bold leading-tight flex flex-wrap items-center justify-center gap-x-2"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -368,7 +391,7 @@ export default function HeroSession() {
             >
               <span>Bring Together</span>
               <motion.span
-                className="text-secondary text-lg sm:text-4xl md:text-[50px]"
+                className="text-secondary text-lg sm:text-4xl md:text-[36px] lg:text-[50px]"
                 variants={fadeUp}
                 custom={0.1}
               >
@@ -376,7 +399,7 @@ export default function HeroSession() {
               </motion.span>
               <span className="text-action">&amp;</span>
               <motion.span
-                className="text-secondary text-lg sm:text-4xl md:text-[50px]"
+                className="text-secondary text-lg sm:text-4xl md:text-[36px] lg:text-[50px]"
                 variants={fadeUp}
                 custom={0.18}
               >
@@ -385,7 +408,7 @@ export default function HeroSession() {
             </motion.h2>
 
             <motion.h1
-              className="text-lg sm:text-5xl md:text-[60px] text-secondary mt-2 sm:mt-3 mb-3 sm:mb-4 md:mb-6 max-w-5xl font-bold leading-tight"
+              className="text-lg sm:text-5xl md:text-[44px] lg:text-[60px] text-secondary mt-2 sm:mt-3 mb-3 sm:mb-4 md:mb-5 lg:mb-6 max-w-5xl font-bold leading-tight"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -396,7 +419,7 @@ export default function HeroSession() {
             </motion.h1>
 
             <motion.p
-              className="text-sm sm:text-lg md:text-[20px] text-secondary/90 text-center max-w-4xl mx-auto w-full leading-relaxed px-2"
+              className="text-sm sm:text-lg md:text-[16px] lg:text-[20px] text-secondary/90 text-center max-w-4xl mx-auto w-full leading-relaxed px-2"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -408,22 +431,94 @@ export default function HeroSession() {
             </motion.p>
           </div>
 
-          <div className="relative w-full top-0 sm:-top-10 md:-top-20 lg:-top-25 max-w-7xl h-50 sm:h-55 md:h-80 lg:h-120 flex items-center justify-center px-1 md:px-0 md:overflow-visible">
+          <div className="relative w-full top-0 sm:-top-10 md:-top-16 lg:-top-25 max-w-7xl h-50 sm:h-55 md:h-72 lg:h-120 flex items-center justify-center px-1 md:px-0 md:overflow-visible">
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none sm:hidden z-5"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <linearGradient
+                  id="mobileEllipseGrad"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
+                  <stop offset="0%" stopColor="#00508D" />
+                  <stop offset="100%" stopColor="#0A74FF" />
+                </linearGradient>
+              </defs>
+              <ellipse
+                cx="50%"
+                cy="52%"
+                rx="42%"
+                ry="38%"
+                stroke="url(#mobileEllipseGrad)"
+                strokeWidth="1.5"
+                strokeOpacity="0.65"
+                strokeDasharray="10 10"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <circle
+                cx="50%"
+                cy="14%"
+                r="5"
+                fill="#FF9F2E"
+                stroke="white"
+                strokeWidth="1.5"
+              />
+              <circle
+                cx="80%"
+                cy="79%"
+                r="5"
+                fill="#FF9F2E"
+                stroke="white"
+                strokeWidth="1.5"
+              />
+              <circle
+                cx="20%"
+                cy="79%"
+                r="5"
+                fill="#FF9F2E"
+                stroke="white"
+                strokeWidth="1.5"
+              />
+            </svg>
+
             <motion.div
               className="absolute left-[-2%] sm:left-[-1%] md:left-[-3%] w-[32%] md:w-[33%] translate-y-4 sm:translate-y-8 md:translate-y-16 z-30"
               variants={slideInLeft}
               initial="hidden"
               animate="visible"
             >
-              <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <Image
-                  src="/images/HeroSession1.webp"
-                  alt="HRD Student Event Assembly"
-                  width={400}
-                  height={300}
-                  className="w-full h-auto block rotate-[15deg]"
-                />
-              </div>
+              <motion.div
+                animate={isMobile ? { y: [0, -5, 0] } : {}}
+                transition={
+                  isMobile
+                    ? {
+                        duration: 3.2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1,
+                      }
+                    : {}
+                }
+                className="w-full"
+              >
+                <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
+                  <Image
+                    src="/images/HeroSession1.webp"
+                    alt="HRD Student Event Assembly"
+                    width={400}
+                    height={300}
+                    quality={95}
+                    priority
+                    sizes="(max-width: 640px) 32vw, (max-width: 768px) 33vw, 400px"
+                    className="w-full h-auto block rotate-15"
+                  />
+                </div>
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -433,55 +528,97 @@ export default function HeroSession() {
               animate="visible"
             >
               <motion.div
-                className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:top-5 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center"
-                variants={slideInCenter}
-                initial="hidden"
-                animate="visible"
+                animate={isMobile ? { y: [0, -6, 0] } : {}}
+                transition={
+                  isMobile
+                    ? {
+                        duration: 2.8,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1.3,
+                      }
+                    : {}
+                }
+                className="relative w-full"
               >
-                <Heart className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 fill-current text-destructive" />
+                <motion.div
+                  className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:right-4 md:top-5 md:right-8 bg-white border border-border rounded-full p-1 sm:p-1.5 md:p-2 z-40 flex items-center justify-center"
+                  variants={slideInCenter}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <Heart className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 fill-current text-destructive" />
+                </motion.div>
+                <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
+                  <Image
+                    src="/images/HeroSession2.webp"
+                    alt="HRD Main Event Group Photo"
+                    width={600}
+                    height={400}
+                    quality={95}
+                    priority
+                    sizes="(max-width: 640px) 48vw, (max-width: 768px) 48vw, 600px"
+                    className="w-full h-auto block"
+                  />
+                </div>
               </motion.div>
-              <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <Image
-                  src="/images/HeroSession2.webp"
-                  alt="HRD Main Event Group Photo"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto block"
-                />
-              </div>
             </motion.div>
 
             <motion.div
-              className="absolute right-[-2%] sm:right-[-1%] md:right-[-3%] w-[34%] md:w-[35%] rotate-[10deg] md:rotate-[12deg] translate-y-4 sm:translate-y-8 md:translate-y-15"
+              className="absolute right-[-2%] sm:right-[-1%] md:right-[-3%] w-[34%] md:w-[35%] rotate-[10deg] md:rotate-[12deg] translate-y-4 sm:translate-y-8 md:translate-y-15 z-10"
               variants={slideInRight}
               initial="hidden"
               animate="visible"
             >
-              <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
-                <Image
-                  src="/images/HeroSession3.webp"
-                  alt="HRD Campus Community Event"
-                  width={400}
-                  height={300}
-                  className="w-full h-auto block rotate-[-20deg]"
-                />
-              </div>
+              <motion.div
+                animate={isMobile ? { y: [0, -5, 0] } : {}}
+                transition={
+                  isMobile
+                    ? {
+                        duration: 3.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1.6,
+                      }
+                    : {}
+                }
+                className="w-full"
+              >
+                <div className="w-full overflow-hidden rounded-md sm:rounded-lg md:rounded-xl">
+                  <Image
+                    src="/images/HeroSession3.webp"
+                    alt="HRD Campus Community Event"
+                    width={400}
+                    height={300}
+                    quality={95}
+                    priority
+                    sizes="(max-width: 640px) 34vw, (max-width: 768px) 35vw, 400px"
+                    className="w-full h-auto block rotate-[-20deg]"
+                  />
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
+
         <motion.div
           className="w-full max-w-6xl mx-auto border-t border-border/60 pt-8 md:pt-10 mt-10 md:mt-16 z-10 px-4 pb-8 md:pb-12"
           variants={stagger}
           initial="hidden"
           animate="visible"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-8 sm:gap-y-0 gap-x-4 md:gap-x-12 lg:gap-x-16 items-start justify-center text-center">
+          <div className="flex flex-col gap-4 sm:grid sm:grid-cols-3 sm:gap-y-0 sm:gap-x-4 md:gap-x-12 lg:gap-x-16 sm:items-start sm:justify-center sm:text-center">
             <motion.div
-              className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 pr-0 sm:pr-4 md:pr-6"
+              className="
+                flex flex-row items-center gap-4 text-left
+                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
+                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
+                sm:border-b-0 sm:border-r sm:border-border/60 sm:pb-0 sm:pr-4 md:pr-6
+              "
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
-              <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
+              <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
                   viewBox="0 0 44 44"
@@ -529,16 +666,27 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
-                Digital Payment
-              </h3>
+              <div className="flex flex-col gap-0.5">
+                <h3 className="text-base font-bold text-primary tracking-tight leading-tight">
+                  Digital Payment
+                </h3>
+                <p className="text-sm text-secondary/70 leading-snug">
+                  Secure and fast ticketing for all premium events.
+                </p>
+              </div>
             </motion.div>
+
             <motion.div
-              className="flex flex-col items-center justify-center gap-3 border-b sm:border-b-0 sm:border-r border-border/60 pb-6 sm:pb-0 px-0 sm:px-4 md:px-6"
+              className="
+                flex flex-row items-center gap-4 text-left
+                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
+                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
+                sm:border-b-0 sm:border-r sm:border-border/60 sm:pb-0 sm:px-4 md:px-6
+              "
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
-              <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
+              <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
                   viewBox="0 0 44 44"
@@ -594,17 +742,27 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
-                Event Management
-              </h3>
+              <div className="flex flex-col gap-0.5">
+                <h3 className="text-base font-bold text-primary tracking-tight leading-tight">
+                  Event Management
+                </h3>
+                <p className="text-sm text-secondary/70 leading-snug">
+                  Organize, track, and manage your registrations easily.
+                </p>
+              </div>
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center justify-center gap-3 pl-0 sm:pl-4 md:pl-6"
+              className="
+                flex flex-row items-center gap-4 text-left
+                bg-white rounded-2xl px-4 py-4 shadow-sm border border-border/40
+                sm:flex-col sm:items-center sm:text-center sm:bg-transparent sm:rounded-none sm:shadow-none sm:border-0 sm:px-0 sm:py-0
+                sm:pl-4 md:pl-6
+              "
               variants={featureItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
-              <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
+              <div className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-primary shadow-sm shrink-0">
                 <svg
                   className="w-full h-full p-0.5"
                   viewBox="0 0 44 44"
@@ -635,9 +793,14 @@ export default function HeroSession() {
                   />
                 </svg>
               </div>
-              <h3 className="text-base md-type-title text-primary tracking-tight text-center md:whitespace-nowrap leading-tight">
-                Community Engagement
-              </h3>
+              <div className="flex flex-col gap-0.5">
+                <h3 className="text-base font-bold text-primary tracking-tight leading-tight">
+                  Community Engagement
+                </h3>
+                <p className="text-sm text-secondary/70 leading-snug">
+                  Link up with students and alumni across departments.
+                </p>
+              </div>
             </motion.div>
           </div>
         </motion.div>

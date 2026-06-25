@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import CommentActions from "./CommentAction";
-import DeleteCommentModal from "./modals/delete-comment-modal";
 import EditCommentModal from "./modals/edit-comment-modal";
 import ReplyCommentModal from "./modals/reply-comment-modal";
 import { CommentItem } from "@/types/comment";
 
 export default function CommentDemo() {
   const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [_deleteOpen, setDeleteOpen] = useState(false);
   const [replyOpen, setReplyOpen] = useState(false);
   const comments: CommentItem[] = [];
   return (

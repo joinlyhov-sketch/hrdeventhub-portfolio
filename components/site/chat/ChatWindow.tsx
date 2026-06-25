@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Conversation, ChatMessage } from "@/types/chat";
+import { useRouter } from "next/navigation";
+import { Conversation, ChatMessage, WsEditEvent, WsDeleteEvent, WsReadEvent } from "@/types/chat";
 import { useMessages } from "@/hooks/useMessages";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useChatStore } from "@/store/useChatStore";
-import { initials } from "@/libs/utils";
 import { uploadFileAction } from "@/actions/chat.action";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
@@ -16,7 +16,6 @@ interface ChatWindowProps {
   conversation: Conversation;
   token: string;
   userId: string;
-  userName: string;
   onConversationUpdate: () => void;
   onBack: () => void;
 }
@@ -32,6 +31,7 @@ export default function ChatWindow({
 }: Readonly<ChatWindowProps>) {
   const normalizedUserId = String(userId ?? "").trim();
   const presence = usePresence(conversation.otherUserId, token);
+  const router = useRouter();
   const [inputVal, setInputVal] = useState("");
   const [editingMsg, setEditingMsg] = useState<ChatMessage | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -44,6 +44,9 @@ export default function ChatWindow({
   const updateReadRef = useRef<
     ((convId: string, userId: string) => void) | null
   >(null);
+  const pendingQueueRef = useRef<
+    { conversationId: string; content: string; pendingId: string }[]
+  >([]);
 
   useEffect(() => {
     onUpdateRef.current = onConversationUpdate;
@@ -70,6 +73,16 @@ export default function ChatWindow({
         onUpdateRef.current();
         return;
       }
+      if (String(msg.senderId ?? "").trim() === normalizedUserId) {
+        const pendingMatch = (
+          useChatStore.getState().messages[conversation.id] ?? []
+        ).find(
+          (m) => m._pending && m.content === msg.content,
+        );
+        if (pendingMatch) {
+          removeMessage(pendingMatch.id, conversation.id);
+        }
+      }
       addMessage(msg);
       onUpdateRef.current();
       readSentRef.current = false;
@@ -81,19 +94,19 @@ export default function ChatWindow({
         onUpdateRef.current();
       }, 50);
     },
-    [addMessage, conversation.id, normalizedUserId],
+    [addMessage, removeMessage, conversation.id, normalizedUserId],
   );
 
   const handleEdit = useCallback(
-    (e: any) => updateMessage(e.message),
+    (e: WsEditEvent) => updateMessage(e.message),
     [updateMessage],
   );
   const handleDelete = useCallback(
-    (e: any) => removeMessage(e.messageId, e.conversationId),
+    (e: WsDeleteEvent) => removeMessage(e.messageId, e.conversationId),
     [removeMessage],
   );
   const handleRead = useCallback(
-    (e: any) => {
+    (e: WsReadEvent) => {
       if (String(e.readBy) === normalizedUserId) return;
       updateRead(e.conversationId, e.readBy);
       onUpdateRef.current();
@@ -123,7 +136,7 @@ export default function ChatWindow({
     setUploadError(null);
     subscribe(conversation.id);
     loadMessages(conversation.id);
-  }, [conversation.id]);
+  }, [conversation.id, loadMessages, subscribe]);
 
   useEffect(() => {
     if (status !== "connected") return;
@@ -143,7 +156,18 @@ export default function ChatWindow({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [status, conversation.id]);
+  }, [status, conversation.id, normalizedUserId, sendRead, subscribe, updateRead]);
+
+  useEffect(() => {
+    if (status !== "connected") return;
+    if (pendingQueueRef.current.length === 0) return;
+
+    const queue = pendingQueueRef.current;
+    pendingQueueRef.current = [];
+    queue.forEach((item) => {
+      sendMessage(item.conversationId, item.content);
+    });
+  }, [status, sendMessage]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -156,32 +180,86 @@ export default function ChatWindow({
       try {
         await editMessage(editingMsg.id, content);
         updateMessage({ ...editingMsg, content, isEdited: true });
-      } catch {}
+      } catch { }
       setEditingMsg(null);
       setInputVal("");
       return;
     }
-    const sent = sendMessage(conversation.id, content);
-    if (!sent) return;
+
+    const pendingId = `pending-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const optimisticMsg = {
+      id: pendingId,
+      conversationId: conversation.id,
+      senderId: normalizedUserId,
+      content,
+      messageType: "TEXT",
+      createdAt: new Date().toISOString(),
+      read: false,
+      isEdited: false,
+      _pending: true,
+    } as unknown as ChatMessage;
+
+    addMessage(optimisticMsg);
     setInputVal("");
+
+    if (status !== "connected") {
+      pendingQueueRef.current.push({
+        conversationId: conversation.id,
+        content,
+        pendingId,
+      });
+      return;
+    }
+
+    const sent = sendMessage(conversation.id, content);
+    if (!sent) {
+      pendingQueueRef.current.push({
+        conversationId: conversation.id,
+        content,
+        pendingId,
+      });
+    }
   }
 
   async function handleFileUpload(file: File) {
     setUploading(true);
     setUploadError(null);
+
+    const isImage = file.type.startsWith("image/");
+    const pendingId = `pending-img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const localUrl = isImage ? URL.createObjectURL(file) : undefined;
+
+    const optimisticMsg = {
+      id: pendingId,
+      conversationId: conversation.id,
+      senderId: normalizedUserId,
+      content: "",
+      messageType: isImage ? "IMAGE" : "FILE",
+      fileUrl: localUrl,
+      fileName: file.name,
+      fileSize: file.size,
+      createdAt: new Date().toISOString(),
+      read: false,
+      isEdited: false,
+      _pending: true,
+    } as unknown as ChatMessage;
+
+    addMessage(optimisticMsg);
+
     try {
       await uploadFileAction(conversation.id, file, token);
       onUpdateRef.current();
       loadMessages(conversation.id);
-    } catch (err: any) {
-      setUploadError(err.message ?? "Upload failed");
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
+      if (localUrl) URL.revokeObjectURL(localUrl);
+      removeMessage(pendingId, conversation.id);
     }
   }
 
   async function handleDeleteMsg(id: string) {
-    if (!confirm("Delete this message?")) return;
     await deleteMessage(id, conversation.id);
   }
 
@@ -193,6 +271,11 @@ export default function ChatWindow({
   function cancelEdit() {
     setEditingMsg(null);
     setInputVal("");
+  }
+
+  function handleViewProfile() {
+    if (!conversation.otherUserId) return;
+    router.push(`/profile/${conversation.otherUserId}`);
   }
 
   return (
@@ -219,27 +302,32 @@ export default function ChatWindow({
             />
           </svg>
         </button>
-        <ChatAvatar
-          name={conversation.otherUserName}
-          avatarUrl={conversation.otherUserAvatar}
-          size="sm"
-        />
-        <div className="flex flex-col flex-1 min-w-0">
-          <h2 className="text-sm font-bold text-gray-900 leading-tight truncate">
-            {conversation.otherUserName}
-          </h2>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                presence?.status === "ONLINE" ? "bg-emerald-500" : "bg-gray-300"
-              }`}
-            />
-            <span className="text-[10px] font-semibold text-gray-400">
-              {presence?.label ??
-                (presence?.status === "ONLINE" ? "Active now" : "Offline")}
-            </span>
+        <button
+          type="button"
+          onClick={handleViewProfile}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left rounded-lg transition-colors -ml-1 pl-1 py-1"
+        >
+          <ChatAvatar
+            name={conversation.otherUserName}
+            avatarUrl={conversation.otherUserAvatar}
+            size="sm"
+          />
+          <div className="flex flex-col flex-1 min-w-0 hover:cursor-pointer">
+            <h2 className="text-sm font-bold text-gray-900 leading-tight truncate">
+              {conversation.otherUserName}
+            </h2>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${presence?.status === "ONLINE" ? "bg-emerald-500" : "bg-gray-300"
+                  }`}
+              />
+              <span className="text-[10px] font-semibold text-gray-400">
+                {presence?.label ??
+                  (presence?.status === "ONLINE" ? "Active now" : "Offline")}
+              </span>
+            </div>
           </div>
-        </div>
+        </button>
         <button
           type="button"
           aria-label="More options"
@@ -272,12 +360,6 @@ export default function ChatWindow({
           )}
           {!loading && messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full py-16 gap-3">
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-                <i
-                  className="ti ti-message-2 text-xl text-[#1c4d8d]"
-                  aria-hidden="true"
-                />
-              </div>
               <p className="text-xs text-gray-400 font-semibold">
                 Say hello to {conversation.otherUserName}!
               </p>

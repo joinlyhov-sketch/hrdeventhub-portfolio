@@ -14,7 +14,7 @@ export default async function JoinPage({ params }: PageProps) {
     const result = await getInvitationPreviewAction(id);
     preview = result.payload;
   } catch (error) {
-    console.log("Preview fetch error:", error);
+    console.error("Preview fetch error:", error);
   }
 
   if (!preview) {
