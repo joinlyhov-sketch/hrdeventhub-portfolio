@@ -46,12 +46,12 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   return (
     <section className="w-full flex flex-col gap-y-4 bg-background">
-      <section className="flex gap-x-1 items-center text-grey-400 type-detail">
-        <Link href={`/group/${groupid}`} className="hover:text-primary transition-colors">
+      <section className="flex gap-x-1 items-center text-grey-400 type-detail overflow-hidden">
+        <Link href={`/group/${groupid}`} className="hover:text-primary transition-colors shrink-0">
           Events
         </Link>
-        <ChevronRight size={14} />
-        <span className="text-action type-detail-semibold">
+        <ChevronRight size={14} className="shrink-0" />
+        <span className="text-action type-detail-semibold truncate min-w-0">
           {eventData.title}
         </span>
       </section>

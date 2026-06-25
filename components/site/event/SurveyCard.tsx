@@ -37,8 +37,8 @@ function HeaderBadgeLayout({
   onDelete,
 }: HeaderBadgeLayoutProps) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
-      <h2 className="text-base sm:text-lg md:text-xl font-bold text-secondary break-words">
+    <div className="flex items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+      <h2 className="text-base sm:text-lg md:text-xl font-bold text-secondary line-clamp-2 min-w-0 flex-1">
         {title}
       </h2>
       <div className="flex items-center gap-2 shrink-0">
@@ -331,7 +331,6 @@ export function SurveyCard({
 
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingStatus(true);
     surveyService
       .hasSubmitted(survey.surveyId)
@@ -466,7 +465,9 @@ export function SurveyCard({
         }
       />
 
-      <p className="text-xs sm:text-sm text-grey-500 mb-4 sm:mb-6">{description}</p>
+      <p className="text-xs sm:text-sm text-grey-500 mb-4 sm:mb-6">
+        {description}
+      </p>
 
       {currentPage?.title && currentPage.title !== "Survey Page" && (
         <p className="text-xs font-semibold text-secondary uppercase tracking-widest mb-4 sm:mb-5">

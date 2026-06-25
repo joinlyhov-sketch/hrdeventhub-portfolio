@@ -490,12 +490,12 @@ function PollItem({
     <article
       className={`w-full bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-subtle shadow-sm text-foreground transition-opacity ${isDeleting ? "opacity-0 pointer-events-none hidden" : ""}`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
-        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-          <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle">
+      <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+          <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle shrink-0">
             <BarChart3 size={20} />
           </div>
-          <h2 className="type-subtitle font-bold text-subtle tracking-tight text-xs sm:text-sm md:text-base break-words">
+          <h2 className="type-subtitle font-bold text-subtle tracking-tight text-xs sm:text-sm md:text-base line-clamp-2 min-w-0">
             {poll.title}
           </h2>
         </div>
@@ -514,7 +514,7 @@ function PollItem({
           : `Closes: ${formatEventDate(poll.closingTime)}`}
       </p>
 
-      <legend className="type-desc text-foreground mb-3 sm:mb-6 block break-words text-xs sm:text-sm md:text-base">
+      <legend className="type-desc text-foreground mb-3 sm:mb-6 block line-clamp-3 text-xs sm:text-sm md:text-base">
         {poll.description ?? poll.title}
       </legend>
 
@@ -535,7 +535,7 @@ function PollItem({
                       : "border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer"
                   }`}
                 >
-                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 flex-1 w-full">
+                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <input
                       type="checkbox"
                       name={`poll-${poll.pollId}`}
@@ -556,14 +556,16 @@ function PollItem({
                         <div className="bg-subtle w-2.5 h-2.5 rounded-sm" />
                       )}
                     </div>
-                    <span className="type-detail-medium text-foreground text-xs sm:text-sm">
-                      {option.text}{" "}
+                    <div className="min-w-0 flex-1">
+                      <span className="type-detail-medium text-foreground text-xs sm:text-sm truncate block">
+                        {option.text}
+                      </span>
                       {isOldOptionVoted && (
-                        <span className="text-xs text-grey-400 ml-1.5">
-                          (Already Voted)
+                        <span className="text-xs text-grey-400">
+                          Already Voted
                         </span>
                       )}
-                    </span>
+                    </div>
                   </div>
                 </label>
               );
@@ -600,18 +602,13 @@ function PollItem({
               );
               return (
                 <div key={option.id} className="w-full select-none">
-                  <div className="flex flex-wrap justify-between items-center gap-1 mb-1.5">
-                    <span className="type-detail-medium text-foreground font-medium text-xs sm:text-sm">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <span className="type-detail-medium text-foreground font-medium text-xs sm:text-sm truncate min-w-0 flex-1">
                       {option.text}
                     </span>
-                    <div className="flex items-center gap-2">
-                      {/* <span className="type-detail-small text-grey-400">
-                        ({currentVotes})
-                      </span> */}
-                      <span className="type-detail-semibold text-subtle font-bold">
-                        {percentage}%
-                      </span>
-                    </div>
+                    <span className="type-detail-semibold text-subtle font-bold shrink-0">
+                      {percentage}%
+                    </span>
                   </div>
                   <div className="w-full h-3 bg-[#e8fbf4] rounded-full overflow-hidden">
                     <div
@@ -651,7 +648,7 @@ function PollItem({
                   key={option.id}
                   className="relative flex items-center justify-between p-4 rounded-xl border border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer transition-all select-none overflow-hidden"
                 >
-                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full">
+                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <input
                       type={poll.multiSelect ? "checkbox" : "radio"}
                       name={`poll-${poll.pollId}`}
@@ -669,7 +666,7 @@ function PollItem({
                         />
                       )}
                     </div>
-                    <span className="type-detail-medium text-foreground text-sm sm:text-base">
+                    <span className="type-detail-medium text-foreground text-sm sm:text-base truncate min-w-0 flex-1">
                       {option.text}
                     </span>
                   </div>
