@@ -1,42 +1,36 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 
 interface ExpandableTextProps {
   text: string;
+  maxLength?: number;
+  className?: string;
 }
 
-export default function ExpandableText({ text }: ExpandableTextProps) {
+export default function ExpandableText({ text, maxLength = 150, className = "" }: ExpandableTextProps) {
   const [expanded, setExpanded] = useState(false);
-  const [isClamped, setIsClamped] = useState(false);
-  const ref = useRef<HTMLParagraphElement>(null);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (el) {
-      setIsClamped(el.scrollHeight > el.clientHeight);
-    }
-  }, [text]);
+  if (!text) return null;
+
+  if (text.length <= maxLength) {
+    return <span className={`break-words break-all ${className}`}>{text}</span>;
+  }
 
   return (
-    <div className="mb-4">
-      <p
-        ref={ref}
-        className={`type-desc text-muted-foreground leading-relaxed wrap-break-word ${
-          !expanded ? "line-clamp-2" : "line-clamp-none"
-        }`}
+    <span className={`break-words break-all ${className}`}>
+      {expanded ? text : `${text.slice(0, maxLength)}....`}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setExpanded(!expanded);
+        }}
+        className="text-subtle hover:underline ml-1 font-medium text-xs whitespace-nowrap inline-flex items-center"
       >
-        {text}
-      </p>
-
-      {(isClamped || expanded) && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="mt-1 text-primary text-sm font-medium hover:underline cursor-pointer"
-        >
-          {expanded ? "See less" : "See more"}
-        </button>
-      )}
-    </div>
+        {expanded ? "(See less)" : "(See more)"}
+      </button>
+    </span>
   );
 }

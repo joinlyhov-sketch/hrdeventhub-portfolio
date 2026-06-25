@@ -167,7 +167,7 @@ function ArticleItem({
         <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
           {post.title}
         </h2>
-        <ExpandableText text={post.content} />
+        <ExpandableText text={post.content} className="type-desc text-muted-foreground leading-relaxed wrap-break-word block mb-4" />
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border type-detail-medium text-grey-500">
           <section className="flex items-center flex-wrap gap-2 sm:gap-3 md:gap-6 py-3 sm:py-4 text-xs sm:text-sm md:text-base">

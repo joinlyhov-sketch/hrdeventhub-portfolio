@@ -56,9 +56,9 @@ export default function PollSidebar({
   };
 
   const getDisplayLabel = (val: string) => {
-    if (val === "alwaysVisible") return "Always Visible";
-    if (val === "afterVote") return "After Voting";
-    if (val === "afterExpire") return "After Poll Expire";
+    if (val === "always") return "Always Visible";
+    if (val === "after_vote") return "After Voting";
+    if (val === "after_closed") return "After Poll Expire";
     return val;
   };
 
@@ -123,21 +123,21 @@ export default function PollSidebar({
             className="bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 text-left max-h-50 overflow-y-auto min-w-[160px] max-w-[160px] w-auto mt-1"
           >
             <SelectItem
-              value="alwaysVisible"
+              value="always"
               className="px-2 py-2 text-sm rounded-md text-gray-500 transition-colors cursor-pointer focus:bg-slate-200 focus:text-blue-800 outline-none"
             >
               Always Visible
             </SelectItem>
 
             <SelectItem
-              value="afterVote"
+              value="after_vote"
               className="px-2 py-2 text-sm rounded-md text-gray-500 transition-colors cursor-pointer focus:bg-slate-200 focus:text-blue-800 outline-none"
             >
               After Voting
             </SelectItem>
 
             <SelectItem
-              value="afterExpire"
+              value="after_closed"
               className="px-2 py-2 text-sm rounded-md text-gray-500 transition-colors cursor-pointer focus:bg-slate-200 focus:text-blue-800 outline-none"
             >
               After Poll Expire

@@ -34,19 +34,10 @@ export default function PollHeader({
   closingTime,
   setClosingTime,
 }: PollHeaderProps) {
-  const [status, setStatus] = useState<"draft" | "active">(closingTime ? "draft" : "active");
   const [closingDate, setClosingDate] = useState<Date | undefined>(
     closingTime ? new Date(closingTime) : undefined,
   );
   const [closingTimeStr, setClosingTimeStr] = useState("00:00");
-
-  const handleStatusChange = (newStatus: "draft" | "active") => {
-    setStatus(newStatus);
-    if (newStatus === "active" && setClosingTime) {
-      setClosingTime("");
-      setClosingDate(undefined);
-    }
-  };
 
   return (
     <Card className="bg-background rounded-2xl border-l-[6px] border-l-blue-900 border-y-border border-r-border p-8 shadow-sm mb-6">
@@ -69,35 +60,8 @@ export default function PollHeader({
         className="w-full text-desc text-muted-foreground placeholder:text-muted-foreground/30 border-0 border-b border-border p-0 pb-2 shadow-none rounded-none bg-transparent transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary mb-6"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        <div>
-          <Label className="block mb-2 text-sm font-semibold text-gray-700">Status</Label>
-          <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-full h-11 px-4 py-5 bg-slate-50 border border-slate-200 rounded-xl text-gray-700 focus:ring-0 focus:border-primary transition-all">
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent
-              side="bottom"
-              position="popper"
-              className="bg-white rounded-xl border border-slate-200 shadow-md p-1 -mt-1"
-            >
-              <SelectItem
-                value="draft"
-                className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                Draft
-              </SelectItem>
-              <SelectItem
-                value="active"
-                className="px-3 py-3 text-sm font-semibold rounded-md text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                Active
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {status === "draft" && closingTime !== undefined && setClosingTime && (
+      <div className="flex gap-6 items-start">
+        {closingTime !== undefined && setClosingTime && (
           <div className="animate-in fade-in slide-in-from-top-1 duration-200">
             <Label
               htmlFor="closing-time"

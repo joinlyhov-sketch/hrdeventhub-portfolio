@@ -195,7 +195,7 @@ function EventItem({
           {post.title}
         </h2>
 
-        <ExpandableText text={post.content} />
+        <ExpandableText text={post.content} className="type-desc text-muted-foreground leading-relaxed wrap-break-word block mb-4" />
 
         <div className="bg-grey-50 rounded-[6px] p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-3 mb-3 sm:mb-6 border-l-4 sm:border-l-5 border-primary break-words">
           {post.location && (

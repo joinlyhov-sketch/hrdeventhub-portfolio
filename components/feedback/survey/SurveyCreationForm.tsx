@@ -12,6 +12,8 @@ import { Question } from "../../../data/Question";
 import { useSurveyFormStore } from "../../../store/useSurveyFormStore";
 import { surveyService } from "../../../service/survey.service";
 import { SurveyContent, SurveyElement } from "../../../types/survey";
+import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
+import { mutate as globalMutate } from "swr";
 
 import {
   createSurveyAction,
@@ -61,6 +63,25 @@ export default function SurveyCreationForm({
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
+  const [isFormDirty, setIsFormDirty] = useState(false);
+
+  useEffect(() => {
+    if (!isLoadingData && initialSnapshot === null) {
+      setInitialSnapshot(JSON.stringify({ title, description, closingTime, isActive, selectedWorkspaceId, questions }));
+    }
+    
+    if (isSuccess) {
+      setIsFormDirty(false);
+      return;
+    }
+
+    if (initialSnapshot !== null) {
+      const currentSnapshot = JSON.stringify({ title, description, closingTime, isActive, selectedWorkspaceId, questions });
+      setIsFormDirty(currentSnapshot !== initialSnapshot);
+    }
+  }, [title, description, closingTime, isActive, selectedWorkspaceId, questions, isLoadingData, initialSnapshot, isSuccess]);
 
   const isEditMode = !!surveyId;
 
@@ -295,14 +316,25 @@ export default function SurveyCreationForm({
         await createSurveyAction(surveyData);
       }
 
+      setIsSuccess(true);
       const savedWorkspaceId = selectedWorkspaceId;
 
       reset();
       setQuestions([]);
 
       if (onSuccess) {
+        globalMutate(
+          (key: any) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          undefined,
+          { revalidate: true }
+        );
         onSuccess();
       } else {
+        globalMutate(
+          (key: any) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          undefined,
+          { revalidate: true }
+        );
         router.push(`/group/${savedWorkspaceId}`);
       }
     } catch (err) {
@@ -338,6 +370,7 @@ export default function SurveyCreationForm({
       onSubmit={handleFormSubmission}
       className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full items-start"
     >
+      <NavigationGuard isDirty={isFormDirty} />
       <div className="lg:col-span-3 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
           {error && (
