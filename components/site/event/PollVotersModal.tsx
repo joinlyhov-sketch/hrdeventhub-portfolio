@@ -51,8 +51,8 @@ export function PollVotersModal({ isOpen, onClose, payload }: PollVotersModalPro
             <button
               onClick={() => setActiveFilter(null)}
               className={`relative -mb-px flex items-center gap-1.5 px-3 pb-2 pt-1 text-sm font-semibold rounded-t-lg transition-colors shrink-0 border-b-2 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${!activeFilter
-                  ? "border-primary text-primary"
-                  : "border-transparent text-grey-400 hover:text-grey-700"
+                ? "border-primary text-primary"
+                : "border-transparent text-grey-400 hover:text-grey-700"
                 }`}
             >
               All
@@ -64,8 +64,8 @@ export function PollVotersModal({ isOpen, onClose, payload }: PollVotersModalPro
                 key={opt.optionId}
                 onClick={() => setActiveFilter(opt.optionId)}
                 className={`relative -mb-px flex items-center gap-1.5 px-3 pb-2 pt-1 text-sm font-semibold rounded-t-lg transition-colors shrink-0 border-b-2 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${activeFilter === opt.optionId
-                    ? "border-primary text-primary"
-                    : "border-transparent text-grey-400 hover:text-grey-700"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-grey-400 hover:text-grey-700"
                   }`}
               >
                 <span className="truncate max-w-[100px]">{opt.optionText}</span>
