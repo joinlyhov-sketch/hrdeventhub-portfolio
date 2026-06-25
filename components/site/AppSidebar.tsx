@@ -197,6 +197,7 @@ export function AppSidebar() {
                       width={35}
                       height={35}
                       className="shrink-0"
+                      priority
                     />
                   </div>
                   <div
@@ -208,6 +209,7 @@ export function AppSidebar() {
                       width={102}
                       height={27}
                       className="m-auto shrink-0"
+                      priority
                     />
                   </div>
                 </Link>
