@@ -234,7 +234,6 @@ export default function PollForm({
     setSuccess(false);
     if (!validateForm()) return;
     setIsSubmitting(true);
-
     try {
       if (isEditMode) {
         await updatePollAction(pollId, {
