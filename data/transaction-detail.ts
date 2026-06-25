@@ -7,9 +7,9 @@ export const transactionDetailsData: TransactionDetail[] = [
     amount: 125.0,
     currency: "USD",
     status: "Successful",
-    // paymentMethod: "WebPay",
     referenceId: "WB-365-FBXZ-99L1",
     transactionId: "#TXN-8842",
+    senderBankName: "Bakong",
     payer: {
       id: "user-001",
       name: "Som Veasna",

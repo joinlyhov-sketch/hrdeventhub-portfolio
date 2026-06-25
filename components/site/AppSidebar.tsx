@@ -59,25 +59,25 @@ const STATUS_OPTIONS: {
   icon: React.ReactNode;
   color: string;
 }[] = [
-  {
-    value: "online",
-    label: "Online",
-    icon: <Circle size={10} className="fill-current" />,
-    color: "text-green-500",
-  },
-  {
-    value: "do-not-disturb",
-    label: "Do Not Disturb",
-    icon: <MinusCircle size={10} />,
-    color: "text-red-500",
-  },
-  {
-    value: "offline",
-    label: "Appear Offline",
-    icon: <Moon size={10} />,
-    color: "text-gray-400",
-  },
-];
+    {
+      value: "online",
+      label: "Online",
+      icon: <Circle size={10} className="fill-current" />,
+      color: "text-green-500",
+    },
+    {
+      value: "do-not-disturb",
+      label: "Do Not Disturb",
+      icon: <MinusCircle size={10} />,
+      color: "text-red-500",
+    },
+    {
+      value: "offline",
+      label: "Appear Offline",
+      icon: <Moon size={10} />,
+      color: "text-gray-400",
+    },
+  ];
 
 function StatusDot({ status }: { status: ActiveStatus }) {
   const colorMap: Record<ActiveStatus, string> = {
@@ -108,7 +108,7 @@ export function AppSidebar() {
   const isStudentOrAlumni = STUDENT_ALUMNI_ROLES.includes(
     currentUser?.role as (typeof STUDENT_ALUMNI_ROLES)[number],
   );
-const { workspaces, mutate } = useMyWorkspaces();
+  const { workspaces, mutate } = useMyWorkspaces();
   const pinnedWorkspaces = isAdmin
     ? []
     : workspaces.filter((w) => w.isPinned === true);
@@ -120,18 +120,18 @@ const { workspaces, mutate } = useMyWorkspaces();
   const totalUnreadMessages = useChatStore((s) =>
     s.conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0),
   );
-   useGlobalChatSync(session?.accessToken ?? null, currentUser?.id ?? null);
+  useGlobalChatSync(session?.accessToken ?? null, currentUser?.id ?? null);
   useEffect(() => {
-  const refreshSidebar = () => {
-    mutate();
-  };
+    const refreshSidebar = () => {
+      mutate();
+    };
 
-  window.addEventListener("workspace-sidebar-refresh", refreshSidebar);
+    window.addEventListener("workspace-sidebar-refresh", refreshSidebar);
 
-  return () => {
-    window.removeEventListener("workspace-sidebar-refresh", refreshSidebar);
-  };
-}, [mutate]);
+    return () => {
+      window.removeEventListener("workspace-sidebar-refresh", refreshSidebar);
+    };
+  }, [mutate]);
 
   useEffect(() => {
     if (!session?.accessToken) return;
@@ -144,7 +144,7 @@ const { workspaces, mutate } = useMyWorkspaces();
 
     const statusToApply: ActiveStatus =
       savedStatus &&
-      ["online", "do-not-disturb", "offline"].includes(savedStatus)
+        ["online", "do-not-disturb", "offline"].includes(savedStatus)
         ? savedStatus
         : "online";
 
@@ -178,7 +178,7 @@ const { workspaces, mutate } = useMyWorkspaces();
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r z-50">
+      <Sidebar collapsible="icon" className="border-r z-50 bg-white">
         <SidebarHeader className="border-b py-4">
           <SidebarMenu>
             <SidebarMenuItem>
@@ -264,11 +264,10 @@ const { workspaces, mutate } = useMyWorkspaces();
                               <Pin />
                             </span>
                             <span
-                              className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
-                                state === "collapsed"
+                              className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed"
                                   ? "max-w-0 opacity-0 -translate-x-2"
                                   : "max-w-50 opacity-100 translate-x-0"
-                              }`}
+                                }`}
                             >
                               {workspace.name}
                             </span>
@@ -441,11 +440,10 @@ const { workspaces, mutate } = useMyWorkspaces();
                       )}
                     </span>
                     <span
-                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
-                        state === "collapsed"
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed"
                           ? "max-w-0 opacity-0 -translate-x-2"
                           : "max-w-50 opacity-100 translate-x-0"
-                      }`}
+                        }`}
                     >
                       Messages
                     </span>
@@ -510,11 +508,10 @@ const { workspaces, mutate } = useMyWorkspaces();
                   <Link href={profileHref}>
                     <UserRound size={18} className="shrink-0 text-[#878787]" />
                     <span
-                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
-                        state === "collapsed"
+                      className={`text-fs-desc text-gray-500 overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed"
                           ? "max-w-0 opacity-0 -translate-x-2"
                           : "max-w-50 opacity-100 translate-x-0"
-                      }`}
+                        }`}
                     >
                       Profile
                     </span>
@@ -888,11 +885,10 @@ const { workspaces, mutate } = useMyWorkspaces();
                       </div>
 
                       <div
-                        className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${
-                          state === "collapsed"
+                        className={`text-fs-desc text-gray-500 flex flex-col overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${state === "collapsed"
                             ? "max-w-0 opacity-0 -translate-x-2"
                             : "max-w-50 opacity-100 translate-x-0"
-                        }`}
+                          }`}
                       >
                         <span className="type-detail-semibold text-grey-900 leading-tight">
                           {currentUser?.name ?? "Loading..."}
@@ -904,9 +900,8 @@ const { workspaces, mutate } = useMyWorkspaces();
 
                       <ChevronLeft
                         size={10}
-                        className={`ml-auto shrink-0 rotate-180 text-gray-400 ${
-                          state === "collapsed" ? "hidden" : "block"
-                        }`}
+                        className={`ml-auto shrink-0 rotate-180 text-gray-400 ${state === "collapsed" ? "hidden" : "block"
+                          }`}
                       />
                     </SidebarMenuButton>
                   </DropdownMenuTrigger>

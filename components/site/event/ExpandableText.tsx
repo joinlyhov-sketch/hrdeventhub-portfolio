@@ -27,9 +27,9 @@ export default function ExpandableText({ text, maxLength = 150, className = "" }
           e.stopPropagation();
           setExpanded(!expanded);
         }}
-        className="text-subtle hover:underline ml-1 font-medium text-xs whitespace-nowrap inline-flex items-center"
+        className="ml-2 text-primary text-semibold hover:cursor-pointer"
       >
-        {expanded ? "(See less)" : "(See more)"}
+        {expanded ? "(Read less)" : "(Read more)"}
       </button>
     </span>
   );
