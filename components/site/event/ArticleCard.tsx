@@ -164,7 +164,7 @@ function ArticleItem({
           </div>
         </div>
 
-        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2 wrap-break-word overflow-wrap-anywhere">
           {post.title}
         </h2>
         <ExpandableText text={post.content} className="type-desc text-muted-foreground leading-relaxed wrap-break-word block mb-4" />

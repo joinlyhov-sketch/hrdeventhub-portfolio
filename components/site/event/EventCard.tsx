@@ -191,13 +191,13 @@ function EventItem({
           </div>
         </div>
 
-        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2">
+        <h2 className="text-md sm:text-xl md:text-2xl lg:text-2xl font-bold text-primary mb-2 wrap-break-word overflow-wrap-anywhere">
           {post.title}
         </h2>
 
         <ExpandableText text={post.content} className="type-desc text-muted-foreground leading-relaxed wrap-break-word block mb-4" />
 
-        <div className="bg-grey-50 rounded-[6px] p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-3 mb-3 sm:mb-6 border-l-4 sm:border-l-5 border-primary break-words">
+        <div className="bg-grey-50 rounded-[6px] p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-3 mb-3 sm:mb-6 border-l-4 sm:border-l-5 border-primary wrap-break-word overflow-wrap-anywhere">
           {post.location && (
             <p className="text-[11px] sm:text-sm text-grey-500 leading-snug">
               <span className="text-[11px] sm:text-sm font-semibold text-foreground">
@@ -223,7 +223,7 @@ function EventItem({
             </p>
           )}
           {post.purpose && (
-            <p className="text-[11px] sm:text-sm text-grey-500 hover:leading-snug">
+            <p className="text-[11px] sm:text-sm text-grey-500 hover:leading-snug wrap-break-word overflow-wrap-anywhere">
               <span className="text-[11px] sm:text-sm font-semibold text-foreground">
                 PURPOSE:{" "}
               </span>

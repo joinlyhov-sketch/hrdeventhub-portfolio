@@ -50,12 +50,14 @@ export default function SurveyCreationForm({
   const isActive = useSurveyFormStore((s) => s.isActive);
   const selectedWorkspaceId = useSurveyFormStore((s) => s.selectedWorkspaceId);
 
+  const safeTextRegex = /^[a-zA-Z0-9\s.,!?()\-–—']+$/;
+  const SPECIAL_CHAR_ERROR = "Special characters are not allowed.";
   const setTitle = useSurveyFormStore((s) => s.setTitle);
   const setDescription = useSurveyFormStore((s) => s.setDescription);
   const setClosingTime = useSurveyFormStore((s) => s.setClosingTime);
   const setIsActive = useSurveyFormStore((s) => s.setIsActive);
   const setSelectedWorkspaceId = useSurveyFormStore(
-    (s) => s.setSelectedWorkspaceId
+    (s) => s.setSelectedWorkspaceId,
   );
   const reset = useSurveyFormStore((s) => s.reset);
 
@@ -69,19 +71,45 @@ export default function SurveyCreationForm({
 
   useEffect(() => {
     if (!isLoadingData && initialSnapshot === null) {
-      setInitialSnapshot(JSON.stringify({ title, description, closingTime, isActive, selectedWorkspaceId, questions }));
+      setInitialSnapshot(
+        JSON.stringify({
+          title,
+          description,
+          closingTime,
+          isActive,
+          selectedWorkspaceId,
+          questions,
+        }),
+      );
     }
-    
+
     if (isSuccess) {
       setIsFormDirty(false);
       return;
     }
 
     if (initialSnapshot !== null) {
-      const currentSnapshot = JSON.stringify({ title, description, closingTime, isActive, selectedWorkspaceId, questions });
+      const currentSnapshot = JSON.stringify({
+        title,
+        description,
+        closingTime,
+        isActive,
+        selectedWorkspaceId,
+        questions,
+      });
       setIsFormDirty(currentSnapshot !== initialSnapshot);
     }
-  }, [title, description, closingTime, isActive, selectedWorkspaceId, questions, isLoadingData, initialSnapshot, isSuccess]);
+  }, [
+    title,
+    description,
+    closingTime,
+    isActive,
+    selectedWorkspaceId,
+    questions,
+    isLoadingData,
+    initialSnapshot,
+    isSuccess,
+  ]);
 
   const isEditMode = !!surveyId;
 
@@ -117,14 +145,14 @@ export default function SurveyCreationForm({
 
         const isActiveSafe: boolean = Boolean(
           (survey as unknown as { active?: boolean }).active ??
-            survey.isActive ??
-            true
+          survey.isActive ??
+          true,
         );
 
         setIsActive(isActiveSafe);
 
         if (survey.closingTime) {
-          setClosingTime(new Date(survey.closingTime).toISOString().slice(0, 16));
+          setClosingTime(new Date(survey.closingTime).toISOString());
         }
 
         setSelectedWorkspaceId(survey.workspaceId);
@@ -152,7 +180,7 @@ export default function SurveyCreationForm({
         }
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load survey data."
+          err instanceof Error ? err.message : "Failed to load survey data.",
         );
       } finally {
         setIsLoadingData(false);
@@ -228,9 +256,55 @@ export default function SurveyCreationForm({
     ]);
   };
 
+  // const convertQuestionsToBEFormat = useCallback((): SurveyContent => {
+  //   const QUESTIONS_PER_PAGE = 3;
+
+  //   const chunks: Question[][] = [];
+
+  //   for (let i = 0; i < questions.length; i += QUESTIONS_PER_PAGE) {
+  //     chunks.push(questions.slice(i, i + QUESTIONS_PER_PAGE));
+  //   }
+
+  //   const pages = chunks.map((chunk, pageIndex) => {
+  //     const elements: SurveyElement[] = chunk.map((q) => {
+  //       const element: SurveyElement = {
+  //         name: `question_${q.id}`,
+  //         type: q.type,
+  //         title: q.text,
+  //       };
+
+  //       if (q.options) element.choices = q.options;
+  //       if (q.matrixRows) element.rows = q.matrixRows;
+  //       if (q.matrixCols) element.columns = q.matrixCols;
+  //       if (q.minLabel) element.minRateLabel = q.minLabel;
+  //       if (q.maxLabel) element.maxRateLabel = q.maxLabel;
+  //       if (q.maxScale) element.maxRateDescription = q.maxScale;
+
+  //       return element;
+  //     });
+
+  //     return {
+  //       name: `page${pageIndex + 1}`,
+  //       title: `Page ${pageIndex + 1}`,
+  //       elements,
+  //     };
+  //   });
+
+  //   if (pages.length === 0) {
+  //     pages.push({
+  //       name: "page1",
+  //       title: "Page 1",
+  //       elements: [],
+  //     });
+  //   }
+
+  //   return {
+  //     title: title || "Untitled Survey",
+  //     pages,
+  //   };
+  // }, [questions, title]);
   const convertQuestionsToBEFormat = useCallback((): SurveyContent => {
     const QUESTIONS_PER_PAGE = 3;
-
     const chunks: Question[][] = [];
 
     for (let i = 0; i < questions.length; i += QUESTIONS_PER_PAGE) {
@@ -245,9 +319,17 @@ export default function SurveyCreationForm({
           title: q.text,
         };
 
-        if (q.options) element.choices = q.options;
-        if (q.matrixRows) element.rows = q.matrixRows;
-        if (q.matrixCols) element.columns = q.matrixCols;
+        // Clean empty values out before formatting backend payload
+        if (q.options) {
+          element.choices = q.options.filter((opt) => opt.trim() !== "");
+        }
+        if (q.matrixRows) {
+          element.rows = q.matrixRows.filter((row) => row.trim() !== "");
+        }
+        if (q.matrixCols) {
+          element.columns = q.matrixCols.filter((col) => col.trim() !== "");
+        }
+
         if (q.minLabel) element.minRateLabel = q.minLabel;
         if (q.maxLabel) element.maxRateLabel = q.maxLabel;
         if (q.maxScale) element.maxRateDescription = q.maxScale;
@@ -286,6 +368,21 @@ export default function SurveyCreationForm({
       if (!title.trim()) {
         throw new Error("Survey title is required");
       }
+      if (title.length > 50) {
+        throw new Error("Please enter a survey title (max 50 characters)");
+      }
+
+      if (!safeTextRegex.test(title)) {
+        throw new Error(
+          `Survey title contains invalid details. ${SPECIAL_CHAR_ERROR}`,
+        );
+      }
+
+      if (description.length > 300) {
+        throw new Error(
+          "Description is too long. Please limit to 300 characters.",
+        );
+      }
 
       if (questions.length === 0) {
         throw new Error("At least one question is required");
@@ -293,6 +390,12 @@ export default function SurveyCreationForm({
 
       if (!closingTime) {
         throw new Error("Closing time is required");
+      }
+
+      const closingDate = new Date(closingTime);
+
+      if (closingDate <= new Date()) {
+        throw new Error("Closing time must be in the future");
       }
 
       if (!selectedWorkspaceId) {
@@ -324,16 +427,20 @@ export default function SurveyCreationForm({
 
       if (onSuccess) {
         globalMutate(
-          (key: string | string[]) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          (key: string | string[]) =>
+            typeof key === "string" &&
+            key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
           undefined,
-          { revalidate: true }
+          { revalidate: true },
         );
         onSuccess();
       } else {
         globalMutate(
-          (key: string | string[]) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          (key: string | string[]) =>
+            typeof key === "string" &&
+            key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
           undefined,
-          { revalidate: true }
+          { revalidate: true },
         );
         router.push(`/group/${savedWorkspaceId}`);
       }
@@ -341,7 +448,7 @@ export default function SurveyCreationForm({
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to save survey modifications."
+          : "Failed to save survey modifications.",
       );
     } finally {
       setIsSubmitting(false);
@@ -370,7 +477,14 @@ export default function SurveyCreationForm({
       onSubmit={handleFormSubmission}
       className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto border-gray-100 w-full items-start"
     >
-      <NavigationGuard isDirty={isFormDirty} />
+      <NavigationGuard
+        isDirty={isFormDirty}
+        onLeave={() => {
+          reset();
+          setQuestions([]);
+          setIsFormDirty(false);
+        }}
+      />
       <div className="lg:col-span-3 p-4 sm:p-6 lg:p-8 w-full mx-auto flex flex-col justify-between order-1">
         <div className="space-y-6">
           {error && (
