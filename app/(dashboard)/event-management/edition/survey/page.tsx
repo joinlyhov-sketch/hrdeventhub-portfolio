@@ -10,9 +10,9 @@ export default async function SurveyEditPage({ searchParams }: PageProps) {
   const { surveyId } = await searchParams;
 
   return (
-    <div className="w-full max-w-475 mx-auto pr-8 lg:pr-12 lg:pl-12">
+    <div className="w-full max-w-475 mx-auto">
       <FeedbackBreadcrumb label="Survey Edition" />
-      <SurveyCreationForm surveyId={surveyId} /> 
+      <SurveyCreationForm surveyId={surveyId} />
     </div>
   );
 }

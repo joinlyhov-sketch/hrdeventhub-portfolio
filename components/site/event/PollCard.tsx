@@ -509,7 +509,7 @@ function PollItem({
           <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle shrink-0">
             <BarChart3 size={20} />
           </div>
-          <h2 className="type-subtitle font-bold text-subtle tracking-tight text-xs sm:text-sm md:text-base line-clamp-2 min-w-0">
+          <h2 className="type-subtitle font-bold text-subtle tracking-tight text-xs sm:text-sm md:text-base wrap-break-word overflow-wrap-anywhere">
             {poll.title}
           </h2>
         </div>

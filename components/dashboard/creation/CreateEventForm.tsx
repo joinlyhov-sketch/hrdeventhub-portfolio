@@ -56,6 +56,9 @@ export default function CreateEventForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [workspaces, setWorkspaces] = useState<SearchableSelectOption[]>([]);
   const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const [shouldGoBack, setShouldGoBack] = useState(false);
 
   const {
     register,

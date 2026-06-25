@@ -38,8 +38,8 @@ function HeaderBadgeLayout({
   onDelete,
 }: HeaderBadgeLayoutProps) {
   return (
-    <div className="flex items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
-      <h2 className="text-base sm:text-lg md:text-xl font-bold text-secondary line-clamp-2 min-w-0 flex-1">
+    <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4 wrap-break-word overflow-wrap-anywhere">
+      <h2 className="text-base sm:text-lg md:text-xl font-bold text-secondary min-w-0 wrap-break-word overflow-wrap-anywhere">
         {title}
       </h2>
       <div className="flex items-center gap-2 shrink-0">
@@ -105,10 +105,11 @@ function QuestionField({
             return (
               <label
                 key={`${choice}-${idx}`}
-                className={`flex items-center gap-3 sm:gap-4 border p-3 sm:p-4 rounded-xl cursor-pointer transition-all ${isSelected
+                className={`flex items-center gap-3 sm:gap-4 border p-3 sm:p-4 rounded-xl cursor-pointer transition-all ${
+                  isSelected
                     ? "border-secondary bg-secondary/[0.04]"
                     : "border-grey-200 hover:border-grey-300 bg-white"
-                  } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
+                } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 <input
                   type="radio"
@@ -120,8 +121,9 @@ function QuestionField({
                   className="sr-only"
                 />
                 <div
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${isSelected ? "border-secondary" : "border-grey-300"
-                    }`}
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                    isSelected ? "border-secondary" : "border-grey-300"
+                  }`}
                 >
                   {isSelected && (
                     <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
@@ -215,10 +217,11 @@ function QuestionField({
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(opt)}
-                className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm font-bold border transition-all ${isSelected
+                className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm font-bold border transition-all ${
+                  isSelected
                     ? "bg-secondary text-white border-secondary"
                     : "bg-white text-grey-600 border-grey-200 hover:border-grey-300"
-                  } disabled:opacity-60`}
+                } disabled:opacity-60`}
               >
                 {opt}
               </button>
@@ -335,7 +338,7 @@ export function SurveyCard({
       .then((has) => {
         if (!cancelled) setAlreadySubmitted(has);
       })
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => {
         if (!cancelled) setLoadingStatus(false);
       });
@@ -434,7 +437,9 @@ export function SurveyCard({
             </span>
           }
         />
-        <legend className="text-xs sm:text-sm text-grey-400 block w-full"><ExpandableText text={description} maxLength={150} /></legend>
+        <legend className="text-xs sm:text-sm text-grey-400 block w-full">
+          <ExpandableText text={description} maxLength={150} />
+        </legend>
         <p className="text-xs sm:text-sm text-grey-300 mt-4 italic">
           This survey is no longer accepting responses.
         </p>
@@ -508,10 +513,11 @@ export function SurveyCard({
         <button
           onClick={handleBack}
           disabled={currentStep === 1 || submitting}
-          className={`flex items-center gap-2 text-xs sm:text-sm font-bold transition-colors select-none ${currentStep === 1
+          className={`flex items-center gap-2 text-xs sm:text-sm font-bold transition-colors select-none ${
+            currentStep === 1
               ? "text-grey-300 cursor-not-allowed"
               : "text-secondary hover:text-primary cursor-pointer"
-            }`}
+          }`}
         >
           <ChevronLeft size={18} />
           <span className="uppercase tracking-wider">
