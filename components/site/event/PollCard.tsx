@@ -11,6 +11,7 @@ import { pollService } from "@/service/poll.service";
 import { deletePollAction } from "@/actions/poll.action";
 import { formatEventDate } from "@/libs/format-date";
 import { PollVotersModal } from "./PollVotersModal";
+import ExpandableText from "./ExpandableText";
 
 interface PollCardProps {
   role: UserRole;
@@ -33,7 +34,7 @@ function PollItem({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [isVotersModalOpen, setIsVotersModalOpen] = useState(false);
   const [votersData, setVotersData] = useState<import("@/types/poll-voter").OptionVotersDTO[]>([]);
 
@@ -98,7 +99,7 @@ function PollItem({
       if (rawIds) {
         try {
           parsedIds = new Set(JSON.parse(rawIds));
-        } catch {}
+        } catch { }
       }
 
       const typeKey = `poll_type_snapshot_${initialPoll.pollId}_${userId}`;
@@ -113,7 +114,7 @@ function PollItem({
       if (savedCounts) {
         try {
           parsedCounts = JSON.parse(savedCounts);
-        } catch {}
+        } catch { }
       }
     }
 
@@ -220,27 +221,27 @@ function PollItem({
 
   let showResult = false;
   if (isAdminOrOrganizer) {
-      showResult = true;
+    showResult = true;
   } else {
-      if (poll.hiddenPoll) {
-          showResult = false;
-      } else {
-          switch (poll.showResult) {
-              case "always":
-              case "always_visible":
-                  showResult = true;
-                  break;
-              case "after_vote":
-                  showResult = justVoted || hasVoted;
-                  break;
-              case "after_close":
-              case "after_poll":
-                  showResult = isExpired;
-                  break;
-              default:
-                  showResult = justVoted || hasVoted || isExpired;
-          }
+    if (poll.hiddenPoll) {
+      showResult = false;
+    } else {
+      switch (poll.showResult) {
+        case "always":
+        case "always_visible":
+          showResult = true;
+          break;
+        case "after_vote":
+          showResult = justVoted || hasVoted;
+          break;
+        case "after_closed":
+        case "after_poll":
+          showResult = isExpired;
+          break;
+        default:
+          showResult = justVoted || hasVoted || isExpired;
       }
+    }
   }
 
   const handleOpenVoters = async () => {
@@ -278,7 +279,7 @@ function PollItem({
               currentCount = parsed[`fallback_text_${opt.text}`];
             else if (parsed[`fallback_idx_${idx}`] !== undefined)
               currentCount = parsed[`fallback_idx_${idx}`];
-          } catch {}
+          } catch { }
         }
       }
     }
@@ -490,12 +491,12 @@ function PollItem({
     <article
       className={`w-full bg-card rounded-xl p-3 sm:p-4 md:p-5 border border-subtle shadow-sm text-foreground transition-opacity ${isDeleting ? "opacity-0 pointer-events-none hidden" : ""}`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
-        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-          <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle">
+      <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+          <div className="flex items-center justify-center p-2 rounded-lg border border-subtle/30 bg-subtle/10 text-subtle shrink-0">
             <BarChart3 size={20} />
           </div>
-          <h2 className="type-subtitle font-bold text-subtle tracking-tight text-xs sm:text-sm md:text-base break-words">
+          <h2 className="type-subtitle font-bold text-subtle tracking-tight text-xs sm:text-sm md:text-base line-clamp-2 min-w-0">
             {poll.title}
           </h2>
         </div>
@@ -514,8 +515,8 @@ function PollItem({
           : `Closes: ${formatEventDate(poll.closingTime)}`}
       </p>
 
-      <legend className="type-desc text-foreground mb-3 sm:mb-6 block break-words text-xs sm:text-sm md:text-base">
-        {poll.description ?? poll.title}
+      <legend className="type-desc text-foreground mb-3 sm:mb-6 block text-xs sm:text-sm md:text-base w-full">
+        <ExpandableText text={poll.description ?? poll.title} maxLength={150} />
       </legend>
 
       {canReVote && showVotingForm ? (
@@ -529,13 +530,12 @@ function PollItem({
               return (
                 <label
                   key={option.id}
-                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden ${
-                    isOldOptionVoted
+                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden ${isOldOptionVoted
                       ? "border-grey-200 bg-grey-100 opacity-70 cursor-not-allowed"
                       : "border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer"
-                  }`}
+                    }`}
                 >
-                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 flex-1 w-full">
+                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <input
                       type="checkbox"
                       name={`poll-${poll.pollId}`}
@@ -546,24 +546,23 @@ function PollItem({
                       className="sr-only"
                     />
                     <div
-                      className={`w-5 h-5 border flex items-center justify-center shrink-0 transition-all rounded-md ${
-                        isOldOptionVoted
+                      className={`w-5 h-5 border flex items-center justify-center shrink-0 transition-all rounded-md ${isOldOptionVoted
                           ? "bg-grey-300 border-grey-400"
                           : "bg-white border-grey-300"
-                      }`}
+                        }`}
                     >
                       {isChecked && (
                         <div className="bg-subtle w-2.5 h-2.5 rounded-sm" />
                       )}
                     </div>
-                    <span className="type-detail-medium text-foreground text-xs sm:text-sm">
-                      {option.text}{" "}
+                    <div className="type-detail-medium text-foreground text-xs sm:text-sm w-full break-words">
+                      {option.text}
                       {isOldOptionVoted && (
-                        <span className="text-xs text-grey-400 ml-1.5">
+                        <span className="text-xs text-grey-400 ml-1.5 whitespace-nowrap">
                           (Already Voted)
                         </span>
                       )}
-                    </span>
+                    </div>
                   </div>
                 </label>
               );
@@ -577,18 +576,72 @@ function PollItem({
           <button
             type="submit"
             disabled={selectedOptions.length === 0 || isSubmitting}
-             className={`w-full py-2.5 sm:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${
-              selectedOptions.length > 0 && !isSubmitting
+            className={`w-full py-2.5 sm:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${selectedOptions.length > 0 && !isSubmitting
                 ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]"
                 : "bg-subtle/40 text-white cursor-not-allowed"
-            }`}
+              }`}
           >
             {isSubmitting
               ? "Submitting Additional Votes..."
               : "Submit New Options"}
           </button>
         </form>
-      ) : showResult ? (
+      ) : (!hasVoted && showVotingForm) ? (
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-3 sm:space-y-5 mb-4 sm:mb-6">
+            {options.map((option) => {
+              const isChecked = selectedOptions.includes(option.id);
+              return (
+                <label
+                  key={option.id}
+                  className="relative flex items-center justify-between p-4 rounded-xl border border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer transition-all select-none overflow-hidden"
+                >
+                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <input
+                      type={poll.multiSelect ? "checkbox" : "radio"}
+                      name={`poll-${poll.pollId}`}
+                      value={option.id}
+                      checked={isChecked}
+                      onChange={() => handleSelect(option.id)}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`w-5 h-5 border flex items-center justify-center transition-all bg-white border-grey-300 shrink-0 ${poll.multiSelect ? "rounded-md" : "rounded-full"}`}
+                    >
+                      {isChecked && (
+                        <div
+                          className={`bg-subtle ${poll.multiSelect ? "w-2.5 h-2.5 rounded-sm" : "w-2.5 h-2.5 rounded-full"}`}
+                        />
+                      )}
+                    </div>
+                    <div className="type-detail-medium text-sm sm:text-base w-full break-words">
+                      {option.text}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+          {error && (
+            <p className="text-destructive type-detail-small-medium mb-3 text-center">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={selectedOptions.length === 0 || isSubmitting}
+            className={`w-full py-2 sm:py-3 md:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${selectedOptions.length > 0 && !isSubmitting ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]" : "bg-subtle/50 text-white cursor-not-allowed"}`}
+          >
+            {isSubmitting ? "Submitting..." : "Vote Now"}
+          </button>
+        </form>
+      ) : null}
+
+      {showVotingForm && !hasVoted && showResult && (
+        <div className="my-6 border-t border-dashed border-grey-200" />
+      )}
+
+      {showResult ? (
         <div className="w-full space-y-6">
           <div className="space-y-3 sm:space-y-5">
             {options.map((option) => {
@@ -600,11 +653,11 @@ function PollItem({
               );
               return (
                 <div key={option.id} className="w-full select-none">
-                  <div className="flex flex-wrap justify-between items-center gap-1 mb-1.5">
-                    <span className="type-detail-medium text-foreground font-medium text-xs sm:text-sm">
+                  <div className="flex flex-wrap justify-between items-center gap-2 mb-1.5 w-full">
+                    <div className="type-detail-medium text-foreground font-medium text-xs sm:text-sm flex-1 min-w-0 break-words">
                       {option.text}
-                    </span>
-                    <div className="flex items-center gap-2">
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
                       {/* <span className="type-detail-small text-grey-400">
                         ({currentVotes})
                       </span> */}
@@ -626,77 +679,28 @@ function PollItem({
           <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
             {isExpired ? "Poll closed" : `Total participants: ${denominator}`}
             {showVotersClickable && (
-              <button 
+              <button
                 type="button"
-                onClick={handleOpenVoters} 
+                onClick={handleOpenVoters}
                 className="ml-2 text-subtle hover:underline font-medium"
               >
                 View Voters
               </button>
             )}
           </div>
-          <PollVotersModal 
-            isOpen={isVotersModalOpen} 
-            onClose={() => setIsVotersModalOpen(false)} 
-            payload={votersData} 
+          <PollVotersModal
+            isOpen={isVotersModalOpen}
+            onClose={() => setIsVotersModalOpen(false)}
+            payload={votersData}
           />
         </div>
-      ) : showVotingForm ? (
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-3 sm:space-y-5 mb-4 sm:mb-6">
-            {options.map((option) => {
-              const isChecked = selectedOptions.includes(option.id);
-              return (
-                <label
-                  key={option.id}
-                  className="relative flex items-center justify-between p-4 rounded-xl border border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer transition-all select-none overflow-hidden"
-                >
-                  <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full">
-                    <input
-                      type={poll.multiSelect ? "checkbox" : "radio"}
-                      name={`poll-${poll.pollId}`}
-                      value={option.id}
-                      checked={isChecked}
-                      onChange={() => handleSelect(option.id)}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`w-5 h-5 border flex items-center justify-center transition-all bg-white border-grey-300 shrink-0 ${poll.multiSelect ? "rounded-md" : "rounded-full"}`}
-                    >
-                      {isChecked && (
-                        <div
-                          className={`bg-subtle ${poll.multiSelect ? "w-2.5 h-2.5 rounded-sm" : "w-2.5 h-2.5 rounded-full"}`}
-                        />
-                      )}
-                    </div>
-                    <span className="type-detail-medium text-foreground text-sm sm:text-base">
-                      {option.text}
-                    </span>
-                  </div>
-                </label>
-              );
-            })}
-          </div>
-          {error && (
-            <p className="text-destructive type-detail-small-medium mb-3 text-center">
-              {error}
-            </p>
-          )}
-          <button
-            type="submit"
-            disabled={selectedOptions.length === 0 || isSubmitting}
-            className={`w-full py-2 sm:py-3 md:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${selectedOptions.length > 0 && !isSubmitting ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]" : "bg-subtle/50 text-white cursor-not-allowed"}`}
-          >
-            {isSubmitting ? "Submitting..." : "Vote Now"}
-          </button>
-        </form>
-      ) : (
+      ) : hasVoted ? (
         <div className="w-full space-y-6">
           <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
             You cannot see the result yet.
           </div>
         </div>
-      )}
+      ) : null}
     </article>
   );
 }

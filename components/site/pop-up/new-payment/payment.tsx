@@ -670,7 +670,11 @@ export function PaymentWizardDialog({
                   qrDataUrl={qrDataUrl}
                   billNo={billNo}
                   provider={selectedProvider}
-                  payerName={currentUser?.name ?? "HRD EventHub"}
+                  payerName={
+                    selectedProvider === "bakong" 
+                      ? "Dita Rector" 
+                      : (currentUser?.name ?? "HRD EventHub")
+                  }
                   isLoadingQr={isGeneratingQr}
                   submitError={submitError}
                   onProviderChange={

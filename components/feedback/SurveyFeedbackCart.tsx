@@ -211,9 +211,8 @@ export default function SurveyFeedbackFeature() {
 
         <div className="relative w-full block box-border min-h-110">
           <div
-            className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full auto-rows-fr box-border transition-opacity duration-150 ${
-              hasResults ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
+            className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full auto-rows-fr box-border transition-opacity duration-150 ${hasResults ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
           >
             {paginatedFeedbacks.map((item) => (
               <div
@@ -377,11 +376,10 @@ function FeedbackCard({ item }: { item: FeedbackItem }) {
 function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <div
-      className={`type-desc-semibold inline-flex items-center rounded-full px-3 py-1 shrink-0 text-xs font-semibold ${
-        isActive
+      className={`type-desc-semibold inline-flex items-center rounded-full px-3 py-1 shrink-0 text-xs font-semibold ${isActive
           ? "bg-green-50 text-green-600 border border-green-200"
           : "bg-red-50 text-red-600 border border-red-200"
-      }`}
+        }`}
     >
       <Circle size={8} className="mr-1.5 fill-current" />
       {isActive ? "Active" : "Closed"}

@@ -13,6 +13,7 @@ interface DetailContentProps {
   eventEnd?: string;
   locationName?: string;
   postId?: string;
+  hideTitle?: boolean;
 }
 
 interface ParticipantUser {
@@ -29,6 +30,8 @@ interface Participant {
 
 const MAX_AVATARS = 4;
 
+const CONTENT_LIMIT = 150;
+
 export default function DetailContentComponent({
   title = "",
   content = "",
@@ -36,9 +39,11 @@ export default function DetailContentComponent({
   eventEnd = "",
   locationName = "",
   postId,
+  hideTitle = false,
 }: DetailContentProps) {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [joinedCount, setJoinedCount] = useState<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -73,14 +78,29 @@ export default function DetailContentComponent({
   const visibleParticipants = participants.slice(0, MAX_AVATARS);
   const overflowCount = Math.max(participants.length - MAX_AVATARS, 0);
 
+  const rawContent = content || "No content details provided.";
+  const isLong = rawContent.length > CONTENT_LIMIT;
+
   return (
-    <section className="flex flex-col justify-between gap-y-3.2 h-full w-full ml-1">
+    <section className="flex flex-col gap-y-3 w-full ml-1">
       <section className="space-y-1">
-        <p className="text-subtitle font-semibold text-secondary">
-          {title || "No Title Specified"}
-        </p>
-        <p className="text-desc text-grey-500 line-clamp-3">
-          {content || "No content details provided."}
+        {!hideTitle && (
+          <p className="text-subtitle font-semibold text-secondary">
+            {title || "No Title Specified"}
+          </p>
+        )}
+        <p className="text-desc text-grey-500">
+          {isLong && !isExpanded ? rawContent.slice(0, CONTENT_LIMIT) : rawContent}
+          {isLong && !isExpanded && <span>... </span>}
+          {isLong && (
+            <button
+              type="button"
+              onClick={() => setIsExpanded((v) => !v)}
+              className="text-primary font-semibold text-sm"
+            >
+              {isExpanded ? "Read less" : "Read more"}
+            </button>
+          )}
         </p>
       </section>
 
@@ -107,7 +127,7 @@ export default function DetailContentComponent({
         </span>
       </section>
 
-      <section className="flex flex-col gap-y-2 mb-4">
+      <section className="flex flex-col gap-y-2">
         <section className="flex items-center gap-x-2.5 pt-2">
           <p className="text-detail text-grey-600">
             Joined by{" "}

@@ -31,6 +31,7 @@ export interface TransactionDetail {
   status: TransactionStatus;
   referenceId: string;
   transactionId: string;
+  senderBankName: string;
   payer: Payer;
   event: EventDetail;
 }

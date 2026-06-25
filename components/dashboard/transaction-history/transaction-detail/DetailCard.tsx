@@ -119,12 +119,26 @@ export function TransactionDetailCard({ detail }: TransactionDetailCardProps) {
         <DetailInfoRow
           label="Payment Method"
           value={
-            <Image
-              src={"/images/webill365.svg"}
-              alt="webill365"
-              width={69}
-              height={69}
-            />
+            <span className="flex items-center">
+              {detail.senderBankName === "Bakong" ? (
+                <div className="flex items-center gap-1.5 justify-center">
+                  <Image
+                    src={"/images/bakong.png"}
+                    alt="Bakong"
+                    width={25}
+                    height={25}
+                  />
+                  <span className="type-detail font-bold text-gray-900">{detail.senderBankName}</span>
+                </div>
+              ) : (
+                <Image
+                  src={"/images/webill365.svg"}
+                  alt="webill365"
+                  width={69}
+                  height={69}
+                />
+              )}
+            </span>
           }
           icon={<CreditCard className="w-5 h-5" strokeWidth={1.75} />}
         />

@@ -62,7 +62,7 @@ export default function ShareModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={true}
-        className="max-w-[540px] w-full rounded-3xl border-none bg-white p-8 shadow-2xl gap-0 [&>button]:top-6 [&>button]:hover:text-white [&>button]:-translate-y-1/2 [&>button]:hover:bg-red-500"
+        className="sm:max-w-135 w-full rounded-3xl border-none bg-white p-6 sm:p-8 shadow-2xl gap-0 [&>button]:top-6 [&>button]:hover:text-white [&>button]:-translate-y-1/2 [&>button]:hover:bg-red-500"
       >
         <DialogHeader className="mb-6">
           <DialogTitle className="text-[28px] font-bold text-[#0f172a]">
