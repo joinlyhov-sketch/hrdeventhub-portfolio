@@ -689,7 +689,6 @@ export function PaymentWizardDialog({
                   post={post}
                   isFreeRegistration={isFreeRegistration}
                   isSkippingDonation={isSkippingDonation}
-                  isStudent={currentUser.role === "student"}
                   confirmAmount={confirmAmount}
                   payerName={currentUser?.name ?? "—"}
                   confirmBillNo={confirmBillNo}
