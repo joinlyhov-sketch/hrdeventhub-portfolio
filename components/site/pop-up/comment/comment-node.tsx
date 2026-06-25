@@ -94,26 +94,28 @@ function Avatar({
   );
 }
 
-export function CommentNode({
+
+function CommentBubble({
   comment,
   currentUserId,
   currentUserPicture,
   currentUserInitials,
-  isNested = false,
-  forceShowReplies = false,
   workspaceId,
   onRefetch,
-}: CommentNodeProps) {
+  onReply,
+}: {
+  comment: Comment;
+  currentUserId?: string;
+  currentUserPicture?: string;
+  currentUserInitials?: string;
+  workspaceId: string;
+  onRefetch: () => Promise<void>;
+  onReply: (targetUser: Comment["appUser"]) => void;
+}) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [showEditEmoji, setShowEditEmoji] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  const [showReplyInput, setShowReplyInput] = useState(false);
-  const [replyText, setReplyText] = useState("");
-  const [replyMentionedIds, setReplyMentionedIds] = useState<string[]>([]);
-
-  const [showReplies, setShowReplies] = useState(false);
 
   const { members } = useWorkspaceMembers(workspaceId ?? "");
 
@@ -128,11 +130,6 @@ export function CommentNode({
   const initials =
     `${comment.appUser.firstName?.[0] ?? ""}${comment.appUser.lastName?.[0] ?? ""}`.toUpperCase();
   const isOwner = currentUserId === comment.appUser.appUserId;
-  const hasReplies = comment.replies && comment.replies.length > 0;
-  const replyCount = countAllReplies(comment.replies ?? []);
-  const repliesVisible = isNested ? forceShowReplies : showReplies;
-
-  const bubbleRef = useRef<HTMLDivElement>(null);
 
   const handleEdit = async () => {
     if (!editText.trim()) return;
@@ -144,10 +141,214 @@ export function CommentNode({
     }
   };
 
-  const _handleDelete = async () => {
-    const result = await deleteCommentAction(comment.commentId);
-    if (result.ok) await onRefetch();
+  const handleConfirmDelete = async () => {
+    const res = await deleteCommentAction(comment.commentId);
+    if (res?.ok) {
+      toast.success("Comment deleted successfully");
+      await onRefetch();
+    } else {
+      throw new Error(res?.error || "Failed to delete comment");
+    }
   };
+
+  return (
+    <>
+      <div className="flex gap-2">
+        <Avatar
+          src={comment.appUser.profilePicture}
+          alt={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
+          initials={initials}
+          size={32}
+          userId={comment.appUser.appUserId}
+        />
+
+        <div className="flex-1 min-w-0">
+          {editingId === comment.commentId ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center bg-grey-100 focus-within:bg-grey-50 rounded-full transition-all py-1.5 pl-4 pr-2 h-10">
+                <input
+                  type="text"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  placeholder="Edit your comment..."
+                  className="flex-1 bg-transparent text-sm outline-none text-grey-900 placeholder-grey-400 h-full min-w-0"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (editText.trim()) handleEdit();
+                    }
+                    if (e.key === "Escape") {
+                      setEditingId(null);
+                      setEditText("");
+                    }
+                  }}
+                  autoFocus
+                />
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="relative shrink-0">
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => setShowEditEmoji((v) => !v)}
+                      className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
+                    >
+                      <Smile size={18} />
+                    </button>
+                    {showEditEmoji && (
+                      <EmojiPopover
+                        onPick={(emoji) => setEditText((prev) => prev + emoji)}
+                        onClose={() => setShowEditEmoji(false)}
+                      />
+                    )}
+                  </div>
+                  <button
+                    onClick={handleEdit}
+                    disabled={!editText.trim()}
+                    className="p-1.5 bg-primary text-white rounded-full hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all flex items-center justify-center w-7 h-7"
+                  >
+                    <SendHorizontal size={14} className="relative left-[-0.5px]" />
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={() => { setEditingId(null); setEditText(""); }}
+                className="ml-4 text-xs font-medium text-grey-400 hover:text-grey-900 cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="inline-block max-w-full">
+              <div className="bg-grey-100 rounded-2xl px-3 py-2">
+                <div className="flex items-center gap-2 justify-between">
+                  <Link
+                    href={`/profile/${comment.appUser.appUserId}`}
+                    className="text-sm font-semibold text-grey-900 leading-tight hover:underline hover:text-primary transition-colors"
+                  >
+                    {comment.appUser.firstName} {comment.appUser.lastName}
+                  </Link>
+                  {isOwner && (
+                    <section className="flex gap-x-1.5 items-center ml-4 shrink-0">
+                      <button
+                        onClick={() => {
+                          setEditingId(comment.commentId);
+                          setEditText(comment.comment);
+                        }}
+                        className="text-grey-400 hover:text-primary transition-colors text-xs cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setIsDeleteModalOpen(true)}
+                        className="text-grey-400 hover:text-destructive transition-colors cursor-pointer"
+                        aria-label="Delete comment"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </section>
+                  )}
+                </div>
+
+                <p className="text-sm text-grey-900 leading-normal mt-0.5 whitespace-pre-wrap">
+                  {comment.comment.split(" ").map((word, i) => {
+                    if (word.startsWith("@")) {
+                      const cleanHandle = word
+                        .replace(/^@+/, "")
+                        .replace(/[^a-zA-Z0-9_-]/g, "");
+                      const trailingPunctuation = word.slice(cleanHandle.length + 1);
+                      const matchedUser = members.find(
+                        (m) => m.username?.toLowerCase() === cleanHandle.toLowerCase(),
+                      );
+                      if (matchedUser) {
+                        return (
+                          <span key={i}>
+                            <Link
+                              href={`/profile/${matchedUser.appUserId}`}
+                              className="text-blue-600 font-semibold hover:underline transition-colors cursor-pointer"
+                            >
+                              @{cleanHandle}
+                            </Link>
+                            {trailingPunctuation}{" "}
+                          </span>
+                        );
+                      }
+                    }
+                    return word + " ";
+                  })}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
+                <span className="font-normal">{timeAgo(comment.createdAt)}</span>
+                <ReactionPopover
+                  selectedValue={selectedReaction}
+                  onReactionSelect={handleReactionSelect}
+                >
+                  <button
+                    onClick={handleLikeToggle}
+                    className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
+                      activeReaction
+                        ? `${activeReaction.color} font-semibold`
+                        : "hover:text-grey-900"
+                    }`}
+                  >
+                    {activeReaction ? (
+                      activeReaction.displayText
+                    ) : (
+                      <ThumbsUp size={13} />
+                    )}
+                    {!activeReaction && "Like"}
+                  </button>
+                </ReactionPopover>
+                <button
+                  onClick={() => onReply(comment.appUser)}
+                  className="hover:text-grey-900 transition-colors cursor-pointer"
+                >
+                  Reply
+                </button>
+                <div className="ml-auto">
+                  <ReactionSummary payload={reactionPayload} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <DeleteCommentModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
+    </>
+  );
+}
+export function CommentNode({
+  comment,
+  currentUserId,
+  currentUserPicture,
+  currentUserInitials,
+  isNested = false,
+  workspaceId,
+  onRefetch,
+}: CommentNodeProps) {
+  const [showReplies, setShowReplies] = useState(false);
+  const [showReplyInput, setShowReplyInput] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [replyMentionedIds, setReplyMentionedIds] = useState<string[]>([]);
+
+  const { members } = useWorkspaceMembers(workspaceId ?? "");
+  function flattenReplies(replies: Comment[]): Comment[] {
+    const result: Comment[] = [];
+    for (const r of replies) {
+      result.push(r);
+      if (r.replies?.length) result.push(...flattenReplies(r.replies));
+    }
+    return result;
+  }
+
+  const flatReplies = flattenReplies(comment.replies ?? []);
+  const replyCount = flatReplies.length;
+  const hasReplies = replyCount > 0;
 
   const handleReply = async () => {
     if (!replyText.trim()) return;
@@ -165,13 +366,9 @@ export function CommentNode({
     }
   };
 
-  const handleReplyClick = () => {
-    const targetUser = comment.appUser;
-    const matchingMember = members.find(
-      (m) => m.appUserId === targetUser.appUserId,
-    );
+  const handleReplyClick = (targetUser: Comment["appUser"]) => {
+    const matchingMember = members.find((m) => m.appUserId === targetUser.appUserId);
     const exactUsername = matchingMember?.username || targetUser.username;
-
     const handle = exactUsername
       ? `@${exactUsername}`
       : `@${targetUser.firstName.toLowerCase()}${targetUser.lastName.toLowerCase()}`;
@@ -186,274 +383,98 @@ export function CommentNode({
     setReplyText("");
     setReplyMentionedIds([]);
   }, []);
-  const handleConfirmDelete = async () => {
-    const res = await deleteCommentAction(comment.commentId);
-    if (res?.ok) {
-      toast.success("Comment deleted successfully");
-      await onRefetch();
-    } else {
-      throw new Error(res?.error || "Failed to delete comment");
-    }
-  };
+
+  if (isNested) {
+    return (
+      <CommentBubble
+        comment={comment}
+        currentUserId={currentUserId}
+        currentUserPicture={currentUserPicture}
+        currentUserInitials={currentUserInitials}
+        workspaceId={workspaceId}
+        onRefetch={onRefetch}
+        onReply={handleReplyClick}
+      />
+    );
+  }
 
   return (
-    <div className="flex gap-2.5">
-      <div
-        className="flex flex-col items-center shrink-0"
-        style={{ width: 36 }}
-      >
-        <Avatar
-          src={comment.appUser.profilePicture}
-          alt={`${comment.appUser.firstName} ${comment.appUser.lastName}`}
-          initials={initials}
-          size={36}
-          userId={comment.appUser.appUserId}
-        />
-        {hasReplies && repliesVisible && (
-          <div className="w-px bg-grey-200 mt-1.5 mb-1 flex-1" />
-        )}
-      </div>
+    <div>
+      <CommentBubble
+        comment={comment}
+        currentUserId={currentUserId}
+        currentUserPicture={currentUserPicture}
+        currentUserInitials={currentUserInitials}
+        workspaceId={workspaceId}
+        onRefetch={onRefetch}
+        onReply={handleReplyClick}
+      />
 
-      <div className="flex-1 w-full pb-1">
-        <div className="inline-block max-w-full min-w-0">
-          <div
-            ref={bubbleRef}
-            className={`relative bg-grey-100 rounded-2xl px-3 py-2 ${
-              editingId === comment.commentId
-                ? "block w-full bg-transparent p-0!"
-                : "w-full"
-            }`}
-          >
-            <div className="flex items-center gap-2 justify-between">
-              <Link
-                href={`/profile/${comment.appUser.appUserId}`}
-                className="type-detail-semibold text-grey-900 text-sm leading-tight hover:underline hover:text-primary transition-colors"
-              >
-                {comment.appUser.firstName} {comment.appUser.lastName}
-              </Link>
-              {isOwner && editingId !== comment.commentId && (
-                <section className="flex gap-x-1.5 items-baseline ml-4 shrink-0">
-                  <button
-                    onClick={() => {
-                      setEditingId(comment.commentId);
-                      setEditText(comment.comment);
-                    }}
-                    className="text-grey-400 hover:text-primary transition-colors text-xs cursor-pointer"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => setIsDeleteModalOpen(true)}
-                    className="text-grey-400 hover:text-destructive transition-colors cursor-pointer"
-                    aria-label="Delete comment"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </section>
-              )}
-            </div>
+      {hasReplies && (
+        <button
+          onClick={() => setShowReplies((v) => !v)}
+          className="flex items-center gap-1.5 mt-1.5 ml-10 text-xs font-semibold text-primary hover:underline cursor-pointer"
+        >
+          <div className="w-5 h-px bg-grey-300" />
+          {showReplies
+            ? `Hide replies (${replyCount})`
+            : `View ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
+        </button>
+      )}
 
-            {editingId === comment.commentId ? (
-              <div className="mt-2 space-y-2 w-full">
-                <div className="flex items-center justify-between bg-[#F8F9FA] focus-within:bg-grey-50 rounded-full transition-all py-1.5 pl-4 pr-2 w-full h-11">
-                  <input
-                    type="text"
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    placeholder="Edit your comment..."
-                    className="flex-1 bg-transparent text-sm outline-none text-grey-900 placeholder-grey-400 h-full min-w-0"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        if (editText.trim()) handleEdit();
-                      }
-                      if (e.key === "Escape") {
-                        setEditingId(null);
-                        setEditText("");
-                      }
-                    }}
-                    autoFocus
-                  />
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="relative shrink-0">
-                      <button
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => setShowEditEmoji((v) => !v)}
-                        className="text-grey-400 hover:text-grey-600 flex items-center transition-colors cursor-pointer"
-                      >
-                        <Smile size={20} />
-                      </button>
-                      {showEditEmoji && (
-                        <EmojiPopover
-                          onPick={(emoji) =>
-                            setEditText((prev) => prev + emoji)
-                          }
-                          onClose={() => setShowEditEmoji(false)}
-                        />
-                      )}
-                    </div>
-                    <button
-                      onClick={handleEdit}
-                      disabled={!editText.trim()}
-                      className="p-2 bg-primary text-white rounded-full hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all flex items-center justify-center w-8 h-8"
-                    >
-                      <SendHorizontal
-                        size={16}
-                        className="relative left-[-0.5px]"
-                      />
-                    </button>
-                  </div>
-                </div>
-                <div className="flex justify-start pl-4">
-                  <button
-                    onClick={() => {
-                      setEditingId(null);
-                      setEditText("");
-                    }}
-                    className="text-xs font-medium text-grey-400 hover:text-grey-900 cursor-pointer transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
+      {showReplies && hasReplies && (
+        <div className="mt-2 ml-10 relative">
+          <div className="absolute left-[-20px] top-4 bottom-20 w-px bg-grey-200" />
+
+          <div className="space-y-3">
+            {flatReplies.map((reply) => (
+              <div key={reply.commentId} className="relative">
+                <div className="absolute left-[-20px] top-0 w-4 h-6 border-l-2 border-b-2 border-grey-200 rounded-bl-lg" />
+                <CommentBubble
+                  comment={reply}
+                  currentUserId={currentUserId}
+                  currentUserPicture={currentUserPicture}
+                  currentUserInitials={currentUserInitials}
+                  workspaceId={workspaceId}
+                  onRefetch={onRefetch}
+                  onReply={handleReplyClick}
+                />
               </div>
-            ) : (
-              <p className="text-sm text-grey-900 leading-normal mt-0.5 whitespace-pre-wrap">
-                {comment.comment.split(" ").map((word, i) => {
-                  if (word.startsWith("@")) {
-                    const cleanHandle = word
-                      .replace(/^@+/, "")
-                      .replace(/[^a-zA-Z0-9_-]/g, "");
-                    const trailingPunctuation = word.slice(
-                      cleanHandle.length + 1,
-                    );
-                    const matchedUser = members.find(
-                      (m) =>
-                        m.username?.toLowerCase() === cleanHandle.toLowerCase(),
-                    );
-
-                    if (matchedUser) {
-                      return (
-                        <span key={i}>
-                          <Link
-                            href={`/profile/${matchedUser.appUserId}`}
-                            className="text-blue-600 font-semibold hover:underline transition-colors cursor-pointer"
-                          >
-                            @{cleanHandle}
-                          </Link>
-                          {trailingPunctuation}{" "}
-                        </span>
-                      );
-                    }
-                  }
-                  return word + " ";
-                })}
-              </p>
-            )}
-          </div>
-
-          {editingId !== comment.commentId && (
-            <div className="flex items-center gap-3 mt-1 pl-1 text-xs font-semibold text-grey-400">
-              <span className="font-normal">{timeAgo(comment.createdAt)}</span>
-              <ReactionPopover
-                selectedValue={selectedReaction}
-                onReactionSelect={handleReactionSelect}
-              >
-                <button
-                  onClick={handleLikeToggle}
-                  className={`flex items-center gap-1 transition-colors cursor-pointer select-none ${
-                    activeReaction
-                      ? `${activeReaction.color} font-semibold`
-                      : "hover:text-grey-900"
-                  }`}
-                >
-                  {activeReaction ? (
-                    activeReaction.displayText
-                  ) : (
-                    <ThumbsUp size={13} />
-                  )}
-                  {!activeReaction && "Like"}
-                </button>
-              </ReactionPopover>
-              <button
-                onClick={handleReplyClick}
-                className="hover:text-grey-900 transition-colors cursor-pointer"
-              >
-                Reply
-              </button>
-              <div className="ml-auto">
-                <ReactionSummary payload={reactionPayload} />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {hasReplies && !isNested && (
-          <button
-            onClick={() => setShowReplies((v) => !v)}
-            className="flex items-center gap-1.5 mt-1.5 pl-1 text-xs font-semibold text-primary hover:underline cursor-pointer"
-          >
-            <div className="w-5 h-px bg-grey-300" />
-            {showReplies
-              ? `Hide replies (${replyCount})`
-              : `View ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
-          </button>
-        )}
-
-        {showReplyInput && (
-          <div className="flex gap-2 items-center mt-2">
-            <Avatar
-              src={currentUserPicture}
-              alt="Your avatar"
-              initials={currentUserInitials ?? "?"}
-              size={28}
-              userId={currentUserId}
-            />
-            <div className="flex-1">
-              <MentionInput
-                value={replyText}
-                onChange={(val, ids) => {
-                  setReplyText(val);
-                  setReplyMentionedIds(ids);
-                }}
-                onSubmit={handleReply}
-                onClose={closeReplyInput}
-                onBlurClose
-                placeholder={
-                  comment.appUser.username
-                    ? `Reply to @${comment.appUser.username.toLowerCase()}…`
-                    : `Reply to ${comment.appUser.firstName} ${comment.appUser.lastName}…`
-                }
-                members={members}
-                mentionedIds={replyMentionedIds}
-                autoFocus
-              />
-            </div>
-          </div>
-        )}
-
-        {hasReplies && repliesVisible && (
-          <div className="mt-2 space-y-3">
-            {comment.replies.map((reply) => (
-              <CommentNode
-                key={reply.commentId}
-                comment={reply}
-                currentUserId={currentUserId}
-                currentUserPicture={currentUserPicture}
-                currentUserInitials={currentUserInitials}
-                isNested={true}
-                forceShowReplies={true}
-                workspaceId={workspaceId}
-                onRefetch={onRefetch}
-              />
             ))}
           </div>
-        )}
-      </div>
-      <DeleteCommentModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-      />
+        </div>
+      )}
+      {showReplyInput && (
+        <div className="flex gap-2 items-center mt-2 ml-10">
+          <Avatar
+            src={currentUserPicture}
+            alt="Your avatar"
+            initials={currentUserInitials ?? "?"}
+            size={28}
+            userId={currentUserId}
+          />
+          <div className="flex-1">
+            <MentionInput
+              value={replyText}
+              onChange={(val, ids) => {
+                setReplyText(val);
+                setReplyMentionedIds(ids);
+              }}
+              onSubmit={handleReply}
+              onClose={closeReplyInput}
+              onBlurClose
+              placeholder={
+                comment.appUser.username
+                  ? `Reply to @${comment.appUser.username.toLowerCase()}…`
+                  : `Reply to ${comment.appUser.firstName} ${comment.appUser.lastName}…`
+              }
+              members={members}
+              mentionedIds={replyMentionedIds}
+              autoFocus
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
