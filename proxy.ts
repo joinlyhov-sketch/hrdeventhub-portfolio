@@ -61,6 +61,10 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/group", nextUrl.origin));
   }
 
+  if (isLoggedIn && role === "organizer" && nextUrl.pathname.startsWith("/user-management")) {
+    return NextResponse.redirect(new URL("/group", nextUrl.origin));
+  }
+
   return NextResponse.next();
 }
 

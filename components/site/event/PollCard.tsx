@@ -101,7 +101,7 @@ function PollItem({
       if (rawIds) {
         try {
           parsedIds = new Set(JSON.parse(rawIds));
-        } catch {}
+        } catch { }
       }
 
       const typeKey = `poll_type_snapshot_${initialPoll.pollId}_${userId}`;
@@ -116,7 +116,7 @@ function PollItem({
       if (savedCounts) {
         try {
           parsedCounts = JSON.parse(savedCounts);
-        } catch {}
+        } catch { }
       }
     }
 
@@ -278,7 +278,7 @@ function PollItem({
               currentCount = parsed[`fallback_text_${opt.text}`];
             else if (parsed[`fallback_idx_${idx}`] !== undefined)
               currentCount = parsed[`fallback_idx_${idx}`];
-          } catch {}
+          } catch { }
         }
       }
     }
@@ -315,7 +315,7 @@ function PollItem({
             uniqueUsers.add(
               typeof id === "object"
                 ? (id as Record<string, unknown>).id ||
-                    (id as Record<string, unknown>).userId
+                (id as Record<string, unknown>).userId
                 : id,
             );
         });
@@ -543,11 +543,10 @@ function PollItem({
               return (
                 <label
                   key={option.id}
-                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden ${
-                    isOldOptionVoted
-                      ? "border-grey-200 bg-grey-100 opacity-70 cursor-not-allowed"
-                      : "border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer"
-                  }`}
+                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden ${isOldOptionVoted
+                    ? "border-grey-200 bg-grey-100 opacity-70 cursor-not-allowed"
+                    : "border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer"
+                    }`}
                 >
                   <div className="relative z-10 flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <input
@@ -560,11 +559,10 @@ function PollItem({
                       className="sr-only"
                     />
                     <div
-                      className={`w-5 h-5 border flex items-center justify-center shrink-0 transition-all rounded-md ${
-                        isOldOptionVoted
-                          ? "bg-grey-300 border-grey-400"
-                          : "bg-white border-grey-300"
-                      }`}
+                      className={`w-5 h-5 border flex items-center justify-center shrink-0 transition-all rounded-md ${isOldOptionVoted
+                        ? "bg-grey-300 border-grey-400"
+                        : "bg-white border-grey-300"
+                        }`}
                     >
                       {isChecked && (
                         <div className="bg-subtle w-2.5 h-2.5 rounded-sm" />
@@ -591,11 +589,10 @@ function PollItem({
           <button
             type="submit"
             disabled={selectedOptions.length === 0 || isSubmitting}
-            className={`w-full py-2.5 sm:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${
-              selectedOptions.length > 0 && !isSubmitting
-                ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]"
-                : "bg-subtle/40 text-white cursor-not-allowed"
-            }`}
+            className={`w-full py-2.5 sm:py-3.5 rounded-xl type-desc-semibold transition-all text-xs sm:text-sm md:text-base ${selectedOptions.length > 0 && !isSubmitting
+              ? "bg-subtle text-white hover:opacity-90 active:scale-[0.99]"
+              : "bg-subtle/40 text-white cursor-not-allowed"
+              }`}
           >
             {isSubmitting
               ? "Submitting Additional Votes..."
