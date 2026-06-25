@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { UserRoundCheck } from "lucide-react";
 import { UserData } from "../../../types/user-management-type/user";
 import { TableCell, TableRow } from "../../ui/table";
@@ -65,7 +66,7 @@ export default function UserRow({
         className={`${cell} text-left`}
         style={{ width: "220px", minWidth: "220px", maxWidth: "220px" }}
       >
-        <div className="flex items-center gap-2 max-w-full">
+        <Link href={`/profile/${user.appUserId}`} className="flex items-center gap-2 max-w-full hover:text-primary transition-colors group cursor-pointer">
           {profileSrc ? (
             <Image
               src={profileSrc}
@@ -73,18 +74,18 @@ export default function UserRow({
               width={32}
               height={32}
               unoptimized
-              className="w-8 h-8 rounded-full object-cover shrink-0"
+              className="w-8 h-8 rounded-full object-cover shrink-0 group-hover:opacity-80 transition-opacity"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-lg font-medium text-white shrink-0">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-lg font-medium text-white shrink-0 group-hover:opacity-80 transition-opacity">
               {user.firstName?.charAt(0).toUpperCase()}
               {user.lastName?.charAt(0).toUpperCase()}
             </div>
           )}
-          <span className="truncate block flex-1 min-w-0">
+          <span className="truncate block flex-1 min-w-0 group-hover:underline">
             {`${user.firstName} ${user.lastName}`}
           </span>
-        </div>
+        </Link>
       </TableCell>
 
       <TableCell
