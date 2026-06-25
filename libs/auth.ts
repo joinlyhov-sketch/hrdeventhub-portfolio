@@ -64,9 +64,15 @@ export const authOptions: NextAuthOptions = {
             refreshToken,
             rememberMe,
           };
-        } catch (error) {
+        } catch (error: any) {
           console.error("Login failed", error);
-          return null;
+          if (
+            error?.message &&
+            error.message.toLowerCase().includes("verified")
+          ) {
+            throw new Error(`NOT_VERIFIED:${credentials.identifier}`);
+          }
+          throw new Error("CredentialsSignin");
         }
       },
     }),
