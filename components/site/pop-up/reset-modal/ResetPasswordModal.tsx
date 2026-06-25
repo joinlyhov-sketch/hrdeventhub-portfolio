@@ -31,12 +31,15 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
   useEffect(() => {
     if (isOpen) {
       reset();
-      if (currentUser?.email) {
-        setEmail(currentUser.email);
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && currentUser?.email) {
+      setEmail(currentUser.email);
+    }
+  }, [isOpen, currentUser?.email, setEmail]);
 
   const handleClose = () => {
     reset();
@@ -100,9 +103,8 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
                 {[1, 2, 3].map((s) => (
                   <div
                     key={s}
-                    className={`h-1.5 w-8 rounded-full transition-all duration-300 ${
-                      step >= s ? "bg-[#24529a]" : "bg-slate-200"
-                    }`}
+                    className={`h-1.5 w-8 rounded-full transition-all duration-300 ${step >= s ? "bg-[#24529a]" : "bg-slate-200"
+                      }`}
                   />
                 ))}
               </div>

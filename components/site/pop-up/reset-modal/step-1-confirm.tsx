@@ -60,7 +60,7 @@ export default function ConfirmStep({ startTransition, isPending }: StepProps) {
 
       <button
         onClick={handleSendOtp}
-        disabled={isPending}
+        disabled={isPending || !email}
         className="mt-2 flex items-center justify-center gap-2 h-[50px] w-full rounded-xl bg-[#24529a] text-base font-semibold text-white transition-all hover:bg-[#1f4685] disabled:opacity-70 cursor-pointer shadow-sm"
       >
         {isPending && <Loader2 size={16} className="animate-spin" />}

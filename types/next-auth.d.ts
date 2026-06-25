@@ -13,6 +13,7 @@ declare module "next-auth" {
     accessToken: string;
     refreshToken: string;
     appUserId: string;
+    accessTokenExpiry: number;
     error?: string;
   }
 }
@@ -24,5 +25,7 @@ declare module "next-auth/jwt" {
     refreshToken: string;
     role: string;
     error?: string;
+    accessTokenExpiry: number;
+    rememberMe: boolean;
   }
 }
