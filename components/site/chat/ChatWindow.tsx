@@ -136,7 +136,7 @@ export default function ChatWindow({
     setUploadError(null);
     subscribe(conversation.id);
     loadMessages(conversation.id);
-  }, [conversation.id]);
+  }, [conversation.id, loadMessages, subscribe]);
 
   useEffect(() => {
     if (status !== "connected") return;
@@ -156,7 +156,7 @@ export default function ChatWindow({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [status, conversation.id]);
+  }, [status, conversation.id, normalizedUserId, sendRead, subscribe, updateRead]);
 
   useEffect(() => {
     if (status !== "connected") return;

@@ -6,7 +6,7 @@ export default function HeaderNoProfile({
   description,
 }: HeaderProps) {
   return (
-    <div className="sticky top-0 z-50 bg-white pt-3 px-4 sm:px-6 lg:pr-12 lg:pl-12">
+    <div className="top-0 z-50 bg-white pt-3 px-4 sm:px-6 lg:pr-12 lg:pl-12">
       <header className="top-bar mb-5 flex items-center justify-between p-1">
         <div>
           <h1 className="type-title flex items-center gap-1">

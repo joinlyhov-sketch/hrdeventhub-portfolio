@@ -215,7 +215,7 @@ export const profileService = {
       authToken: token,
     });
   },
-  deleteMe: async (token: string): Promise<unknown> => {
+  deleteResume: async (token: string): Promise<unknown> => {
     return await apiDelete<unknown>("/profile/me/cv", {
       authToken: token,
       accept: "*/*",

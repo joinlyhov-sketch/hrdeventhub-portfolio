@@ -30,7 +30,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       .getMyNotifications(token)
       .then(hydrateNotifications)
       .catch((err) => console.error("[Notifications] hydration failed", err));
-  }, [token]);
+  }, [token, setToken, hydrateNotifications]);
 
   return <>{children}</>;
 }

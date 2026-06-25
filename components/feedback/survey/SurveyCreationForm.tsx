@@ -324,14 +324,14 @@ export default function SurveyCreationForm({
 
       if (onSuccess) {
         globalMutate(
-          (key: any) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          (key: string | string[]) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
           undefined,
           { revalidate: true }
         );
         onSuccess();
       } else {
         globalMutate(
-          (key: any) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          (key: string | string[]) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
           undefined,
           { revalidate: true }
         );
