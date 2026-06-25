@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { mutate as globalMutate } from "swr";
 import SearchEvent from "./SearchEvent";
@@ -15,6 +16,7 @@ import { useWorkspaceFeed } from "@/hooks/use-workspace-hook";
 import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
 import { deletePostAction, togglePinAction } from "@/actions/post.action";
 import { useFeedStore } from "@/store/useFeedStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CalendarX } from "lucide-react";
 import { FeedItemWrapper } from "@/types/UnifiedFeedItem";
@@ -24,20 +26,16 @@ import { Survey } from "@/types/survey";
 
 interface FilteredFeedProps {
   groupid: string;
-  deepLinkPostId?: string;
-  deepLinkType?: string;
 }
 
 const commentCacheKey = (postId: string) => [`/comments`, postId];
 
 export default function FilteredFeed({
   groupid,
-  deepLinkPostId: deepLinkPostIdProp,
-  deepLinkType: deepLinkTypeProp,
 }: FilteredFeedProps) {
   const searchParams = useSearchParams();
-  const deepLinkPostId = searchParams.get("postId") ?? deepLinkPostIdProp;
-  const _deepLinkType = searchParams.get("type") ?? deepLinkTypeProp;
+  const deepLinkPostId = searchParams.get("postId");
+  const _deepLinkType = searchParams.get("type");
 
   const [mounted, setMounted] = useState(false);
   const { currentUser, isLoading: userLoading } = useCurrentUser();
@@ -101,37 +99,52 @@ export default function FilteredFeed({
 
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
-  const hasScrolled = useRef(false);
+  const removeNotificationByPostId = useNotificationStore(state => state.removeNotificationByPostId);
+
+  const lastScrolledId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!deepLinkPostId) return;
-    if (hasScrolled.current) return;
+    if (lastScrolledId.current === deepLinkPostId) return;
+    if (feedLoading) return; // Wait until feed finishes loading
 
-    const targetId = `post-${deepLinkPostId}`;
-    const doScroll = (el: HTMLElement) => {
-      hasScrolled.current = true;
-      setTimeout(() => {
-        const TOP_OFFSET = 100;
-        const y = el.getBoundingClientRect().top + window.scrollY - TOP_OFFSET;
-        window.scrollTo({ top: y, behavior: "smooth" });
-        el.style.scrollMarginTop = "100px";
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.classList.add("deep-link-highlight");
-        setTimeout(() => el.classList.remove("deep-link-highlight"), 2600);
-      }, 1500);
+    const doScroll = () => {
+      const elements = document.querySelectorAll(`[id="post-${deepLinkPostId}"]`);
+      let foundVisible = false;
+
+      elements.forEach((el) => {
+        if (el instanceof HTMLElement && el.offsetParent !== null) {
+          foundVisible = true;
+          lastScrolledId.current = deepLinkPostId;
+          setTimeout(() => {
+            el.style.scrollMarginTop = "100px";
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.classList.add("deep-link-highlight");
+            setTimeout(() => el.classList.remove("deep-link-highlight"), 2600);
+          }, 300);
+        }
+      });
+      return foundVisible;
     };
 
-    const existing = document.getElementById(targetId);
-    if (existing) {
-      doScroll(existing);
+    if (doScroll()) return;
+
+    // Check if the post even exists in our loaded feed
+    const existsInFeed = feedItems.some(item => {
+      const id = String((item.data as Record<string, unknown>)?.postId || (item.data as Record<string, unknown>)?.pollId || (item.data as Record<string, unknown>)?.surveyId || item.id);
+      return id === deepLinkPostId;
+    });
+
+    if (!existsInFeed) {
+      toast.error("The post has been removed or is no longer available.");
+      removeNotificationByPostId(deepLinkPostId);
+      lastScrolledId.current = deepLinkPostId;
       return;
     }
 
     const observer = new MutationObserver(() => {
-      const el = document.getElementById(targetId);
-      if (el) {
+      if (doScroll()) {
         observer.disconnect();
-        doScroll(el);
       }
     });
 
@@ -139,13 +152,13 @@ export default function FilteredFeed({
 
     const timeout = setTimeout(() => {
       observer.disconnect();
-    }, 15000);
+    }, 5000);
 
     return () => {
       observer.disconnect();
       clearTimeout(timeout);
     };
-  }, [deepLinkPostId]);
+  }, [deepLinkPostId, feedLoading, feedItems]);
 
   const pinnedCount = useMemo(
     () => feedItems.filter((item) => item.type === "POST" && (item.data as Record<string, unknown>)?.pinned).length,

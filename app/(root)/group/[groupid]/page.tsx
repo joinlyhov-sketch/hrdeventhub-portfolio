@@ -11,29 +11,22 @@ export const metadata: Metadata = {
 
 export default async function Page({
   params,
-  searchParams,
 }: {
   params: Promise<{ groupid: string }>;
-  searchParams: Promise<{ postId?: string; type?: string }>;
 }) {
   const { groupid } = await params;
-  const { postId, type } = await searchParams;
 
   return (
     <main className="min-h-screen w-full bg-background">
       <div className="w-full">
         <MobileFeedTabs
           groupid={groupid}
-          deepLinkPostId={postId}
-          deepLinkType={type}
         />
         <div className="hidden xl:flex flex-col gap-6 xl:flex-row">
           <section className="min-w-0 flex-1">
             <Suspense>
               <FilteredFeed
                 groupid={groupid}
-                deepLinkPostId={postId}
-                deepLinkType={type}
               />
             </Suspense>
           </section>

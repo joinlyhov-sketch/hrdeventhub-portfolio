@@ -7,8 +7,6 @@ import { cn } from "@/libs/utils";
 
 interface Props {
   groupid: string;
-  deepLinkPostId?: string;
-  deepLinkType?: string;
 }
 
 const TABS = ["Feed", "Upcoming", "Members"] as const;
@@ -16,8 +14,6 @@ type Tab = (typeof TABS)[number];
 
 export default function MobileFeedTabs({
   groupid,
-  deepLinkPostId,
-  deepLinkType,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("Feed");
   const [visible, setVisible] = useState(true);
@@ -125,11 +121,9 @@ export default function MobileFeedTabs({
         </div>
       </div>
       <div className="xl:hidden mt-2">
-        <div className={activeTab === "Feed" ? "block" : "hidden"}>
+        <div className={cn("mt-4", activeTab !== "Feed" && "hidden")}>
           <FilteredFeed
             groupid={groupid}
-            deepLinkPostId={deepLinkPostId}
-            deepLinkType={deepLinkType}
           />
         </div>
         <div className={activeTab === "Upcoming" ? "block" : "hidden"}>

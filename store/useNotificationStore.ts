@@ -17,6 +17,7 @@ interface NotificationStore {
   markRead: (id: string) => void;
   markAllRead: () => void;
   removeNotification: (id: string) => void;
+  removeNotificationByPostId: (postId: string) => void;
   clearAll: () => void;
   
   clearChatNotificationsForUser: (actorName: string) => void;
@@ -91,6 +92,18 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => {
       const updated = state.notifications.filter(
         (n) => n.notificationId !== id
+      );
+      return {
+        notifications: updated,
+        unreadCount: updated.filter((x) => !x.read).length,
+      };
+    });
+  },
+
+  removeNotificationByPostId: (postId) => {
+    set((state) => {
+      const updated = state.notifications.filter(
+        (n) => n.postId !== postId
       );
       return {
         notifications: updated,
