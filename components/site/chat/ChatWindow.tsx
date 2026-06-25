@@ -224,6 +224,28 @@ export default function ChatWindow({
   async function handleFileUpload(file: File) {
     setUploading(true);
     setUploadError(null);
+
+    const isImage = file.type.startsWith("image/");
+    const pendingId = `pending-img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const localUrl = isImage ? URL.createObjectURL(file) : undefined;
+
+    const optimisticMsg = {
+      id: pendingId,
+      conversationId: conversation.id,
+      senderId: normalizedUserId,
+      content: "",
+      messageType: isImage ? "IMAGE" : "FILE",
+      fileUrl: localUrl,
+      fileName: file.name,
+      fileSize: file.size,
+      createdAt: new Date().toISOString(),
+      read: false,
+      isEdited: false,
+      _pending: true,
+    } as unknown as ChatMessage;
+
+    addMessage(optimisticMsg);
+
     try {
       await uploadFileAction(conversation.id, file, token);
       onUpdateRef.current();
@@ -232,6 +254,8 @@ export default function ChatWindow({
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
+      if (localUrl) URL.revokeObjectURL(localUrl);
+      removeMessage(pendingId, conversation.id);
     }
   }
 
