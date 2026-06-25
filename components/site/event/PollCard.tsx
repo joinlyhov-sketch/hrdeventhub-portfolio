@@ -497,7 +497,7 @@ function PollItem({
   };
 
   const showVotingForm =
-    !isAdminOrOrganizer && !showResult && (!hasVoted || canReVote);
+    !isAdminOrOrganizer && !isExpired && (!hasVoted || canReVote);
   const showVotersClickable =
     (!poll.anonymousVoting || isAdminOrOrganizer) && showResult;
 
@@ -538,6 +538,12 @@ function PollItem({
         <form onSubmit={handleSubmit}>
           <div className="space-y-3 sm:space-y-5 mb-3 sm:mb-4">
             {options.map((option) => {
+              const currentVotes = option.voteCount ?? 0;
+              const adjustedDenominator = denominator === 0 ? 1 : denominator;
+              const percentage = Math.min(
+                Math.round((currentVotes / adjustedDenominator) * 100),
+                100,
+              );
               const isOldOptionVoted = previouslyVotedOptionIds.has(option.id);
               const isChecked =
                 isOldOptionVoted || selectedOptions.includes(option.id);
@@ -545,11 +551,17 @@ function PollItem({
               return (
                 <label
                   key={option.id}
-                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden ${isOldOptionVoted
+                  className={`relative flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-all select-none overflow-hidden z-0 ${isOldOptionVoted
                     ? "border-grey-200 bg-grey-100 opacity-70 cursor-not-allowed"
                     : "border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer"
                     }`}
                 >
+                  {showResult && (
+                    <div
+                      className="absolute left-0 top-0 bottom-0 bg-[#e8fbf4] transition-all duration-1000 ease-out -z-10"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  )}
                   <div className="relative z-10 flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <input
                       type="checkbox"
@@ -579,6 +591,13 @@ function PollItem({
                       )}
                     </div>
                   </div>
+                  {showResult && (
+                    <div className="relative z-10 flex items-center gap-2 shrink-0 pl-3">
+                      <span className="type-detail-semibold text-subtle font-bold">
+                        {percentage}%
+                      </span>
+                    </div>
+                  )}
                 </label>
               );
             })}
@@ -605,12 +624,24 @@ function PollItem({
         <form onSubmit={handleSubmit}>
           <div className="space-y-3 sm:space-y-5 mb-4 sm:mb-6">
             {options.map((option) => {
+              const currentVotes = option.voteCount ?? 0;
+              const adjustedDenominator = denominator === 0 ? 1 : denominator;
+              const percentage = Math.min(
+                Math.round((currentVotes / adjustedDenominator) * 100),
+                100,
+              );
               const isChecked = selectedOptions.includes(option.id);
               return (
                 <label
                   key={option.id}
-                  className="relative flex items-center justify-between p-4 rounded-xl border border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer transition-all select-none overflow-hidden"
+                  className="relative flex items-center justify-between p-4 rounded-xl border border-grey-100 bg-grey-50 hover:bg-grey-100 hover:border-subtle/30 cursor-pointer transition-all select-none overflow-hidden z-0"
                 >
+                  {showResult && (
+                    <div
+                      className="absolute left-0 top-0 bottom-0 bg-[#e8fbf4] transition-all duration-1000 ease-out -z-10"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  )}
                   <div className="relative z-10 flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <input
                       type={poll.multiSelect ? "checkbox" : "radio"}
@@ -633,6 +664,13 @@ function PollItem({
                       {option.text}
                     </div>
                   </div>
+                  {showResult && (
+                    <div className="relative z-10 flex items-center gap-2 shrink-0 pl-3">
+                      <span className="type-detail-semibold text-subtle font-bold">
+                        {percentage}%
+                      </span>
+                    </div>
+                  )}
                 </label>
               );
             })}
@@ -652,62 +690,80 @@ function PollItem({
         </form>
       ) : null}
 
-      {showVotingForm && !hasVoted && showResult && (
-        <div className="my-6 border-t border-dashed border-grey-200" />
-      )}
-
       {showResult ? (
-        <div className="w-full space-y-6">
-          <div className="space-y-3 sm:space-y-5">
-            {options.map((option) => {
-              const currentVotes = option.voteCount ?? 0;
-              const adjustedDenominator = denominator === 0 ? 1 : denominator;
-              const percentage = Math.min(
-                Math.round((currentVotes / adjustedDenominator) * 100),
-                100,
-              );
-              return (
-                <div key={option.id} className="w-full select-none">
-                  <div className="flex flex-wrap justify-between items-center gap-2 mb-1.5 w-full">
-                    <div className="type-detail-medium text-foreground font-medium text-xs sm:text-sm flex-1 min-w-0 break-words">
-                      {option.text}
+        showVotingForm ? (
+          <div className="w-full mt-4">
+            <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
+              {isExpired ? "Poll closed" : `Total participants: ${denominator}`}
+              {showVotersClickable && (
+                <button
+                  type="button"
+                  onClick={handleOpenVoters}
+                  className="ml-2 text-subtle hover:underline font-medium cursor-pointer"
+                >
+                  View Voters
+                </button>
+              )}
+            </div>
+            <PollVotersModal
+              isOpen={isVotersModalOpen}
+              onClose={() => setIsVotersModalOpen(false)}
+              payload={votersData}
+            />
+          </div>
+        ) : (
+          <div className="w-full space-y-6 mt-4">
+            <div className="space-y-3 sm:space-y-5">
+              {options.map((option) => {
+                const currentVotes = option.voteCount ?? 0;
+                const adjustedDenominator = denominator === 0 ? 1 : denominator;
+                const percentage = Math.min(
+                  Math.round((currentVotes / adjustedDenominator) * 100),
+                  100,
+                );
+                return (
+                  <div key={option.id} className="w-full select-none">
+                    <div className="flex flex-wrap justify-between items-center gap-2 mb-1.5 w-full">
+                      <div className="type-detail-medium text-foreground font-medium text-xs sm:text-sm flex-1 min-w-0 break-words">
+                        {option.text}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="type-detail-semibold text-subtle font-bold">
+                          {percentage}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="type-detail-semibold text-subtle font-bold">
-                        {percentage}%
-                      </span>
+                    <div className="w-full h-3 bg-[#e8fbf4] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-subtle rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${percentage}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="w-full h-3 bg-[#e8fbf4] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-subtle rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
+              {isExpired ? "Poll closed" : `Total participants: ${denominator}`}
+              {showVotersClickable && (
+                <button
+                  type="button"
+                  onClick={handleOpenVoters}
+                  className="ml-2 text-subtle hover:underline font-medium cursor-pointer"
+                >
+                  View Voters
+                </button>
+              )}
+            </div>
+            <PollVotersModal
+              isOpen={isVotersModalOpen}
+              onClose={() => setIsVotersModalOpen(false)}
+              payload={votersData}
+            />
           </div>
-          <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
-            {isExpired ? "Poll closed" : `Total participants: ${denominator}`}
-            {showVotersClickable && (
-              <button
-                type="button"
-                onClick={handleOpenVoters}
-                className="ml-2 text-subtle hover:underline font-medium cursor-pointer"
-              >
-                View Voters
-              </button>
-            )}
-          </div>
-          <PollVotersModal
-            isOpen={isVotersModalOpen}
-            onClose={() => setIsVotersModalOpen(false)}
-            payload={votersData}
-          />
-        </div>
+        )
       ) : hasVoted ? (
-        <div className="w-full space-y-6">
+        <div className="w-full space-y-6 mt-4">
           <div className="text-center type-detail-medium text-grey-400 mt-3 text-xs sm:text-sm">
             You cannot see the result yet.
           </div>

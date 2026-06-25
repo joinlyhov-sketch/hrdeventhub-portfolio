@@ -37,6 +37,10 @@ export default function RootLayout({
         geist.variable,
       )}
     >
+      <head>
+        <link rel="preconnect" href="https://api.hrdevent.app" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.hrdevent.app" />
+      </head>
       <body
         className={`${getGoogleSansFlex.className} min-h-full flex flex-col`}
       >

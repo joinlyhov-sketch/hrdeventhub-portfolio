@@ -15,6 +15,7 @@ import {
 import { Poll } from "@/types/poll";
 import { NavigationGuard } from "@/components/dashboard/NavigationGuard";
 import { mutate as globalMutate } from "swr";
+import { toast } from "sonner";
 
 interface PollFormProps {
   workspaceId?: string;
@@ -49,6 +50,8 @@ export default function PollForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const safeTextRegex = /^[a-zA-Z0-9\s.,!?()\-–—']+$/;
+  const SPECIAL_CHAR_ERROR = "Special characters are not allowed.";
   const [workspaceIdState, setWorkspaceIdState] = useState(
     initialData?.workspaceId ?? workspaceId ?? "",
   );
@@ -80,6 +83,14 @@ export default function PollForm({
       closingTime: "",
     };
   });
+  const handleTitleChange = (value: string) => {
+    if (value === "" || safeTextRegex.test(value)) {
+      setTitle(value);
+      setError(null);
+    } else {
+      setError(SPECIAL_CHAR_ERROR);
+    }
+  };
 
   useEffect(() => {
     if (isEditMode) return;
@@ -195,6 +206,10 @@ export default function PollForm({
       setError("Poll title is required");
       return false;
     }
+    if (!safeTextRegex.test(title)) {
+      setError(SPECIAL_CHAR_ERROR);
+      return false;
+    }
 
     const totalOptions = lockedOptions.length + newOptions.length;
     if (totalOptions < 2) {
@@ -219,7 +234,6 @@ export default function PollForm({
     setSuccess(false);
     if (!validateForm()) return;
     setIsSubmitting(true);
-
     try {
       if (isEditMode) {
         await updatePollAction(pollId, {
@@ -241,6 +255,7 @@ export default function PollForm({
           options: lockedOptions.map((o) => o.text),
           newOptionTexts: newOptions.map((o) => o.trim()).filter(Boolean),
         });
+        toast.success("Updated poll successfully!");
       } else {
         await createPollAction({
           title: title.trim(),
@@ -260,6 +275,7 @@ export default function PollForm({
           hiddenPoll: settings.hiddenPoll,
           showResult: settings.showResult,
         });
+        toast.success("Created poll successfully!");
       }
 
       const savedWorkspaceId = workspaceIdState;
@@ -351,7 +367,7 @@ export default function PollForm({
 
           <PollHeader
             title={title}
-            setTitle={setTitle}
+            setTitle={handleTitleChange}
             description={description}
             setDescription={setDescription}
             closingTime={combinedClosingDateTime}

@@ -4,13 +4,16 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { mutate as globalMutate } from "swr";
+import dynamic from "next/dynamic";
 import SearchEvent from "./SearchEvent";
 import { PinnedSection } from "./PinnedSection";
-import { EventCard } from "./EventCard";
-import { AnnouncementCard } from "./AnnouncementCard";
-import { PollCard } from "./PollCard";
-import { SurveyCard } from "./SurveyCard";
-import { ArticleCard } from "./ArticleCard";
+
+const EventCard = dynamic(() => import("./EventCard").then(mod => mod.EventCard));
+const AnnouncementCard = dynamic(() => import("./AnnouncementCard").then(mod => mod.AnnouncementCard));
+const PollCard = dynamic(() => import("./PollCard").then(mod => mod.PollCard));
+const SurveyCard = dynamic(() => import("./SurveyCard").then(mod => mod.SurveyCard));
+const ArticleCard = dynamic(() => import("./ArticleCard").then(mod => mod.ArticleCard));
+
 import { useCurrentUser } from "@/context/user-context";
 import { useWorkspaceFeed } from "@/hooks/use-workspace-hook";
 import { useWorkspaceMembers } from "@/hooks/use-workspace-members";
