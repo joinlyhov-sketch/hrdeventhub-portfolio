@@ -63,7 +63,7 @@ export interface Post {
   media?: PostMedia[];
   location?: PostLocation;
   payment?: PostPayment | null;
-  comments?: Record<string, unknown>[];
+  commentCount?: number;
   creator?: PostCreator;
 }
 

@@ -78,7 +78,7 @@ export default function EventDetailClient({
   const [detailData, setDetailData] = useState({
     id: event?.postId || "det-4401",
     likesCount: 0,
-    commentsCount: event?.comments?.length || 0,
+    commentsCount: event?.commentCount || 0,
     isLikedByUser: false,
   });
 
@@ -160,7 +160,7 @@ export default function EventDetailClient({
           setEvent(livePost);
           setDetailData((prev) => ({
             ...prev,
-            commentsCount: livePost.comments?.length || 0,
+            commentsCount: livePost.commentCount || 0,
           }));
         }
       } catch (err) {
@@ -498,10 +498,7 @@ export default function EventDetailClient({
         </div>
       </div>
       <div className="flex items-center gap-3 p-3 bg-grey-50/50 rounded-xl border border-border/60">
-        <Link
-          href={`/profile/${event.creator?.userId}`}
-          className="shrink-0"
-        >
+        <Link href={`/profile/${event.creator?.userId}`} className="shrink-0">
           {event?.creator?.profilePicture && !avatarError ? (
             <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-secondary">
               <Image
@@ -533,21 +530,18 @@ export default function EventDetailClient({
       </div>
       <div className="flex flex-col gap-2 pt-1">
         <h2 className="text-base font-bold text-secondary">About Event</h2>
-        <p className="text-sm text-grey-500 leading-relaxed">
-          {isLongDescription && !isDescExpanded
-            ? rawDescription.slice(0, DESCRIPTION_LIMIT)
-            : rawDescription}
-          {isLongDescription && !isDescExpanded && <span>... </span>}
-          {isLongDescription && (
-            <button
-              type="button"
-              onClick={() => setIsDescExpanded((v) => !v)}
-              className="text-primary font-semibold text-sm"
-            >
-              {isDescExpanded ? "Read less" : "Read more"}
-            </button>
-          )}
+        <p className={`text-sm text-grey-500 leading-relaxed break-all${!isDescExpanded ? " line-clamp-4" : ""}`}>
+          {rawDescription}
         </p>
+        {isLongDescription && (
+          <button
+            type="button"
+            onClick={() => setIsDescExpanded((v) => !v)}
+            className="text-primary font-semibold text-sm text-left"
+          >
+            {isDescExpanded ? "Read less" : "Read more"}
+          </button>
+        )}
       </div>
     </>
   );
@@ -562,8 +556,7 @@ export default function EventDetailClient({
         className="absolute top-0.75 h-[calc(100%-6px)] rounded-[9px] z-0 transition-all duration-250 ease-in-out"
         style={{
           background: "#1c4d8d",
-          boxShadow:
-            "0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)",
         }}
       />
       {(["details", "price", "map"] as Tab[]).map((t, i) => (
@@ -586,8 +579,8 @@ export default function EventDetailClient({
 
   const mobileTabContent = (
     <div className="flex flex-col gap-5 min-h-55">
-      {activeTab === "details" && (
-        isAdminOrOrganizer ? (
+      {activeTab === "details" &&
+        (isAdminOrOrganizer ? (
           <DetailContentComponent
             postId={event?.postId}
             title={event?.title}
@@ -597,8 +590,9 @@ export default function EventDetailClient({
             locationName={event?.location?.locationName}
             hideTitle
           />
-        ) : mobileDetailsContent
-      )}
+        ) : (
+          mobileDetailsContent
+        ))}
       {activeTab === "price" && (
         <div className="flex flex-col items-center justify-center h-55">
           <PriceContentComponent payment={event?.payment} />
@@ -688,11 +682,11 @@ export default function EventDetailClient({
   const mobileParticipantBar = (
     <div className="mx-4 -mt-5 relative z-10 bg-card rounded-2xl shadow-md px-4 py-3 flex items-center justify-between border border-border">
       <div className="flex items-center gap-2">
-        <div className="flex -space-x-2">
-          {mobileParticipantAvatars("md")}
-        </div>
+        <div className="flex -space-x-2">{mobileParticipantAvatars("md")}</div>
         <span className="text-sm font-semibold text-primary">
-          {participants.length === 0 ? "No participants yet" : `+${participants.length} Going`}
+          {participants.length === 0
+            ? "No participants yet"
+            : `+${participants.length} Going`}
         </span>
       </div>
       <button
@@ -707,13 +701,12 @@ export default function EventDetailClient({
 
   return (
     <>
-      {/* Mobile view — student/alumni only */}
       {!isAdminOrOrganizer && (
         <div className="md:hidden flex flex-col bg-card border border-border rounded-lg overflow-hidden">
           {mobileCoverImage}
           {mobileParticipantBar}
           <div className="flex flex-col gap-5 px-4 pt-5 pb-6">
-            <h1 className="text-xl font-bold text-secondary">
+            <h1 className="text-xl font-bold text-secondary break-all">
               {event?.title || "Event"}
             </h1>
             <button
@@ -747,11 +740,10 @@ export default function EventDetailClient({
           </div>
         </div>
       )}
-
-      {/* Desktop view — always visible for admin/organizer, hidden on mobile for student/alumni */}
-      <section className={`max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-4 sm:gap-y-6 bg-card${!isAdminOrOrganizer ? " hidden md:flex" : ""}`}>
+      <section
+        className={`max-w-full border border-border rounded-lg p-6 flex flex-col gap-y-4 sm:gap-y-6 bg-card${!isAdminOrOrganizer ? " hidden md:flex" : ""}`}
+      >
         <section className="flex justify-between items-center gap-x-3 w-full">
-          {/* Creator info */}
           <Link
             href={`/profile/${event.creator?.userId}`}
             className="min-w-0 flex-1"
@@ -784,14 +776,15 @@ export default function EventDetailClient({
               </div>
             </div>
           </Link>
-
-          {/* Role badge + Edit — equal-width column on mobile, row on sm+ */}
           {isAdminOrOrganizer && (
             <div className="flex flex-col gap-y-1.5 shrink-0 sm:flex-row sm:items-center sm:gap-x-2">
               <span className="block bg-primary/10 px-3 py-1.5 rounded-xl text-primary text-xs font-semibold capitalize text-center whitespace-nowrap">
                 {event.creator?.role
-                  ? event.creator.role.charAt(0).toUpperCase() + event.creator.role.slice(1).toLowerCase()
-                  : currentUser?.role === "admin" ? "Admin" : "Organizer"}
+                  ? event.creator.role.charAt(0).toUpperCase() +
+                    event.creator.role.slice(1).toLowerCase()
+                  : currentUser?.role === "admin"
+                    ? "Admin"
+                    : "Organizer"}
               </span>
               <Link
                 href={`/event-management/edition/event?groupId=${workspaceId}&postId=${event.postId}`}
@@ -806,7 +799,7 @@ export default function EventDetailClient({
           )}
         </section>
 
-        <h2 className="text-xl font-bold leading-snug md-type-title text-secondary">
+        <h2 className="text-xl font-bold leading-snug md-type-title text-secondary break-all">
           {event?.title || "Event Detail"}
         </h2>
 
@@ -935,7 +928,7 @@ export default function EventDetailClient({
                 type="button"
                 onClick={() => !isRegistered && setIsPaymentOpen(true)}
                 disabled={isRegistered}
-                className={`w-full rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${
+                className={`w-full mt-4 rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${
                   isRegistered
                     ? "bg-green-400/15 text-accent cursor-default font-regular"
                     : "text-primary-foreground bg-primary hover:opacity-95"
@@ -967,7 +960,9 @@ export default function EventDetailClient({
                 ) : (
                   <ThumbsUp size={18} />
                 )}
-                <span>{activeReaction ? activeReaction.displayText : "Like"}</span>
+                <span>
+                  {activeReaction ? activeReaction.displayText : "Like"}
+                </span>
               </button>
             </ReactionPopover>
             <button

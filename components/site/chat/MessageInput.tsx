@@ -63,7 +63,7 @@ interface MessageInputProps {
 }
 
 const ACCEPTED_TYPES = "image/jpeg,image/png,image/webp,image/gif,application/pdf";
-
+const ACCEPTED_IMAGE_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export default function MessageInput({
   value,
@@ -78,15 +78,29 @@ export default function MessageInput({
   const textRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [showEmoji, setShowEmoji] = useState(false);
+  const [pastedImage, setPastedImage] = useState<{ file: File; previewUrl: string } | null>(null);
 
   useEffect(() => {
     if (editingMsg) textRef.current?.focus();
   }, [editingMsg]);
 
+  useEffect(() => {
+    return () => {
+      if (pastedImage) URL.revokeObjectURL(pastedImage.previewUrl);
+    };
+  }, [pastedImage]);
+
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onSend();
+      if (pastedImage) {
+        sendPastedImage();
+      } else {
+        onSend();
+      }
+    }
+    if (e.key === "Escape" && pastedImage) {
+      cancelPastedImage();
     }
   }
 
@@ -100,6 +114,41 @@ export default function MessageInput({
     if (!file) return;
     await onFileUpload(file);
     e.target.value = "";
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    if (editingMsg) return;
+
+    const items = Array.from(e.clipboardData.items);
+    const imageItem = items.find(
+      (item) => item.kind === "file" && ACCEPTED_IMAGE_MIME.includes(item.type)
+    );
+
+    if (!imageItem) return;
+
+    e.preventDefault();
+    const file = imageItem.getAsFile();
+    if (!file) return;
+
+    const ext = file.type.split("/")[1] ?? "png";
+    const namedFile = new File([file], `pasted-image-${Date.now()}.${ext}`, { type: file.type });
+    const previewUrl = URL.createObjectURL(namedFile);
+    setPastedImage({ file: namedFile, previewUrl });
+  }
+
+  async function sendPastedImage() {
+    if (!pastedImage) return;
+    const { file, previewUrl } = pastedImage;
+    setPastedImage(null);
+    URL.revokeObjectURL(previewUrl);
+    if (value.trim()) onSend();
+    await onFileUpload(file);
+  }
+
+  function cancelPastedImage() {
+    if (!pastedImage) return;
+    URL.revokeObjectURL(pastedImage.previewUrl);
+    setPastedImage(null);
   }
 
   const handlePickEmoji = useCallback(
@@ -143,6 +192,28 @@ export default function MessageInput({
         </div>
       )}
 
+      {pastedImage && (
+        <div className="flex items-center gap-3 mb-3 px-1">
+          <div className="relative inline-block">
+            <img
+              src={pastedImage.previewUrl}
+              alt="Pasted image preview"
+              className="h-20 max-w-[180px] rounded-xl object-cover border border-gray-200 shadow-sm"
+            />
+            <button
+              type="button"
+              onClick={cancelPastedImage}
+              className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full w-5 h-5 flex items-center justify-center shadow text-gray-500 hover:text-red-500 hover:cursor-pointer transition-colors"
+              title="Remove"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 1l8 8M9 1L1 9" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="w-full flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
         <input
           ref={fileRef}
@@ -180,12 +251,15 @@ export default function MessageInput({
             autoResize(e.target);
           }}
           onKeyDown={handleKey}
+          onPaste={handlePaste}
           placeholder={
             editingMsg
               ? "Editing message..."
               : uploading
               ? "Uploading attachment..."
-              : "Type a message… (Enter to send)"
+              : pastedImage
+              ? "Press Enter to send image, Esc to cancel…"
+              : "Type a message… (Enter to send, or paste an image)"
           }
           className="flex-1 bg-transparent border-0 outline-none text-sm text-gray-800 resize-none max-h-24 py-1.5 px-2 focus:ring-0 focus:outline-none placeholder:text-gray-400 font-normal leading-relaxed"
         />
@@ -219,8 +293,8 @@ export default function MessageInput({
 
         <button
           type="button"
-          onClick={onSend}
-          disabled={!value.trim()}
+          onClick={pastedImage ? sendPastedImage : onSend}
+          disabled={pastedImage ? fileDisabled : !value.trim()}
           className="p-2 bg-[#1c4d8d] text-white rounded-xl transition-all shrink-0 disabled:opacity-40 disabled:bg-[#235698] shadow-sm hover:cursor-pointer"
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
