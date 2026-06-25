@@ -30,7 +30,7 @@ interface Participant {
 
 const MAX_AVATARS = 4;
 
-const CONTENT_LIMIT = 150;
+const CONTENT_LIMIT = 250;
 
 export default function DetailContentComponent({
   title = "",
@@ -89,18 +89,34 @@ export default function DetailContentComponent({
             {title || "No Title Specified"}
           </p>
         )}
-        <p className={`text-desc text-grey-500 break-all${!isExpanded ? " line-clamp-4 sm:line-clamp-3" : ""}`}>
-          {rawContent}
+        <p className="text-desc text-grey-500 break-all">
+          {isLong && !isExpanded ? (
+            <>
+              {rawContent.slice(0, CONTENT_LIMIT)}
+              {"... "}
+              <button
+                type="button"
+                onClick={() => setIsExpanded(true)}
+                className="text-primary font-semibold text-sm"
+              >
+                Read more
+              </button>
+            </>
+          ) : (
+            <>
+              {rawContent}
+              {isLong && (
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(false)}
+                  className="ml-1 text-primary font-semibold text-sm"
+                >
+                  Read less
+                </button>
+              )}
+            </>
+          )}
         </p>
-        {isLong && (
-          <button
-            type="button"
-            onClick={() => setIsExpanded((v) => !v)}
-            className="text-primary font-semibold text-sm"
-          >
-            {isExpanded ? "Read less" : "Read more"}
-          </button>
-        )}
       </section>
 
       <section className="flex flex-col gap-y-2">
