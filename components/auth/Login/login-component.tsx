@@ -96,15 +96,15 @@ export default function LoginComponent() {
         return;
       }
       if (res?.ok) {
-  toast.success(
-    "Welcome to HRD EVENTHUB! You've successfully logged in.",
-  );
-  if (redirectUrl) {
-    window.location.href = redirectUrl;
-  } else {
-    router.push("/group");
-  }
-}
+        toast.success(
+          "Welcome to HRD EVENTHUB! You've successfully logged in.",
+        );
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        } else {
+          router.push("/group");
+        }
+      }
     });
   };
 
@@ -137,9 +137,8 @@ export default function LoginComponent() {
           )}
           <div className="flex flex-col gap-1.5">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:py-3.5 transition-all focus-within:border-primary ${
-                errors.identifier ? "border-destructive" : "border-border"
-              }`}
+              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:py-3.5 transition-all focus-within:border-primary ${errors.identifier ? "border-destructive" : "border-border"
+                }`}
             >
               <Mail size={18} className="shrink-0 text-muted-foreground" strokeWidth={2} />
               <input
@@ -156,9 +155,8 @@ export default function LoginComponent() {
           </div>
           <div className="flex flex-col gap-1.5">
             <div
-              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:py-3.5 transition-all focus-within:border-primary ${
-                errors.password ? "border-destructive" : "border-border"
-              }`}
+              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 sm:py-3.5 transition-all focus-within:border-primary ${errors.password ? "border-destructive" : "border-border"
+                }`}
             >
               <Lock size={18} className="shrink-0 text-muted-foreground" strokeWidth={2} />
               <input
@@ -173,7 +171,7 @@ export default function LoginComponent() {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="text-xs font-semibold text-primary shrink-0"
+                className="text-xs font-semibold text-primary shrink-0 hover:cursor-pointer"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -187,7 +185,7 @@ export default function LoginComponent() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 accent-primary"
+                className="h-4 w-4 accent-primary cursor-pointer"
               />
               <span className="text-sm text-muted-foreground">Remember me</span>
             </label>
@@ -208,14 +206,14 @@ export default function LoginComponent() {
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-  Don&apos;t have an account?{" "}
-  
-    <a href={redirectUrl ? `/sign-up?redirect=${encodeURIComponent(redirectUrl)}` : "/sign-up"}
-    className="font-semibold text-secondary underline underline-offset-2"
-  >
-    Sign up
-  </a>
-</p>
+            Don&apos;t have an account?{" "}
+
+            <a href={redirectUrl ? `/sign-up?redirect=${encodeURIComponent(redirectUrl)}` : "/sign-up"}
+              className="font-semibold text-secondary underline underline-offset-2"
+            >
+              Sign up
+            </a>
+          </p>
         </form>
       </div>
 
@@ -224,31 +222,31 @@ export default function LoginComponent() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-[24px] bg-card p-6 shadow-xl"
           >
             <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 mb-4">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-4">
                 <Mail size={24} />
               </div>
               <button
                 onClick={() => setShowVerifyModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 disabled={isResending}
               >
                 <X size={20} />
               </button>
             </div>
-            
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Account Not Verified</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Your account hasn't been verified yet. Would you like to verify it now? We will send a new OTP to <span className="font-semibold text-gray-900">{unverifiedEmail}</span>.
+
+            <h3 className="text-xl font-bold text-foreground mb-2">Account Not Verified</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Your account hasn't been verified yet. Would you like to verify it now? We will send a new OTP to <span className="font-semibold text-foreground">{unverifiedEmail}</span>.
             </p>
-            
+
             <div className="flex gap-3 w-full">
               <button
                 onClick={() => setShowVerifyModal(false)}
                 disabled={isResending}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-border text-foreground font-semibold hover:bg-muted/50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -268,7 +266,7 @@ export default function LoginComponent() {
                   }
                 }}
                 disabled={isResending}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-[#1f4685] transition-colors disabled:opacity-70 cursor-pointer"
               >
                 {isResending ? "Sending..." : "Verify Now"}
               </button>

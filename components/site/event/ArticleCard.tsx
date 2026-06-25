@@ -194,11 +194,10 @@ function ArticleItem({
               className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
             >
               <MessageCircleMore size={20} />
-              {showComments
-                ? getTotalCommentsCount(comments)
-                : getTotalCommentsCount(comments) > 0
-                  ? `${getTotalCommentsCount(comments)} Comment${getTotalCommentsCount(comments) > 1 ? "s" : ""}`
-                  : "Comment"}
+              {(() => {
+                const count = comments && comments.length > 0 ? getTotalCommentsCount(comments) : (post.commentCount || 0);
+                return count > 0 ? `${count} Comment${count > 1 ? "s" : ""}` : "Comment";
+              })()}
             </button>
             <button
               onClick={() => setIsShareOpen(true)}

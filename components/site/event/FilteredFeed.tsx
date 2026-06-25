@@ -92,22 +92,7 @@ export default function FilteredFeed({
     }
   }, [swrItems, groupid, setFeed]);
 
-  const commentsSeedDone = useRef(false);
-  useEffect(() => {
-    if (commentsSeedDone.current) return;
-    if (!feedItems || feedItems.length === 0) return;
 
-    feedItems.forEach((item) => {
-      const d = item.data as Record<string, unknown> | undefined;
-      const postId = d?.postId ?? d?.pollId ?? d?.surveyId;
-      const comments = d?.comments;
-      if (postId && Array.isArray(comments)) {
-        globalMutate(commentCacheKey(postId as string), comments, { revalidate: false });
-      }
-    });
-
-    commentsSeedDone.current = true;
-  }, [feedItems]);
 
   const { members } = useWorkspaceMembers(groupid);
 

@@ -162,7 +162,7 @@ export default function CreateInvitationLinkModal({
           <Button
             variant="outline"
             onClick={handleClose}
-            className="h-[44px] px-8 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-xl text-[15px] transition-colors"
+            className="h-[44px] px-8 border border-gray-300 text-gray-700 hover:bg-primary font-semibold rounded-xl text-[15px] transition-colors"
           >
             Cancel
           </Button>
