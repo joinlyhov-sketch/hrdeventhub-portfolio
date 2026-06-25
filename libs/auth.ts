@@ -33,13 +33,13 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          let decoded: { userId?: string; sub?: string; roles?: string } = {};
+          let decoded: { userId?: string; sub?: string } = {};
           const parts = token.split(".");
           if (parts.length === 3) {
             try {
               decoded = JSON.parse(
                 Buffer.from(parts[1], "base64").toString("utf-8"),
-              ) as { userId?: string; sub?: string; roles?: string };
+              ) as { userId?: string; sub?: string };
             } catch {
               console.error("Failed to decode JWT payload");
             }
@@ -47,12 +47,22 @@ export const authOptions: NextAuthOptions = {
 
           const userId = decoded.userId ?? "unknown";
           const userEmail = decoded.sub ?? (credentials.identifier as string);
-          const rawRole = decoded.roles ?? "STUDENT";
+          
+          let rawRole = "STUDENT";
+          try {
+            const profileResponse = await authService.getProfileMe(token);
+            rawRole = profileResponse.payload.roles ?? "STUDENT";
+          } catch (e) {
+            console.error("Failed to fetch profile during login for role extraction", e);
+          }
+
+          const rawRoleStr = Array.isArray(rawRole) ? rawRole.join(",") : String(rawRole);
+          const roleStr = rawRoleStr.toUpperCase();
 
           let resolvedRole = "student";
-          if (rawRole === "ADMIN") resolvedRole = "admin";
-          else if (rawRole === "ORGANIZER") resolvedRole = "organizer";
-          else if (rawRole === "ALUMNI") resolvedRole = "alumni";
+          if (roleStr.includes("ADMIN")) resolvedRole = "admin";
+          else if (roleStr.includes("ORGANIZER")) resolvedRole = "organizer";
+          else if (roleStr.includes("ALUMNI")) resolvedRole = "alumni";
 
           const rememberMe = credentials.rememberMe === "true";
 
