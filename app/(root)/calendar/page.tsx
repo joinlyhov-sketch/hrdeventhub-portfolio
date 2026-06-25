@@ -30,7 +30,6 @@ export default function CalendarPage() {
   const { currentUser, isLoading: userLoading } = useCurrentUser();
   const searchParams = useSearchParams();
   const role = currentUser?.role ?? normalizeRole(session?.user?.role);
-
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces(
     role === "admin" ? null : role,
   );
@@ -39,9 +38,7 @@ export default function CalendarPage() {
     searchParams.get("groupId") ||
     searchParams.get("groupid");
   const workspaceId =
-    role === "admin"
-      ? undefined
-      : workspaceFromUrl || workspaces[0]?.workspaceId;
+    role === "admin" ? undefined : (workspaceFromUrl ?? undefined);
 
   if (status === "loading" || userLoading || workspacesLoading) {
     return (
