@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "../../ui/input";
 import { Card } from "../../ui/card";
 import { Label } from "../../ui/label";
@@ -13,13 +13,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/libs/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface PollHeaderProps {
   title: string;
@@ -42,6 +35,27 @@ export default function PollHeader({
     closingTime ? new Date(closingTime) : undefined,
   );
   const [closingTimeStr, setClosingTimeStr] = useState("00:00");
+
+  useEffect(() => {
+    if (closingTime) {
+      const utcString = closingTime.endsWith("Z")
+        ? closingTime
+        : `${closingTime}Z`;
+      const parsedDate = new Date(utcString);
+
+      if (!isNaN(parsedDate.getTime())) {
+        setClosingDate(parsedDate);
+
+        const hours = String(parsedDate.getHours()).padStart(2, "0");
+        const minutes = String(parsedDate.getMinutes()).padStart(2, "0");
+
+        setClosingTimeStr(`${hours}:${minutes}`);
+      }
+    } else {
+      setClosingDate(undefined);
+      setClosingTimeStr("00:00");
+    }
+  }, [closingTime]);
 
   return (
     <Card className="bg-background rounded-2xl border-l-[6px] border-l-blue-900 border-y-border border-r-border p-8 shadow-sm mb-6">
@@ -107,7 +121,7 @@ export default function PollHeader({
                         setClosingDate(date);
                         const [h, m] = closingTimeStr.split(":");
                         const updated = new Date(date);
-                        updated.setHours(Number(h), Number(m));
+                        updated.setHours(Number(h), Number(m), 0, 0);
                         setClosingTime(updated.toISOString());
                       }
                     }}
@@ -122,15 +136,17 @@ export default function PollHeader({
                 type="time"
                 value={closingTimeStr}
                 onChange={(e) => {
-                  setClosingTimeStr(e.target.value);
-                  if (closingDate) {
-                    const [h, m] = e.target.value.split(":");
-                    const updated = new Date(closingDate);
-                    updated.setHours(Number(h), Number(m));
-                    setClosingTime(updated.toISOString());
-                  }
+                  const newTimeStr = e.target.value;
+                  setClosingTimeStr(newTimeStr);
+
+                  const baseDate = closingDate || new Date();
+                  const [h, m] = newTimeStr.split(":");
+                  const updated = new Date(baseDate);
+                  updated.setHours(Number(h), Number(m), 0, 0);
+
+                  setClosingTime(updated.toISOString());
                 }}
-                className="h-11 px-2 bg-background border border-input rounded-xl text-desc md:text-base transition-all outline-none focus:ring-1 focus:ring-primary cursor-pointer w-32 "
+                className="h-11 px-2 bg-background border border-input rounded-xl text-desc md:text-base transition-all outline-none focus:ring-1 focus:ring-primary cursor-pointer w-32"
               />
             </div>
           </div>
