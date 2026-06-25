@@ -7,6 +7,9 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { authService } from "@/service/auth.service";
+import { useRegisterStore } from "@/store/useRegisterStore";
+import { X } from "lucide-react";
 
 const itemVars: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -31,6 +34,9 @@ export default function LoginComponent() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -75,6 +81,13 @@ export default function LoginComponent() {
       });
 
       if (res?.error) {
+        if (res.error.startsWith("NOT_VERIFIED:")) {
+          const email = res.error.split(":")[1];
+          setUnverifiedEmail(email);
+          setShowVerifyModal(true);
+          return;
+        }
+
         setServerError(
           res.error === "CredentialsSignin"
             ? "Invalid email or password."
@@ -205,6 +218,64 @@ export default function LoginComponent() {
 </p>
         </form>
       </div>
+
+      {showVerifyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-xl"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 mb-4">
+                <Mail size={24} />
+              </div>
+              <button
+                onClick={() => setShowVerifyModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={isResending}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Account Not Verified</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Your account hasn't been verified yet. Would you like to verify it now? We will send a new OTP to <span className="font-semibold text-gray-900">{unverifiedEmail}</span>.
+            </p>
+            
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setShowVerifyModal(false)}
+                disabled={isResending}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    setIsResending(true);
+                    await authService.resendOtp(unverifiedEmail);
+                    useRegisterStore.getState().goToOTP(unverifiedEmail);
+                    router.push("/sign-up");
+                    toast.success("A new OTP has been sent to your email.");
+                  } catch (err) {
+                    toast.error("Failed to resend OTP. Please try again.");
+                  } finally {
+                    setIsResending(false);
+                    setShowVerifyModal(false);
+                  }
+                }}
+                disabled={isResending}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70"
+              >
+                {isResending ? "Sending..." : "Verify Now"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }

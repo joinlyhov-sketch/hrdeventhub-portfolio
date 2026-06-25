@@ -100,11 +100,11 @@ function QuestionField({
     case "choice":
       return (
         <div className="space-y-2 sm:space-y-3">
-          {(element.choices ?? []).map((choice) => {
+          {(element.choices ?? []).map((choice, idx) => {
             const isSelected = value === choice;
             return (
               <label
-                key={choice}
+                key={`${choice}-${idx}`}
                 className={`flex items-center gap-3 sm:gap-4 border p-3 sm:p-4 rounded-xl cursor-pointer transition-all ${isSelected
                     ? "border-secondary bg-secondary/[0.04]"
                     : "border-grey-200 hover:border-grey-300 bg-white"
@@ -145,8 +145,8 @@ function QuestionField({
           className={`${base} bg-white`}
         >
           <option value="">— Select an option —</option>
-          {(element.choices ?? []).map((c) => (
-            <option key={c} value={c}>
+          {(element.choices ?? []).map((c, idx) => (
+            <option key={`${c}-${idx}`} value={c}>
               {c}
             </option>
           ))}
