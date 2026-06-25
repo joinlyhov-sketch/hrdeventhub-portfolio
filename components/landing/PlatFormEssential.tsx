@@ -15,7 +15,8 @@ const cards = [
     title: "Payments",
     desc: "Secure enterprise-grade payment processing for paid workshops and certification courses.",
     position: "left-[45px] top-[345px]",
-    line: "left-[98px] -top-[78px] border-l-2 border-t-2",
+    line: "left-[98px]",
+    lineAngle: "rotate-[90deg]",
     card: "left-[210px] top-[170px] rotate-[-200deg]",
     icon: (
       <BadgeDollarSign
@@ -30,7 +31,8 @@ const cards = [
     title: "Event Management",
     desc: "Full lifecycle control in an Event Management System handles planning, scheduling and tracking in one platform for smooth event operations.",
     position: "left-[175px] top-[585px]",
-    line: "left-[98px] -top-[72px] border-l-2 border-t-2",
+    line: "left-[98px]",
+    lineAngle: "rotate-[35deg]",
     card: "left-[280px] top-[330px] rotate-[-233deg]",
     icon: (
       <CalendarHeart
@@ -45,7 +47,8 @@ const cards = [
     title: "User Roles",
     desc: "Granular permission system for organizers, trainers, attendees, and executive stakeholders.",
     position: "left-[400px] top-[700px]",
-    line: "left-[125px] -translate-x-1/2 -top-[78px] border-l-2",
+    line: "left-[98px]",
+    lineAngle: "rotate-[35deg]",
     card: "left-[425px] top-[428px] rotate-[-265deg]",
     icon: (
       <UserRoundKey
@@ -60,8 +63,9 @@ const cards = [
     title: "Notifications",
     desc: "Automated SMS notifications keep participants informed with reminders, updates, and important event alerts in real time.",
     position: "right-[415px] top-[700px]",
-    line: "left-[120px] -translate-x-1/2 -top-[78px] border-l-2",
-    card: "right-[485px] top-[440px] rotate-[68deg]",
+    line: "left-[102px]",
+    lineAngle: "-rotate-[35deg]",
+    card: "right-[480px] top-[440px] rotate-[65deg]",
     icon: (
       <BellRing
         size={52}
@@ -75,7 +79,8 @@ const cards = [
     title: "Survey & Polls",
     desc: "A central hub for HRD organizers to gather feedback and student opinions.",
     position: "right-[210px] top-[575px]",
-    line: "left-[78px] -top-[72px] border-r-2 border-t-2",
+    line: "left-[102px]",
+    lineAngle: "-rotate-[35deg]",
     card: "right-[310px] top-[350px] rotate-[28deg]",
     icon: <Vote size={50} strokeWidth={2.3} className="rotate-44 text-white" />,
     iconRotate: "right-[68px] top-[50px] rotate-[-72deg]",
@@ -83,9 +88,10 @@ const cards = [
   {
     title: "Engagement",
     desc: "Interactive polling, Q&A sessions, and social networking features built directly into every event.",
-    position: "right-[60px] top-[370px]",
-    line: "left-[68px] -top-[80px] border-r-2 border-t-2",
-    card: "right-[230px] top-[200px] rotate-[-5deg]",
+    position: "right-[45px] top-[345px]",
+    line: "left-[98px]",
+    lineAngle: "-rotate-[90deg]",
+    card: "right-[230px] top-[195px] rotate-[-5deg]",
     icon: (
       <svg
         className="rotate-[75.9deg] text-white"
@@ -176,10 +182,20 @@ function AnimatedCard({
           damping: 16,
         }}
       >
-        <div className={`absolute h-17.5 w-10 border-[#4C67AE] ${item.line}`} />
-        <div className="inline-flex h-14 items-center justify-center rounded-2xl bg-[#F1F3F6] px-6 shadow-sm">
-          <h3 className="text-[17px] font-bold text-secondary">{item.title}</h3>
+        <div className={`absolute bottom-full h-17.5 w-10 ${item.line}`}>
+          <div className="absolute bottom-0 left-0 w-[2px] h-1/2 bg-[#4C67AE]" />
+          <div
+            className={`absolute bottom-1/2 left-0 w-[2px] h-1/2 bg-[#4C67AE] origin-bottom ${
+              item.lineAngle ?? ""
+            }`}
+          />
         </div>
+        <div className="inline-flex h-14 items-center w-fit justify-center rounded-2xl bg-[#F1F3F6] px-4 shadow-sm">
+          <h3 className="text-[17px] font-semibold text-secondary">
+            {item.title}
+          </h3>
+        </div>
+        <div className="absolute h-6 right-27 w-[2.5px] bg-[#4C67AE] mx-auto" />
         <p className="mt-6 text-[14px] leading-7.5 text-[#5E677C]">
           {item.desc}
         </p>
@@ -246,7 +262,7 @@ export default function PlatformEssentials() {
               }}
             >
               <div className="absolute w-87.5 h-87.5 rounded-full border-b-4 -top-15 left-0" />
-              <div className="absolute w-57.5 h-57.5 left-15 bg-white rounded-full border border-slate-100 flex items-center justify-center text-center p-6 transition-transform duration-300 hover:scale-105">
+              <div className="absolute w-57.5 h-57.5 left-15 bg-white rounded-full border border-slate-100 flex items-center justify-center text-center p-6 transition-transform duration-300 hover:scale-105 shadow-sm">
                 <h2 className="text-center text-[24px] font-black leading-tight text-primary">
                   Core
                   <br />
@@ -293,6 +309,13 @@ export default function PlatformEssentials() {
         </div>
       </div>
 
+      <div className="md:hidden mt-8">
+        <div className="flex justify-centergit items-center mx-auto px-4 mb-4">
+          <h2 className="text-[20px] font-semibold text-secondary">
+            Core Capabilities
+          </h2>
+        </div>
+      </div>
       <motion.div
         variants={mobileContainerVariants}
         initial="hidden"
