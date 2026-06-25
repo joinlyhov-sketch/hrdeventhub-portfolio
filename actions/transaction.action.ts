@@ -287,6 +287,7 @@ export async function getTransactionDetail(
     status: detailStatusMap[tx.settlementStatus as string] ?? "Pending",
     referenceId: (tx.billNo ?? "") as string,
     transactionId: `#TX-${String(tx.transactionId).slice(-5)}`,
+    senderBankName: (tx.senderBankName ?? "") as string,
     payer: {
       id: payerProfileId,
       name: appUser

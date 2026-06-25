@@ -555,8 +555,8 @@ function PollItem({
                         <div className="bg-subtle w-2.5 h-2.5 rounded-sm" />
                       )}
                     </div>
-                    <div className="type-detail-medium text-foreground text-xs sm:text-sm w-full">
-                      <ExpandableText text={option.text} maxLength={60} />
+                    <div className="type-detail-medium text-foreground text-xs sm:text-sm w-full break-words">
+                      {option.text}
                       {isOldOptionVoted && (
                         <span className="text-xs text-grey-400 ml-1.5 whitespace-nowrap">
                           (Already Voted)
@@ -614,8 +614,8 @@ function PollItem({
                         />
                       )}
                     </div>
-                    <div className="type-detail-medium text-sm sm:text-base w-full">
-                      <ExpandableText text={option.text} maxLength={60} />
+                    <div className="type-detail-medium text-sm sm:text-base w-full break-words">
+                      {option.text}
                     </div>
                   </div>
                 </label>
@@ -654,8 +654,8 @@ function PollItem({
               return (
                 <div key={option.id} className="w-full select-none">
                   <div className="flex flex-wrap justify-between items-center gap-2 mb-1.5 w-full">
-                    <div className="type-detail-medium text-foreground font-medium text-xs sm:text-sm flex-1 min-w-0">
-                      <ExpandableText text={option.text} maxLength={60} />
+                    <div className="type-detail-medium text-foreground font-medium text-xs sm:text-sm flex-1 min-w-0 break-words">
+                      {option.text}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {/* <span className="type-detail-small text-grey-400">
