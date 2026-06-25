@@ -798,7 +798,7 @@ export default function StudentProfileForm() {
 
     if (!identityChanged && !profileChanged && !pendingCvFile) {
       sessionStorage.removeItem(`draft-student-profile-${session?.user?.email}`);
-      router.replace(profileRoute);
+      router.push(profileRoute);
       return;
     }
 
@@ -852,8 +852,7 @@ export default function StudentProfileForm() {
         if (identityResult?.success && profileResult?.success) {
           sessionStorage.removeItem(`draft-student-profile-${session?.user?.email}`);
           toast.success("Profile updated successfully.");
-          router.replace(profileRoute);
-          router.refresh();
+          router.push(profileRoute);
           return;
         }
         if (!identityResult?.success)

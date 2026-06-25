@@ -549,7 +549,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
     }
 
     sessionStorage.removeItem("pending-avatar");
-    router.replace(profileRoute);
+    router.push(profileRoute);
   };
 
   const handleSaveChanges = () => {
@@ -597,7 +597,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
 
     if (!identityChanged && !profileChanged) {
       sessionStorage.removeItem(`draft-admin-profile-${session?.user?.email}`);
-      router.replace(profileRoute);
+      router.push(profileRoute);
       return;
     }
 
@@ -635,8 +635,7 @@ export default function AdminProfileForm({ user }: { user: CurrentUser }) {
           sessionStorage.removeItem(`draft-admin-profile-${session?.user?.email}`);
           sessionStorage.removeItem("pending-avatar");
           toast.success("Profile updated successfully.");
-          router.replace(profileRoute);
-          router.refresh();
+          router.push(profileRoute);
           return;
         }
 
