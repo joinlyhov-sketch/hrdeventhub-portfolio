@@ -322,6 +322,7 @@ function CommentBubble({
     </>
   );
 }
+
 export function CommentNode({
   comment,
   currentUserId,
@@ -409,41 +410,58 @@ export function CommentNode({
         onRefetch={onRefetch}
         onReply={handleReplyClick}
       />
-
       {hasReplies && (
-        <button
-          onClick={() => setShowReplies((v) => !v)}
-          className="flex items-center gap-1.5 mt-1.5 ml-10 text-xs font-semibold text-primary hover:underline cursor-pointer"
-        >
-          <div className="w-5 h-px bg-grey-300" />
-          {showReplies
-            ? `Hide replies (${replyCount})`
-            : `View ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
-        </button>
+        <div className="relative mt-1.5 ml-10 flex items-center">
+          {showReplies && (
+            <div className="absolute left-[-24px] top-[-6px] bottom-0 w-[2px] bg-grey-200" />
+          )}
+          <button
+            onClick={() => setShowReplies((v) => !v)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer z-10"
+          >
+            <div className="w-5 h-px bg-grey-300" />
+            {showReplies
+              ? `Hide replies (${replyCount})`
+              : `View ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
+          </button>
+        </div>
       )}
 
       {showReplies && hasReplies && (
         <div className="mt-2 ml-10 relative">
-          <div className="absolute left-[-20px] top-4 bottom-20 w-px bg-grey-200" />
-
           <div className="space-y-3">
-            {flatReplies.map((reply) => (
-              <div key={reply.commentId} className="relative">
-                <div className="absolute left-[-20px] top-0 w-4 h-6 border-l-2 border-b-2 border-grey-200 rounded-bl-lg" />
-                <CommentBubble
-                  comment={reply}
-                  currentUserId={currentUserId}
-                  currentUserPicture={currentUserPicture}
-                  currentUserInitials={currentUserInitials}
-                  workspaceId={workspaceId}
-                  onRefetch={onRefetch}
-                  onReply={handleReplyClick}
-                />
-              </div>
-            ))}
+            {flatReplies.map((reply, index) => {
+              const isFirst = index === 0;
+              const isLast = index === flatReplies.length - 1;
+              
+              return (
+                <div key={reply.commentId} className="relative">
+                  <div
+                    className="absolute left-[-24px] w-[2px] bg-grey-200"
+                    style={{
+                      top: isFirst ? "-36px" : "-28px",
+                      bottom: isLast ? undefined : "0px",
+                      height: isLast ? (isFirst ? "44px" : "30px") : undefined,
+                    }}
+                  />
+                  <div className="absolute left-[-24px] top-0 w-6 h-4 border-l-2 border-b-2 border-grey-200 rounded-bl-lg" />
+                  
+                  <CommentBubble
+                    comment={reply}
+                    currentUserId={currentUserId}
+                    currentUserPicture={currentUserPicture}
+                    currentUserInitials={currentUserInitials}
+                    workspaceId={workspaceId}
+                    onRefetch={onRefetch}
+                    onReply={handleReplyClick}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
+
       {showReplyInput && (
         <div className="flex gap-2 items-center mt-2 ml-10">
           <Avatar
