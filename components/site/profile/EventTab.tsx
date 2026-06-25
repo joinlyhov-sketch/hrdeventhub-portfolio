@@ -6,6 +6,7 @@ import Image from "next/image";
 import { eventService, Participant } from "@/service/event.service";
 import { useSession } from "next-auth/react";
 import { getMediaUrl } from "@/libs/media";
+import EventTabSkeleton from "./EventTabSkeleton";
 
 interface EventTabProps {
   userId?: string;
@@ -53,11 +54,7 @@ export default function EventTab({ userId }: EventTabProps) {
   }
 
   if (loading) {
-    return (
-      <div className="p-4 text-muted-foreground animate-pulse">
-        Loading registrations...
-      </div>
-    );
+    return <EventTabSkeleton />;
   }
 
   return (

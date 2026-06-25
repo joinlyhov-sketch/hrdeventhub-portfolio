@@ -21,7 +21,7 @@ export function PollVotersModal({ isOpen, onClose, payload }: PollVotersModalPro
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   if (!payload || payload.length === 0) return null;
-  const total = payload.reduce((sum, opt) => sum + opt.voters.length, 0);
+
   const allVotersMap = new Map();
   for (const opt of payload) {
     for (const v of opt.voters) {

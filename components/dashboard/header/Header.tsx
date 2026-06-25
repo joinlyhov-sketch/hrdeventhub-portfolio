@@ -4,10 +4,10 @@ import { useCurrentUser } from "../../../context/user-context";
 import { HeaderProps } from "@/types/HeaderProps";
 
 export default function Header({ titlePrimary, titleSecondary, description }: HeaderProps) {
-  const { currentUser, isLoading } = useCurrentUser(); 
+  const { currentUser, isLoading } = useCurrentUser();
 
   return (
-    <div className="sticky top-0 z-50 bg-white pt-3 lg:pr-12 lg:pl-12">
+    <div className=" top-0 z-50 bg-white pt-3 lg:pr-12 lg:pl-12">
       <header className="top-bar mb-5 flex items-center justify-between p-1">
         <div>
           <h1 className="type-title flex items-center gap-1">

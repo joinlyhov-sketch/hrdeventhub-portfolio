@@ -49,14 +49,15 @@ export async function updateIdentityMeAction(payload: UpdateIdentityRequest) {
   return result;
 }
 
-export async function deleteMe() {
+export async function deleteResumeAction() {
   const session = await getServerSession(authOptions);
 
   if (!session?.accessToken) {
     throw new Error("Unauthorized access. Token not found.");
   }
 
-  const result = await profileService.deleteMe(session.accessToken);
-  revalidatePath("profile");
+  const result = await profileService.deleteResume(session.accessToken);
+  revalidateTag("profile", "max");
+  revalidatePath("/profile");
   return result;
 }

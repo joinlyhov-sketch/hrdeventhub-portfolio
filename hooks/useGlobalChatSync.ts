@@ -17,10 +17,10 @@ export function useGlobalChatSync(token: string | null, userId: string | null) {
     try {
       const data = await getConversations(token);
       useChatStore.getState().setConversations(data);
-    } catch {}
+    } catch { }
   }, [token]);
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async function connectFn() {
     if (cancelledRef.current || !token || !userId) return;
 
     const { default: SockJS } = await import("sockjs-client");
@@ -29,7 +29,7 @@ export function useGlobalChatSync(token: string | null, userId: string | null) {
     if (cancelledRef.current) return;
 
     const client = Stomp.over(() => new SockJS(`${WS_URL}?token=${token}`));
-    client.debug = () => {};
+    client.debug = () => { };
     stompRef.current = client;
 
     client.connect(
@@ -39,18 +39,19 @@ export function useGlobalChatSync(token: string | null, userId: string | null) {
 
         subRef.current = client.subscribe(
           `/user/${userId}/queue/conversations`,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (frame: any) => {
             try {
               const updated: Conversation = JSON.parse(frame.body);
               useChatStore.getState().upsertConversation(updated);
-            } catch {}
+            } catch { }
           },
         );
       },
       () => {
         if (cancelledRef.current) return;
-        syncConversations(); 
-        reconnectTimerRef.current = setTimeout(() => connect(), 4000);
+        syncConversations();
+        reconnectTimerRef.current = setTimeout(() => connectFn(), 4000);
       },
     );
   }, [token, userId, syncConversations]);

@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
   output: "standalone",
   productionBrowserSourceMaps: false,
   images: {
+    localPatterns: [
+      {
+        pathname: '/**',
+        search: '?token=*',
+      },
+      {
+        pathname: '/**',
+        search: '',
+      },
+    ],
     remotePatterns: [
       {
         protocol: "https",
