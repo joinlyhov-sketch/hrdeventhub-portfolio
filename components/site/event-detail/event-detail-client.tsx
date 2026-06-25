@@ -530,21 +530,18 @@ export default function EventDetailClient({
       </div>
       <div className="flex flex-col gap-2 pt-1">
         <h2 className="text-base font-bold text-secondary">About Event</h2>
-        <p className="text-sm text-grey-500 leading-relaxed">
-          {isLongDescription && !isDescExpanded
-            ? rawDescription.slice(0, DESCRIPTION_LIMIT)
-            : rawDescription}
-          {isLongDescription && !isDescExpanded && <span>... </span>}
-          {isLongDescription && (
-            <button
-              type="button"
-              onClick={() => setIsDescExpanded((v) => !v)}
-              className="text-primary font-semibold text-sm"
-            >
-              {isDescExpanded ? "Read less" : "Read more"}
-            </button>
-          )}
+        <p className={`text-sm text-grey-500 leading-relaxed break-all${!isDescExpanded ? " line-clamp-4" : ""}`}>
+          {rawDescription}
         </p>
+        {isLongDescription && (
+          <button
+            type="button"
+            onClick={() => setIsDescExpanded((v) => !v)}
+            className="text-primary font-semibold text-sm text-left"
+          >
+            {isDescExpanded ? "Read less" : "Read more"}
+          </button>
+        )}
       </div>
     </>
   );
@@ -709,7 +706,7 @@ export default function EventDetailClient({
           {mobileCoverImage}
           {mobileParticipantBar}
           <div className="flex flex-col gap-5 px-4 pt-5 pb-6">
-            <h1 className="text-xl font-bold text-secondary">
+            <h1 className="text-xl font-bold text-secondary break-all">
               {event?.title || "Event"}
             </h1>
             <button
@@ -802,7 +799,7 @@ export default function EventDetailClient({
           )}
         </section>
 
-        <h2 className="text-xl font-bold leading-snug md-type-title text-secondary">
+        <h2 className="text-xl font-bold leading-snug md-type-title text-secondary break-all">
           {event?.title || "Event Detail"}
         </h2>
 
@@ -931,7 +928,7 @@ export default function EventDetailClient({
                 type="button"
                 onClick={() => !isRegistered && setIsPaymentOpen(true)}
                 disabled={isRegistered}
-                className={`w-full rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${
+                className={`w-full mt-4 rounded-md py-2.5 text-desc-medium text-center transition-opacity cursor-pointer ${
                   isRegistered
                     ? "bg-green-400/15 text-accent cursor-default font-regular"
                     : "text-primary-foreground bg-primary hover:opacity-95"
