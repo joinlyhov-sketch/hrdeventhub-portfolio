@@ -8,11 +8,6 @@ const nextConfig: NextConfig = {
     localPatterns: [
       {
         pathname: '/**',
-        search: '?token=*',
-      },
-      {
-        pathname: '/**',
-        search: '',
       },
     ],
     remotePatterns: [
