@@ -1,14 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Bell, Trash2, MoreHorizontal, CheckCheck, AlertCircle, BarChart2, CalendarDays, FileText, MessageCircle, ArrowLeft } from "lucide-react";
+import {
+  Bell, Trash2, MoreHorizontal, CheckCheck,
+  AlertCircle, BarChart2, CalendarDays, FileText,
+  MessageCircle, ArrowLeft,
+} from "lucide-react";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { NotificationPayload } from "@/types/notification";
 import { cn } from "@/libs/utils";
 import { formatDistanceToNow } from "date-fns";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo, memo } from "react";
 
 type Filter = "all" | "post" | "update" | "mention" | "message";
+type Group  = "new" | "earlier-today" | "yesterday" | "older";
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all",     label: "All" },
@@ -18,112 +23,121 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "message", label: "Messages" },
 ];
 
+const GROUP_ORDER: Group[] = ["new", "earlier-today", "yesterday", "older"];
+
+const GROUP_LABELS: Record<Group, string> = {
+  "new":           "New",
+  "earlier-today": "Earlier today",
+  "yesterday":     "Yesterday",
+  "older":         "Older",
+};
+
+const BRAND = "#1c4d8d";
+
+
 function matchesFilter(n: NotificationPayload, filter: Filter): boolean {
-  if (filter === "all") return true;
-  if (filter === "post")    return n.type === "POST_CREATED" || n.type === "SURVEY_CREATED" || n.type === "POLL_CREATED";
-  if (filter === "update")  return n.type === "POST_UPDATED" || n.type === "POST_DELETED";
+  if (filter === "all")     return true;
+  if (filter === "post")    return ["POST_CREATED", "SURVEY_CREATED", "POLL_CREATED"].includes(n.type);
+  if (filter === "update")  return ["POST_UPDATED", "POST_DELETED"].includes(n.type);
   if (filter === "mention") return n.type === "MENTION";
   if (filter === "message") return n.type === "NEW_MESSAGE";
   return true;
-}
-
-function NotificationMenu({ onRemove }: { onRemove: () => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
-        className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
-        aria-label="More options"
-      >
-        <MoreHorizontal className="w-4 h-4" />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-9 z-50 w-36 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-lg overflow-hidden">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove();
-              setOpen(false);
-            }}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
-        </div>
-      )}
-    </div>
-  );
 }
 
 function resolveNotificationHref(n: NotificationPayload): string | null {
   if (n.type === "NEW_MESSAGE") {
     return n.actorName ? `/chat?target=${encodeURIComponent(n.actorName)}` : null;
   }
+
   if (!n.workspaceId || !n.postId) return null;
-  const category = n.postCategory?.toLowerCase();
-  if (category === "event") return `/group/${n.workspaceId}/event/${n.postId}`;
+
+  let category: string | null = n.postCategory?.toLowerCase() ?? null;
+
+  if (!category) {
+    if (n.type === "SURVEY_CREATED") category = "survey";
+    else if (n.type === "POLL_CREATED") category = "poll";
+  }
+
+  if (category === "event") {
+    return `/group/${n.workspaceId}/event/${n.postId}`;
+  }
   const typeParam = category ? `&type=${category}` : "";
   return `/group/${n.workspaceId}?postId=${n.postId}${typeParam}`;
 }
 
-function TypeBadge({ type, category }: {
+function getGroup(createdAt: string): Group {
+  const now      = new Date();
+  const date     = new Date(createdAt);
+  const diffH    = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(todayStart.getDate() - 1);
+
+  if (diffH <= 3)          return "new";
+  if (date >= todayStart)  return "earlier-today";
+  if (date >= yesterdayStart) return "yesterday";
+  return "older";
+}
+
+const TypeBadge = memo(function TypeBadge({
+  type, category,
+}: {
   type: NotificationPayload["type"];
   category?: string | null;
 }) {
   const base = "w-5 h-5 rounded-full flex items-center justify-center";
-  const cat = category?.toLowerCase();
+  const cat  = category?.toLowerCase();
 
   switch (type) {
     case "POST_CREATED":
     case "POST_UPDATED":
       if (cat === "event") return (
-        <div className={cn(base)} style={{ backgroundColor: "#1c4d8d" }}>
+        <div className={base} style={{ backgroundColor: BRAND }}>
           <CalendarDays className="w-2.5 h-2.5 text-white" />
         </div>
       );
-      if (cat === "survey" || cat === "poll") return (
-        <div className={cn(base, cat === "survey" ? "bg-amber-500" : "bg-teal-500")}>
+      if (cat === "survey") return (
+        <div className={cn(base, "bg-amber-500")}>
+          <BarChart2 className="w-2.5 h-2.5 text-white" />
+        </div>
+      );
+      if (cat === "poll") return (
+        <div className={cn(base, "bg-teal-500")}>
           <BarChart2 className="w-2.5 h-2.5 text-white" />
         </div>
       );
       return (
-        <div className={cn(base)} style={{ backgroundColor: type === "POST_UPDATED" ? "#2e7d32" : "#1c4d8d" }}>
+        <div className={base} style={{ backgroundColor: type === "POST_UPDATED" ? "#2e7d32" : BRAND }}>
           <FileText className="w-2.5 h-2.5 text-white" />
         </div>
       );
+
     case "POST_DELETED":
       return <div className={cn(base, "bg-red-500")}><AlertCircle className="w-2.5 h-2.5 text-white" /></div>;
+
     case "MENTION":
       return <div className={cn(base, "bg-purple-500")}><span className="text-white text-[9px] font-bold leading-none">@</span></div>;
+
     case "SURVEY_CREATED":
       return <div className={cn(base, "bg-amber-500")}><BarChart2 className="w-2.5 h-2.5 text-white" /></div>;
+
     case "POLL_CREATED":
       return <div className={cn(base, "bg-teal-500")}><BarChart2 className="w-2.5 h-2.5 text-white" /></div>;
+
     case "NEW_MESSAGE":
       return <div className={cn(base, "bg-blue-500")}><MessageCircle className="w-2.5 h-2.5 text-white" /></div>;
+
     default:
       return <div className={cn(base, "bg-gray-400")}><Bell className="w-2.5 h-2.5 text-white" /></div>;
   }
-}
+});
 
-function ActorAvatar({ avatar, name, type, category }: {
+const ActorAvatar = memo(function ActorAvatar({
+  avatar, name, type, category,
+}: {
   avatar?: string | null;
   name?: string | null;
   type: NotificationPayload["type"];
@@ -136,7 +150,13 @@ function ActorAvatar({ avatar, name, type, category }: {
   return (
     <div className="relative shrink-0">
       {avatar ? (
-        <img src={avatar} alt={name ?? "User"} className="w-14 h-14 rounded-full object-cover" />
+        <img
+          src={avatar}
+          alt={name ?? "User"}
+          className="w-14 h-14 rounded-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
       ) : (
         <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
           <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{initials}</span>
@@ -147,44 +167,70 @@ function ActorAvatar({ avatar, name, type, category }: {
       </div>
     </div>
   );
-}
+});
 
-type Group = "new" | "earlier-today" | "yesterday" | "older";
+const NotificationMenu = memo(function NotificationMenu({
+  onRemove,
+}: {
+  onRemove: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-function getGroup(createdAt: string): Group {
-  const now = new Date();
-  const date = new Date(createdAt);
-  const diffH = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
 
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
+  const toggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen((v) => !v);
+  }, []);
 
-  const yesterdayStart = new Date(todayStart);
-  yesterdayStart.setDate(todayStart.getDate() - 1);
+  const handleRemove = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onRemove();
+    setOpen(false);
+  }, [onRemove]);
 
-  if (diffH <= 3) return "new";
-  if (date >= todayStart) return "earlier-today";
-  if (date >= yesterdayStart) return "yesterday";
-  return "older";
-}
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={toggle}
+        className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+        aria-label="More options"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
 
-const GROUP_ORDER: Group[] = ["new", "earlier-today", "yesterday", "older"];
-const GROUP_LABELS: Record<Group, string> = {
-  "new":           "New",
-  "earlier-today": "Earlier today",
-  "yesterday":     "Yesterday",
-  "older":         "Older",
-};
+      {open && (
+        <div className="absolute right-0 top-9 z-50 w-36 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-lg overflow-hidden">
+          <button
+            onClick={handleRemove}
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+});
 
-function SectionHeader({ label }: { label: string }) {
+const SectionHeader = memo(function SectionHeader({ label }: { label: string }) {
   return (
     <p className="px-3 pt-4 pb-1 text-[13px] font-semibold text-gray-500 dark:text-gray-400 tracking-wide">
       {label}
     </p>
   );
-}
+});
 
-function NotificationRow({
+const NotificationRow = memo(function NotificationRow({
   n,
   onRemove,
   onNavigate,
@@ -193,39 +239,69 @@ function NotificationRow({
   onRemove: (id: string) => void;
   onNavigate: (n: NotificationPayload) => void;
 }) {
-  const href = n.type !== "POST_DELETED" ? resolveNotificationHref(n) : null;
-  const timeAgo = formatDistanceToNow(new Date(n.createdAt), { addSuffix: true });
+  const href    = n.type !== "POST_DELETED" ? resolveNotificationHref(n) : null;
+  const timeAgo = useMemo(
+    () => formatDistanceToNow(new Date(n.createdAt), { addSuffix: true }),
+    [n.createdAt],
+  );
+
+  const handleClick = useCallback(() => onNavigate(n), [n, onNavigate]);
+  const handleRemove = useCallback(() => onRemove(n.notificationId), [n.notificationId, onRemove]);
+  const stopProp = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
 
   return (
     <div
       className={cn(
         "relative flex items-center gap-3 px-3 py-3 transition-colors border-b border-gray-50 dark:border-gray-900/50",
-        !n.read ? "hover:bg-white/80" : "bg-white dark:bg-gray-950 hover:bg-gray-100 dark:hover:bg-gray-900",
-        href ? "cursor-pointer" : "cursor-default"
+        !n.read
+          ? "hover:bg-white/80"
+          : "bg-white dark:bg-gray-950 hover:bg-gray-100 dark:hover:bg-gray-900",
+        href ? "cursor-pointer" : "cursor-default",
       )}
       style={!n.read ? { backgroundColor: "#e8eef6" } : undefined}
-      onClick={() => onNavigate(n)}
+      onClick={handleClick}
     >
-      <ActorAvatar avatar={n.actorAvatar} name={n.actorName} type={n.type} category={n.postCategory} />
+      <ActorAvatar
+        avatar={n.actorAvatar}
+        name={n.actorName}
+        type={n.type}
+        category={n.postCategory}
+      />
 
       <div className="flex-1 min-w-0">
         <p className={cn(
           "text-sm leading-snug line-clamp-3",
-          !n.read ? "text-gray-900 font-medium" : "text-gray-600 dark:text-gray-300"
+          !n.read ? "text-gray-900 font-medium" : "text-gray-600 dark:text-gray-300",
         )}>
           {n.message}
         </p>
-        <p className="text-xs mt-1 font-medium" style={{ color: !n.read ? "#1c4d8d" : "#9ca3af" }}>
+        <p
+          className="text-xs mt-1 font-medium"
+          style={{ color: !n.read ? BRAND : "#9ca3af" }}
+        >
           {timeAgo}
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-        <NotificationMenu onRemove={() => onRemove(n.notificationId)} />
+      <div className="flex flex-col items-center gap-2 shrink-0" onClick={stopProp}>
+        <NotificationMenu onRemove={handleRemove} />
       </div>
     </div>
   );
+});
+
+
+function useFilterBadgeCounts(notifications: NotificationPayload[]) {
+  return useMemo(() => {
+    const counts: Partial<Record<Filter, number>> = {};
+    for (const filter of ["post", "update", "mention", "message"] as Filter[]) {
+      counts[filter] = notifications.filter((n) => !n.read && matchesFilter(n, filter)).length;
+    }
+    counts["all"] = notifications.filter((n) => !n.read).length;
+    return counts;
+  }, [notifications]);
 }
+
 
 export function NotificationsClient() {
   const router = useRouter();
@@ -234,27 +310,39 @@ export function NotificationsClient() {
   const { notifications, unreadCount, markRead, markAllRead, removeNotification } =
     useNotificationStore();
 
-  const handleNavigate = (n: NotificationPayload) => {
-    markRead(n.notificationId);
-    if (n.type === "POST_DELETED") return;
-    
-    const href = resolveNotificationHref(n);
-    if (href) {
-      router.push(href);
-    }
-  };
+  const badgeCounts = useFilterBadgeCounts(notifications);
 
-  const filtered = notifications.filter((n) => matchesFilter(n, activeFilter));
-
-  const grouped = GROUP_ORDER.reduce<Record<Group, NotificationPayload[]>>(
-    (acc, g) => ({ ...acc, [g]: [] }),
-    {} as Record<Group, NotificationPayload[]>
+  const handleNavigate = useCallback(
+    (n: NotificationPayload) => {
+      markRead(n.notificationId);
+      if (n.type === "POST_DELETED") return;
+      const href = resolveNotificationHref(n);
+      if (href) router.push(href);
+    },
+    [markRead, router],
   );
-  for (const n of filtered) {
-    grouped[getGroup(n.createdAt)].push(n);
-  }
 
-  const hasAny = filtered.length > 0;
+  const handleRemove = useCallback(
+    (id: string) => removeNotification(id),
+    [removeNotification],
+  );
+
+  const grouped = useMemo<Record<Group, NotificationPayload[]>>(() => {
+    const acc: Record<Group, NotificationPayload[]> = {
+      "new": [], "earlier-today": [], "yesterday": [], "older": [],
+    };
+    for (const n of notifications) {
+      if (matchesFilter(n, activeFilter)) {
+        acc[getGroup(n.createdAt)].push(n);
+      }
+    }
+    return acc;
+  }, [notifications, activeFilter]);
+
+  const hasAny = useMemo(
+    () => GROUP_ORDER.some((g) => grouped[g].length > 0),
+    [grouped],
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 md:pt-0">
@@ -267,16 +355,16 @@ export function NotificationsClient() {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          
-          <h1 className="flex-1 text-2xl font-bold" style={{ color: "#1c4d8d" }}>
+
+          <h1 className="flex-1 text-2xl font-bold" style={{ color: BRAND }}>
             Notifications
           </h1>
-          
+
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
               className="flex items-center gap-1.5 text-sm font-medium transition-colors shrink-0"
-              style={{ color: "#1c4d8d" }}
+              style={{ color: BRAND }}
             >
               <CheckCheck className="w-4 h-4" />
               Mark all as read
@@ -287,6 +375,7 @@ export function NotificationsClient() {
         <div className="flex gap-1 overflow-x-auto scrollbar-none -mx-1 px-1">
           {FILTERS.map(({ key, label }) => {
             const isActive = activeFilter === key;
+            const count    = badgeCounts[key] ?? 0;
             return (
               <button
                 key={key}
@@ -295,22 +384,17 @@ export function NotificationsClient() {
                   "relative shrink-0 px-4 py-2.5 text-sm font-medium transition-colors rounded-none border-b-2",
                   isActive
                     ? "text-[#1c4d8d]"
-                    : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900"
+                    : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900",
                 )}
-                style={isActive ? { borderBottomColor: "#1c4d8d" } : undefined}
+                style={isActive ? { borderBottomColor: BRAND } : undefined}
               >
                 {label}
-                {key !== "all" && (() => {
-                  const count = notifications.filter((n) => !n.read && matchesFilter(n, key)).length;
-                  return count > 0 ? (
-                    <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: "#1c4d8d" }}>
-                      {count}
-                    </span>
-                  ) : null;
-                })()}
-                {key === "all" && unreadCount > 0 && (
-                  <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: "#1c4d8d" }}>
-                    {unreadCount}
+                {count > 0 && (
+                  <span
+                    className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white"
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    {count}
                   </span>
                 )}
               </button>
@@ -328,8 +412,8 @@ export function NotificationsClient() {
             <p className="text-base font-semibold text-gray-500">No notifications</p>
             <p className="text-sm mt-1 text-gray-400">
               {activeFilter === "all"
-                ? "We will notify you when something arrives"
-                : `No ${FILTERS.find(f => f.key === activeFilter)?.label.toLowerCase()} notifications`}
+                ? "We'll notify you when something arrives"
+                : `No ${FILTERS.find((f) => f.key === activeFilter)?.label.toLowerCase()} notifications`}
             </p>
           </div>
         ) : (
@@ -344,7 +428,7 @@ export function NotificationsClient() {
                     <NotificationRow
                       key={n.notificationId}
                       n={n}
-                      onRemove={removeNotification}
+                      onRemove={handleRemove}
                       onNavigate={handleNavigate}
                     />
                   ))}

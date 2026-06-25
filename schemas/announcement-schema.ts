@@ -1,15 +1,24 @@
 import { z } from "zod";
 
+const safeTextRegex = /^[a-zA-Z0-9\s.,'()\-–—!]+$/;
+const safeTextErrorMessage = "Special characters are not allowed";
+
 export const announcementPostSchema = z
   .object({
     title: z
       .string()
       .min(3, "Announcement title must be between 3 and 100 characters")
-      .max(100, "Announcement title must not exceed 100 characters"),
+      .max(100, "Announcement title must not exceed 100 characters")
+      .regex(safeTextRegex, {
+        message: `Announcement title ${safeTextErrorMessage.toLowerCase()}`,
+      }),
     purpose: z
       .string()
       .min(1, "Purpose field is required")
-      .max(255, "Purpose must not exceed 255 characters"),
+      .max(255, "Purpose must not exceed 255 characters")
+      .regex(safeTextRegex, {
+        message: `Purpose ${safeTextErrorMessage.toLowerCase()}`,
+      }),
     status: z.enum(["active", "draft"]),
     isPinned: z.boolean().default(false),
     date: z.string().min(1, "Event date selection is required"),
@@ -42,7 +51,7 @@ export const announcementPostSchema = z
     scheduleDate: z.string().optional().or(z.literal("")),
     description: z
       .string()
-      .max(1300, "Description must not exceed 1300 characters")
+      .max(500, "Description must not exceed 500 characters")
       .optional(),
     media: z
       .array(

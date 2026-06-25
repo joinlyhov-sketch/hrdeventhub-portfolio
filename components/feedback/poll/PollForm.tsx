@@ -99,7 +99,10 @@ export default function PollForm({
 
     if (isEditMode && initialData) {
       const dt = initialData.closingTime
-        ? new Date(initialData.closingTime).toISOString().slice(0, 16).split("T")
+        ? new Date(initialData.closingTime)
+            .toISOString()
+            .slice(0, 16)
+            .split("T")
         : ["", ""];
       const isChanged =
         title !== (initialData.title ?? "") ||
@@ -118,7 +121,8 @@ export default function PollForm({
       const isChanged =
         title !== "" ||
         description !== "" ||
-        JSON.stringify(newOptions) !== JSON.stringify(["Option 1", "Option 2", "Option 3"]) ||
+        JSON.stringify(newOptions) !==
+          JSON.stringify(["Option 1", "Option 2", "Option 3"]) ||
         settings.multipleSelect !== false ||
         settings.anonymousVote !== false ||
         settings.addOption !== false ||
@@ -129,7 +133,15 @@ export default function PollForm({
 
       setIsFormDirty(isChanged);
     }
-  }, [title, description, newOptions, settings, isEditMode, initialData, success]);
+  }, [
+    title,
+    description,
+    newOptions,
+    settings,
+    isEditMode,
+    initialData,
+    success,
+  ]);
 
   const handleNewOptionChange = (index: number, text: string) => {
     const updated = [...newOptions];
@@ -213,9 +225,12 @@ export default function PollForm({
         await updatePollAction(pollId, {
           title: title.trim(),
           description: description.trim(),
-          closingTime: settings.closingDate && settings.closingTime ? new Date(
-            `${settings.closingDate}T${settings.closingTime}`,
-          ).toISOString() : null as unknown as string,
+          closingTime:
+            settings.closingDate && settings.closingTime
+              ? new Date(
+                  `${settings.closingDate}T${settings.closingTime}`,
+                ).toISOString()
+              : (null as any),
           workspaceId: workspaceIdState,
           type: "text",
           multiSelect: settings.multipleSelect,
@@ -231,9 +246,12 @@ export default function PollForm({
           title: title.trim(),
           description: description.trim(),
           options: newOptions.map((o) => o.trim()),
-          closingTime: settings.closingDate && settings.closingTime ? new Date(
-            `${settings.closingDate}T${settings.closingTime}`,
-          ).toISOString() : null as unknown as string,
+          closingTime:
+            settings.closingDate && settings.closingTime
+              ? new Date(
+                  `${settings.closingDate}T${settings.closingTime}`,
+                ).toISOString()
+              : (null as any),
           workspaceId: workspaceIdState,
           type: "text",
           multiSelect: settings.multipleSelect,
@@ -255,9 +273,11 @@ export default function PollForm({
 
       setTimeout(() => {
         globalMutate(
-          (key: string | string[]) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          (key: string | string[]) =>
+            typeof key === "string" &&
+            key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
           undefined,
-          { revalidate: true }
+          { revalidate: true },
         );
         if (onSuccess) {
           onSuccess();

@@ -2,11 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import {
-  SurveyContent,
-  SurveyPage,
-  SurveyElement,
-} from "../types/survey";
+import { SurveyContent, SurveyPage, SurveyElement } from "../types/survey";
 
 interface SurveyFormState {
   title: string;
@@ -31,7 +27,7 @@ interface SurveyFormState {
   updateElement: (
     pageIndex: number,
     elementIndex: number,
-    element: SurveyElement
+    element: SurveyElement,
   ) => void;
   reset: () => void;
 }
@@ -97,7 +93,7 @@ export const useSurveyFormStore = create<SurveyFormState>()(
           const newPages = [...state.content.pages];
           if (newPages[pageIndex]) {
             newPages[pageIndex].elements = newPages[pageIndex].elements.filter(
-              (_, i) => i !== elementIndex
+              (_, i) => i !== elementIndex,
             );
           }
           return {
@@ -111,11 +107,14 @@ export const useSurveyFormStore = create<SurveyFormState>()(
       updateElement: (
         pageIndex: number,
         elementIndex: number,
-        element: SurveyElement
+        element: SurveyElement,
       ) =>
         set((state) => {
           const newPages = [...state.content.pages];
-          if (newPages[pageIndex] && newPages[pageIndex].elements[elementIndex]) {
+          if (
+            newPages[pageIndex] &&
+            newPages[pageIndex].elements[elementIndex]
+          ) {
             newPages[pageIndex].elements[elementIndex] = element;
           }
           return {
@@ -140,6 +139,6 @@ export const useSurveyFormStore = create<SurveyFormState>()(
     {
       name: "survey-form-storage",
       storage: createJSONStorage(() => sessionStorage),
-    }
-  )
+    },
+  ),
 );
