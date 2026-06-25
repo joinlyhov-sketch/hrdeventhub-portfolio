@@ -422,7 +422,7 @@ export default function EventDetailClient({
     } catch (err) {
       console.error("Failed to fetch participants:", err);
     }
-  }, [event?.postId, session?.accessToken, currentUser?.id]);
+  }, [event?.postId, session?.accessToken, currentUser]);
 
   useEffect(() => {
     refreshParticipants();

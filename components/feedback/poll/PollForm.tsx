@@ -215,7 +215,7 @@ export default function PollForm({
           description: description.trim(),
           closingTime: settings.closingDate && settings.closingTime ? new Date(
             `${settings.closingDate}T${settings.closingTime}`,
-          ).toISOString() : null as any,
+          ).toISOString() : null as unknown as string,
           workspaceId: workspaceIdState,
           type: "text",
           multiSelect: settings.multipleSelect,
@@ -233,7 +233,7 @@ export default function PollForm({
           options: newOptions.map((o) => o.trim()),
           closingTime: settings.closingDate && settings.closingTime ? new Date(
             `${settings.closingDate}T${settings.closingTime}`,
-          ).toISOString() : null as any,
+          ).toISOString() : null as unknown as string,
           workspaceId: workspaceIdState,
           type: "text",
           multiSelect: settings.multipleSelect,
@@ -255,7 +255,7 @@ export default function PollForm({
 
       setTimeout(() => {
         globalMutate(
-          (key: any) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
+          (key: string | string[]) => typeof key === "string" && key.startsWith(`/workspaces/${savedWorkspaceId}/feed`),
           undefined,
           { revalidate: true }
         );

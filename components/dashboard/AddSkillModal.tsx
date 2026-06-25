@@ -34,6 +34,11 @@ export function AddSkillModal({
       return;
     }
 
+    if (trimmed.length > 40) {
+      setError("Skill cannot be longer than 40 characters.");
+      return;
+    }
+
     onAddSkill(trimmed);
 
     setSkill("");
@@ -84,8 +89,9 @@ export function AddSkillModal({
             type="text"
             placeholder="e.g. React, Spring Boot, Docker..."
             value={skill}
+            maxLength={40}
             onChange={(e) => {
-              setSkill(e.target.value);
+              setSkill(e.target.value.replace(/[^a-zA-Z\s.-]/g, ""));
               setError("");
             }}
             className="w-full h-11 px-4 border border-border rounded-xl outline-none focus:border-primary"
