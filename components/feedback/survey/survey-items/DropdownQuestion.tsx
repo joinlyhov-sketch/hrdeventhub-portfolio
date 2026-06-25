@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { X, Plus } from "lucide-react";
 import { Input } from "../../../ui/input";
@@ -37,15 +39,23 @@ export default function DropdownQuestion({
           position="popper"
           className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2 z-50 text-left max-h-50 overflow-y-auto w-[var(--radix-select-trigger-width)] mt-1"
         >
-          {question.options?.map((opt, idx) => (
-            <SelectItem
-              key={idx}
-              value={opt}
-              className="px-3 py-3 text-sm rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-100 focus:text-slate-800"
-            >
-              {opt}
-            </SelectItem>
-          ))}
+          {question.options?.map((opt, idx) => {          
+            const isBlank = opt.trim() === "";
+            
+            return (
+              <SelectItem
+                key={idx}                
+                value={isBlank ? `empty-fallback-token-${idx}` : opt}
+                className="px-3 py-3 text-sm rounded-md text-slate-800 hover:bg-grey-200 transition-colors cursor-pointer focus:bg-slate-100 focus:text-slate-800"
+              >
+                {isBlank ? (
+                  <span className="text-muted-foreground italic">(Empty Option)</span>
+                ) : (
+                  opt
+                )}
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
 
@@ -63,6 +73,7 @@ export default function DropdownQuestion({
               value={opt}
               onChange={(e) => onUpdateOption(optIdx, e.target.value)}
               className="text-sm shadow-none h-auto py-0.5 border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-input bg-transparent"
+              placeholder={`Option ${optIdx + 1}`}
             />
             <Button
               type="button"
