@@ -82,26 +82,25 @@ export default function DetailContentComponent({
   const isLong = rawContent.length > CONTENT_LIMIT;
 
   return (
-    <section className="flex flex-col gap-y-3 w-full ml-1">
-      <section className="space-y-1">
+    <section className="flex flex-col gap-y-3 w-full ml-1 min-w-0 overflow-hidden">
+      <section className="space-y-1 min-w-0">
         {!hideTitle && (
-          <p className="text-subtitle font-semibold text-secondary">
+          <p className="text-subtitle font-semibold text-secondary wrap-break-word">
             {title || "No Title Specified"}
           </p>
         )}
-        <p className="text-desc text-grey-500">
-          {isLong && !isExpanded ? rawContent.slice(0, CONTENT_LIMIT) : rawContent}
-          {isLong && !isExpanded && <span>... </span>}
-          {isLong && (
-            <button
-              type="button"
-              onClick={() => setIsExpanded((v) => !v)}
-              className="text-primary font-semibold text-sm"
-            >
-              {isExpanded ? "Read less" : "Read more"}
-            </button>
-          )}
+        <p className={`text-desc text-grey-500 break-all${!isExpanded ? " line-clamp-4 sm:line-clamp-3" : ""}`}>
+          {rawContent}
         </p>
+        {isLong && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((v) => !v)}
+            className="text-primary font-semibold text-sm"
+          >
+            {isExpanded ? "Read less" : "Read more"}
+          </button>
+        )}
       </section>
 
       <section className="flex flex-col gap-y-2">

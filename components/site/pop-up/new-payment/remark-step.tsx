@@ -90,19 +90,21 @@ export function RemarkStep({
       )}
 
       <div className="flex gap-3">
-        <Button
-          variant="outline"
-          onClick={onBack}
-          disabled={isSubmitting || isFreeRegistration}
-          className="flex-1 h-[48px] rounded-xl font-semibold text-[15px] border-blue-100 text-gray-600 hover:bg-blue-50 transition-all disabled:opacity-30"
-        >
-          Back
-        </Button>
+        {!isFreeRegistration && (
+          <Button
+            variant="outline"
+            onClick={onBack}
+            disabled={isSubmitting}
+            className="flex-1 h-12 rounded-xl font-semibold text-[15px] border-blue-100 text-gray-600 hover:bg-blue-50 transition-all disabled:opacity-30"
+          >
+            Back
+          </Button>
+        )}
 
         <Button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="flex-[2] h-[48px] rounded-xl font-semibold text-[15px] bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white shadow-md shadow-blue-900/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className={`${isFreeRegistration ? "w-full" : "flex-2"} h-12 rounded-xl font-semibold text-[15px] bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white shadow-md shadow-blue-900/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
