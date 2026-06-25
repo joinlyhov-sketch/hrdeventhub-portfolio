@@ -78,7 +78,7 @@ export default function EventDetailClient({
   const [detailData, setDetailData] = useState({
     id: event?.postId || "det-4401",
     likesCount: 0,
-    commentsCount: event?.comments?.length || 0,
+    commentsCount: event?.commentCount || 0,
     isLikedByUser: false,
   });
 
@@ -160,7 +160,7 @@ export default function EventDetailClient({
           setEvent(livePost);
           setDetailData((prev) => ({
             ...prev,
-            commentsCount: livePost.comments?.length || 0,
+            commentsCount: livePost.commentCount || 0,
           }));
         }
       } catch (err) {

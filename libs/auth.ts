@@ -109,7 +109,8 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      if (Date.now() < (token.accessTokenExpiry as number)) {
+      // 3 minute buffer before expiry to ensure token is rotated proactively
+      if (Date.now() < (token.accessTokenExpiry as number) - 3 * 60 * 1000) {
         return token;
       }
 
@@ -153,6 +154,7 @@ export const authOptions: NextAuthOptions = {
         session.accessToken = token.accessToken;
         session.refreshToken = token.refreshToken;
         session.error = token.error;
+        session.accessTokenExpiry = token.accessTokenExpiry as number;
       }
       return session;
     },
