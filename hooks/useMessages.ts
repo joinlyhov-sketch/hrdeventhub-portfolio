@@ -41,6 +41,8 @@ export function useMessages(token: string) {
   const editMsg = useCallback(
     async (messageId: string, content: string) => {
       await editMessage(token, messageId, content);
+      const message = Object.values(useChatStore.getState().messages).flat().find(m => m.id === messageId);
+      if (message) useChatStore.getState().updateMessage({ ...message, content, isEdited: true });
     },
     [token],
   );

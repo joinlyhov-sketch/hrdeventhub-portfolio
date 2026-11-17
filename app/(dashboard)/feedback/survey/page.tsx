@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import Header from "../../../../components/dashboard/header/Header";
 import SurveyList from "../../../../components/feedback/survey/SurveyList";
 import { Button } from "../../../../components/ui/button";

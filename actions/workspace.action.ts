@@ -6,7 +6,7 @@ import {
   CreateWorkspaceRequest,
   UpdateWorkspaceRequest,
 } from "@/types/workspace-type/group";
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { revalidateTag } from "next/cache";
 
 export async function getAllWorkspacesAction(

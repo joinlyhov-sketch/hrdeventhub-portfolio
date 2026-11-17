@@ -1,4 +1,4 @@
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
 import { apiGet, apiPost } from "@/libs/api";
 import {

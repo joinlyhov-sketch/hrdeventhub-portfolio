@@ -1,10 +1,12 @@
 import { env } from "./env";
+import { DEMO_MODE } from "./demo/config";
+import { demoApiAction } from "@/actions/demo.action";
 import { ApiErrorShape, ApiRequestOptions } from "@/types/api-types";
 
 const isBrowser = typeof window !== "undefined";
 const apiBaseUrl = isBrowser ? "/api/v5" : env?.NEXT_PUBLIC_API_BASE_URL;
 
-if (!apiBaseUrl) {
+if (!DEMO_MODE && !apiBaseUrl) {
   throw new Error("API base URL is not configured.");
 }
 
@@ -56,6 +58,9 @@ const parseErrorMessage = async (
 };
 
 export const apiRequest = async <T>(options: ApiRequestOptions): Promise<T> => {
+  if (DEMO_MODE && !isBrowser) {
+    return await demoApiAction(options.path, options.method, options.body) as T;
+  }
   const url = `${apiBaseUrl}${options.path}`;
   const headers = buildHeaders(options);
   const requestInit: RequestInit = {

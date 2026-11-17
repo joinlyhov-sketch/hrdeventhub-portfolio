@@ -7,10 +7,12 @@ import {
   SurveySubmission,
 } from "../types/survey";
 
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
+import { DEMO_MODE, DEMO_TOKEN } from "@/libs/demo/config";
 
 const getLiveToken = async (): Promise<string | undefined> => {
+  if (DEMO_MODE) return DEMO_TOKEN;
   
   if (typeof window === "undefined") {
     const session = await getServerSession(authOptions);

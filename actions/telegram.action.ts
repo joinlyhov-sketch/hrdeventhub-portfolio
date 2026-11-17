@@ -1,8 +1,10 @@
 "use client";
+import { DEMO_MODE } from "@/libs/demo/config";
 
 type TelegramActionResponse = { ok: true; error?: never } | { ok?: never; error: string | object };
 
 export async function connectTelegramAction(userId: string): Promise<TelegramActionResponse> {
+  if (DEMO_MODE) return { error: "Telegram connections are unavailable in this demo." };
   if (!userId) {
     return { error: "User session ID is required to connect to Telegram." };
   }

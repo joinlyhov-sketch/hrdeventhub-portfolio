@@ -1,3 +1,4 @@
+import { DEMO_MODE } from "./demo/config";
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -12,7 +13,7 @@ const envParse = envSchema.safeParse({
   NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
 });
 
-if (!envParse.success && isServer) {
+if (!DEMO_MODE && !envParse.success && isServer) {
   console.error("Environment Validation Failed:", JSON.stringify(envParse.error.issues, null, 2));
   throw new Error("Fix .env variables before running.");
 }

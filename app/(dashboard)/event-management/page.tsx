@@ -2,7 +2,7 @@ import { EventManagementClient } from "../../../components/dashboard/event-manag
 import { eventService, EventItem } from "@/service/event.service";
 import { paymentService, Transaction } from "@/service/payment.service";
 import { authService } from "@/service/auth.service";
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
 import { workspaceService } from "@/service/workspace.service";
 

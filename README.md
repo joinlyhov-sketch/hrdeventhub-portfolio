@@ -1,97 +1,54 @@
-# HRD EventHub — UI
+# HRD EventHub UI
 
-> Next.js frontend for the HRD EventHub platform, covering authentication, event management, community updates, feedback, and user/group experiences.
+A Next.js 16 / React 19 event platform with a backend-free public demo.
 
-## Tech Stack
+## Run the demo
 
-- **Next.js** 16+ (App Router)
-- **React** 19+
-- **TypeScript**
-- **Tailwind CSS** — styling
-- **Fetch** — API communication
-- **Zustand** — state management for auth flows
-- **NextAuth.js** — authentication
-- **Radix UI / shadcn** — UI primitives
-- **Framer Motion** — animations
-- **Zod** — runtime validation
-
-## Prerequisites
-
-- [Node.js 21+](https://nodejs.org/)
-- [npm](https://www.npmjs.com/) / [yarn](https://yarnpkg.com/) / [pnpm](https://pnpm.io/)
-
-## Getting Started
-
-### 1. Clone the repository
+Requires Node.js 22 or newer.
 
 ```bash
-git clone https://github.com/14th-Gen-Basic-Course-Final-Project/HRD-EventHub-UI.git
-cd HRD-EventHub-UI
-```
-
-### 2. Install dependencies
-
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-```
-
-### 3. Configure environment variables
-
-Create a local env file and fill in your values:
-
-```bash
-touch .env.local
-```
-
-Example:
-
-```bash
-NEXTAUTH_SECRET=your-secret
-NEXTAUTH_URL=http://localhost:3000
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
-```
-
-### 4. Run the development server
-
-```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-The app will start at `http://localhost:3000`.
+Open `http://localhost:3000`. Demo mode is enabled by default and needs no environment variables, backend, database, or authentication secret. Visitors receive a sample admin session, so all pages are accessible. Use **Explore demo** to navigate the app or reset the sample data.
 
-### 5. Verify
+Groups, events, profiles, participants, polls, surveys, notifications, chat, and transactions use bundled mock data. Supported edits, votes, comments, survey submissions, and chat messages are saved in a compressed, browser-specific cookie for 24 hours. This works across Vercel function restarts and keeps visitors' changes separate. The small cookie is intended for a walkthrough; when it fills, use **Reset demo**. Clearing cookies also resets the data. Concurrent writes from multiple tabs may overwrite each other.
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. Make sure the backend API is running for full functionality.
+Image uploads simulate a successful upload with a bundled sample picture; the selected file is not sent to any backend. Document uploads, real payments, bank connections, and Telegram integration are unavailable. Demo registration is free, including for the sample admin. Sample transactions are for display only. No email or OTP is sent. Use sample information in demo forms.
 
-## Available Scripts
+## Deploy to Vercel
 
-| Command         | Description                              |
-| --------------- | ---------------------------------------- |
-| `npm run dev`   | Start development server with hot reload |
-| `npm run build` | Create optimized production build        |
-| `npm run start` | Start production server                  |
-| `npm run lint`  | Run ESLint                               |
+1. Push this repository to your Git provider and import it into Vercel.
+2. Select the **Next.js** framework preset and Node.js **22.x** or newer.
+3. Keep the default build command (`npm run build`) and output directory.
+4. Leave environment variables empty, or set `NEXT_PUBLIC_DEMO_MODE=true`.
+5. Deploy. Direct links to groups, events, profiles, and dashboard pages work without signing in.
 
-## Connecting to the API
+This is a backend-free demo using Vercel's built-in Next.js runtime for routing, server components, and server actions. It does not use Next.js `output: "export"`, which would require replacing the app's dynamic routes and server actions.
 
-The UI expects the API to be running at the URL specified in `NEXT_PUBLIC_API_BASE_URL`. Make sure to:
+## Connect a real backend
 
-1. Start the API server first (see your backend README).
-2. Ensure CORS allows `http://localhost:3000`.
+Set the following and rebuild:
 
-## Production Build
-
-```bash
-npm run build
-npm run start
+```dotenv
+NEXT_PUBLIC_DEMO_MODE=false
+NEXT_PUBLIC_API_BASE_URL=https://your-api.example/api/v5
+NEXTAUTH_URL=https://your-site.example
+NEXTAUTH_SECRET=replace-with-a-strong-random-secret
 ```
 
-For deployment, set all environment variables on your hosting platform (Vercel, Docker, etc.) and ensure `NEXT_PUBLIC_API_BASE_URL` points to your production API.
+Live mode restores the existing authentication, authorization guards, API forwarding, and realtime connections. The demo API and demo actions reject requests when demo mode is disabled. Demo mode is intended only for sample data.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run start` | Production server |
+| `npx tsc --noEmit` | TypeScript check |
+| `npm run test:demo` | Mock data and interaction checks |
+| `npm run lint` | ESLint |
+
+Demo fixtures and request handling live in `libs/demo/`. The shared API client and session helper select demo or live behavior without changing the existing page components.

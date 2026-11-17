@@ -1,5 +1,5 @@
 import EventNavbarClient from "@/components/site/Navbar/EventNavbarClient";
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
 import { redirect } from "next/navigation";
 import { workspaceService } from "@/service/workspace.service";

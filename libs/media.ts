@@ -2,6 +2,7 @@ import { env } from "./env";
 
 export const getMediaUrl = (filePath: string | undefined | null): string | null => {
   if (!filePath) return null;
+  if (filePath.startsWith("/images/") || filePath.startsWith("/covers/")) return filePath;
 
   const baseUrl = env?.NEXT_PUBLIC_API_BASE_URL;
   if (!baseUrl) return null;

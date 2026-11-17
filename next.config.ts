@@ -70,6 +70,7 @@ const nextConfig: NextConfig = {
     },
   },
   async rewrites() {
+    if (process.env.NEXT_PUBLIC_DEMO_MODE !== "false") return [];
     return [
       {
         source: "/api/v5/:path*",

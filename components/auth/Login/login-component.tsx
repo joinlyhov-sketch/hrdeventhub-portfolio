@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { authService } from "@/service/auth.service";
 import { useRegisterStore } from "@/store/useRegisterStore";
 import { X } from "lucide-react";
+import { DEMO_MODE } from "@/libs/demo/config";
 
 const itemVars: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -54,6 +55,10 @@ export default function LoginComponent() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
+    if (DEMO_MODE) {
+      router.push("/group");
+      return;
+    }
 
     const result = loginSchema.safeParse({
       identifier: identifier.trim(),
@@ -125,7 +130,7 @@ export default function LoginComponent() {
             <span className="text-primary">HRD EventHub</span>
           </p>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Enter your credentials to access the website
+            {DEMO_MODE ? "Demo access is ready. Click Login to explore." : "Enter your credentials to access the website"}
           </p>
         </div>
 

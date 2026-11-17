@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { DEMO_MODE } from "@/libs/demo/config";
 import { Conversation } from "@/types/chat";
 import { useChatStore } from "@/store/useChatStore";
 import { getConversations } from "@/service/conversation.service";
@@ -21,7 +22,7 @@ export function useGlobalChatSync(token: string | null, userId: string | null) {
   }, [token]);
 
   const connect = useCallback(async function connectFn() {
-    if (cancelledRef.current || !token || !userId) return;
+    if (DEMO_MODE || cancelledRef.current || !token || !userId) return;
 
     const { default: SockJS } = await import("sockjs-client");
     const { Stomp } = await import("@stomp/stompjs");

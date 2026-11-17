@@ -1,7 +1,7 @@
 "use server";
 import { invitationService } from "@/service/invitation.service";
 import { CreateInvitationRequest } from "@/types/invitation";
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
 
 export async function createInvitationAction(payload: CreateInvitationRequest) {

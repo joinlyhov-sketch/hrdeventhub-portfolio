@@ -1,8 +1,9 @@
 import { apiGet, apiPost, apiPatch, apiDelete } from "@/libs/api";
 import { getSession } from "next-auth/react";
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
 import { Poll, PollCreateRequest, PollVoteRequest } from "@/types/poll";
+import { DEMO_MODE, DEMO_TOKEN } from "@/libs/demo/config";
 
 interface BackendApiResponse<T> {
   success: boolean;
@@ -20,6 +21,7 @@ type PollWebSocketHandlers = {
 const pollSockets = new Map<string, WebSocket>();
 
 const getLiveToken = async (): Promise<string | undefined> => {
+  if (DEMO_MODE) return DEMO_TOKEN;
   if (typeof window === "undefined") {
     const session = await getServerSession(authOptions);
     return session?.accessToken || (session?.user as Record<string, unknown>)?.token as string | undefined;
@@ -237,7 +239,7 @@ export const pollService = {
     pollId: string,
     handlers: PollWebSocketHandlers,
   ): Promise<void> => {
-    if (typeof window === "undefined") return;
+    if (DEMO_MODE || typeof window === "undefined") return;
 
     const existingSocket = pollSockets.get(pollId);
     if (

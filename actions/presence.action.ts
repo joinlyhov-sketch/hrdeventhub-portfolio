@@ -6,7 +6,7 @@ import {
   setPresenceOffline,
   PresenceMap,
 } from "@/service/presence.service";
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth"; 
 
 export async function getPresenceAction(

@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { X, AlertCircle, Loader2 } from "lucide-react";
 import { useCurrentUser } from "@/context/user-context";
+import { DEMO_MODE } from "@/libs/demo/config";
 import {
   studentRegisterAction,
   alumniFixedPaymentAction,
@@ -59,6 +60,7 @@ function resolveFlow(
   role: UserRole,
   paymentType: PaymentType | null,
 ): WizardFlow {
+  if (DEMO_MODE) return "student-free";
   if (role !== "student" && role !== "alumni") return "not-allowed";
 
   if (paymentType === "flexible") return "flexible-donation";

@@ -2,6 +2,8 @@ import { User2 } from "lucide-react";
 import UserTableClient from "@/components/dashboard/user-management/UserTable";
 import { getAllUsersAction } from "@/actions/user.action";
 
+export const dynamic = "force-dynamic";
+
 export default async function UserManagementPage() {
   const initialUsers = await getAllUsersAction();
 

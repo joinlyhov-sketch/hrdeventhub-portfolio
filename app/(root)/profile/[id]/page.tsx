@@ -1,5 +1,5 @@
 import ProfilePageClient from "@/components/site/profile/ProfilePageClient";
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
 import { redirect } from "next/navigation";
 import { profileService } from "@/service/profile.service";

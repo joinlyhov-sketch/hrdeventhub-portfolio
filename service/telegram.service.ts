@@ -1,5 +1,7 @@
+import { DEMO_MODE } from "@/libs/demo/config";
 export const telegramService = {
   getConnectionLink: async (userId: string): Promise<string> => {
+    if (DEMO_MODE) throw new Error("Telegram connections are unavailable in this demo.");
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL;
       

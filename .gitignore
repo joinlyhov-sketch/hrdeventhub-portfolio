@@ -19,16 +19,22 @@
 
 # production
 /build
+/dist/
 
 # misc
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
 *.pem
+*.key
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -36,6 +42,9 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# local credentials
+/.aws/
 
 # typescript
 *.tsbuildinfo

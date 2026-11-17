@@ -1,5 +1,5 @@
 import { apiGet, apiPatch } from "@/libs/api";
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
 import { ApiUser, ApiResponse } from "@/types/user-management-type/user";
 

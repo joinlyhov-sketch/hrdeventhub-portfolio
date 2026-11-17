@@ -1,6 +1,7 @@
 "use server";
+import { DEMO_MODE } from "@/libs/demo/config";
 
-import { getServerSession } from "next-auth";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import { authOptions } from "@/libs/auth";
 import {
   paymentService,
@@ -29,6 +30,7 @@ const STATIC_BANK_FIELDS = {
 } as const;
 
 function isStudentOrAlumni(role?: string) {
+  if (DEMO_MODE) return true;
   const normalizedRole = role?.toLowerCase();
   return normalizedRole === "student" || normalizedRole === "alumni";
 }
@@ -83,7 +85,7 @@ export async function studentRegisterAction(
       ok: true,
       payload: {
         message:
-          "You've successfully registered for this event! Check your email for confirmation.",
+          DEMO_MODE ? "Demo registration saved. No payment or email is required." : "You've successfully registered for this event! Check your email for confirmation.",
       },
     };
   } catch (error) {

@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { CompatClient, StompSubscription, IMessage } from "@stomp/stompjs";
+import { DEMO_MODE } from "@/libs/demo/config";
+import { apiPost } from "@/libs/api";
+import { toast } from "sonner";
 import { WS_URL } from "@/libs/constants";
 import {
   WsEvent,
@@ -28,7 +31,7 @@ export function useWebSocket({
   onDelete,
   onRead,
 }: UseWebSocketOptions) {
-  const [status, setStatus] = useState<WsStatus>("disconnected");
+  const [status, setStatus] = useState<WsStatus>(DEMO_MODE ? "connected" : "disconnected");
 
   const stompRef = useRef<CompatClient | null>(null);
   const subRef = useRef<StompSubscription | null>(null);
@@ -69,7 +72,7 @@ export function useWebSocket({
   }, []);
 
   const connect = useCallback(async () => {
-    if (cancelledRef.current || !token) return;
+    if (DEMO_MODE || cancelledRef.current || !token) return;
 
     const { default: SockJS } = await import("sockjs-client");
     const { Stomp } = await import("@stomp/stompjs");
@@ -131,6 +134,12 @@ export function useWebSocket({
   );
 
   const sendMessage = useCallback((conversationId: string, content: string): boolean => {
+    if (DEMO_MODE) {
+      void apiPost<{ payload: ChatMessage }>(`/chat/conversations/${conversationId}/messages`, { content })
+        .then(({ payload }) => onMessageRef.current(payload))
+        .catch(error => toast.error(error.message));
+      return true;
+    }
     if (!stompRef.current?.connected) return false;
     stompRef.current.send("/app/chat.send", {}, JSON.stringify({ conversationId, content }));
     return true;

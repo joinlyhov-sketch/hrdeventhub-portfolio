@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
+import { getAppSession as getServerSession } from "@/libs/server-session";
 import PollForm from "@/components/feedback/poll/PollForm";
 import { FeedbackBreadcrumb } from "@/components/dashboard/FeedbackBreadcrumb";
 

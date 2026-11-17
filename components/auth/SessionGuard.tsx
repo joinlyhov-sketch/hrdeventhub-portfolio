@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useRef } from "react";
 import { logoutAction } from "@/actions/auth.action";
+import { DEMO_MODE } from "@/libs/demo/config";
 
 export function SessionGuard({ children }: { children: React.ReactNode }) {
   const { data: session, update } = useSession();
@@ -22,6 +23,7 @@ export function SessionGuard({ children }: { children: React.ReactNode }) {
   const isRefreshing = useRef(false);
 
   useEffect(() => {
+    if (DEMO_MODE) return;
     if (session?.accessTokenExpiry && session?.error !== "RefreshTokenExpired") {
       const timeRemaining = session.accessTokenExpiry - Date.now();
       

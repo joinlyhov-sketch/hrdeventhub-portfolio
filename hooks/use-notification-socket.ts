@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { DEMO_MODE } from "@/libs/demo/config";
 import { useSession } from "next-auth/react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
@@ -107,7 +108,7 @@ export function useNotificationSocket({
   }, [addNotification]);
 
   useEffect(() => {
-    if (!token || !appUserId) return;
+    if (DEMO_MODE || !token || !appUserId) return;
 
     const base =
       process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api/v5", "");
